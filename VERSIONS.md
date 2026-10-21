@@ -98,5 +98,14 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - Files: `prototype/versions/v3-midfi-airbnb.html`, photos in `prototype/assets/photos/` (from the sticker library sources, see their CREDITS)
 - Feedback that led here: "Airbnb style, mid-fi, full screen, not inside a phone mockup."
 
+### Prototype v4: mid-fi, trip on a map
+- Trips: "Plan a new trip" is now an icon button next to the title.
+- Trip page: full-screen map with Lisbon stickers on the places the group visited (OpenStreetMap, greyed so the stickers carry the color). The dinner pin appears once the poll picks a place.
+- Bottom sheet over the map: drag between half and full. A "Today" strip of horizontal cards, then segmented tabs: People (with "Add people" at the top and each person's balance), Expenses (with Settle up), History. On desktop the sheet becomes a side panel.
+- Adding people: icon button in the trip header and a row at the top of People.
+- Poll: horizontal cards with a photo, a vote bar and %, plus a progress block on top (one segment per person, who voted, who we're waiting for, closing time).
+- File: `prototype/versions/v4-midfi-map.html` (v3 kept), sticker pins in `prototype/assets/stickers/`, place photos in `prototype/assets/photos/place-*.jpg`
+- Feedback that led here: polls as horizontal cards, not empty; map with stickers and a bottom sheet with People / Expenses / History; a visible way to add people; a small new-trip button.
+
 ## Tools
 Scripts behind all of the above are in `tools/` (see `tools/README.md`).
