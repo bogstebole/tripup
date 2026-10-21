@@ -1,3 +1,4 @@
 .DS_Store
 # Screen recordings stay in Assets/ but are too big for git history
 *.mov
+Assets/map/tiles-*/

@@ -107,5 +107,14 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - File: `prototype/versions/v4-midfi-map.html` (v3 kept), sticker pins in `prototype/assets/stickers/`, place photos in `prototype/assets/photos/place-*.jpg`
 - Feedback that led here: polls as horizontal cards, not empty; map with stickers and a bottom sheet with People / Expenses / History; a visible way to add people; a small new-trip button.
 
+### Prototype v5: the map is the history
+- The History tab is gone from the trip sheet; the map with stickers already shows where the group has been. Tabs: People, Expenses.
+- File: `prototype/versions/v5-midfi-map.html` (v4 kept)
+
+### Lisbon map for Figma
+- OpenStreetMap tiles, zoom 15, stitched into one image (3584 × 2048, placed @2x), in a color and a grey version. The grey one matches the prototype map.
+- Figma, page Assets → section "Map · Lisbon (OSM)": the grey map with sticker pins at the real places (instances from the sticker library, plus Flat and Dinner pins), and the color map. Keep the "© OpenStreetMap contributors" line on anything that uses it.
+- Files: `Assets/map/lisbon-osm-z15.png`, `lisbon-osm-z15-grey.png`, `lisbon-osm-z15.json` (pixel math for placing pins); script `tools/osm_map.py`. The tile cache isn't committed.
+
 ## Tools
 Scripts behind all of the above are in `tools/` (see `tools/README.md`).

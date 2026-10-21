@@ -1,0 +1,9 @@
+{
+ "zoom": 15,
+ "tile_x0": 15543,
+ "tile_y0": 12553,
+ "width": 3584,
+ "height": 2048,
+ "fetched_now": 112,
+ "px": "x = (tx(lon) - tile_x0) * 256, y = (ty(lat) - tile_y0) * 256"
+}
