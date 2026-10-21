@@ -1,0 +1,12 @@
+Magnet test: source photos (Wikimedia Commons). Internal test only.
+
+tram      "Tram 28 at Largo de Santa Luzia in Lisbon, 20250606 1958 0419.jpg", Jakub Hałun, CC BY 4.0
+nata      "Pastel de Nata - Cornish Bakery, Lewes 2026-07-03.jpg", Andy Li, CC0
+belem     "Torre Belém April 2009-4a.jpg", Alvesgaspar, CC BY-SA 3.0
+berlin    "Ampelmännchen Berlin (46908835945).jpg", dronepicr, CC BY 2.0
+mallorca  "Ensaïmada.jpg", Popo le Chien, CC0
+bansko    "Bansko ski 2025 19.jpg", kallerna, CC BY-SA 4.0
+
+Pipeline: Apple Vision cutout -> magnet.py (white printed rim, 18 px body, resin dome lighting + gloss band, soft and contact shadow).
+home-fridge-mock.html is the source of the Home mock (390 x 844, rendered at 2x).
+CC BY / CC BY-SA images need attribution if used beyond internal testing.

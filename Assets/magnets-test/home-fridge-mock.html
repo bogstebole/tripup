@@ -1,0 +1,71 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@500;600;700;800&display=swap">
+<style>
+/* Home as a fridge door: freezer door on top (greeting), fridge door below with trip magnets. Lo-fi mock, 390x844. */
+:root { --ink: #14151A; --muted: #6B7080; --m: file:///Users/bogste/Documents/Projects/Personal/Bending%20Spoon%20Test%20Task/assets/magnets-test/; }
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 390px; height: 844px; overflow: hidden; font-family: "Figtree", -apple-system, sans-serif; color: var(--ink); }
+body {
+  position: relative;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,0) 12%, rgba(255,255,255,.75) 20%, rgba(255,255,255,0) 30%),
+    linear-gradient(180deg, #F8F7F4 0%, #EDEBE6 100%);
+}
+.status { height: 47px; display: flex; justify-content: space-between; align-items: center; padding: 6px 30px 0 34px; font-weight: 700; font-size: 15px; }
+.island { position: absolute; left: 50%; top: 11px; width: 120px; height: 34px; background: #000; border-radius: 20px; transform: translateX(-50%); }
+.head { display: flex; justify-content: space-between; align-items: center; padding: 10px 22px 0; }
+.head h1 { margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.02em; }
+.head p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+.btn-mag { width: 46px; height: 46px; border-radius: 50%; background: #FFC83D; display: grid; place-items: center; font-weight: 800; font-size: 19px; position: relative;
+  box-shadow: inset 0 -3px 0 rgba(0,0,0,.12), 0 3px 0 #D9A21F, 0 8px 12px rgba(40,30,10,.25); }
+.btn-mag::after { content: ""; position: absolute; left: 9px; top: 6px; width: 16px; height: 9px; border-radius: 50%; background: rgba(255,255,255,.7); transform: rotate(-25deg); }
+.seam { position: absolute; left: 0; right: 0; top: 136px; height: 5px; background: linear-gradient(#D3CFC8 0 3px, #FFFFFF 3px 5px); }
+.handle { position: absolute; right: -7px; top: 168px; width: 18px; height: 300px; border-radius: 9px;
+  background: linear-gradient(90deg, #CFCAC2, #FFFFFF 40%, #D9D5CE); box-shadow: -3px 4px 10px rgba(40,30,10,.18); }
+.mag { position: absolute; display: block; }
+.mag img { display: block; width: 100%; height: auto; }
+.tile { position: absolute; background: #fff; padding: 3px 8px 4px; font-family: Georgia, "Times New Roman", serif; font-size: 16px; color: #111; white-space: nowrap;
+  box-shadow: 0 1px 0 #E3E0DA, 0 4px 7px rgba(40,30,10,.18); }
+.tile.small { font-size: 12.5px; padding: 2px 6px 3px; }
+.tile.live { color: #C62828; }
+.dot { position: absolute; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 13px;
+  box-shadow: inset 0 -2px 0 rgba(0,0,0,.12), 0 2px 0 rgba(0,0,0,.18), 0 5px 8px rgba(40,30,10,.22); }
+.dot::after { content: ""; position: absolute; left: 6px; top: 4px; width: 10px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.65); transform: rotate(-25deg); }
+.label { position: absolute; left: 22px; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #8B8E98; }
+.blank { position: absolute; width: 128px; height: 108px; border-radius: 22px; background: #FDFDFB; display: grid; place-items: center; text-align: center;
+  font-family: Georgia, serif; font-size: 15px; color: #6B7080; line-height: 1.25;
+  box-shadow: inset 0 -4px 0 #E2DFD8, 0 3px 0 #CFCBC3, 0 10px 16px rgba(40,30,10,.18); transform: rotate(3deg); }
+.tabbar { position: absolute; left: 14px; right: 14px; bottom: 26px; height: 64px; border-radius: 26px; background: rgba(255,255,255,.9); box-shadow: 0 8px 24px rgba(20,22,30,.12), 0 0 0 1px #E7E8EC;
+  display: flex; justify-content: space-around; align-items: center; font-size: 11px; font-weight: 700; color: var(--muted); }
+.tabbar span.on { color: var(--ink); background: #F1F1EE; padding: 8px 14px; border-radius: 16px; }
+.homebar { position: absolute; bottom: 8px; left: 50%; width: 134px; height: 5px; background: #111; border-radius: 3px; transform: translateX(-50%); }
+</style></head>
+<body>
+  <div class="status"><span>18:42</span><span class="island"></span><span style="display:flex;gap:6px;align-items:center"><svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="#14151A"/><rect x="5" y="5" width="3" height="7" rx="1" fill="#14151A"/><rect x="10" y="2.5" width="3" height="9.5" rx="1" fill="#14151A"/><rect x="15" y="0" width="3" height="12" rx="1" fill="#14151A"/></svg><svg width="26" height="12" viewBox="0 0 26 12"><rect x="0.5" y="0.5" width="22" height="11" rx="3.5" fill="none" stroke="#14151A" opacity=".4"/><rect x="2" y="2" width="16" height="8" rx="2" fill="#14151A"/></svg></span></div>
+  <div class="head"><div><h1>Hi Ari</h1><p>1 trip happening now</p></div><div class="btn-mag">A</div></div>
+  <div class="seam"></div>
+  <div class="handle"></div>
+
+  <!-- current trip -->
+  <span class="mag" style="left:30px; top:172px; width:150px"><img src="file:///Users/bogste/Documents/Projects/Personal/Bending%20Spoon%20Test%20Task/assets/magnets-test/tram-magnet.png" alt=""></span>
+  <span class="tile" style="left:196px; top:206px; font-size:26px; transform:rotate(-3deg)">lisbon</span>
+  <span class="tile small live" style="left:204px; top:252px; transform:rotate(2deg)">● now · last day</span>
+  <span class="dot" style="left:200px; top:296px; background:#FFC83D">A</span>
+  <span class="dot" style="left:236px; top:292px; background:#7DD3FC">N</span>
+  <span class="dot" style="left:272px; top:298px; background:#FDA4AF">M</span>
+  <span class="dot" style="left:308px; top:293px; background:#86EFAC">L</span>
+  <span class="tile small" style="left:204px; top:346px; transform:rotate(-1.5deg)">dinner poll · 3 of 4 voted</span>
+
+  <div class="label" style="top:430px">Souvenirs · 3 trips</div>
+  <span class="mag" style="left:26px; top:458px; width:96px"><img src="file:///Users/bogste/Documents/Projects/Personal/Bending%20Spoon%20Test%20Task/assets/magnets-test/berlin-magnet.png" alt=""></span>
+  <span class="tile small" style="left:34px; top:612px; transform:rotate(-2deg)">berlin · mar 26</span>
+  <span class="mag" style="left:142px; top:486px; width:118px"><img src="file:///Users/bogste/Documents/Projects/Personal/Bending%20Spoon%20Test%20Task/assets/magnets-test/mallorca-magnet.png" alt=""></span>
+  <span class="tile small" style="left:150px; top:590px; transform:rotate(1.5deg)">mallorca · aug 25</span>
+  <span class="mag" style="left:272px; top:460px; width:92px"><img src="file:///Users/bogste/Documents/Projects/Personal/Bending%20Spoon%20Test%20Task/assets/magnets-test/bansko-magnet.png" alt=""></span>
+  <span class="tile small" style="left:272px; top:600px; transform:rotate(-1deg)">bansko · jan 26</span>
+  <div class="blank" style="left:232px; top:636px">+ plan the<br>next trip</div>
+
+  <div class="tabbar"><span class="on">Trips</span><span>Map</span><span>Activity</span><span>Profile</span></div>
+  <div class="homebar"></div>
+</body></html>

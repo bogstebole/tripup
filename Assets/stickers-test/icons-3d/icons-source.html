@@ -1,0 +1,138 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:transparent;overflow:hidden}canvas{display:block}</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head><body>
+<script>
+// One clay-style 3D icon per page: ?icon=tram|dinner|stay|activity. Same camera, light and shadow for all.
+const SIZE = 1024;
+const icon = new URLSearchParams(location.search).get('icon') || 'tram';
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1);
+renderer.setSize(SIZE, SIZE);
+renderer.setClearColor(0x000000, 0);
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.add(new THREE.HemisphereLight(0xffffff, 0xd9d2c7, 0.6));
+const key = new THREE.DirectionalLight(0xfff4e6, 1.25);
+key.position.set(-3.5, 7, 5);
+key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+key.shadow.radius = 8;
+key.shadow.bias = -0.0005;
+Object.assign(key.shadow.camera, { left: -4, right: 4, top: 4, bottom: -4, near: 0.5, far: 25 });
+scene.add(key);
+const fill = new THREE.DirectionalLight(0xdde7ff, 0.4); fill.position.set(5, 2.5, 3); scene.add(fill);
+const rim = new THREE.DirectionalLight(0xffffff, 0.55); rim.position.set(1, 4, -6); scene.add(rim);
+
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), new THREE.ShadowMaterial({ opacity: 0.16 }));
+ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+
+// palette shared by every icon
+const C = { white: 0xF7F3EC, ink: 0x23304A, glass: 0x3A5378, yellow: 0xFFC23A, coral: 0xFF6B57, blue: 0x4C7DFF, green: 0x36C48B, gold: 0xFFB020, dark: 0x3B3A40 };
+function mat(hex, rough = 0.5) { return new THREE.MeshStandardMaterial({ color: new THREE.Color(hex).convertSRGBToLinear(), roughness: rough, metalness: 0 }); }
+function label(text, w, h) {
+  const cv = document.createElement('canvas'); cv.width = 256; cv.height = Math.round(256 * h / w);
+  const x = cv.getContext('2d'); x.fillStyle = '#23304A'; x.fillRect(0, 0, cv.width, cv.height);
+  x.fillStyle = '#FFFFFF'; x.font = 'bold ' + Math.round(cv.height * 0.7) + 'px Helvetica, Arial, sans-serif';
+  x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(text, cv.width / 2, cv.height / 2 + 2);
+  const t = new THREE.CanvasTexture(cv); t.encoding = THREE.sRGBEncoding; t.anisotropy = 8;
+  return new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshStandardMaterial({ map: t, roughness: 0.6 }));
+}
+
+// pillowy rounded box: extruded rounded rect with a soft bevel
+function rbox(w, h, d, r, color, rough) {
+  const b = Math.min(r, w / 2 - 0.001, h / 2 - 0.001, d / 2 - 0.001);
+  const iw = w - 2 * b, ih = h - 2 * b, rr = Math.min(r * 0.6, iw / 2 - 0.001, ih / 2 - 0.001);
+  const s = new THREE.Shape(), x = -iw / 2, y = -ih / 2;
+  s.moveTo(x + rr, y); s.lineTo(x + iw - rr, y); s.quadraticCurveTo(x + iw, y, x + iw, y + rr);
+  s.lineTo(x + iw, y + ih - rr); s.quadraticCurveTo(x + iw, y + ih, x + iw - rr, y + ih);
+  s.lineTo(x + rr, y + ih); s.quadraticCurveTo(x, y + ih, x, y + ih - rr);
+  s.lineTo(x, y + rr); s.quadraticCurveTo(x, y, x + rr, y);
+  const g = new THREE.ExtrudeGeometry(s, { depth: Math.max(d - 2 * b, 0.001), bevelEnabled: true, bevelThickness: b, bevelSize: b, bevelSegments: 8, curveSegments: 16 });
+  g.center();
+  const m = new THREE.Mesh(g, mat(color, rough));
+  m.castShadow = true; m.receiveShadow = true;
+  return m;
+}
+function cyl(rt, rb, h, color, seg = 48) { const m = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg), mat(color)); m.castShadow = true; m.receiveShadow = true; return m; }
+function sph(r, color, rough) { const m = new THREE.Mesh(new THREE.SphereGeometry(r, 48, 32), mat(color, rough)); m.castShadow = true; return m; }
+function at(m, x, y, z) { m.position.set(x, y, z); return m; }
+
+const builders = {
+  tram() {
+    const g = new THREE.Group();
+    // long axis along z, front face at +z
+    g.add(at(rbox(1.5, 0.28, 2.5, 0.12, C.dark), 0, 0.26, 0));             // chassis
+    g.add(at(rbox(1.62, 1.0, 2.7, 0.22, C.yellow), 0, 0.92, 0));           // lower body
+    g.add(at(rbox(1.62, 0.78, 2.7, 0.2, C.white), 0, 1.78, 0));            // window band
+    g.add(at(rbox(1.72, 0.22, 2.86, 0.11, C.white), 0, 2.26, 0));          // roof
+    g.add(at(rbox(1.1, 0.3, 0.2, 0.08, C.ink), 0, 2.12, 1.38));            // destination sign
+    g.add(at(label('28', 0.86, 0.22), 0, 2.12, 1.486));
+    g.add(at(rbox(1.18, 0.56, 0.12, 0.08, C.glass, 0.2), 0, 1.76, 1.36));  // front window
+    for (const z of [-0.85, 0, 0.85]) g.add(at(rbox(0.12, 0.52, 0.66, 0.06, C.glass, 0.2), 0.81, 1.76, z)); // side windows
+    const lamp = sph(0.13, 0xFFF7D6, 0.15); lamp.scale.z = 0.5; g.add(at(lamp, 0, 0.82, 1.36));
+    for (const z of [-0.8, 0.8]) { const w = cyl(0.26, 0.26, 0.16, C.dark); w.rotation.z = Math.PI / 2; g.add(at(w, 0.76, 0.26, z)); }
+    const pole = cyl(0.035, 0.035, 1.2, C.dark, 16); pole.rotation.x = -0.75; g.add(at(pole, 0, 2.75, -0.55));
+    return g;
+  },
+  dinner() {
+    const g = new THREE.Group();
+    g.add(at(cyl(1.55, 1.35, 0.16, C.white), 0, 0.12, 0));                 // plate
+    g.add(at(cyl(1.25, 1.25, 0.06, 0xEDE6DA), 0, 0.22, 0));                // plate well
+    const dome = new THREE.Mesh(new THREE.SphereGeometry(1.12, 64, 32, 0, Math.PI * 2, 0, Math.PI / 2), mat(C.coral, 0.38));
+    dome.castShadow = true; dome.scale.y = 0.92; g.add(at(dome, 0, 0.25, 0));       // cloche
+    g.add(at(cyl(1.16, 1.16, 0.1, C.coral), 0, 0.28, 0));                  // cloche rim
+    g.add(at(sph(0.2, C.gold, 0.3), 0, 1.4, 0));                           // handle
+    g.add(at(cyl(0.07, 0.1, 0.14, C.gold, 24), 0, 1.27, 0));
+    return g;
+  },
+  stay() {
+    const g = new THREE.Group();
+    g.add(at(rbox(1.9, 1.45, 1.7, 0.18, C.white), 0, 0.73, 0));            // walls
+    const roofL = rbox(1.25, 0.2, 2.0, 0.09, C.blue), roofR = roofL.clone();
+    roofL.rotation.z = 0.68; roofR.rotation.z = -0.68;
+    g.add(at(roofL, -0.47, 1.83, 0)); g.add(at(roofR, 0.47, 1.83, 0));    // roof
+    g.add(at(rbox(0.28, 0.6, 0.28, 0.07, C.blue), 0.55, 2.05, -0.35));    // chimney
+    g.add(at(rbox(0.5, 0.8, 0.12, 0.1, C.gold), 0, 0.42, 0.85));          // door
+    g.add(at(sph(0.04, C.ink), 0.14, 0.42, 0.93));                         // knob
+    g.add(at(rbox(0.12, 0.46, 0.46, 0.06, C.glass, 0.2), 0.95, 0.85, 0.15)); // side window
+    g.add(at(rbox(0.36, 0.36, 0.1, 0.05, C.glass, 0.2), -0.55, 1.05, 0.85)); // front window
+    return g;
+  },
+  activity() {
+    const g = new THREE.Group();
+    g.add(at(rbox(2.2, 1.35, 1.0, 0.22, C.green), 0, 0.78, 0));            // body
+    g.add(at(rbox(2.2, 0.32, 1.0, 0.12, C.white), 0, 1.5, 0));             // top plate
+    g.add(at(rbox(0.7, 0.36, 0.7, 0.12, C.white), -0.5, 1.72, 0));         // viewfinder hump
+    g.add(at(cyl(0.12, 0.12, 0.16, C.gold, 32), 0.7, 1.72, 0));            // shutter
+    const lens = cyl(0.56, 0.6, 0.5, C.white); lens.rotation.x = Math.PI / 2; g.add(at(lens, 0.12, 0.8, 0.62));
+    const glass = cyl(0.4, 0.4, 0.1, C.glass); glass.rotation.x = Math.PI / 2; g.add(at(glass, 0.12, 0.8, 0.9));
+    const shine = sph(0.09, 0xffffff, 0.1); shine.scale.z = 0.3; g.add(at(shine, -0.02, 0.95, 0.95));
+    g.add(at(rbox(0.36, 0.22, 0.1, 0.06, C.ink), -0.75, 1.12, 0.5));       // flash
+    return g;
+  }
+};
+
+const obj = builders[icon]();
+scene.add(obj);
+
+// frame the object: 3/4 view from front-right, slightly above
+const box = new THREE.Box3().setFromObject(obj), size = box.getSize(new THREE.Vector3()), center = box.getCenter(new THREE.Vector3());
+const radius = size.length() / 2;
+const camera = new THREE.PerspectiveCamera(28, 1, 0.1, 100);
+const dist = radius / Math.sin(THREE.MathUtils.degToRad(28 / 2)) * (icon === 'activity' ? 1.7 : 1.4);
+const az = THREE.MathUtils.degToRad(icon === 'tram' ? 38 : 32), el = THREE.MathUtils.degToRad(24);
+camera.position.set(center.x + dist * Math.cos(el) * Math.sin(az), center.y + dist * Math.sin(el), center.z + dist * Math.cos(el) * Math.cos(az));
+camera.lookAt(center);
+renderer.render(scene, camera);
+document.title = 'rendered';
+</script>
+</body></html>

@@ -1,0 +1,1117 @@
+<title>TripUp Prototype</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Yellowtail&display=swap">
+<style>
+/* Layout: one iPhone 14 frame (390x844) centered, with a story checklist beside it on wide screens. Light, single theme: lo-fi flow test, not final visuals. */
+:root {
+  --ink: #14151A;
+  --muted: #6B7080;
+  --line: #E7E8EC;
+  --surface: #F4F5F7;
+  --paper: #FFFFFF;
+  --page: #E6E8EE;
+  --accent: #3B5BFD;
+  --accent-soft: #E9EDFF;
+  --good: #12A150;
+  --good-soft: #E3F6EA;
+  --bad: #E5484D;
+  --bad-soft: #FDECEC;
+  --sun: #FFC83D;
+  --font: "Figtree", -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--page); color: var(--ink); font-family: var(--font); -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+input { font: inherit; color: inherit; }
+
+.stage { min-height: 100%; display: flex; align-items: center; justify-content: center; gap: 48px; padding-block: 32px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+/* story panel */
+.story { width: 300px; display: grid; gap: 16px; align-content: start; }
+.story h1 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.01em; }
+.story p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.steps li { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; font-size: 14px; line-height: 1.35; color: var(--muted); }
+.steps li .dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #C9CCD6; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #9AA0AE; background: var(--paper); }
+.steps li.done { color: var(--ink); }
+.steps li.done .dot { background: var(--good); border-color: var(--good); color: #fff; }
+.steps li.next .dot { border-color: var(--accent); color: var(--accent); }
+.steps li.next { color: var(--ink); font-weight: 600; }
+.jumps { display: flex; flex-wrap: wrap; gap: 6px; }
+.jumps button { font-size: 13px; padding: 6px 10px; border-radius: 999px; background: var(--paper); border: 1px solid #D5D8E0; }
+.jumps button:hover { border-color: var(--accent); color: var(--accent); }
+.note { font-size: 12px; color: var(--muted); }
+
+/* phone */
+.phone { width: 390px; height: 844px; border-radius: 54px; background: var(--paper); position: relative; overflow: hidden; box-shadow: 0 0 0 11px #121318, 0 0 0 12px #2A2C33, 0 40px 80px rgba(20, 22, 30, 0.28); flex: none; }
+.statusbar { position: absolute; top: 0; left: 0; right: 0; height: 47px; display: flex; justify-content: space-between; align-items: center; padding: 6px 30px 0 34px; font-weight: 700; font-size: 15px; z-index: 45; pointer-events: none; }
+.statusbar .island { position: absolute; left: 50%; top: 11px; width: 120px; height: 34px; background: #000; border-radius: 20px; transform: translateX(-50%); }
+.statusbar .icons { display: flex; gap: 6px; align-items: center; }
+.homebar { position: absolute; bottom: 8px; left: 50%; width: 134px; height: 5px; background: #111; border-radius: 3px; transform: translateX(-50%); z-index: 60; pointer-events: none; }
+.screen { position: absolute; inset: 0; display: flex; flex-direction: column; padding-top: 47px; }
+.scroll { flex: 1; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+.scroll::-webkit-scrollbar { display: none; }
+
+@media (max-width: 760px) {
+  .story { display: none; }
+  .stage { padding: 0; }
+  .phone { width: 100vw; height: 100dvh; border-radius: 0; box-shadow: none; }
+}
+
+/* shared bits */
+.muted { color: var(--muted); }
+.av { --s: 36px; width: var(--s); height: var(--s); border-radius: 50%; background: var(--c); display: inline-grid; place-items: center; font-weight: 800; font-size: calc(var(--s) * 0.42); color: #1A1B22; border: 2.5px solid #fff; flex: none; position: relative; }
+.av.s { --s: 26px; border-width: 2px; }
+.av.l { --s: 48px; }
+.av.xl { --s: 72px; border-width: 4px; }
+.av.live::after { content: ""; position: absolute; right: -1px; bottom: -1px; width: 11px; height: 11px; border-radius: 50%; background: #22C55E; border: 2px solid #fff; }
+.stack { display: inline-flex; }
+.stack .av + .av { margin-left: -9px; }
+.icon { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.ibtn { width: 42px; height: 42px; border-radius: 50%; background: var(--paper); display: grid; place-items: center; box-shadow: 0 1px 0 var(--line), 0 0 0 1px var(--line); }
+.btn { display: flex; align-items: center; justify-content: center; gap: 8px; height: 54px; border-radius: 18px; background: var(--ink); color: #fff; font-weight: 700; font-size: 16px; width: 100%; }
+.btn.accent { background: var(--accent); }
+.btn.ghost { background: var(--surface); color: var(--ink); }
+.btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.link { color: var(--accent); font-weight: 700; font-size: 14px; }
+.card { background: var(--paper); border-radius: 22px; box-shadow: 0 0 0 1px var(--line); padding: 16px; }
+.label { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.chip { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; padding: 4px 9px; border-radius: 999px; background: var(--surface); }
+.chip.lead { background: var(--sun); }
+.chip.good { background: var(--good-soft); color: var(--good); }
+.chip.new { background: var(--accent-soft); color: var(--accent); }
+.sec { display: grid; gap: 10px; }
+.sec-h { display: flex; justify-content: space-between; align-items: baseline; }
+.sec-h h3 { margin: 0; font-size: 18px; font-weight: 800; }
+.money { font-variant-numeric: tabular-nums; }
+
+/* sticker */
+.sticker { background: var(--g); border: 6px solid #fff; border-radius: 30px; box-shadow: 0 8px 20px rgba(20, 22, 30, 0.14), 0 0 0 1px rgba(20, 22, 30, 0.05); transform: rotate(var(--r, 0deg)); position: relative; display: grid; place-items: center; }
+.sticker .art { font-size: 54px; line-height: 1; filter: drop-shadow(0 3px 0 rgba(255, 255, 255, 0.7)); }
+.sticker .stack { position: absolute; bottom: -14px; left: 50%; transform: translateX(-50%); }
+
+/* home */
+.home-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px 6px; }
+.brand { display: block; font-family: "Yellowtail", "Brush Script MT", cursive; font-size: 30px; line-height: 1.15; color: var(--ink); width: max-content; }
+
+/* launch: paper, marker swipe, wordmark writes itself, trip stickers pop up into the Home grid */
+.launch { position: absolute; inset: 0; z-index: 44; background-color: #F4F1EA; background-image: radial-gradient(rgba(20, 21, 26, 0.09) 1px, transparent 1.2px); background-size: 18px 18px; cursor: pointer; }
+.launch svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.launch .s1 { fill: none; stroke: #14151A; stroke-width: 84; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; }
+.launch .s2 { fill: none; stroke: #FFFFFF; stroke-width: 4; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; }
+.launch .wm { position: absolute; left: 50%; top: 44%; transform-origin: 0 0; font-family: "Yellowtail", "Brush Script MT", cursive; font-size: 78px; line-height: 1.15; color: #14151A; white-space: nowrap; clip-path: inset(0 100% 0 0); }
+.launch .skip { position: absolute; left: 0; right: 0; bottom: 44px; text-align: center; font-size: 13px; font-weight: 700; color: var(--muted); opacity: 0; animation: fadeIn 0.3s 0.6s forwards; }
+@keyframes fadeIn { to { opacity: 1; } }
+.home-top h2 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+.home-top p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+.trips { display: grid; grid-template-columns: 1fr 1fr; gap: 34px 18px; padding: 26px 22px 120px; }
+.trip { display: grid; gap: 22px; text-align: center; }
+.trip .sticker { height: 150px; }
+.trip b { font-size: 16px; font-weight: 800; display: block; }
+.trip span { font-size: 13px; color: var(--muted); }
+.trip .now { display: inline-flex; align-items: center; gap: 5px; color: var(--good); font-weight: 700; }
+.trip .now::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #22C55E; animation: pulse 1.6s infinite; }
+.trip.newtrip .sticker { background: var(--surface); border: 2px dashed #C9CCD6; box-shadow: none; color: var(--muted); font-weight: 700; }
+.tabbar { position: absolute; left: 14px; right: 14px; bottom: 26px; height: 64px; border-radius: 26px; background: rgba(255, 255, 255, 0.94); box-shadow: 0 8px 24px rgba(20, 22, 30, 0.12), 0 0 0 1px var(--line); display: flex; justify-content: space-around; align-items: center; z-index: 20; }
+.tabbar button { display: grid; justify-items: center; gap: 2px; font-size: 11px; font-weight: 700; color: var(--muted); padding: 6px 10px; border-radius: 16px; }
+.tabbar button.on { color: var(--ink); background: var(--surface); }
+
+/* trip view */
+.trip-hdr { position: relative; height: 250px; flex: none; background: linear-gradient(180deg, #FFF4D1 0%, #FFFFFF 100%); }
+.trip-bar { position: absolute; top: 6px; left: 16px; right: 16px; display: flex; justify-content: space-between; z-index: 3; }
+.trip-bar .right { display: flex; gap: 8px; }
+.trip-hdr .sticker { position: absolute; left: 50%; top: 52px; width: 150px; height: 128px; margin-left: -75px; --r: -3deg; }
+.trip-hdr .title { position: absolute; left: 0; right: 0; bottom: 18px; text-align: center; }
+.trip-hdr .title b { font-size: 22px; font-weight: 800; }
+.trip-hdr .title span { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
+.hdr-av { position: absolute; transition: opacity 0.2s; }
+.hdr-hint { position: absolute; top: 58px; right: 18px; font-size: 11px; font-weight: 700; color: var(--muted); max-width: 70px; text-align: right; }
+.trip-body { padding: 18px 16px 120px; display: grid; gap: 22px; background: var(--paper); border-radius: 28px 28px 0 0; margin-top: -8px; position: relative; box-shadow: 0 -1px 0 var(--line); }
+.fab { position: absolute; right: 18px; bottom: 30px; height: 54px; padding: 0 20px 0 16px; border-radius: 27px; background: var(--ink); color: #fff; display: flex; align-items: center; gap: 8px; font-weight: 700; z-index: 20; box-shadow: 0 10px 24px rgba(20, 22, 30, 0.25); }
+
+/* poll */
+.poll { display: grid; gap: 12px; border: 2px solid var(--ink); box-shadow: none; }
+.poll-q { font-size: 18px; font-weight: 800; margin: 0; }
+.poll-meta { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
+.opt { display: grid; grid-template-columns: 44px 1fr auto; gap: 10px; align-items: center; width: 100%; padding: 10px; border-radius: 16px; background: var(--surface); position: relative; overflow: hidden; text-align: left; }
+.opt .fill { position: absolute; inset: 0 auto 0 0; background: #FFE9A8; z-index: 0; transition: width 0.5s cubic-bezier(.2, .8, .2, 1); }
+.opt > *:not(.fill) { position: relative; z-index: 1; }
+.opt.mine { box-shadow: inset 0 0 0 2px var(--ink); }
+.opt .tile { width: 44px; height: 44px; border-radius: 12px; background: var(--g); display: grid; place-items: center; font-size: 22px; }
+.opt .name { font-weight: 800; font-size: 15px; }
+.opt .meta { font-size: 12px; color: var(--muted); margin-top: 1px; }
+.opt .votes { display: flex; align-items: center; gap: 6px; }
+.opt .count { font-weight: 800; font-size: 18px; min-width: 14px; text-align: right; }
+.opt .tags { display: flex; gap: 4px; margin-top: 4px; }
+.poll-foot { font-size: 13px; color: var(--muted); text-align: center; }
+.nudge { background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: 13px; padding: 10px 12px; border-radius: 14px; text-align: center; }
+
+/* result */
+.result { display: grid; gap: 12px; }
+.result .map { height: 120px; border-radius: 16px; background-color: #EEF1F5; background-image: linear-gradient(90deg, rgba(255,255,255,.9) 2px, transparent 2px), linear-gradient(0deg, rgba(255,255,255,.9) 2px, transparent 2px), linear-gradient(35deg, transparent 46%, #FFFFFF 46%, #FFFFFF 54%, transparent 54%); background-size: 46px 46px, 46px 46px, 100% 100%; position: relative; overflow: hidden; }
+.result .map .water { position: absolute; left: -10%; right: -10%; bottom: -30px; height: 60px; background: #CFE3F5; transform: rotate(-6deg); }
+.result .map .pin { position: absolute; left: 52%; top: 30%; width: 30px; height: 30px; border-radius: 50% 50% 50% 0; background: var(--bad); transform: rotate(-45deg); box-shadow: 0 4px 10px rgba(0,0,0,.2); }
+.result .map .pin::after { content: ""; position: absolute; inset: 9px; border-radius: 50%; background: #fff; }
+.result .map .me { position: absolute; left: 30%; top: 62%; }
+.added { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-radius: 14px; background: var(--good-soft); color: var(--good); font-weight: 700; font-size: 14px; }
+.added button { color: var(--good); text-decoration: underline; font-weight: 700; }
+
+/* itinerary */
+.plan { display: grid; }
+.slot { display: grid; grid-template-columns: 52px 18px 1fr; gap: 10px; align-items: start; }
+.slot .time { font-size: 13px; font-weight: 700; color: var(--muted); padding-top: 12px; text-align: right; font-variant-numeric: tabular-nums; }
+.slot .rail { position: relative; height: 100%; }
+.slot .rail::before { content: ""; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: var(--line); }
+.slot .rail::after { content: ""; position: absolute; left: 3px; top: 15px; width: 12px; height: 12px; border-radius: 50%; background: var(--paper); border: 2px solid #C9CCD6; }
+.slot.done .rail::after { background: #C9CCD6; }
+.slot.hot .rail::after { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.slot .what { padding: 9px 12px; border-radius: 14px; margin-bottom: 8px; }
+.slot.done .what { color: var(--muted); }
+.slot .what b { display: block; font-size: 15px; }
+.slot .what span { font-size: 13px; color: var(--muted); }
+.slot.hot .what { background: var(--accent-soft); }
+.slot.empty .what { border: 2px dashed #C9CCD6; color: var(--muted); }
+.slot.flash .what { animation: flash 1.2s ease-out; }
+
+/* balance card */
+.bal { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.bal b { font-size: 22px; font-weight: 800; display: block; }
+.bal .owe { color: var(--bad); }
+.bal .owed { color: var(--good); }
+.hist { display: grid; gap: 8px; }
+.hist .row { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-radius: 16px; background: var(--surface); font-size: 14px; }
+.hist .row b { display: block; font-size: 14px; }
+.hist .row span { font-size: 12px; color: var(--muted); }
+
+/* sheets */
+.backdrop { position: absolute; inset: 0; background: rgba(15, 16, 22, 0.38); z-index: 30; animation: fade 0.2s; }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 90%; overflow-y: auto; background: var(--paper); border-radius: 30px 30px 0 0; z-index: 31; padding: 10px 20px 36px; animation: up 0.3s cubic-bezier(.2, .8, .2, 1); display: grid; gap: 16px; scrollbar-width: none; }
+.sheet::-webkit-scrollbar { display: none; }
+.grab { width: 40px; height: 5px; border-radius: 3px; background: #D5D8E0; margin: 0 auto; }
+.sheet-h { display: flex; justify-content: space-between; align-items: center; }
+.sheet-h h2 { margin: 0; font-size: 22px; font-weight: 800; }
+.field { display: grid; gap: 6px; }
+.field label { font-size: 13px; font-weight: 700; color: var(--muted); }
+.field input { height: 52px; border-radius: 16px; border: 0; background: var(--surface); padding: 0 16px; font-size: 16px; }
+.suggest { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 16px; box-shadow: 0 0 0 1px var(--line); width: 100%; text-align: left; }
+.suggest b { display: block; font-size: 15px; }
+.suggest span { font-size: 13px; color: var(--muted); }
+.or { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 13px; }
+.or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.invite { display: flex; gap: 10px; }
+.invite button { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; height: 48px; border-radius: 16px; background: var(--surface); font-weight: 700; font-size: 14px; }
+.success { display: grid; justify-items: center; gap: 14px; text-align: center; padding: 10px 0; }
+.success h2 { margin: 0; font-size: 26px; font-weight: 800; }
+.success p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.45; max-width: 300px; }
+.pick { display: grid; grid-template-columns: 44px 1fr 26px; gap: 10px; align-items: center; padding: 10px; border-radius: 16px; box-shadow: 0 0 0 1px var(--line); width: 100%; text-align: left; }
+.pick.on { box-shadow: 0 0 0 2px var(--ink); }
+.pick .tile { width: 44px; height: 44px; border-radius: 12px; background: var(--g); display: grid; place-items: center; font-size: 22px; }
+.pick .name { font-weight: 800; font-size: 15px; }
+.pick .meta { font-size: 12px; color: var(--muted); }
+.check { width: 24px; height: 24px; border-radius: 8px; border: 2px solid #C9CCD6; display: grid; place-items: center; }
+.pick.on .check { background: var(--ink); border-color: var(--ink); color: #fff; }
+.seg { display: flex; gap: 8px; }
+.seg button { flex: 1; height: 42px; border-radius: 14px; background: var(--surface); font-weight: 700; font-size: 14px; }
+.seg button.on { background: var(--ink); color: #fff; }
+.toggle { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 15px; font-weight: 600; }
+.switch { width: 50px; height: 30px; border-radius: 15px; background: #C9CCD6; position: relative; flex: none; transition: background 0.2s; }
+.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+.switch.on { background: var(--good); }
+.switch.on::after { transform: translateX(20px); }
+.hero { height: 150px; border-radius: 22px; background: var(--g); display: grid; place-items: center; font-size: 64px; }
+.facts { display: grid; gap: 1px; background: var(--line); border-radius: 16px; overflow: hidden; }
+.facts div { background: var(--paper); padding: 12px 14px; display: flex; justify-content: space-between; font-size: 14px; }
+.facts div span:first-child { color: var(--muted); }
+
+/* live dinner */
+.live-hdr { padding: 8px 16px 14px; display: grid; gap: 10px; border-bottom: 1px solid var(--line); }
+.live-top { display: flex; justify-content: space-between; align-items: center; }
+.live-badge { display: inline-flex; align-items: center; gap: 6px; font-weight: 800; font-size: 13px; color: var(--bad); }
+.live-badge::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--bad); animation: pulse 1.4s infinite; }
+.live-hdr h2 { margin: 0; font-size: 22px; font-weight: 800; }
+.menu { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 16px 16px 150px; }
+.dish { border-radius: 20px; background: var(--surface); padding: 10px; display: grid; gap: 8px; position: relative; }
+.dish .pic { height: 92px; border-radius: 14px; background: var(--g); display: grid; place-items: center; font-size: 40px; }
+.dish b { font-size: 14px; line-height: 1.2; }
+.dish .price { font-size: 13px; color: var(--muted); }
+.dish .who { min-height: 26px; display: flex; align-items: center; justify-content: space-between; }
+.dish .add { width: 32px; height: 32px; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; }
+.dish .add.on { background: var(--good); }
+.dish .tag { position: absolute; top: 16px; left: 16px; background: #fff; font-size: 11px; font-weight: 800; padding: 3px 7px; border-radius: 999px; }
+.bottombar { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 20px 34px; background: var(--paper); box-shadow: 0 -1px 0 var(--line); display: flex; align-items: center; justify-content: space-between; gap: 12px; z-index: 20; }
+.approx span { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.approx b { display: block; font-size: 32px; font-weight: 800; letter-spacing: -0.02em; }
+.send { height: 56px; padding: 0 20px; border-radius: 28px; background: var(--accent); color: #fff; display: flex; align-items: center; gap: 8px; font-weight: 800; }
+
+/* bill */
+.topnav { display: flex; align-items: center; gap: 10px; padding: 6px 16px 10px; }
+.topnav h2 { margin: 0; font-size: 20px; font-weight: 800; flex: 1; }
+.pad { padding: 4px 16px 150px; display: grid; gap: 18px; }
+.payer { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+.payer button { display: flex; align-items: center; gap: 6px; padding: 4px 12px 4px 4px; border-radius: 999px; background: var(--surface); font-weight: 700; font-size: 14px; flex: none; }
+.payer button.on { background: var(--ink); color: #fff; }
+.hint { display: flex; gap: 10px; align-items: center; padding: 12px 14px; border-radius: 16px; background: #FFF4D1; font-size: 14px; font-weight: 600; }
+.person { display: grid; grid-template-columns: 40px 1fr auto; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.person:last-child { border-bottom: 0; }
+.person .items { display: flex; flex-wrap: wrap; gap: 5px; }
+.item-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; padding: 5px 8px; border-radius: 10px; background: var(--surface); }
+.item-chip.shared { background: #FFE9A8; }
+.person .amt { font-weight: 800; font-size: 17px; text-align: right; }
+.person .amt small { display: block; font-size: 11px; color: var(--muted); font-weight: 600; }
+.person.payer-row { background: var(--good-soft); border-radius: 16px; padding: 10px; border: 0; margin-bottom: 4px; }
+.totals { display: flex; justify-content: space-between; font-size: 15px; font-weight: 700; }
+.who-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.who-grid button { display: grid; justify-items: center; gap: 6px; padding: 12px 6px; border-radius: 18px; background: var(--surface); font-weight: 700; font-size: 14px; position: relative; }
+.who-grid button.off { opacity: 0.4; }
+.who-grid button.off .av { filter: grayscale(1); }
+.who-grid button .mark { position: absolute; top: 8px; right: 8px; width: 20px; height: 20px; border-radius: 50%; background: var(--good); color: #fff; display: grid; place-items: center; }
+.who-grid button.off .mark { background: #C9CCD6; }
+
+/* balance screen */
+.big { display: grid; gap: 6px; padding: 18px; border-radius: 22px; background: var(--ink); color: #fff; }
+.big .nums { display: flex; align-items: baseline; gap: 12px; font-weight: 800; }
+.big .nums s { font-size: 30px; opacity: 0.45; }
+.big .nums b { font-size: 46px; }
+.big p { margin: 0; font-size: 14px; opacity: 0.8; line-height: 1.4; }
+.nets { display: grid; gap: 10px; }
+.net { display: grid; grid-template-columns: 30px 60px 1fr 78px; gap: 8px; align-items: center; font-size: 14px; font-weight: 700; }
+.net .bar { height: 10px; border-radius: 5px; background: var(--surface); position: relative; }
+.net .bar i { position: absolute; top: 0; bottom: 0; border-radius: 5px; }
+.net .bar::after { content: ""; position: absolute; left: 50%; top: -3px; bottom: -3px; width: 2px; background: #C9CCD6; }
+.net .v { text-align: right; }
+.transfer { display: grid; grid-template-columns: auto 20px auto 1fr auto; gap: 8px; align-items: center; padding: 12px; border-radius: 16px; background: var(--surface); font-weight: 700; font-size: 14px; }
+.transfer.you { background: var(--accent-soft); }
+.transfer .amt { text-align: right; font-size: 16px; font-weight: 800; }
+details.why { border-radius: 16px; background: var(--surface); padding: 12px 14px; font-size: 14px; line-height: 1.45; }
+details.why summary { font-weight: 700; cursor: pointer; }
+details.why p { margin: 8px 0 0; color: var(--muted); }
+
+/* pay */
+.method { display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: center; padding: 14px; border-radius: 18px; box-shadow: 0 0 0 1px var(--line); text-align: left; width: 100%; }
+.method .ic { width: 44px; height: 44px; border-radius: 14px; background: var(--surface); display: grid; place-items: center; }
+.method b { display: block; font-size: 15px; }
+.method span { font-size: 13px; color: var(--muted); }
+.bank { display: grid; gap: 16px; }
+.bank .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; }
+.bank .brand i { width: 36px; height: 36px; border-radius: 10px; background: #0F3D2E; display: grid; place-items: center; color: #fff; font-style: normal; font-size: 13px; }
+.bank .amount { font-size: 44px; font-weight: 800; text-align: center; letter-spacing: -0.02em; }
+.spinner { width: 54px; height: 54px; border-radius: 50%; border: 5px solid var(--surface); border-top-color: var(--accent); animation: spin 0.8s linear infinite; margin: 0 auto; }
+
+/* settle */
+.settle-top { display: grid; justify-items: center; gap: 8px; padding: 10px 0 18px; text-align: center; }
+.settle-top b { font-size: 18px; font-weight: 800; }
+.settle-top span { font-size: 13px; color: var(--muted); }
+.payrow { display: grid; grid-template-columns: 40px 1fr auto 28px; gap: 10px; align-items: center; padding: 12px; border-radius: 18px; background: var(--surface); }
+.payrow b { font-size: 15px; }
+.payrow .st { font-size: 12px; color: var(--muted); }
+.payrow .amt { font-weight: 800; font-size: 16px; }
+.payrow.paid { background: var(--good-soft); }
+.payrow .ok { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: #fff; color: #C9CCD6; }
+.payrow.paid .ok { background: var(--good); color: #fff; }
+.coin { position: absolute; width: 30px; height: 30px; border-radius: 50%; background: var(--sun); border: 3px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,.2); display: grid; place-items: center; font-weight: 800; font-size: 14px; z-index: 50; pointer-events: none; }
+.fly { position: absolute; z-index: 50; pointer-events: none; }
+
+/* squared */
+.squared { min-height: 100%; display: grid; align-content: center; justify-items: center; gap: 18px; text-align: center; padding: 30px 26px 140px; background: radial-gradient(circle at 50% 30%, #E3F6EA 0%, #FFFFFF 60%); }
+.squared h2 { margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.02em; }
+.squared p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.45; }
+.squared .sticker { width: 170px; height: 150px; --r: -4deg; }
+.badge-ok { position: absolute; right: -16px; top: -16px; width: 52px; height: 52px; border-radius: 50%; background: var(--good); color: #fff; display: grid; place-items: center; border: 4px solid #fff; animation: pop 0.5s cubic-bezier(.2, 1.6, .4, 1); }
+.stats { display: flex; gap: 10px; }
+.stats div { padding: 10px 14px; border-radius: 16px; background: var(--paper); box-shadow: 0 0 0 1px var(--line); font-size: 13px; color: var(--muted); }
+.stats b { display: block; color: var(--ink); font-size: 18px; }
+
+/* banner */
+.banner { position: absolute; top: 52px; left: 10px; right: 10px; z-index: 40; background: rgba(248, 248, 251, 0.97); border-radius: 22px; padding: 12px 14px; box-shadow: 0 10px 30px rgba(20, 22, 30, 0.18), 0 0 0 1px var(--line); display: grid; grid-template-columns: 38px 1fr; gap: 10px; align-items: center; animation: drop 0.35s cubic-bezier(.2, .8, .2, 1); }
+.banner .app { width: 38px; height: 38px; border-radius: 10px; background: var(--ink); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 13px; }
+.banner b { font-size: 14px; display: flex; justify-content: space-between; }
+.banner b small { font-weight: 500; color: var(--muted); font-size: 12px; }
+.banner p { margin: 2px 0 0; font-size: 14px; line-height: 1.35; }
+.banner .cap { grid-column: 1 / -1; font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; }
+.banner.out { animation: rise 0.3s forwards; }
+
+@keyframes up { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes fade { from { opacity: 0; } }
+@keyframes drop { from { transform: translateY(-140%); } to { transform: none; } }
+@keyframes rise { to { transform: translateY(-140%); } }
+@keyframes pulse { 50% { opacity: 0.3; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pop { from { transform: scale(0); } }
+@keyframes flash { 0% { box-shadow: 0 0 0 0 rgba(59, 91, 253, 0.6); } 100% { box-shadow: 0 0 0 14px rgba(59, 91, 253, 0); } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="stage">
+  <aside class="story" aria-label="User story">
+    <div>
+      <h1>TripUp prototype</h1>
+      <p>Lisbon scenario from the brief. Click through as Ari; your friends act on their own.</p>
+    </div>
+    <ol class="steps" id="steps"></ol>
+    <div class="jumps" id="jumps">
+      <button data-a="preset" data-v="start">Restart with launch</button>
+      <button data-a="preset" data-v="poll">Jump to poll</button>
+      <button data-a="preset" data-v="dinner">Jump to dinner</button>
+      <button data-a="preset" data-v="bill">Jump to bill</button>
+      <button data-a="preset" data-v="balance">Jump to settle up</button>
+    </div>
+    <p class="note">People, restaurants and payments are fictional and simulated. Built for iPhone 14 (390 × 844).</p>
+  </aside>
+  <div class="phone" id="phone">
+    <div class="statusbar"><span>18:42</span><span class="island"></span><span class="icons">
+      <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="#14151A"/><rect x="5" y="5" width="3" height="7" rx="1" fill="#14151A"/><rect x="10" y="2.5" width="3" height="9.5" rx="1" fill="#14151A"/><rect x="15" y="0" width="3" height="12" rx="1" fill="#14151A"/></svg>
+      <svg width="26" height="12" viewBox="0 0 26 12"><rect x="0.5" y="0.5" width="22" height="11" rx="3.5" fill="none" stroke="#14151A" opacity=".4"/><rect x="2" y="2" width="16" height="8" rx="2" fill="#14151A"/><rect x="24" y="4" width="1.5" height="4" rx=".75" fill="#14151A" opacity=".4"/></svg>
+    </span></div>
+    <div id="screen"></div>
+    <div id="overlay"></div>
+    <div id="banner"></div>
+    <div class="homebar"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var M = {
+    ari: { name: 'Ari', full: 'Ari Navarro', c: '#FFC83D' },
+    nic: { name: 'Nic', full: 'Nic Stout', c: '#7DD3FC' },
+    maya: { name: 'Maya', full: 'Maya Costa', c: '#FDA4AF' },
+    leo: { name: 'Leo', full: 'Leo Brandt', c: '#86EFAC' },
+    ren: { name: 'Ren', full: 'Ren Okafor', c: '#C4B5FD' }
+  };
+
+  var PLACES = {
+    mercado: { name: 'Mercado da Ribeira Nova', area: 'Cais do Sodré', vibe: 'Lively food hall', rating: 4.5, price: '€€', walk: 8, emoji: '🍤', g: 'linear-gradient(135deg,#FFD6A5,#FFADAD)', addr: 'Av. 24 de Julho 50', hours: 'Open until 00:00', pp: 22 },
+    tasca: { name: 'Tasca do Largo', area: 'Alfama', vibe: 'Cozy & traditional', rating: 4.7, price: '€€', walk: 12, emoji: '🐟', g: 'linear-gradient(135deg,#CAFFBF,#9BF6FF)', addr: 'Largo do Chafariz 14', hours: 'Open until 23:30', pp: 28 },
+    rooftop: { name: 'Sol Poente Rooftop', area: 'Bairro Alto', vibe: 'Sunset rooftop', rating: 4.3, price: '€€€', walk: 15, emoji: '🌅', g: 'linear-gradient(135deg,#FFC6FF,#BDB2FF)', addr: 'Rua da Rosa 210', hours: 'Open until 01:00', pp: 41 },
+    marisco: { name: 'Casa do Marisco', area: 'Baixa', vibe: 'Seafood classic', rating: 4.6, price: '€€€', walk: 10, emoji: '🦐', g: 'linear-gradient(135deg,#FDE2E4,#FAD2E1)', addr: 'Rua dos Correeiros 92', hours: 'Open until 23:00', pp: 38 },
+    lua: { name: 'Pizzaria Lua', area: 'Graça', vibe: 'Casual & cheap', rating: 4.2, price: '€', walk: 6, emoji: '🍕', g: 'linear-gradient(135deg,#FFF1C1,#FFD6A5)', addr: 'Rua da Graça 31', hours: 'Open until 23:30', pp: 14 }
+  };
+
+  var MENU = [
+    { id: 'polvo', name: 'Polvo à lagareiro', price: 22, emoji: '🐙', g: 'linear-gradient(135deg,#FFE5D9,#FFCAD4)' },
+    { id: 'bacalhau', name: 'Bacalhau à Brás', price: 16.5, emoji: '🐟', g: 'linear-gradient(135deg,#E2ECE9,#BEE1E6)' },
+    { id: 'bitoque', name: 'Bitoque', price: 14, emoji: '🥩', g: 'linear-gradient(135deg,#FDE2E4,#FAD2E1)' },
+    { id: 'caldo', name: 'Caldo verde', price: 5, emoji: '🥣', g: 'linear-gradient(135deg,#E2F0CB,#B5EAD7)' },
+    { id: 'wine', name: 'Vinho Verde', price: 18, emoji: '🍷', g: 'linear-gradient(135deg,#F1E3F3,#C9B6E4)', table: true, qty: 2 },
+    { id: 'sumol', name: 'Sumol', price: 3, emoji: '🥤', g: 'linear-gradient(135deg,#FFF1C1,#FFE5A0)' },
+    { id: 'nata', name: 'Pastel de nata', price: 1.5, emoji: '🥧', g: 'linear-gradient(135deg,#FFF3D6,#FFDCA8)' }
+  ];
+
+  var EARLIER = [
+    { id: 'airbnb', title: 'Airbnb, Alfama flat', payer: 'maya', amount: 600, among: ['ari', 'nic', 'maya', 'leo'] },
+    { id: 'tuk', title: 'Tuk-tuk tour', payer: 'nic', amount: 80, among: ['ari', 'nic', 'maya', 'leo'] },
+    { id: 'groc', title: 'Groceries & drinks', payer: 'leo', amount: 46, among: ['ari', 'nic', 'maya', 'leo'] }
+  ];
+
+  var STEPS = [
+    'Open the current trip from Home',
+    'Add Ren to the group',
+    'Create a poll with 3 restaurants',
+    'Everyone gets notified',
+    'Votes come in live',
+    'Poll closes, winner lands in the plan',
+    'Order together at the restaurant',
+    'Log the bill, Ren and Nic skip the wine',
+    'Trip balance in the fewest transfers',
+    'Pay your share in the app',
+    'Everyone is squared up'
+  ];
+
+  var S, timers = [];
+  function fresh() {
+    return {
+      screen: 'home', sheet: null, data: {},
+      renAdded: false, renName: 'Ren',
+      poll: null, closeIn: 30, autoAdd: true, picked: ['mercado', 'tasca', 'rooftop'],
+      dinner: null, flashDinner: false,
+      orders: { polvo: ['leo'], bacalhau: ['maya', 'ren'], bitoque: ['nic'], caldo: [], sumol: ['nic', 'ren'], nata: ['nic', 'maya', 'leo', 'ren'] },
+      wineSharers: null, payer: 'ari', billLogged: false,
+      paid: {}, squared: false,
+      done: {}
+    };
+  }
+  function clearTimers() { timers.forEach(clearTimeout); timers = []; }
+  function later(ms, fn) { timers.push(setTimeout(fn, reduce ? Math.min(ms, 200) : ms)); }
+
+  // ---------- helpers ----------
+  function members() { return S.renAdded ? ['ari', 'nic', 'maya', 'leo', 'ren'] : ['ari', 'nic', 'maya', 'leo']; }
+  function nm(id) { return id === 'ren' ? S.renName : M[id].name; }
+  function eur(n) { return '€' + (Math.round(n * 100) / 100).toFixed(2); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function av(id, size, cls) { return '<span class="av ' + (size || '') + ' ' + (cls || '') + '" style="--c:' + M[id].c + '" data-mid="' + id + '">' + esc(nm(id)[0]) + '</span>'; }
+  function stack(ids, size) { return '<span class="stack">' + ids.map(function (i) { return av(i, size); }).join('') + '</span>'; }
+  function listNames(ids) { var n = ids.map(nm); return n.length < 2 ? n.join('') : n.slice(0, -1).join(', ') + ' and ' + n[n.length - 1]; }
+  var I = {
+    back: '<svg class="icon" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>',
+    plus: '<svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+    pen: '<svg class="icon" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4z"/></svg>',
+    x: '<svg class="icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+    poll: '<svg class="icon" viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>',
+    send: '<svg class="icon" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>',
+    check: '<svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12l5 5L20 7"/></svg>',
+    checkBig: '<svg class="icon" viewBox="0 0 24 24" style="width:28px;height:28px;stroke-width:3"><path d="M5 12l5 5L20 7"/></svg>',
+    link: '<svg class="icon" viewBox="0 0 24 24"><path d="M10 14a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1M14 10a5 5 0 00-7 0l-3 3a5 5 0 007 7l1-1"/></svg>',
+    qr: '<svg class="icon" viewBox="0 0 24 24"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 18h2v2h-2zM14 18h2M18 14h2"/></svg>',
+    bank: '<svg class="icon" viewBox="0 0 24 24"><path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/></svg>',
+    linkPay: '<svg class="icon" viewBox="0 0 24 24"><path d="M4 7h16v10H4zM4 11h16"/></svg>',
+    cash: '<svg class="icon" viewBox="0 0 24 24"><path d="M3 7h18v10H3zM12 15a3 3 0 100-6 3 3 0 000 6z"/></svg>',
+    grid: '<svg class="icon" viewBox="0 0 24 24"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg>',
+    map: '<svg class="icon" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14"/></svg>',
+    bell: '<svg class="icon" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0112 0v5l2 2H4l2-2zM10 21h4"/></svg>',
+    user: '<svg class="icon" viewBox="0 0 24 24"><path d="M12 12a4 4 0 100-8 4 4 0 000 8zM4 21a8 8 0 0116 0"/></svg>',
+    pin: '<svg class="icon" viewBox="0 0 24 24"><path d="M12 21s-7-6.5-7-12a7 7 0 0114 0c0 5.5-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>'
+  };
+
+  function markDone(i) { if (!S.done[i]) { S.done[i] = true; renderSteps(); } }
+
+  // ---------- money ----------
+  function wineSharers() { return S.wineSharers || members(); }
+  function dinnerShares() {
+    var shares = {}, ids = members();
+    ids.forEach(function (id) { shares[id] = 0; });
+    MENU.forEach(function (it) {
+      if (it.table) {
+        var sh = wineSharers().filter(function (x) { return ids.indexOf(x) >= 0; });
+        if (!sh.length) return;
+        var each = it.price * it.qty / sh.length;
+        sh.forEach(function (x) { shares[x] += each; });
+      } else {
+        (S.orders[it.id] || []).forEach(function (x) { if (ids.indexOf(x) >= 0) shares[x] += it.price; });
+      }
+    });
+    return shares;
+  }
+  function dinnerTotal() { var sh = dinnerShares(), t = 0; for (var k in sh) t += sh[k]; return t; }
+  function expenses() {
+    var list = EARLIER.map(function (e) {
+      var shares = {}; e.among.forEach(function (x) { shares[x] = e.amount / e.among.length; });
+      return { id: e.id, title: e.title, payer: e.payer, amount: e.amount, shares: shares };
+    });
+    if (S.billLogged) list.push({ id: 'dinner', title: 'Dinner, ' + PLACES[S.dinner].name, payer: S.payer, amount: dinnerTotal(), shares: dinnerShares() });
+    return list;
+  }
+  function nets() {
+    var n = {}; members().forEach(function (id) { n[id] = 0; });
+    expenses().forEach(function (e) {
+      n[e.payer] = (n[e.payer] || 0) + e.amount;
+      for (var k in e.shares) n[k] = (n[k] || 0) - e.shares[k];
+    });
+    for (var k in n) n[k] = Math.round(n[k] * 100);
+    return n; // cents
+  }
+  function naiveCount() {
+    var c = 0;
+    expenses().forEach(function (e) { for (var k in e.shares) if (k !== e.payer && e.shares[k] > 0) c++; });
+    return c;
+  }
+  function transfers() {
+    var n = nets(), cred = [], debt = [];
+    for (var k in n) { if (n[k] > 0) cred.push({ id: k, v: n[k] }); else if (n[k] < 0) debt.push({ id: k, v: -n[k] }); }
+    cred.sort(function (a, b) { return b.v - a.v; }); debt.sort(function (a, b) { return b.v - a.v; });
+    var out = [], i = 0, j = 0;
+    while (i < debt.length && j < cred.length) {
+      var x = Math.min(debt[i].v, cred[j].v);
+      if (x > 0) out.push({ from: debt[i].id, to: cred[j].id, cents: x });
+      debt[i].v -= x; cred[j].v -= x;
+      if (debt[i].v === 0) i++;
+      if (cred[j].v === 0) j++;
+    }
+    return out;
+  }
+  function tkey(t) { return t.from + '>' + t.to; }
+  function youFirst(list) { return list.slice().sort(function (a, b) { return (b.from === 'ari') - (a.from === 'ari'); }); }
+
+  // ---------- banner ----------
+  var bannerTimer;
+  function banner(title, body, cap, ms) {
+    var el = document.getElementById('banner');
+    clearTimeout(bannerTimer);
+    el.innerHTML = '<div class="banner" role="status">' + (cap ? '<div class="cap">' + esc(cap) + '</div>' : '') +
+      '<div class="app">TU</div><div><b>' + esc(title) + '<small>now</small></b><p>' + esc(body) + '</p></div></div>';
+    bannerTimer = setTimeout(function () {
+      var b = el.querySelector('.banner'); if (!b) return;
+      b.classList.add('out'); setTimeout(function () { el.innerHTML = ''; }, 300);
+    }, ms || 3600);
+  }
+
+  // ---------- screens ----------
+  function home() {
+    var lisbonPeople = members();
+    return '<div class="scroll">' +
+      '<div class="home-top"><div><span class="brand" id="brand">TripUp</span><h2>Hi Ari</h2><p>1 trip happening now</p></div>' + av('ari', 'l') + '</div>' +
+      '<div class="trips">' +
+        tripSticker('lisbon', 'Lisbon', '🚋', 'linear-gradient(135deg,#FFE27A,#FFB347)', '-4deg', lisbonPeople, '<span class="now">Now · last day</span>') +
+        tripSticker('berlin', 'Berlin', '🎧', 'linear-gradient(135deg,#D6C8FF,#9F8CFF)', '3deg', ['nic', 'leo', 'maya'], '<span>Mar 2026 · 6 friends</span>') +
+        tripSticker('bansko', 'Bansko', '🏂', 'linear-gradient(135deg,#C7ECFF,#7CC6FF)', '2deg', ['ari', 'leo'], '<span>Jan 2026 · 5 friends</span>') +
+        tripSticker('mallorca', 'Mallorca', '🏖️', 'linear-gradient(135deg,#B8F2E6,#5ED3C3)', '-3deg', ['maya', 'nic', 'ari'], '<span>Aug 2025 · 7 friends</span>') +
+        '<button class="trip newtrip" data-a="noop"><div class="sticker" style="--r:0deg">+ New trip</div><span>Plan the next one</span></button>' +
+      '</div></div>' +
+      '<nav class="tabbar">' +
+        '<button class="on">' + I.grid + 'Trips</button><button data-a="noop">' + I.map + 'Map</button><button data-a="noop">' + I.bell + 'Activity</button><button data-a="noop">' + I.user + 'Profile</button>' +
+      '</nav>';
+  }
+  function tripSticker(id, name, art, g, r, ppl, sub) {
+    var act = id === 'lisbon' ? 'data-a="openTrip"' : 'data-a="noop"';
+    return '<button class="trip" ' + act + ' aria-label="' + name + '"><div class="sticker" style="--g:' + g + ';--r:' + r + '"><span class="art">' + art + '</span>' + stack(ppl, 's') + '</div><div><b>' + name + '</b>' + sub + '</div></button>';
+  }
+
+  var HDR_POS = [[34, 64], [308, 58], [22, 140], [318, 136], [58, 196], [286, 196]];
+  function trip() {
+    var ids = members(), p = S.poll;
+    var inHeader = ids.filter(function (id) { return !(p && p.status === 'open' && p.votes[id]); });
+    var hdr = inHeader.map(function (id) {
+      var pos = HDR_POS[ids.indexOf(id) % HDR_POS.length];
+      return '<span class="hdr-av" style="left:' + pos[0] + 'px;top:' + pos[1] + 'px">' + av(id, 'l', 'live') + '</span>';
+    }).join('');
+    var hint = '';
+    var body = '';
+    if (p && p.status === 'open') body += pollCard();
+    else if (p && p.status === 'closed') body += resultCard();
+    else body += '<div class="card" style="display:grid;gap:10px"><span class="label">Tonight</span><b style="font-size:18px">Dinner is not decided yet</b><span class="muted" style="font-size:14px">Ask the group with a quick poll instead of a long chat.</span><button class="btn" data-a="openSheet" data-v="createPoll">' + I.poll + 'Create a poll</button></div>';
+    body += plan() + balanceCard() + history();
+    return '<div class="scroll" id="tripScroll">' +
+      '<div class="trip-hdr">' +
+        '<div class="trip-bar"><button class="ibtn" data-a="go" data-v="home" aria-label="Back">' + I.back + '</button><div class="right"><button class="ibtn" data-a="openSheet" data-v="addMember" aria-label="Add someone">' + I.plus + '</button><button class="ibtn" data-a="noop" aria-label="Edit trip">' + I.pen + '</button></div></div>' +
+        '<div class="sticker" style="--g:linear-gradient(135deg,#FFE27A,#FFB347)"><span class="art">🚋</span></div>' + hdr + hint +
+        '<div class="title"><b>Lisbon</b><span>Last day · ' + ids.length + ' people</span></div>' +
+      '</div>' +
+      '<div class="trip-body">' + body + '</div></div>';
+  }
+
+  function pollCard() {
+    var p = S.poll, ids = members(), voted = Object.keys(p.votes).length;
+    var counts = {}; p.options.forEach(function (o) { counts[o] = 0; });
+    for (var k in p.votes) counts[p.votes[k]]++;
+    var max = Math.max.apply(null, p.options.map(function (o) { return counts[o]; }));
+    var opts = p.options.map(function (o) {
+      var pl = PLACES[o], who = ids.filter(function (id) { return p.votes[id] === o; });
+      var lead = max > 0 && counts[o] === max;
+      var pct = voted ? Math.round(counts[o] / ids.length * 100) : 0;
+      return '<button class="opt ' + (p.votes.ari === o ? 'mine' : '') + '" data-a="vote" data-v="' + o + '">' +
+        '<span class="fill" style="width:' + pct + '%"></span>' +
+        '<span class="tile" style="--g:' + pl.g + '">' + pl.emoji + '</span>' +
+        '<span><span class="name">' + pl.name + '</span><span class="meta" style="display:block">' + pl.vibe + ' · ★ ' + pl.rating + ' · ' + pl.price + ' · ' + pl.walk + ' min</span>' +
+        (lead ? '<span class="tags"><span class="chip lead">Leading</span></span>' : '') + '</span>' +
+        '<span class="votes">' + stack(who, 's') + '<span class="count">' + counts[o] + '</span></span>' +
+      '</button>';
+    }).join('');
+    var waiting = ids.filter(function (id) { return id !== 'ari' && !p.votes[id]; });
+    var foot = p.votes.ari ? 'You voted · tap another place to change' : '<div class="nudge">Your vote is missing. Tap a place.</div>';
+    if (waiting.length) foot += '<div style="margin-top:6px">Still deciding (up top): ' + listNames(waiting) + '</div>';
+    return '<div class="card poll"><div class="poll-meta"><span class="label">Poll · closes ' + p.closes + '</span><span>' + voted + ' of ' + ids.length + ' voted</span></div>' +
+      '<p class="poll-q">' + esc(p.q) + '</p>' + opts + '<div class="poll-foot">' + foot + '</div></div>';
+  }
+
+  function resultCard() {
+    var p = S.poll, pl = PLACES[p.winner];
+    var added = S.dinner === p.winner;
+    return '<div class="card result">' +
+      '<div class="sec-h"><span class="label">Tonight · place voted</span><button class="link" data-a="openSheet" data-v="place">Details</button></div>' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><div><b style="font-size:20px;font-weight:800">' + pl.name + '</b><div class="muted" style="font-size:13px">' + p.winVotes + ' of ' + p.total + ' votes · ' + pl.vibe + ' · ' + pl.walk + ' min walk</div></div><span class="chip good">' + I.check + 'Won</span></div>' +
+      '<div class="map"><div class="water"></div><span class="me">' + av('ari', 's') + '</span><span class="pin"></span></div>' +
+      (added ? '<div class="added"><span>Added to Today at 20:30</span><button data-a="undoAdd">Undo</button></div>' : '<button class="btn ghost" data-a="addToPlan">Add to Today at 20:30</button>') +
+      (added && !S.billLogged ? '<button class="btn accent" data-a="arrive">' + I.pin + 'We\'re here, start dinner</button>' : '') +
+    '</div>';
+  }
+
+  function plan() {
+    var d = S.dinner ? PLACES[S.dinner] : null;
+    var slots = [
+      { t: '10:00', w: 'Tram 28 to Graça', s: 'Done', done: true },
+      { t: '13:30', w: 'Lunch in Alfama', s: 'Done', done: true },
+      { t: '17:00', w: 'Sunset at Senhora do Monte', s: 'Done', done: true }
+    ];
+    var html = slots.map(function (x) { return '<div class="slot done"><span class="time">' + x.t + '</span><span class="rail"></span><div class="what"><b>' + x.w + '</b><span>' + x.s + '</span></div></div>'; }).join('');
+    if (d) html += '<div class="slot hot ' + (S.flashDinner ? 'flash' : '') + '"><span class="time">20:30</span><span class="rail"></span><div class="what"><b>Dinner · ' + d.name + '</b><span>' + d.area + ' · ' + d.walk + ' min walk</span> <span class="chip new" style="margin-top:6px">From poll</span></div></div>';
+    else html += '<div class="slot empty"><span class="time">20:30</span><span class="rail"></span><div class="what"><b>Dinner</b><span>' + (S.poll && S.poll.status === 'open' ? 'Waiting for the poll' : 'Not decided yet') + '</span></div></div>';
+    return '<div class="sec"><div class="sec-h"><h3>Today</h3><span class="muted" style="font-size:13px">Day 4 of 4</span></div><div class="plan">' + html + '</div></div>';
+  }
+
+  function balanceCard() {
+    var n = nets().ari, t = transfers(), mine = t.filter(function (x) { return x.from === 'ari' && !S.paid[tkey(x)]; });
+    var inner;
+    if (S.squared) inner = '<div class="bal"><div><span class="label">Trip balance</span><b class="owed">All squared up</b><span class="muted" style="font-size:13px">Nobody owes anything</span></div><span class="chip good">' + I.check + 'Settled</span></div>';
+    else if (n < 0) inner = '<div class="bal"><div><span class="label">Trip balance</span><b class="owe money">You owe ' + eur(-n / 100) + '</b><span class="muted" style="font-size:13px">' + expenses().length + ' expenses · ' + (mine.length ? 'to ' + listNames(mine.map(function (x) { return x.to; })) : '') + '</span></div><button class="btn" style="width:auto;padding:0 16px;height:44px;font-size:14px" data-a="go" data-v="balance">Settle up</button></div>';
+    else inner = '<div class="bal"><div><span class="label">Trip balance</span><b class="owed money">You\'re owed ' + eur(n / 100) + '</b></div></div>';
+    return '<div class="card">' + inner + '</div>';
+  }
+
+  function history() {
+    return '<div class="sec"><div class="sec-h"><h3>Earlier decisions</h3></div><div class="hist">' +
+      '<div class="row"><div><b>Day trip: Sintra or Cascais?</b><span>Day 2 · 4 votes</span></div><span class="chip">Sintra</span></div>' +
+      '<div class="row"><div><b>Fado night?</b><span>Day 1 · 4 votes</span></div><span class="chip">Yes</span></div>' +
+    '</div></div>';
+  }
+
+  function live() {
+    var ids = members(), pl = PLACES[S.dinner];
+    var dishes = MENU.map(function (it) {
+      var who = it.table ? wineSharers().filter(function (x) { return ids.indexOf(x) >= 0; }) : (S.orders[it.id] || []).filter(function (x) { return ids.indexOf(x) >= 0; });
+      var mine = !it.table && who.indexOf('ari') >= 0;
+      return '<div class="dish"><div class="pic" style="--g:' + it.g + '">' + it.emoji + '</div>' + (it.table ? '<span class="tag">For the table · ×' + it.qty + '</span>' : '') +
+        '<div><b>' + it.name + '</b><div class="price money">' + eur(it.price) + (it.table ? ' a bottle' : '') + '</div></div>' +
+        '<div class="who">' + stack(who, 's') + (it.table ? '' : '<button class="add ' + (mine ? 'on' : '') + '" data-a="order" data-v="' + it.id + '" aria-label="' + (mine ? 'Remove' : 'Add') + ' ' + it.name + '">' + (mine ? I.check : I.plus) + '</button>') + '</div></div>';
+    }).join('');
+    return '<div class="live-hdr"><div class="live-top"><button class="ibtn" data-a="go" data-v="trip" aria-label="Back">' + I.back + '</button><span class="live-badge">Live at the table</span>' + stack(ids, 's') + '</div>' +
+      '<div><h2>' + pl.name + '</h2><span class="muted" style="font-size:13px">Tap + on what you\'re having. Friends add theirs from their phones.</span></div></div>' +
+      '<div class="scroll"><div class="menu">' + dishes + '</div></div>' +
+      '<div class="bottombar"><div class="approx"><span>Approximate</span><b class="money">' + eur(dinnerTotal()) + '</b></div><button class="send" data-a="toBill">Split the bill ' + I.send + '</button></div>';
+  }
+
+  function bill() {
+    var ids = members(), sh = dinnerShares(), total = dinnerTotal();
+    var wine = MENU.filter(function (m) { return m.table; })[0];
+    var rows = ids.slice().sort(function (a, b) { return (a === S.payer ? -1 : 0) - (b === S.payer ? -1 : 0); }).map(function (id) {
+      var chips = MENU.filter(function (it) { return it.table ? wineSharers().indexOf(id) >= 0 : (S.orders[it.id] || []).indexOf(id) >= 0; })
+        .map(function (it) { return '<button class="item-chip ' + (it.table ? 'shared' : '') + '" data-a="openSheet" data-v="share" data-item="' + it.id + '">' + it.emoji + ' ' + (it.table ? 'Wine ÷' + wineSharers().length : it.name) + '</button>'; }).join('');
+      if (!chips) chips = '<span class="muted" style="font-size:12px">Nothing yet</span>';
+      var isPayer = id === S.payer;
+      return '<div class="person ' + (isPayer ? 'payer-row' : '') + '">' + av(id, 'l') + '<div><b>' + nm(id) + (isPayer ? ' paid ' + eur(total) : '') + '</b><div class="items" style="margin-top:4px">' + chips + '</div></div><div class="amt money">' + eur(sh[id]) + '<small>' + (isPayer ? 'own share' : 'owes ' + nm(S.payer)) + '</small></div></div>';
+    }).join('');
+    var excluded = ids.filter(function (x) { return wineSharers().indexOf(x) < 0; });
+    var hint = excluded.length ? '<div class="hint" style="background:var(--good-soft)">' + I.check + '<span>' + listNames(excluded) + ' won\'t pay for the wine.</span></div>' :
+      '<div class="hint">🍷<span>Not everyone had wine? Tap a wine chip to change who shares it.</span></div>';
+    return '<div class="topnav"><button class="ibtn" data-a="go" data-v="live" aria-label="Back">' + I.back + '</button><h2>Split the bill</h2></div>' +
+      '<div class="scroll"><div class="pad">' +
+        '<div class="sec"><span class="label">Who paid?</span><div class="payer">' + ids.map(function (id) { return '<button class="' + (S.payer === id ? 'on' : '') + '" data-a="payer" data-v="' + id + '">' + av(id, 's') + nm(id) + '</button>'; }).join('') + '</div></div>' +
+        hint +
+        '<div class="card" style="padding:6px 14px">' + rows + '</div>' +
+        '<div class="totals"><span>Bill total</span><span class="money">' + eur(total) + '</span></div>' +
+        '<div class="muted" style="font-size:13px">Shared items split evenly between the people sharing them. Each line can be edited.</div>' +
+      '</div></div>' +
+      '<div class="bottombar"><button class="btn accent" data-a="logBill">Add to trip balance</button></div>';
+  }
+
+  function balance() {
+    var n = nets(), t = transfers(), ids = members();
+    var maxAbs = Math.max.apply(null, ids.map(function (id) { return Math.abs(n[id]); })) || 1;
+    var bars = ids.map(function (id) {
+      var v = n[id], w = Math.abs(v) / maxAbs * 50;
+      var bar = v >= 0 ? '<i style="left:50%;width:' + w + '%;background:var(--good)"></i>' : '<i style="right:50%;width:' + w + '%;background:var(--bad)"></i>';
+      return '<div class="net">' + av(id, 's') + '<span>' + nm(id) + '</span><span class="bar">' + bar + '</span><span class="v money" style="color:' + (v >= 0 ? 'var(--good)' : 'var(--bad)') + '">' + (v >= 0 ? '+' : '−') + eur(Math.abs(v) / 100) + '</span></div>';
+    }).join('');
+    var tr = youFirst(t).map(function (x) {
+      var paid = S.paid[tkey(x)];
+      return '<div class="transfer ' + (x.from === 'ari' ? 'you' : '') + '">' + av(x.from, 's') + '<span class="muted">→</span>' + av(x.to, 's') + '<span>' + nm(x.from) + ' pays ' + nm(x.to) + (paid ? ' · paid' : '') + '</span><span class="amt money">' + eur(x.cents / 100) + '</span></div>';
+    }).join('');
+    var mine = t.filter(function (x) { return x.from === 'ari' && !S.paid[tkey(x)]; })[0];
+    var dinner = expenses().filter(function (e) { return e.id === 'dinner'; })[0];
+    var why = '';
+    if (dinner) {
+      var credit = dinner.payer === 'ari' ? dinner.amount - dinner.shares.ari : -(dinner.shares.ari || 0);
+      var owedEarlier = EARLIER.reduce(function (s, e) { return s + (e.payer !== 'ari' && e.among.indexOf('ari') >= 0 ? e.amount / e.among.length : 0); }, 0);
+      var ariPaidEarlier = 0;
+      why = '<details class="why"><summary>Why do I pay ' + (mine ? nm(mine.to) : 'this') + ' and not the others?</summary><p>' +
+        (dinner.payer === 'ari' ? 'Friends owe you ' + eur(credit) + ' for dinner. ' : '') +
+        'You owed ' + eur(owedEarlier) + ' for the Airbnb, tuk-tuk and groceries. TripUp nets it all out: you pay ' + (mine ? eur(mine.cents / 100) + ' straight to ' + nm(mine.to) : 'nothing more') + ', and nobody pays you back separately.</p></details>';
+    }
+    return '<div class="topnav"><button class="ibtn" data-a="go" data-v="trip" aria-label="Back">' + I.back + '</button><h2>Trip balance</h2></div>' +
+      '<div class="scroll"><div class="pad">' +
+        '<div class="big"><span class="label" style="color:rgba(255,255,255,.7)">Fewest transfers</span><div class="nums"><s>' + naiveCount() + '</s><b>' + t.length + '</b><span style="font-size:16px;opacity:.8">payments</span></div><p>TripUp combined all ' + expenses().length + ' expenses into the smallest set of payments. Totals stay the same.</p></div>' +
+        '<div class="sec"><span class="label">Who\'s up, who\'s down</span><div class="nets">' + bars + '</div></div>' +
+        '<div class="sec"><span class="label">Payments to make</span>' + tr + '</div>' + why +
+      '</div></div>' +
+      '<div class="bottombar">' + (mine ? '<button class="btn accent" data-a="openSheet" data-v="payMethod">Pay ' + nm(mine.to) + ' ' + eur(mine.cents / 100) + '</button>' : '<button class="btn" data-a="go" data-v="settle">See who has paid</button>') + '</div>';
+  }
+
+  function settle() {
+    var t = transfers(), to = [];
+    t.forEach(function (x) { if (to.indexOf(x.to) < 0) to.push(x.to); });
+    var paidCount = t.filter(function (x) { return S.paid[tkey(x)]; }).length;
+    var rows = youFirst(t).map(function (x) {
+      var p = S.paid[tkey(x)];
+      return '<div class="payrow ' + (p ? 'paid' : '') + '" data-from="' + x.from + '">' + av(x.from, 'l') + '<div><b>' + nm(x.from) + (x.from === 'ari' ? ' (you)' : '') + '</b><div class="st">' + (p ? 'Paid ' + nm(x.to) : 'Paying ' + nm(x.to) + '…') + '</div></div><span class="amt money">' + eur(x.cents / 100) + '</span><span class="ok">' + I.check + '</span></div>';
+    }).join('');
+    return '<div class="topnav"><button class="ibtn" data-a="go" data-v="balance" aria-label="Back">' + I.back + '</button><h2>Settling up</h2></div>' +
+      '<div class="scroll"><div class="pad">' +
+        '<div class="settle-top"><span class="stack" id="receivers">' + to.map(function (id) { return av(id, 'xl'); }).join('') + '</span><b>' + listNames(to) + (to.length > 1 ? ' are' : ' is') + ' getting paid</b><span>' + paidCount + ' of ' + t.length + ' payments done</span></div>' +
+        rows +
+      '</div></div>';
+  }
+
+  function squared() {
+    var t = transfers(), total = t.reduce(function (s, x) { return s + x.cents; }, 0);
+    return '<div class="scroll"><div class="squared">' +
+      '<div class="sticker" style="--g:linear-gradient(135deg,#FFE27A,#FFB347)"><span class="art">🚋</span>' + stack(members(), 's') + '<span class="badge-ok">' + I.checkBig + '</span></div>' +
+      '<h2>Lisbon is squared up</h2><p>Everyone paid. Nobody owes anything, and the whole group got a notification.</p>' +
+      '<div class="stats"><div><b>' + t.length + '</b>payments</div><div><b>' + naiveCount() + '</b>without TripUp</div><div><b class="money">' + eur(total / 100) + '</b>moved</div></div>' +
+    '</div></div>' +
+    '<div class="bottombar"><button class="btn" data-a="go" data-v="trip">Back to Lisbon</button></div>';
+  }
+
+  // ---------- sheets ----------
+  var SHEETS = {
+    addMember: function () {
+      var name = S.data.name || '', contact = S.data.contact || '';
+      return '<div class="grab"></div><div class="sheet-h"><h2>Add to Lisbon</h2><button class="ibtn" data-a="closeSheet" aria-label="Close">' + I.x + '</button></div>' +
+        '<button class="suggest" data-a="fillRen">' + av('ren', 'l') + '<span><b>Ren Okafor</b><span>From your contacts · +351 912 345 678</span></span></button>' +
+        '<div class="field"><label for="f-name">Name</label><input id="f-name" data-in="name" value="' + esc(name) + '" placeholder="Name" autocomplete="off"></div>' +
+        '<div class="field"><label for="f-contact">Email or phone number</label><input id="f-contact" data-in="contact" value="' + esc(contact) + '" placeholder="ren@mail.com or +351…" autocomplete="off"></div>' +
+        '<div class="or">or let them join without an account</div>' +
+        '<div class="invite"><button data-a="copyLink">' + I.link + 'Copy invite link</button><button data-a="copyLink">' + I.qr + 'Show QR</button></div>' +
+        '<p class="muted" style="margin:0;font-size:13px">They join from today. Expenses before today stay as they were.</p>' +
+        '<button class="btn accent" data-a="addMember" ' + (name.trim() ? '' : 'disabled') + ' id="addBtn">Add ' + (name.trim() ? esc(name.trim().split(' ')[0]) : 'to trip') + '</button>';
+    },
+    addSuccess: function () {
+      return '<div class="grab"></div><div class="success"><div class="sticker" style="--g:linear-gradient(135deg,#E9DFFF,#C4B5FD);width:150px;height:130px;--r:-5deg"><span class="art">🎒</span>' + stack(['ren'], 'l') + '</div>' +
+        '<h2 style="margin-top:14px">' + esc(S.renName) + ' is in</h2><p>We sent ' + esc(S.renName) + ' an invite. From now on they can vote on polls and split costs with the group.</p></div>' +
+        '<button class="btn" data-a="closeSheet">Done</button>';
+    },
+    createPoll: function () {
+      var picks = ['mercado', 'tasca', 'rooftop', 'marisco', 'lua'].map(function (id) {
+        var pl = PLACES[id], on = S.picked.indexOf(id) >= 0;
+        return '<button class="pick ' + (on ? 'on' : '') + '" data-a="pick" data-v="' + id + '"><span class="tile" style="--g:' + pl.g + '">' + pl.emoji + '</span><span><span class="name">' + pl.name + '</span><span class="meta" style="display:block">' + pl.vibe + ' · ★ ' + pl.rating + ' · ' + pl.price + ' · ' + pl.walk + ' min walk</span></span><span class="check">' + (on ? I.check : '') + '</span></button>';
+      }).join('');
+      var others = members().filter(function (x) { return x !== 'ari'; });
+      return '<div class="grab"></div><div class="sheet-h"><h2>New poll</h2><button class="ibtn" data-a="closeSheet" aria-label="Close">' + I.x + '</button></div>' +
+        '<div class="field"><label for="f-q">Question</label><input id="f-q" data-in="q" value="' + esc(S.data.q || 'Where should we eat tonight?') + '"></div>' +
+        '<div class="sec"><div class="sec-h"><span class="label">Places near you</span><span class="muted" style="font-size:13px">' + S.picked.length + ' picked</span></div>' + picks + '</div>' +
+        '<div class="sec"><span class="label">Closes in</span><div class="seg">' + [30, 60, 120].map(function (m) { return '<button class="' + (S.closeIn === m ? 'on' : '') + '" data-a="closeIn" data-v="' + m + '">' + (m < 60 ? m + ' min' : (m / 60) + ' h') + '</button>'; }).join('') + '</div></div>' +
+        '<div class="toggle"><span>Add the winner to Today\'s plan</span><button class="switch ' + (S.autoAdd ? 'on' : '') + '" data-a="autoAdd" role="switch" aria-checked="' + S.autoAdd + '" aria-label="Add the winner to the plan"></button></div>' +
+        '<button class="btn accent" data-a="sendPoll" ' + (S.picked.length >= 2 ? '' : 'disabled') + '>' + I.send + 'Send to ' + listNames(others) + '</button>';
+    },
+    place: function () {
+      var pl = PLACES[S.poll.winner];
+      return '<div class="grab"></div><div class="sheet-h"><h2>' + pl.name + '</h2><button class="ibtn" data-a="closeSheet" aria-label="Close">' + I.x + '</button></div>' +
+        '<div class="hero" style="--g:' + pl.g + '">' + pl.emoji + '</div>' +
+        '<div class="facts"><div><span>Vibe</span><span>' + pl.vibe + '</span></div><div><span>Rating</span><span>★ ' + pl.rating + '</span></div><div><span>Price</span><span>' + pl.price + ' · about ' + eur(pl.pp) + ' a person</span></div><div><span>Address</span><span>' + pl.addr + ', ' + pl.area + '</span></div><div><span>Walk</span><span>' + pl.walk + ' min from you</span></div><div><span>Hours</span><span>' + pl.hours + '</span></div></div>' +
+        '<div class="invite"><button data-a="noop">' + I.map + 'Directions</button><button data-a="noop">' + I.grid + 'Menu</button></div>' +
+        (S.dinner === S.poll.winner ? '<button class="btn ghost" data-a="undoAdd">Remove from today\'s plan</button>' : '');
+    },
+    share: function () {
+      var it = MENU.filter(function (m) { return m.id === S.data.item; })[0], ids = members();
+      if (!it.table) {
+        var who = S.orders[it.id] || [];
+        return '<div class="grab"></div><div class="sheet-h"><h2>' + it.emoji + ' ' + it.name + '</h2><button class="ibtn" data-a="closeSheet" aria-label="Close">' + I.x + '</button></div>' +
+          '<p class="muted" style="margin:0">' + eur(it.price) + ' each · ordered by ' + listNames(who) + '</p><div class="who-grid">' +
+          ids.map(function (id) { var on = who.indexOf(id) >= 0; return '<button class="' + (on ? '' : 'off') + '" data-a="toggleOrder" data-v="' + id + '">' + av(id, 'l') + nm(id) + '<span class="mark">' + I.check + '</span></button>'; }).join('') +
+          '</div><button class="btn" data-a="closeSheet">Done</button>';
+      }
+      var sh = wineSharers(), each = sh.length ? it.price * it.qty / sh.length : 0;
+      return '<div class="grab"></div><div class="sheet-h"><h2>🍷 Vinho Verde × ' + it.qty + '</h2><button class="ibtn" data-a="closeSheet" aria-label="Close">' + I.x + '</button></div>' +
+        '<p class="muted" style="margin:0">' + eur(it.price * it.qty) + ' for the table. Who had some?</p><div class="who-grid">' +
+        ids.map(function (id) { var on = sh.indexOf(id) >= 0; return '<button class="' + (on ? '' : 'off') + '" data-a="toggleWine" data-v="' + id + '">' + av(id, 'l') + nm(id) + '<span class="mark">' + I.check + '</span></button>'; }).join('') +
+        '</div><div class="totals"><span>' + sh.length + ' sharing</span><span class="money">' + eur(each) + ' each</span></div><button class="btn" data-a="closeSheet">Done</button>';
+    },
+    payMethod: function () {
+      var mine = transfers().filter(function (x) { return x.from === 'ari' && !S.paid[tkey(x)]; })[0];
+      return '<div class="grab"></div><div class="sheet-h"><h2>Pay ' + nm(mine.to) + ' ' + eur(mine.cents / 100) + '</h2><button class="ibtn" data-a="closeSheet" aria-label="Close">' + I.x + '</button></div>' +
+        '<button class="method" data-a="bank"><span class="ic">' + I.bank + '</span><span><b>Instant bank transfer</b><span>Opens your bank app. Arrives in seconds, marked paid automatically.</span></span><span class="chip new">Best</span></button>' +
+        '<button class="method" data-a="bank"><span class="ic">' + I.linkPay + '</span><span><b>Payment link</b><span>Revolut, PayPal or Wise, with the amount filled in.</span></span></button>' +
+        '<button class="method" data-a="cash"><span class="ic">' + I.cash + '</span><span><b>I paid another way</b><span>Cash or transfer outside the app. ' + nm(mine.to) + ' confirms it.</span></span></button>';
+    },
+    bankApprove: function () {
+      var mine = transfers().filter(function (x) { return x.from === 'ari' && !S.paid[tkey(x)]; })[0];
+      if (S.data.state === 'sending') return '<div class="grab"></div><div class="success"><div class="spinner"></div><h2>Sending…</h2><p>Your bank is sending ' + eur(mine.cents / 100) + ' to ' + nm(mine.to) + '.</p></div>';
+      return '<div class="grab"></div><div class="bank"><div class="sheet-h"><span class="brand"><i>BK</i>Your bank</span><button class="ibtn" data-a="closeSheet" aria-label="Cancel">' + I.x + '</button></div>' +
+        '<span class="muted" style="text-align:center">TripUp asks you to approve a payment</span><div class="amount money">' + eur(mine.cents / 100) + '</div>' +
+        '<div class="facts"><div><span>To</span><span>' + M[mine.to].full + '</span></div><div><span>IBAN</span><span>PT50 •••• •••• 4821</span></div><div><span>Reference</span><span>TRIPUP-LIS-7F3K</span></div><div><span>Speed</span><span>Instant (SEPA)</span></div></div>' +
+        '<button class="btn" data-a="approve">Approve with Face ID</button><p class="muted" style="margin:0;font-size:12px;text-align:center">Simulated. In the real app this is your bank\'s own screen.</p></div>';
+    }
+  };
+
+  // ---------- render ----------
+  var SCREENS = { home: home, trip: trip, live: live, bill: bill, balance: balance, settle: settle, squared: squared };
+  function render() {
+    var scr = document.getElementById('screen');
+    var prev = scr.querySelector('.scroll'), keep = prev && scr.dataset.s === S.screen ? prev.scrollTop : 0;
+    scr.innerHTML = '<div class="screen">' + SCREENS[S.screen]() + '</div>';
+    scr.dataset.s = S.screen;
+    var sc = scr.querySelector('.scroll'); if (sc) sc.scrollTop = keep;
+    renderSheet();
+    renderSteps();
+  }
+  function renderSheet() {
+    var ov = document.getElementById('overlay');
+    if (!S.sheet) { ov.innerHTML = ''; ov.dataset.k = ''; return; }
+    var key = S.sheet + (S.data.state || '');
+    var html = '<div class="backdrop" data-a="closeSheet"></div><div class="sheet" role="dialog" aria-modal="true">' + SHEETS[S.sheet]() + '</div>';
+    if (ov.dataset.k === key) {
+      var sheet = ov.querySelector('.sheet'), st = sheet.scrollTop;
+      var focusId = document.activeElement && document.activeElement.id;
+      ov.innerHTML = html;
+      var ns = ov.querySelector('.sheet'); ns.style.animation = 'none'; ns.scrollTop = st;
+      ov.querySelector('.backdrop').style.animation = 'none';
+      if (focusId) { var f = document.getElementById(focusId); if (f) { f.focus(); var v = f.value; f.value = ''; f.value = v; } }
+    } else { ov.innerHTML = html; ov.dataset.k = key; }
+  }
+  function renderSteps() {
+    var ol = document.getElementById('steps'), firstOpen = -1;
+    ol.innerHTML = STEPS.map(function (s, i) {
+      var d = S.done[i]; if (!d && firstOpen < 0) firstOpen = i;
+      return '<li class="' + (d ? 'done' : (firstOpen === i ? 'next' : '')) + '"><span class="dot">' + (d ? '✓' : i + 1) + '</span><span>' + s + '</span></li>';
+    }).join('');
+  }
+
+  // ---------- animation ----------
+  function fly(fromRect, toEl, html, cls) {
+    if (reduce || !fromRect || !toEl) return;
+    var phone = document.getElementById('phone').getBoundingClientRect(), to = toEl.getBoundingClientRect();
+    var el = document.createElement('div');
+    el.className = cls || 'fly'; el.innerHTML = html;
+    el.style.left = (fromRect.left - phone.left) + 'px'; el.style.top = (fromRect.top - phone.top) + 'px';
+    document.getElementById('phone').appendChild(el);
+    toEl.style.visibility = 'hidden';
+    var dx = to.left - fromRect.left, dy = to.top - fromRect.top;
+    var a = el.animate([{ transform: 'translate(0,0) scale(1)' }, { transform: 'translate(' + dx * 0.5 + 'px,' + (dy * 0.5 - 60) + 'px) scale(1.15)', offset: 0.5 }, { transform: 'translate(' + dx + 'px,' + dy + 'px) scale(1)' }], { duration: 650, easing: 'cubic-bezier(.3,.7,.3,1)' });
+    a.onfinish = function () { el.remove(); toEl.style.visibility = ''; };
+  }
+
+  function castVote(id, place) {
+    var p = S.poll; if (!p || p.status !== 'open') return;
+    var from = document.querySelector('.hdr-av [data-mid="' + id + '"]') || document.querySelector('.opt [data-mid="' + id + '"]');
+    var fromRect = from ? from.getBoundingClientRect() : null;
+    p.votes[id] = place;
+    render();
+    var to = document.querySelector('.opt[data-v="' + place + '"] [data-mid="' + id + '"]');
+    fly(fromRect, to, av(id, 's'));
+    if (Object.keys(p.votes).length === 1) markDone(4);
+    if (members().every(function (m) { return p.votes[m]; })) later(1400, closePoll);
+  }
+
+  function closePoll() {
+    var p = S.poll; if (!p || p.status !== 'open') return;
+    var counts = {}; p.options.forEach(function (o) { counts[o] = 0; });
+    for (var k in p.votes) counts[p.votes[k]]++;
+    var win = p.options.slice().sort(function (a, b) { return counts[b] - counts[a] || PLACES[b].rating - PLACES[a].rating; })[0];
+    p.status = 'closed'; p.winner = win; p.winVotes = counts[win]; p.total = members().length;
+    if (S.autoAdd) { S.dinner = win; S.flashDinner = true; }
+    markDone(4); markDone(5);
+    render();
+    banner('Lisbon · poll closed', PLACES[win].name + ' won with ' + counts[win] + ' votes' + (S.autoAdd ? '. Added to Today at 20:30.' : '.'), 'Everyone got this');
+    later(1300, function () { S.flashDinner = false; });
+  }
+
+  function simulateVotes() {
+    var p = S.poll, o = p.options;
+    var plan = [['nic', o[1], 1500], ['leo', o[0], 3000], ['maya', o[1], 4400]];
+    if (S.renAdded) plan.push(['ren', o[1] , 5800]);
+    plan.forEach(function (x) { later(x[2], function () { if (S.screen === 'trip') castVote(x[0], x[1]); else { S.poll.votes[x[0]] = x[1]; markDone(4); if (members().every(function (m) { return S.poll.votes[m]; })) later(1400, closePoll); } }); });
+  }
+
+  function runSettle() {
+    if (S.settling) return;
+    S.settling = true;
+    var t = transfers().filter(function (x) { return x.from !== 'ari' && !S.paid[tkey(x)]; });
+    t.forEach(function (x, i) {
+      later(1200 + i * 1300, function () {
+        var row = document.querySelector('.payrow[data-from="' + x.from + '"] .av');
+        var fromRect = row ? row.getBoundingClientRect() : null;
+        S.paid[tkey(x)] = true;
+        render();
+        var to = document.querySelector('#receivers [data-mid="' + x.to + '"]');
+        if (fromRect && to && !reduce) {
+          var phone = document.getElementById('phone').getBoundingClientRect(), tr = to.getBoundingClientRect();
+          var coin = document.createElement('div'); coin.className = 'coin'; coin.textContent = '€';
+          coin.style.left = (fromRect.left - phone.left + 6) + 'px'; coin.style.top = (fromRect.top - phone.top + 6) + 'px';
+          document.getElementById('phone').appendChild(coin);
+          var dx = tr.left + tr.width / 2 - fromRect.left - 21, dy = tr.top + tr.height / 2 - fromRect.top - 21;
+          coin.animate([{ transform: 'translate(0,0)' }, { transform: 'translate(' + dx + 'px,' + dy + 'px) scale(.6)', opacity: 0.4 }], { duration: 700, easing: 'cubic-bezier(.4,0,.2,1)' }).onfinish = function () { coin.remove(); };
+        }
+        banner('Lisbon', nm(x.from) + ' paid ' + nm(x.to) + ' ' + eur(x.cents / 100) + '.', null, 1500);
+        if (transfers().every(function (y) { return S.paid[tkey(y)]; })) later(1500, function () {
+          S.squared = true; markDone(10); S.screen = 'squared'; render();
+          banner('Lisbon · all squared up', 'Everyone has paid. Nobody owes anything.', 'Everyone got this', 4200);
+        });
+      });
+    });
+  }
+
+  // ---------- launch ----------
+  var launchState = null;
+  function endLaunch() {
+    if (!launchState) return;
+    launchState.timers.forEach(clearTimeout);
+    launchState.anims.forEach(function (a) { a.cancel(); });
+    launchState.hidden.forEach(function (el) { el.style.opacity = ''; el.style.visibility = ''; });
+    if (launchState.ov.parentNode) launchState.ov.remove();
+    launchState = null;
+  }
+  function launch() {
+    endLaunch();
+    if (reduce || S.screen !== 'home') return;
+    var phone = document.getElementById('phone');
+    var ov = document.createElement('div');
+    ov.className = 'launch'; ov.setAttribute('aria-label', 'Opening TripUp, tap to skip');
+    ov.innerHTML = '<svg viewBox="0 0 390 844" preserveAspectRatio="none" aria-hidden="true">' +
+      '<path class="s1" pathLength="1" d="M-60 150 C 90 92, 290 108, 450 250"/>' +
+      '<path class="s2" pathLength="1" d="M-40 150 C 100 100, 285 116, 432 246"/></svg>' +
+      '<div class="wm">TripUp</div><span class="skip">Tap to skip</span>';
+    phone.appendChild(ov);
+    var wm = ov.querySelector('.wm');
+    var trips = [].slice.call(document.querySelectorAll('.trips .trip'));
+    var fades = [document.querySelector('.home-top'), document.querySelector('.tabbar')];
+    var brand = document.getElementById('brand');
+    trips.concat(fades).forEach(function (el) { el.style.opacity = '0'; });
+    brand.style.visibility = 'hidden';
+    var st = launchState = { ov: ov, anims: [], timers: [], hidden: trips.concat(fades, [brand]) };
+    function anim(el, kf, opt) { var a = el.animate(kf, opt); st.anims.push(a); return a; }
+    function at(ms, fn) { st.timers.push(setTimeout(fn, ms)); }
+    ov.addEventListener('click', endLaunch);
+
+    function start() {
+      if (launchState !== st) return;
+      wm.style.left = Math.round((phone.clientWidth - wm.offsetWidth) / 2) + 'px';
+      // marker swipe in and out
+      anim(ov.querySelector('.s1'), [{ strokeDashoffset: 1 }, { strokeDashoffset: 0, offset: 0.5 }, { strokeDashoffset: -1 }], { duration: 700, delay: 120, easing: 'cubic-bezier(.6,0,.3,1)', fill: 'both' });
+      anim(ov.querySelector('.s2'), [{ strokeDashoffset: 1 }, { strokeDashoffset: 0, offset: 0.5 }, { strokeDashoffset: -1 }], { duration: 700, delay: 170, easing: 'cubic-bezier(.6,0,.3,1)', fill: 'both' });
+      // wordmark writes itself left to right
+      anim(wm, [{ clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)' }], { duration: 760, delay: 560, easing: 'cubic-bezier(.45,0,.25,1)', fill: 'both' });
+      at(1420, function () {
+        // paper clears, wordmark flies to its spot in the header
+        anim(ov, [{ backgroundColor: 'rgba(244,241,234,1)' }, { backgroundColor: 'rgba(244,241,234,0)' }], { duration: 420, fill: 'forwards' });
+        ov.style.backgroundImage = 'none';
+        var f = wm.getBoundingClientRect(), t = brand.getBoundingClientRect();
+        var s = t.width / f.width;
+        anim(wm, [{ transform: 'none' }, { transform: 'translate(' + (t.left - f.left) + 'px,' + (t.top - f.top) + 'px) scale(' + s + ')' }], { duration: 620, easing: 'cubic-bezier(.5,0,.15,1)', fill: 'forwards' });
+        // trip stickers pop up from below and settle into the grid
+        trips.forEach(function (el, i) {
+          el.style.opacity = '';
+          var tilt = (i % 2 ? 1 : -1) * (10 + i * 2);
+          anim(el, [{ transform: 'translateY(560px) rotate(' + tilt + 'deg) scale(.55)' }, { transform: 'none' }], { duration: 720, delay: 60 + i * 85, easing: 'cubic-bezier(.34,1.5,.55,1)', fill: 'backwards' });
+        });
+      });
+      at(2080, function () {
+        brand.style.visibility = '';
+        ov.style.pointerEvents = 'none';
+        anim(ov, [{ opacity: 1 }, { opacity: 0 }], { duration: 120, fill: 'forwards' });
+        fades.forEach(function (el) {
+          el.style.opacity = '';
+          anim(el, [{ opacity: 0, filter: 'blur(8px)' }, { opacity: 1, filter: 'blur(0px)' }], { duration: 380, easing: 'ease-out' });
+        });
+      });
+      at(2500, function () { if (launchState === st) { ov.remove(); launchState = null; } });
+    }
+    var fontsReady = document.fonts && document.fonts.load ? document.fonts.load('78px "Yellowtail"') : Promise.resolve();
+    var go = false;
+    function once() { if (!go) { go = true; start(); } }
+    fontsReady.then(once, once);
+    at(900, once);
+  }
+
+  // ---------- actions ----------
+  var A = {
+    noop: function () {},
+    go: function (v) { S.screen = v; S.sheet = null; render(); if (v === 'balance') markDone(8); if (v === 'settle') runSettle(); },
+    openTrip: function () { markDone(0); S.screen = 'trip'; render(); },
+    openSheet: function (v, el) { S.sheet = v; S.data = { item: el && el.dataset.item }; render(); },
+    closeSheet: function () {
+      if (S.sheet === 'bankApprove' && S.data.state === 'sending') return;
+      S.sheet = null; S.data = {}; render();
+    },
+    fillRen: function () { S.data.name = 'Ren Okafor'; S.data.contact = '+351 912 345 678'; renderSheet(); },
+    copyLink: function () { banner('Invite link copied', 'tripup.app/j/lisbon-7F3K · works without an account', null, 2400); },
+    addMember: function () {
+      var n = (S.data.name || '').trim(); if (!n) return;
+      S.renName = n.split(' ')[0]; S.renAdded = true; markDone(1);
+      S.sheet = 'addSuccess'; S.data = {}; render();
+    },
+    pick: function (v) {
+      var i = S.picked.indexOf(v);
+      if (i >= 0) S.picked.splice(i, 1); else if (S.picked.length < 4) S.picked.push(v);
+      renderSheet();
+    },
+    closeIn: function (v) { S.closeIn = +v; renderSheet(); },
+    autoAdd: function () { S.autoAdd = !S.autoAdd; renderSheet(); },
+    sendPoll: function () {
+      if (S.picked.length < 2) return;
+      var mins = 18 * 60 + 42 + S.closeIn, closes = Math.floor(mins / 60) + ':' + String(mins % 60).padStart(2, '0');
+      S.poll = { q: (S.data.q || 'Where should we eat tonight?').trim() || 'Where should we eat tonight?', options: S.picked.slice(0, 4), votes: {}, status: 'open', closes: closes };
+      S.sheet = null; S.data = {}; markDone(2); markDone(3);
+      render();
+      var others = members().filter(function (x) { return x !== 'ari'; });
+      banner('Lisbon · Ari', S.poll.q + ' Vote by ' + closes + '.', 'What ' + listNames(others) + ' see', 4000);
+      simulateVotes();
+    },
+    vote: function (v) { castVote('ari', v); },
+    undoAdd: function () { S.dinner = null; S.sheet = null; render(); },
+    addToPlan: function () { S.dinner = S.poll.winner; S.flashDinner = true; render(); later(1300, function () { S.flashDinner = false; }); },
+    arrive: function () {
+      banner('You\'re at ' + PLACES[S.dinner].name, 'Dinner is live. Add what you order so everyone sees the running total.', 'Detected by location', 3400);
+      S.screen = 'live'; render();
+    },
+    order: function (v) {
+      var arr = S.orders[v] = S.orders[v] || [], i = arr.indexOf('ari');
+      if (i >= 0) arr.splice(i, 1); else arr.push('ari');
+      markDone(6); render();
+    },
+    toBill: function () { markDone(6); S.screen = 'bill'; render(); },
+    payer: function (v) { S.payer = v; render(); },
+    toggleWine: function (v) {
+      var sh = wineSharers().slice(), i = sh.indexOf(v);
+      if (i >= 0) { if (sh.length > 1) sh.splice(i, 1); } else sh.push(v);
+      S.wineSharers = sh; render();
+    },
+    toggleOrder: function (v) {
+      var arr = S.orders[S.data.item] = S.orders[S.data.item] || [], i = arr.indexOf(v);
+      if (i >= 0) arr.splice(i, 1); else arr.push(v);
+      render();
+    },
+    logBill: function () {
+      S.billLogged = true; markDone(7);
+      banner('Lisbon · dinner logged', 'Ari added ' + eur(dinnerTotal()) + ' at ' + PLACES[S.dinner].name + '. Balances are updated.', 'Everyone got this', 3000);
+      S.screen = 'balance'; render(); markDone(8);
+    },
+    bank: function () { S.sheet = 'bankApprove'; S.data = {}; render(); },
+    cash: function () {
+      var mine = transfers().filter(function (x) { return x.from === 'ari' && !S.paid[tkey(x)]; })[0];
+      S.paid[tkey(mine)] = true; markDone(9); S.sheet = null;
+      banner('Marked as paid', nm(mine.to) + ' will confirm it got ' + eur(mine.cents / 100) + '.', null, 2600);
+      S.screen = 'settle'; render(); runSettle();
+    },
+    approve: function () {
+      S.data.state = 'sending'; renderSheet();
+      later(1600, function () {
+        var mine = transfers().filter(function (x) { return x.from === 'ari' && !S.paid[tkey(x)]; })[0];
+        S.paid[tkey(mine)] = true; markDone(9);
+        S.sheet = null; S.data = {}; S.screen = 'settle'; render();
+        banner('Paid ' + nm(mine.to), eur(mine.cents / 100) + ' arrived instantly. Your debt is closed.', null, 2600);
+        runSettle();
+      });
+    },
+    preset: function (v) { preset(v); }
+  };
+
+  function preset(v) {
+    clearTimers(); S = fresh();
+    var order = ['start', 'poll', 'dinner', 'bill', 'balance'], k = order.indexOf(v);
+    if (k >= 1) { S.renAdded = true; S.screen = 'trip'; [0, 1].forEach(function (i) { S.done[i] = true; }); }
+    if (k >= 2) {
+      S.poll = { q: 'Where should we eat tonight?', options: ['mercado', 'tasca', 'rooftop'], votes: { ari: 'tasca', nic: 'tasca', leo: 'mercado', maya: 'tasca', ren: 'tasca' }, status: 'closed', closes: '19:12', winner: 'tasca', winVotes: 4, total: 5 };
+      S.dinner = 'tasca'; S.screen = 'live'; [2, 3, 4, 5].forEach(function (i) { S.done[i] = true; });
+    }
+    if (k >= 3) { S.orders.polvo.push('ari'); S.orders.nata.push('ari'); S.screen = 'bill'; S.done[6] = true; }
+    if (k >= 4) { S.wineSharers = ['ari', 'maya', 'leo']; S.billLogged = true; S.screen = 'balance'; S.done[7] = true; S.done[8] = true; }
+    document.getElementById('banner').innerHTML = '';
+    endLaunch();
+    render();
+    if (v === 'start') launch();
+  }
+
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-a]'); if (!t || t.disabled) return;
+    var f = A[t.dataset.a]; if (f) { e.preventDefault(); f(t.dataset.v, t); }
+  });
+  document.addEventListener('input', function (e) {
+    var k = e.target.dataset && e.target.dataset.in; if (!k) return;
+    S.data[k] = e.target.value;
+    if (S.sheet === 'addMember') {
+      var b = document.getElementById('addBtn'), n = e.target.id === 'f-name' ? e.target.value.trim() : (S.data.name || '').trim();
+      if (b) { b.disabled = !n; b.textContent = 'Add ' + (n ? n.split(' ')[0] : 'to trip'); }
+    }
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && S.sheet) A.closeSheet(); });
+
+  S = fresh();
+  render();
+  launch();
+})();
+</script>

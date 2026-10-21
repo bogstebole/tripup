@@ -1,0 +1,12 @@
+Test stickers: source photos (Wikimedia Commons). Internal test only.
+
+tram-*.png   "Tram 28 at Largo de Santa Luzia in Lisbon, 20250606 1958 0419.jpg" by Jakub Hałun, CC BY 4.0
+             https://commons.wikimedia.org/wiki/File:Tram_28_at_Largo_de_Santa_Luzia_in_Lisbon,_20250606_1958_0419.jpg
+nata-*.png   "Pastel de Nata - Cornish Bakery, Lewes 2026-07-03.jpg" by Andy Li, CC0
+             https://commons.wikimedia.org/wiki/File:Pastel_de_Nata_-_Cornish_Bakery,_Lewes_2026-07-03.jpg
+belem-*.png  "Torre Belém April 2009-4a.jpg" by Alvesgaspar, CC BY-SA 3.0
+             https://commons.wikimedia.org/wiki/File:Torre_Bel%C3%A9m_April_2009-4a.jpg
+
+Pipeline: subject cut out with Apple Vision (VNGenerateForegroundInstanceMaskRequest, on-device),
+then outline / puffy treatment in code (dilated alpha + white ring + shadow; puffy = lighting from a blurred height map).
+CC BY and CC BY-SA images need attribution if they are used beyond internal testing.
