@@ -79,5 +79,11 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - Heading tracking is now 0, since the condensed face is already tight.
 - Files: `process/design-tokens/tokens-v1.1.md`, `process/design-tokens/type-check-v1.1.png` (all 12 styles rendered in Figma). v1 is kept in `tokens-v1.md`.
 
+### Motion test v1: trip folder opens into the trip page
+- Home: the active trip is a hero folder. Papers peek out of it (Today, Poll, Balance) and are the trip's real content. Past trips are small folders with stickers.
+- Tap: the cover becomes the page header, and each paper grows into its section. Drag the page down to close; it goes back into the folder the same way.
+- One spring drives everything, so the motion can be interrupted and reversed mid-way. It has a slow-motion (5×) toggle and a reduced-motion fallback.
+- File: `prototype/versions/motion-folder-v1.html` (run `python3 -m http.server` at the project root so the sticker images load)
+
 ## Tools
 Scripts behind all of the above are in `tools/` (see `tools/README.md`).
