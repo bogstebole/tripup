@@ -74,5 +74,10 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - Files: `process/design-tokens/tokens-v1.md` (every semantic token and its value), `process/design-tokens/tailwind-v3-colors.json` (source palette)
 - Figma: https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task (Local variables, Text styles)
 
+### Design tokens v1.1: condensed headings
+- Display and Heading styles (XL, LG, MD, SM) now use IBM Plex Sans Condensed (Bold / SemiBold) through a new `font/family/display` variable (CSS `--font-display`). Body, Label and Caption stay Geist.
+- Heading tracking is now 0, since the condensed face is already tight.
+- Files: `process/design-tokens/tokens-v1.1.md`, `process/design-tokens/type-check-v1.1.png` (all 12 styles rendered in Figma). v1 is kept in `tokens-v1.md`.
+
 ## Tools
 Scripts behind all of the above are in `tools/` (see `tools/README.md`).
