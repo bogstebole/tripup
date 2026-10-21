@@ -13,3 +13,7 @@ Scripts used to make the research and visual tests. Paths inside them point at t
 | `magnet.py` | Fridge-magnet treatment: white printed rim, 18 px body, resin dome gloss, shadow on the fridge. |
 | `icons3d.html` | The 3D icons (three.js): `icons3d.html?icon=tram|dinner|stay|activity`. |
 | `render_icons.sh` | Renders the 3D icons to transparent PNGs with headless Chrome. |
+| `lift_main.swift` | Like `lift.swift`, but keeps only the subject under a point (default: centre, 40% from the top), so people in the background are dropped. Used for the portraits. |
+| `sticker_lib.py` | Shared sticker treatment for the sticker library: trims the cutout, white die-cut outline, soft shadow, optional tilt. |
+| `build_city.py` | Runs a city's photos through the Vision cutout and `sticker_lib.py`, and writes `items.json` plus a preview sheet. |
+| `figma_upload.sh` | Uploads PNGs to the upload URLs returned by the Figma MCP `upload_assets` tool. |

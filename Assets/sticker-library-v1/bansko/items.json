@@ -1,0 +1,110 @@
+[
+ {
+  "key": "flag-globe",
+  "label": "Flag globe",
+  "existing": true,
+  "size": [
+   477,
+   636
+  ]
+ },
+ {
+  "key": "bell_tower",
+  "label": "Holy Trinity Church bell tower, Bansko",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 1565x2632",
+  "size": [
+   418,
+   626
+  ]
+ },
+ {
+  "key": "stone_house",
+  "label": "Velyan's House, Bansko stone house",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 1553x974",
+  "size": [
+   646,
+   442
+  ]
+ },
+ {
+  "key": "kukeri",
+  "label": "Kukeri mask",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 1186x2375",
+  "size": [
+   350,
+   650
+  ]
+ },
+ {
+  "key": "martenitsa",
+  "label": "Martenitsa (Pizho and Penda)",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 1868x1729",
+  "size": [
+   635,
+   609
+  ]
+ },
+ {
+  "key": "banitsa",
+  "label": "Banitsa",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 1569x1314",
+  "size": [
+   647,
+   560
+  ]
+ },
+ {
+  "key": "shopska",
+  "label": "Shopska salad",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 1778x1156",
+  "size": [
+   645,
+   453
+  ]
+ },
+ {
+  "key": "rose",
+  "label": "Bulgarian rose (Rosa damascena)",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 784x803",
+  "size": [
+   634,
+   644
+  ]
+ },
+ {
+  "key": "rakia",
+  "label": "Grape rakia bottle",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 548x1930",
+  "size": [
+   252,
+   646
+  ]
+ },
+ {
+  "key": "ski_boots",
+  "label": "Ski boots",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 1002x1010",
+  "size": [
+   653,
+   650
+  ]
+ }
+]

@@ -1,0 +1,83 @@
+[
+  {
+    "key": "siurell",
+    "label": "Siurell clay whistle figures",
+    "file": "siurell.jpg",
+    "title": "File:Siurells aus Mallorca.JPG",
+    "license": "CC BY-SA 4.0",
+    "author": "Anne Offermanns",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Siurells_aus_Mallorca.JPG"
+  },
+  {
+    "key": "cathedral",
+    "label": "Palma Cathedral (La Seu)",
+    "file": "cathedral.jpg",
+    "title": "File:Palma de Mallorca, Kathedrale La Seu -- 2009 -- 5.jpg",
+    "license": "CC BY-SA 4.0",
+    "author": "Dietmar Rabich",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Palma_de_Mallorca,_Kathedrale_La_Seu_--_2009_--_5.jpg"
+  },
+  {
+    "key": "tram",
+    "label": "Sóller wooden tram",
+    "file": "tram.jpg",
+    "title": "File:Tramvia de Sóller.JPG",
+    "license": "CC BY-SA 3.0",
+    "author": "P. Pérez",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Tramvia_de_S%C3%B3ller.JPG"
+  },
+  {
+    "key": "sobrassada",
+    "label": "Sobrassada sausage",
+    "file": "sobrassada.jpg",
+    "title": "File:Sobrassada en budell natural.jpg",
+    "license": "Public domain",
+    "author": "Slastic",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Sobrassada_en_budell_natural.jpg"
+  },
+  {
+    "key": "lighthouse",
+    "label": "Formentor lighthouse",
+    "file": "lighthouse.jpg",
+    "title": "File:Far de Formentor - Majorca - 01.jpg",
+    "license": "CC BY-SA 3.0",
+    "author": "H. Zell",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Far_de_Formentor_-_Majorca_-_01.jpg"
+  },
+  {
+    "key": "windmill",
+    "label": "Mallorcan windmill",
+    "file": "windmill.jpg",
+    "title": "File:Windmill - Mallorca.jpg",
+    "license": "CC BY-SA 3.0",
+    "author": "H. Zell",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Windmill_-_Mallorca.jpg"
+  },
+  {
+    "key": "olives",
+    "label": "Mallorcan olives (DOP jars)",
+    "file": "olives.jpg",
+    "title": "File:DOP Oliva de Mallorca.jpg",
+    "license": "CC BY-SA 4.0",
+    "author": "Oli de Mallorca",
+    "source_url": "https://commons.wikimedia.org/wiki/File:DOP_Oliva_de_Mallorca.jpg"
+  },
+  {
+    "key": "llaut",
+    "label": "Llaüt fishing boat",
+    "file": "llaut.jpg",
+    "title": "File:Son Serra Llaüt.jpg",
+    "license": "CC BY-SA 3.0",
+    "author": "Olaf Tausch",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Son_Serra_Lla%C3%BCt.jpg"
+  },
+  {
+    "key": "bellver",
+    "label": "Bellver Castle",
+    "file": "bellver.jpg",
+    "title": "File:Bellver Castle in Palma de Mallorca.jpg",
+    "license": "CC BY-SA 3.0",
+    "author": "Wolfgang Moroder",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Bellver_Castle_in_Palma_de_Mallorca.jpg"
+  }
+]

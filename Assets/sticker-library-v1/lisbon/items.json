@@ -1,0 +1,106 @@
+[
+ {
+  "key": "tram",
+  "label": "Tram 28",
+  "existing": true,
+  "size": [
+   460,
+   649
+  ]
+ },
+ {
+  "key": "nata",
+  "label": "Pastel de nata",
+  "existing": true,
+  "size": [
+   536,
+   647
+  ]
+ },
+ {
+  "key": "belem",
+  "label": "Torre de Belém",
+  "existing": true,
+  "size": [
+   641,
+   596
+  ]
+ },
+ {
+  "key": "azulejo",
+  "label": "Azulejo tiles",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 1755x1767",
+  "size": [
+   673,
+   673
+  ]
+ },
+ {
+  "key": "galo",
+  "label": "Rooster of Barcelos",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 1101x1527",
+  "size": [
+   483,
+   651
+  ]
+ },
+ {
+  "key": "guitar",
+  "label": "Portuguese guitar",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 1141x2331",
+  "size": [
+   353,
+   649
+  ]
+ },
+ {
+  "key": "padrao",
+  "label": "Padrão dos Descobrimentos",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 1729x1853",
+  "size": [
+   589,
+   661
+  ]
+ },
+ {
+  "key": "caravel",
+  "label": "Portuguese caravel",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 1632x1475",
+  "size": [
+   632,
+   578
+  ]
+ },
+ {
+  "key": "sardine_tin",
+  "label": "Sardine tin",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 1819x1290",
+  "size": [
+   651,
+   493
+  ]
+ },
+ {
+  "key": "festival_sardine",
+  "label": "Festival sardine",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 586x2721",
+  "size": [
+   219,
+   636
+  ]
+ }
+]

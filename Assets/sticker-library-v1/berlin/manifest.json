@@ -1,0 +1,83 @@
+[
+  {
+    "key": "tvtower",
+    "label": "Fernsehturm (TV Tower)",
+    "file": "tvtower.jpg",
+    "title": "File:Berliner Fernsehturm (Detailansicht).jpg",
+    "license": "CC BY-SA 3.0 de",
+    "author": "Thomas Wolf, www.foto-tw.de",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Berliner_Fernsehturm_(Detailansicht).jpg"
+  },
+  {
+    "key": "gate",
+    "label": "Brandenburg Gate",
+    "file": "gate.jpg",
+    "title": "File:Brandenburger Tor morgens.jpg",
+    "license": "CC BY-SA 3.0",
+    "author": "Thomas Wolf, www.foto-tw.de",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Brandenburger_Tor_morgens.jpg"
+  },
+  {
+    "key": "reichstag",
+    "label": "Reichstag Building",
+    "file": "reichstag.jpg",
+    "title": "File:Reichstag building Berlin view from west before sunset.jpg",
+    "license": "CC BY-SA 3.0",
+    "author": "Jürgen Matern",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Reichstag_building_Berlin_view_from_west_before_sunset.jpg"
+  },
+  {
+    "key": "buddybear",
+    "label": "Buddy Bear",
+    "file": "buddybear.jpg",
+    "title": "File:Buddy Bear Ibero-American Institute Berlin 1v3.jpg",
+    "license": "CC0",
+    "author": "Singlespeedfahrer",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Buddy_Bear_Ibero-American_Institute_Berlin_1v3.jpg"
+  },
+  {
+    "key": "wall",
+    "label": "Berlin Wall Segment",
+    "file": "wall.jpg",
+    "title": "File:Mauerdenkmal Mural El Bocho Lietzenburger Straße Berlin-Charlottenburg 04.jpg",
+    "license": "CC0",
+    "author": "Singlespeedfahrer",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Mauerdenkmal_Mural_El_Bocho_Lietzenburger_Stra%C3%9Fe_Berlin-Charlottenburg_04.jpg"
+  },
+  {
+    "key": "trabant",
+    "label": "Trabant",
+    "file": "trabant.jpg",
+    "title": "File:Trabant 601 Kombi.jpg",
+    "license": "CC BY-SA 4.0",
+    "author": "Rderijcke",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Trabant_601_Kombi.jpg"
+  },
+  {
+    "key": "currywurst",
+    "label": "Currywurst",
+    "file": "currywurst.jpg",
+    "title": "File:Currywurst-1.jpg",
+    "license": "CC BY-SA 3.0",
+    "author": "Rainer Z ...",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Currywurst-1.jpg"
+  },
+  {
+    "key": "doner",
+    "label": "Döner Kebab",
+    "file": "doner.jpg",
+    "title": "File:Döner Kebab.jpg",
+    "license": "CC BY 2.0",
+    "author": "Tim Reckmann",
+    "source_url": "https://commons.wikimedia.org/wiki/File:D%C3%B6ner_Kebab.jpg"
+  },
+  {
+    "key": "pfannkuchen",
+    "label": "Berliner Pfannkuchen",
+    "file": "pfannkuchen.jpg",
+    "title": "File:Berliner Pfannkuchen 5.jpg",
+    "license": "CC BY 4.0",
+    "author": "Sebastian Koppehel",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Berliner_Pfannkuchen_5.jpg"
+  }
+]

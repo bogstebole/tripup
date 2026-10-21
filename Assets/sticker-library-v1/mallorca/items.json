@@ -1,0 +1,110 @@
+[
+ {
+  "key": "ensaimada",
+  "label": "Ensaïmada",
+  "existing": true,
+  "size": [
+   645,
+   505
+  ]
+ },
+ {
+  "key": "siurell",
+  "label": "Siurell clay whistle figures",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 2, size: 1576x2234",
+  "size": [
+   480,
+   640
+  ]
+ },
+ {
+  "key": "cathedral",
+  "label": "Palma Cathedral (La Seu)",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "cropped to the cathedral, then lifted",
+  "size": [
+   646,
+   323
+  ]
+ },
+ {
+  "key": "tram",
+  "label": "Sóller wooden tram",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 1602x1255",
+  "size": [
+   651,
+   514
+  ]
+ },
+ {
+  "key": "sobrassada",
+  "label": "Sobrassada sausage",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 1455x697",
+  "size": [
+   639,
+   368
+  ]
+ },
+ {
+  "key": "lighthouse",
+  "label": "Formentor lighthouse",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 616x911",
+  "size": [
+   452,
+   634
+  ]
+ },
+ {
+  "key": "windmill",
+  "label": "Mallorcan windmill",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 1025x1292",
+  "size": [
+   537,
+   638
+  ]
+ },
+ {
+  "key": "olives",
+  "label": "Mallorcan olives (DOP jars)",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 1636x1871",
+  "size": [
+   584,
+   658
+  ]
+ },
+ {
+  "key": "llaut",
+  "label": "Llaüt fishing boat",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 1103x1100",
+  "size": [
+   641,
+   639
+  ]
+ },
+ {
+  "key": "bellver",
+  "label": "Bellver Castle",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 1553x927",
+  "size": [
+   644,
+   437
+  ]
+ }
+]

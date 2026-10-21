@@ -1,0 +1,65 @@
+[
+  {
+    "key": "azulejo",
+    "label": "Azulejo tiles",
+    "file": "azulejo.jpg",
+    "title": "File:Vier tegels met bloem- en bladornamenten, BK-1955-130-A.jpg",
+    "license": "CC0",
+    "author": "Rijksmuseum",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Vier_tegels_met_bloem-_en_bladornamenten,_BK-1955-130-A.jpg"
+  },
+  {
+    "key": "galo",
+    "label": "Rooster of Barcelos",
+    "file": "galo.jpg",
+    "title": "File:PA2900302 galo emiliarocha medio.jpg",
+    "license": "Public domain",
+    "author": "Adriculas",
+    "source_url": "https://commons.wikimedia.org/wiki/File:PA2900302_galo_emiliarocha_medio.jpg"
+  },
+  {
+    "key": "guitar",
+    "label": "Portuguese guitar",
+    "file": "guitar.jpg",
+    "title": "File:Portuguese guitar (53631859481).jpg",
+    "license": "CC BY-SA 2.0",
+    "author": "Šarūnas Burdulis",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Portuguese_guitar_(53631859481).jpg"
+  },
+  {
+    "key": "padrao",
+    "label": "Padrão dos Descobrimentos",
+    "file": "padrao.jpg",
+    "title": "File:Belem - Padrao dos Descobrimentos.jpg",
+    "license": "CC BY-SA 4.0",
+    "author": "Ingo Mehling",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Belem_-_Padrao_dos_Descobrimentos.jpg"
+  },
+  {
+    "key": "caravel",
+    "label": "Portuguese caravel",
+    "file": "caravel.jpg",
+    "title": "File:Haifa-maritime-museum-Portuguese-caravel-15c-1.jpg",
+    "license": "CC BY 4.0",
+    "author": "Bukvoed",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Haifa-maritime-museum-Portuguese-caravel-15c-1.jpg"
+  },
+  {
+    "key": "sardine_tin",
+    "label": "Sardine tin",
+    "file": "sardine_tin.jpg",
+    "title": "File:Canned sardines with lemon.jpg",
+    "license": "CC BY-SA 4.0",
+    "author": "Pannet",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Canned_sardines_with_lemon.jpg"
+  },
+  {
+    "key": "festival_sardine",
+    "label": "Festival sardine",
+    "file": "festival_sardine.jpg",
+    "title": "File:Sardinha Santo Antônio Cristina Veiguinha.jpg",
+    "license": "CC0",
+    "author": "Cristina Veiguinha",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Sardinha_Santo_Ant%C3%B4nio_Cristina_Veiguinha.jpg"
+  }
+]

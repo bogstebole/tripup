@@ -1,0 +1,83 @@
+[
+  {
+    "key": "bell_tower",
+    "label": "Holy Trinity Church bell tower, Bansko",
+    "file": "bell_tower.jpg",
+    "title": "File:Bansko 02.jpg",
+    "license": "CC BY-SA 4.0",
+    "author": "MrPanyGoff",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Bansko_02.jpg"
+  },
+  {
+    "key": "stone_house",
+    "label": "Velyan's House, Bansko stone house",
+    "file": "stone_house.jpg",
+    "title": "File:Bansko - Velyan's House 01.jpg",
+    "license": "CC BY-SA 4.0",
+    "author": "Explorer1940",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Bansko_-_Velyan%27s_House_01.jpg"
+  },
+  {
+    "key": "kukeri",
+    "label": "Kukeri mask",
+    "file": "kukeri.jpg",
+    "title": "File:Burgas-Ethnographic-museum-kukeri-02.JPG",
+    "license": "CC BY-SA 3.0",
+    "author": "Cherubino",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Burgas-Ethnographic-museum-kukeri-02.JPG"
+  },
+  {
+    "key": "martenitsa",
+    "label": "Martenitsa (Pizho and Penda)",
+    "file": "martenitsa.jpg",
+    "title": "File:Martenitsa 2012.jpg",
+    "license": "CC BY 3.0",
+    "author": "ThE cRaCkEr",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Martenitsa_2012.jpg"
+  },
+  {
+    "key": "banitsa",
+    "label": "Banitsa",
+    "file": "banitsa.jpg",
+    "title": "File:Banitsa borzo.jpg",
+    "license": "CC BY-SA 3.0",
+    "author": "borzo",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Banitsa_borzo.jpg"
+  },
+  {
+    "key": "shopska",
+    "label": "Shopska salad",
+    "file": "shopska.jpg",
+    "title": "File:Shopska Salad at Happy.jpg",
+    "license": "CC BY-SA 4.0",
+    "author": "Fred Cherrygarden",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Shopska_Salad_at_Happy.jpg"
+  },
+  {
+    "key": "rose",
+    "label": "Bulgarian rose (Rosa damascena)",
+    "file": "rose.jpg",
+    "title": "File:Bulgarian Rosa damascena.JPG",
+    "license": "CC BY-SA 3.0",
+    "author": "Edal Anton Lefterov",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Bulgarian_Rosa_damascena.JPG"
+  },
+  {
+    "key": "rakia",
+    "label": "Grape rakia bottle",
+    "file": "rakia.jpg",
+    "title": "File:Grozdova Rakia (bg).jpg",
+    "license": "CC BY-SA 3.0",
+    "author": "Popoff",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Grozdova_Rakia_(bg).jpg"
+  },
+  {
+    "key": "ski_boots",
+    "label": "Ski boots",
+    "file": "ski_boots.jpg",
+    "title": "File:Ski boots worn by Seba Johnson.jpg",
+    "license": "CC0",
+    "author": "Smithsonian National Museum of African American History and Culture (boots made by Raichle)",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Ski_boots_worn_by_Seba_Johnson.jpg"
+  }
+]

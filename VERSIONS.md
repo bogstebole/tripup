@@ -54,5 +54,19 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - Note: the very first magnet render had thin stray lines above each magnet (an image wrap-around bug). It was fixed before it was shown, so that render isn't kept.
 - Feedback: the direction is OK and the cut-out photos look good, but it won't go fully this way; it will be packaged differently later.
 
+### Sticker library v1 (Figma)
+- In Figma, page **Assets** → frame **Sticker library**. Every sticker is a component, so they all show in the Assets panel:
+  - Real people: 6 Unsplash portraits picked by Bogdan, cut out by Apple Vision (main person only), head and shoulders, white outline.
+  - Avatars, die-cut: 10 Notionists characters (CC0); the outline follows the figure.
+  - Avatars, round: the same 10 on colored circles. This is the first avatar version; after feedback ("cut along the outline like the photo stickers") it became the fallback for people with no photo.
+  - Lisbon, Berlin, Mallorca and Bansko: 10 photo stickers each, from Wikimedia Commons.
+  - A Credits frame.
+- Files: `Assets/sticker-library-v1/` (sticker PNGs, cutouts, source photos, manifests, `CREDITS.md`, `figma-node-ids.json`); raw portraits in `Assets/people-raw/`.
+- Figma: https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=11-953
+- Notes:
+  - One portrait was Unsplash+ (paid, watermarked), so it was skipped, leaving 6 real people.
+  - Palma Cathedral only cut out after cropping the photo to the building.
+  - The Mallorca windmill keeps a disc of sky inside its wheel.
+
 ## Tools
 Scripts behind all of the above are in `tools/` (see `tools/README.md`).

@@ -1,0 +1,110 @@
+[
+ {
+  "key": "ampelmann",
+  "label": "Ampelmännchen",
+  "existing": true,
+  "size": [
+   423,
+   647
+  ]
+ },
+ {
+  "key": "tvtower",
+  "label": "Fernsehturm (TV Tower)",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 782x4223",
+  "size": [
+   189,
+   630
+  ]
+ },
+ {
+  "key": "gate",
+  "label": "Brandenburg Gate",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 1048x759",
+  "size": [
+   631,
+   492
+  ]
+ },
+ {
+  "key": "reichstag",
+  "label": "Reichstag Building",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 1297x475",
+  "size": [
+   641,
+   298
+  ]
+ },
+ {
+  "key": "buddybear",
+  "label": "Buddy Bear",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 857x1454",
+  "size": [
+   411,
+   654
+  ]
+ },
+ {
+  "key": "wall",
+  "label": "Berlin Wall Segment",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 729x1981",
+  "size": [
+   309,
+   647
+  ]
+ },
+ {
+  "key": "trabant",
+  "label": "Trabant",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 1423x594",
+  "size": [
+   640,
+   340
+  ]
+ },
+ {
+  "key": "currywurst",
+  "label": "Currywurst",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 1354x933",
+  "size": [
+   638,
+   470
+  ]
+ },
+ {
+  "key": "doner",
+  "label": "Döner Kebab",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 1266x880",
+  "size": [
+   625,
+   473
+  ]
+ },
+ {
+  "key": "pfannkuchen",
+  "label": "Berliner Pfannkuchen",
+  "existing": false,
+  "cut_ok": true,
+  "msg": "instances: 1, size: 1426x857",
+  "size": [
+   645,
+   422
+  ]
+ }
+]
