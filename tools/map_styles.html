@@ -1,0 +1,61 @@
+<!doctype html>
+<html><head>
+<meta charset="utf-8">
+<title>loading</title>
+<!-- Renders one map style over the exact extent of Assets/map/lisbon-osm-z15.png (z15 tiles 15543..15556 × 12553..12560).
+     Open at 1792×1024 with device scale 2 → 3584×2048, same pixels as the OSM image. Usage: map_styles.html?style=positron|positron-nolabels|toner-lite|watercolor
+     Serve over http://localhost (Stadia tiles work without a key on localhost). Export: run tools/save_receiver.py, open with &save=1 in a browser. -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<style>html, body, #map { margin: 0; width: 100%; height: 100%; background: #fff; }</style>
+</head><body>
+<div id="map"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script>
+const style = new URLSearchParams(location.search).get('style') || 'positron';
+const W = -9.239501953125, N = 38.74551518488264, E = -9.085693359375, S = 38.67693344463792;
+const save = new URLSearchParams(location.search).has('save');
+const done = () => { document.title = 'ready'; };
+// save=1: draw at 1792×1024 with pixel ratio 2 and post the canvas to tools/save_receiver.py (port 8766)
+if (save) Object.assign(document.getElementById('map').style, { position: 'absolute', width: '1792px', height: '1024px' });
+
+if (style.startsWith('positron')) {
+  fetch('https://tiles.openfreemap.org/styles/positron').then(r => r.json()).then(s => {
+    if (style === 'positron-nolabels') s.layers = s.layers.filter(l => l.type !== 'symbol');
+    const map = new maplibregl.Map({ container: 'map', style: s, bounds: [[W, S], [E, N]], fitBoundsOptions: { padding: 0 },
+      interactive: false, attributionControl: false, fadeDuration: 0, preserveDrawingBuffer: true, pixelRatio: save ? 2 : devicePixelRatio });
+    map.once('idle', () => {
+      if (!save) return done();
+      map.getCanvas().toBlob(b => fetch('http://localhost:8766/lisbon-' + style + '.png', { method: 'POST', body: b }).then(r => { document.title = r.ok ? 'saved' : 'save failed'; }), 'image/png');
+    });
+  });
+} else if (save) {
+  // Raster styles: draw the same z15 tile grid as the OSM image straight onto a canvas, then post it
+  const url = {
+    'toner-lite': 'https://tiles.stadiamaps.com/tiles/stamen_toner_lite/15/{x}/{y}.png',
+    'watercolor': 'https://tiles.stadiamaps.com/tiles/stamen_watercolor/15/{x}/{y}.jpg'
+  }[style];
+  const X0 = 15543, Y0 = 12553, NX = 14, NY = 8;
+  const c = document.createElement('canvas'); c.width = NX * 256; c.height = NY * 256;
+  const ctx = c.getContext('2d'), jobs = [];
+  for (let x = 0; x < NX; x++) for (let y = 0; y < NY; y++) jobs.push(new Promise((ok, fail) => {
+    const img = new Image(); img.crossOrigin = 'anonymous';
+    img.onload = () => { ctx.drawImage(img, x * 256, y * 256, 256, 256); ok(); };
+    img.onerror = fail;
+    img.src = url.replace('{x}', X0 + x).replace('{y}', Y0 + y);
+  }));
+  Promise.all(jobs).then(() => c.toBlob(b => fetch('http://localhost:8766/lisbon-' + style + '.png', { method: 'POST', body: b })
+    .then(r => { document.title = r.ok ? 'saved' : 'save failed'; }), 'image/png'), () => { document.title = 'tile failed'; });
+} else {
+  const url = {
+    'toner-lite': 'https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}.png',
+    'watercolor': 'https://tiles.stadiamaps.com/tiles/stamen_watercolor/{z}/{x}/{y}.jpg'
+  }[style];
+  const map = L.map('map', { zoomControl: false, attributionControl: false, zoomSnap: 0, fadeAnimation: false, zoomAnimation: false });
+  map.fitBounds([[S, W], [N, E]], { padding: [0, 0], animate: false });
+  // z15 tiles drawn at 128 CSS px = 256 device px at scale 2, the same detail as the OSM image
+  L.tileLayer(url, { tileSize: 128, zoomOffset: 1, maxZoom: 19 }).on('load', done).addTo(map);
+}
+</script>
+</body></html>

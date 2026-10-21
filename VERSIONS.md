@@ -116,5 +116,11 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - Figma, page Assets → section "Map · Lisbon (OSM)": the grey map with sticker pins at the real places (instances from the sticker library, plus Flat and Dinner pins), and the color map. Keep the "© OpenStreetMap contributors" line on anything that uses it.
 - Files: `Assets/map/lisbon-osm-z15.png`, `lisbon-osm-z15-grey.png`, `lisbon-osm-z15.json` (pixel math for placing pins); script `tools/osm_map.py`. The tile cache isn't committed.
 
+### Map style previews (Figma)
+- The same Lisbon area in four simpler styles, with the same sticker pins: Positron (OpenFreeMap), Positron without labels, Toner Lite (Stamen via Stadia), Watercolor (Stamen via Stadia).
+- Figma, page Assets → section "Map styles · Lisbon", under the OSM map. Each frame has its own attribution line.
+- Positron is free with no key and its style can be edited (colors, labels). Toner Lite and Watercolor need a free Stadia key for a public URL.
+- Files: `Assets/map/styles/` (four images, 3584 × 2048, same pixels as the OSM map), `tools/map_styles.html`, `tools/save_receiver.py`
+
 ## Tools
 Scripts behind all of the above are in `tools/` (see `tools/README.md`).

@@ -17,3 +17,7 @@ Scripts used to make the research and visual tests. Paths inside them point at t
 | `sticker_lib.py` | Shared sticker treatment for the sticker library: trims the cutout, white die-cut outline, soft shadow, optional tilt. |
 | `build_city.py` | Runs a city's photos through the Vision cutout and `sticker_lib.py`, and writes `items.json` plus a preview sheet. |
 | `figma_upload.sh` | Uploads PNGs to the upload URLs returned by the Figma MCP `upload_assets` tool. |
+
+## Maps
+- `osm_map.py`: downloads OpenStreetMap tiles for a bounding box at one zoom and stitches a color and a grey image (`Assets/map/lisbon-osm-z15*.png`). Small one-off areas only.
+- `map_styles.html` + `save_receiver.py`: renders the same area in other styles (Positron, Positron without labels, Toner Lite, Watercolor). Serve the project at http://localhost:8765, run `python3 tools/save_receiver.py`, then open `tools/map_styles.html?style=<name>&save=1` in a browser; the PNG lands in `Assets/map/styles/`. Headless Chrome screenshots fire before vector tiles finish, so the browser export is the reliable path.
