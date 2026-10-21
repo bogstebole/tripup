@@ -68,5 +68,11 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
   - Palma Cathedral only cut out after cropping the photo to the building.
   - The Mallorca windmill keeps a disc of sky inside its wheel.
 
+### Design tokens v1 (Figma variables)
+- Tailwind-based variables in Figma: Primitives (348, hidden), Color (37, Light + Dark), Layout (23), Typography (48), plus 12 Geist text styles bound to the variables.
+- Brand is a placeholder (blue) and the neutral is zinc; both are one alias ramp each, so they're easy to swap.
+- Files: `process/design-tokens/tokens-v1.md` (every semantic token and its value), `process/design-tokens/tailwind-v3-colors.json` (source palette)
+- Figma: https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task (Local variables, Text styles)
+
 ## Tools
 Scripts behind all of the above are in `tools/` (see `tools/README.md`).
