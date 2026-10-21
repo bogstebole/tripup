@@ -85,5 +85,18 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - One spring drives everything, so the motion can be interrupted and reversed mid-way. It has a slow-motion (5×) toggle and a reduced-motion fallback.
 - File: `prototype/versions/motion-folder-v1.html` (run `python3 -m http.server` at the project root so the sticker images load)
 
+### Prototype v3: mid-fi wireframe, Airbnb style
+- The whole Lisbon flow in mid-fi, focused on UX and flow. Visual design comes last.
+- Full screen and responsive, with no phone frame. On desktop the content sits in a 640 px column.
+- Airbnb patterns mapped to the flow:
+  - wishlist grid → Trips (current trip as a hero collage);
+  - wishlist members sheet and "You've joined" dialog → adding Ren mid-trip;
+  - collaborative wishlist voting (thumbs up/down, notes, voter avatars) → restaurant poll;
+  - experience "Where we'll meet" → dinner detail;
+  - sticky price bar → balance and pay bars.
+- Flow: Trips → Lisbon → add Ren → new poll → live votes → winner added to today → itemized bill (Ren and Nic skip the wine) → balance (13 → 4 payments) → pay Maya → squared up.
+- Files: `prototype/versions/v3-midfi-airbnb.html`, photos in `prototype/assets/photos/` (from the sticker library sources, see their CREDITS)
+- Feedback that led here: "Airbnb style, mid-fi, full screen, not inside a phone mockup."
+
 ## Tools
 Scripts behind all of the above are in `tools/` (see `tools/README.md`).
