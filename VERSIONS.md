@@ -130,5 +130,10 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - File: `prototype/versions/v6-midfi-plan.html` (v5 kept), category icons in `prototype/assets/icons/`
 - Feedback that led here: no Today section, one Add people, and a clear way to plan something from the trip.
 
+### Prototype v7: the + menu as a Gooey droplet split
+- Built with the libraries.dev skill's Gooey reference: round droplets split upward out of the + and melt back in on close, with crisp labels beside them.
+- Fixes against the library's rules: the pieces are now transparent (the liquid is the surface), the group is sized to the open menu so the liquid isn't clipped, and positions use Liquid.Item instead of our own CSS.
+- File: `prototype/versions/v7-midfi-gooey.html` (v6 kept, with the earlier pill version)
+
 ## Tools
 Scripts behind all of the above are in `tools/` (see `tools/README.md`).
