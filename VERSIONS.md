@@ -135,6 +135,15 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - Fixes against the library's rules: the pieces are now transparent (the liquid is the surface), the group is sized to the open menu so the liquid isn't clipped, and positions use Liquid.Item instead of our own CSS.
 - File: `prototype/versions/v7-midfi-gooey.html` (v6 kept, with the earlier pill version)
 
+### Prototype v8: the + as a real FAB, stronger goo
+- The + stays in the bottom-right corner over the sheet, like a FAB. It no longer rides on the sheet's edge.
+- No grey box behind the buttons: the menu's backdrop was squeezed into a column by the old positioning. It's now invisible and only catches the tap that closes the menu.
+- Drop icons show only while the menu is open, so nothing stacks under the +.
+- Gooey tuning: blur 10 (was 6), contrast 20, 20px gaps, open 600ms with a small overshoot, close 260ms with no overshoot, 80ms stagger. On close the farthest drop goes first.
+- Open with `?tune` for live sliders (blur, contrast, gap, overshoot, open, close, stagger).
+- File: `prototype/versions/v8-midfi-fab.html` (v7 kept)
+- Feedback that led here: the gooey effect was weak, closing overshot a lot, icons stacked into a mess, there was a grey box behind the buttons, and the + should be a FAB.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 
