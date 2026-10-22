@@ -186,6 +186,13 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - Files: `Assets/user-stickers/sushi-plate/` (`source.png`, `cutout.png`, `sticker.png` 622 × 687). The source photo is only 344 px wide, so the sticker is soft at full size; it's fine at map-pin size.
 - Figma: Sticker library → Lisbon (now 11), component `Sticker / Lisbon / Sushi plate`: https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=52-5
 
+### Design tokens v1.3: Body and Label in every weight
+- Body LG / MD / SM now come in Regular, Medium, Semibold and Bold; Label LG / MD / SM in Medium, Semibold and Bold. 15 new text styles, 27 in total.
+- The existing styles were renamed, not replaced (`Body/MD` → `Body/MD/Regular`, `Label/MD` → `Label/MD/Medium`), so text already using them keeps working.
+- New Typography variables `font-weight/regular · medium · semibold · bold` (Tailwind `--font-weight-*`); the variants bind their weight to them and share size and line height with their base style.
+- Figma: page Assets → "Type weights · tokens v1.3": https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=55-21
+- Files: `process/design-tokens/tokens-v1.3.md`, `process/design-tokens/type-weights-v1.3.png` (v1.2 kept)
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 
