@@ -181,6 +181,11 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - Files: `process/design-tokens/tokens-v1.2.md`, `process/design-tokens/surfaces-v1.2.png` (v1.1 kept)
 - Feedback that led here: the surface layers were too similar.
 
+### Stickers: pho, chicken wings, ice cream (Bogdan's photos)
+- Same pipeline as the sushi plate. The pho photo had two subjects (the bowl and a herb plate cut off at the bottom of the photo), so only the bowl is used (`tools/lift_main.swift`).
+- Files: `Assets/user-stickers/pho/`, `wings/`, `ice-cream/` (`source.png`, `cutout.png`, `sticker.png`)
+- Figma: Sticker library → Lisbon (now 14), components `Sticker / Lisbon / Pho`, `Chicken wings`, `Ice cream`: https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=18-2
+
 ### Sticker: sushi plate (Bogdan's photo)
 - Apple Vision cutout of the whole plate, then the library treatment: white die-cut outline and soft shadow (`tools/sticker_lib.py`).
 - Files: `Assets/user-stickers/sushi-plate/` (`source.png`, `cutout.png`, `sticker.png` 622 × 687). The source photo is only 344 px wide, so the sticker is soft at full size; it's fine at map-pin size.
