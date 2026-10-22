@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TripUp · latest prototype</title>
+</head>
+<body>
+<!-- Always opens the newest prototype: reads the versions/ folder listing (python3 -m http.server shows one)
+     and picks the highest vN-*.html. Falls back to the last known version if there's no listing. -->
+<p><a id="go" href="versions/v7-midfi-gooey.html">Open the latest prototype</a></p>
+<script>
+  var fallback = 'versions/v7-midfi-gooey.html';
+  fetch('versions/', { cache: 'no-store' })
+    .then(function (r) { return r.text(); })
+    .then(function (html) {
+      var best = null, re = /href="(v(\d+)-[^"]+\.html)"/g, m;
+      while ((m = re.exec(html))) if (!best || Number(m[2]) > best.n) best = { f: m[1], n: Number(m[2]) };
+      location.replace(best ? 'versions/' + best.f : fallback);
+    })
+    .catch(function () { location.replace(fallback); });
+</script>
+</body>
+</html>

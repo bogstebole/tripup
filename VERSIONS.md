@@ -135,5 +135,8 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - Fixes against the library's rules: the pieces are now transparent (the liquid is the surface), the group is sized to the open menu so the liquid isn't clipped, and positions use Liquid.Item instead of our own CSS.
 - File: `prototype/versions/v7-midfi-gooey.html` (v6 kept, with the earlier pill version)
 
+### One link to the latest prototype
+- `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
+
 ## Tools
 Scripts behind all of the above are in `tools/` (see `tools/README.md`).
