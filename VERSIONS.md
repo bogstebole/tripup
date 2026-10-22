@@ -140,7 +140,7 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - No grey box behind the buttons: the menu's backdrop was squeezed into a column by the old positioning. It's now invisible and only catches the tap that closes the menu.
 - Drop icons show only while the menu is open, so nothing stacks under the +.
 - Gooey tuning: blur 10 (was 6), contrast 20, 20px gaps, open 600ms with a small overshoot, close 260ms with no overshoot, 80ms stagger. On close the farthest drop goes first.
-- Open with `?tune` for live sliders (blur, contrast, gap, overshoot, open, close, stagger).
+- A `?tune` slider panel was tried and then removed at Bogdan's request (it's in commit b4a8537).
 - File: `prototype/versions/v8-midfi-fab.html` (v7 kept)
 - Feedback that led here: the gooey effect was weak, closing overshot a lot, icons stacked into a mess, there was a grey box behind the buttons, and the + should be a FAB.
 
