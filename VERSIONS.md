@@ -165,6 +165,14 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - File: `prototype/versions/v10-midfi-research.html` (v9 kept)
 - Source: `process/research/tripup-competitive-research-v3-en.md` (key findings and design direction)
 
+### Prototype v11: scan the receipt, assign any line
+- No more wine banner. Every line on the bill can be given to anyone or taken away: tap the line, tap people in or out, and the line total splits between whoever is in. Skipping the wine for Ren and Nic is just one case of that.
+- Receipt scan: Add expense opens a camera frame with the receipt. "Scan receipt" reads the 7 lines and gives each one to the people who picked that dish before dinner. A line nobody picked (the wine) starts with everyone. "No receipt? Split equally" skips the scan.
+- Menu picks: the dinner's place sheet has a "Menu picks" row (5 of 5 picked). There you pick your own dishes and see what the others picked.
+- A line with nobody on it blocks Save ("1 line has nobody").
+- File: `prototype/versions/v11-midfi-receipt.html` (v10 kept)
+- Feedback that led here: the wine shouldn't need its own banner; any item should be assignable; and an OCR scan could split the bill from what people picked beforehand.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

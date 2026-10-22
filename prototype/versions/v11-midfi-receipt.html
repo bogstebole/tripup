@@ -1,0 +1,1380 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TripUp mid-fi v11</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<!-- v9: vector map drawn by MapLibre inside Leaflet, so the sticker and plan markers stay Leaflet markers -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.js"></script>
+<script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.1.3/leaflet-maplibre-gl.js"></script>
+<style>
+/* TripUp mid-fi wireframe, Airbnb-style patterns. Full screen and responsive; UX and flow first, visuals later. */
+:root {
+  --text: #09090b; --muted: #71717a; --subtle: #a1a1aa; --border: #e4e4e7; --border-strong: #d4d4d8;
+  --bg: #ffffff; --bg-subtle: #fafafa; --bg-muted: #f4f4f5; --ph: #e4e4e7;
+  --primary: #09090b; --on-primary: #ffffff; --live: #059669; --live-bg: #ecfdf5; --danger: #dc2626; --warn-bg: #fffbeb;
+  --display: "IBM Plex Sans Condensed", system-ui, sans-serif;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --max: 640px; --pad: 20px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body { font-family: Geist, system-ui, sans-serif; color: var(--text); background: var(--bg); font-size: 15px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+input { font: inherit; color: inherit; }
+img { display: block; max-width: 100%; }
+.icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+/* Layout */
+.page { max-width: var(--max); margin: 0 auto; padding: 0 var(--pad) 140px; animation: enter 240ms var(--ease-out); }
+.page.back-in { animation-name: enter-back; }
+@keyframes enter { from { opacity: 0; transform: translateX(16px); } }
+@keyframes enter-back { from { opacity: 0; transform: translateX(-16px); } }
+.topbar { position: sticky; top: 0; z-index: 20; background: var(--bg); }
+.topbar-in { max-width: var(--max); margin: 0 auto; height: 60px; padding: 0 var(--pad); display: flex; align-items: center; gap: 12px; }
+.topbar .t { flex: 1; text-align: center; font-size: 13px; font-weight: 500; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.circle { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--border); background: var(--bg); transition: transform 160ms var(--ease-out); }
+.circle:active { transform: scale(0.94); }
+.circle.ghost { border-color: transparent; }
+.spacer { width: 36px; }
+h1 { font-family: var(--display); font-weight: 700; font-size: 34px; line-height: 40px; letter-spacing: -0.01em; }
+h2 { font-family: var(--display); font-weight: 600; font-size: 22px; line-height: 28px; }
+h3 { font-size: 16px; font-weight: 600; line-height: 22px; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.section { padding: 28px 0; border-top: 1px solid var(--border); }
+.section:first-of-type { border-top: 0; }
+.section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
+.link { text-decoration: underline; text-underline-offset: 2px; font-weight: 500; font-size: 14px; }
+
+/* Bars */
+.bottombar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--bg); border-top: 1px solid var(--border); padding-bottom: env(safe-area-inset-bottom); }
+.bottombar-in { max-width: var(--max); margin: 0 auto; padding: 14px var(--pad); display: flex; align-items: center; gap: 16px; }
+.bottombar .info { flex: 1; min-width: 0; }
+.bottombar .info b { display: block; font-size: 16px; }
+.bottombar .info span { font-size: 13px; color: var(--muted); }
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--bg); border-top: 1px solid var(--border); padding-bottom: env(safe-area-inset-bottom); }
+.tabbar-in { max-width: var(--max); margin: 0 auto; display: flex; justify-content: space-around; padding: 8px 0 10px; }
+.tab { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; font-weight: 500; color: var(--subtle); min-width: 72px; position: relative; }
+.tab.on { color: var(--text); }
+.tab .dot { position: absolute; top: 0; right: 22px; width: 8px; height: 8px; border-radius: 4px; background: var(--danger); }
+
+/* Buttons */
+.btn { height: 48px; padding: 0 22px; border-radius: 10px; background: var(--primary); color: var(--on-primary); font-weight: 600; font-size: 16px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: transform 160ms var(--ease-out), opacity 160ms ease; white-space: nowrap; }
+.btn:active { transform: scale(0.97); }
+.btn.block { width: 100%; }
+.btn.outline { background: var(--bg); color: var(--text); border: 1px solid var(--text); }
+.btn.soft { background: var(--bg-muted); color: var(--text); }
+.btn.sm { height: 36px; padding: 0 14px; font-size: 14px; border-radius: 8px; }
+.btn[disabled] { opacity: .35; pointer-events: none; }
+.pill { height: 40px; padding: 0 6px 0 16px; border: 1px solid var(--border-strong); border-radius: 20px; display: inline-flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; transition: transform 160ms var(--ease-out); }
+.pill:active { transform: scale(0.97); }
+.chip { height: 36px; padding: 0 14px; border-radius: 18px; border: 1px solid var(--border-strong); font-size: 14px; font-weight: 500; }
+.chip.on { background: var(--text); color: var(--bg); border-color: var(--text); }
+.badge { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 13px; background: var(--bg); font-size: 12px; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+.badge.live::before { content: ""; width: 7px; height: 7px; border-radius: 4px; background: var(--live); }
+.tag { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; background: var(--bg-muted); font-size: 12px; font-weight: 500; color: var(--muted); }
+.tag.live { background: var(--live-bg); color: var(--live); }
+
+/* Avatars */
+.av { --s: 28px; width: var(--s); height: var(--s); border-radius: 50%; background: var(--c); display: inline-grid; place-items: center; font-size: calc(var(--s) * .42); font-weight: 600; color: #18181b; border: 2px solid var(--bg); flex: none; }
+.av.l { --s: 44px; }
+.av.xl { --s: 64px; }
+.av.s { --s: 22px; border-width: 1.5px; }
+.stack { display: inline-flex; }
+.stack .av + .av { margin-left: -9px; }
+
+/* Photos and placeholders */
+.ph { background: var(--ph); display: grid; place-items: center; color: var(--subtle); overflow: hidden; position: relative; }
+.ph img { width: 100%; height: 100%; object-fit: cover; }
+.ph .ph-label { font-size: 12px; font-weight: 500; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+
+/* Trips (Airbnb wishlists grid) */
+.hero { display: block; width: 100%; text-align: left; transition: transform 160ms var(--ease-out); }
+.hero:active { transform: scale(0.99); }
+.collage { display: grid; gap: 2px; border-radius: 16px; overflow: hidden; }
+.collage.c3 { grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; aspect-ratio: 1.45; }
+.collage.c3 > :first-child { grid-row: span 2; }
+.collage.c4 { grid-template-columns: 1fr 1fr; aspect-ratio: 1; }
+.collage .ph { width: 100%; height: 100%; }
+.hero-wrap { position: relative; }
+.hero-wrap .badge { position: absolute; left: 12px; top: 12px; }
+.hero-wrap .stack { position: absolute; right: 12px; bottom: 12px; }
+.hero-title { margin-top: 12px; display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+.status-line { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding: 12px 14px; border-radius: 12px; background: var(--bg-subtle); border: 1px solid var(--border); font-size: 14px; }
+.status-line .icon { color: var(--muted); }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px 14px; }
+.card-small { text-align: left; transition: transform 160ms var(--ease-out); }
+.card-small:active { transform: scale(0.98); }
+.card-small h3 { margin-top: 8px; font-size: 15px; }
+
+/* Rows (Airbnb "What you'll do" / host rows) */
+.row { display: flex; align-items: center; gap: 14px; padding: 12px 0; width: 100%; text-align: left; }
+.row .thumb { width: 64px; height: 64px; border-radius: 12px; flex: none; }
+.row .body { flex: 1; min-width: 0; }
+.row .body b { display: block; font-weight: 600; font-size: 15px; }
+.row .body span { display: block; font-size: 13px; color: var(--muted); }
+.row .time { width: 46px; font-size: 13px; font-weight: 600; color: var(--muted); flex: none; }
+.row.done .body b { color: var(--muted); }
+.row.flash { animation: flash 1.6s ease 2; border-radius: 12px; }
+@keyframes flash { 50% { background: var(--live-bg); } }
+.list-row { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); width: 100%; text-align: left; }
+.list-row:last-child { border-bottom: 0; }
+.list-row .body { flex: 1; min-width: 0; }
+.list-row .body b { display: block; font-weight: 500; }
+.list-row .body span { display: block; font-size: 13px; color: var(--muted); }
+.list-row .amt { font-weight: 600; white-space: nowrap; }
+.chev { color: var(--subtle); }
+
+/* Poll (Airbnb collaborative wishlist) */
+.vote-card { padding-bottom: 24px; }
+.vote-card .img { position: relative; aspect-ratio: 1.5; border-radius: 16px; }
+.vote-card .img .badge { position: absolute; left: 12px; top: 12px; }
+.vote-card .img .stack { position: absolute; right: 12px; top: 12px; }
+.vote-card .line1 { display: flex; justify-content: space-between; margin-top: 12px; gap: 12px; }
+.vote-card .meta { font-size: 14px; color: var(--muted); }
+.vote-card .note { margin-top: 8px; font-size: 14px; display: flex; gap: 8px; align-items: center; }
+.vote-actions { margin-top: 10px; display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 14px; border: 1px solid var(--border); border-radius: 12px; }
+.vote-actions .link { flex: 1; text-align: left; }
+.thumb-btn { height: 40px; min-width: 52px; padding: 0 10px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; font-size: 14px; color: var(--muted); transition: transform 160ms var(--ease-out), background-color 160ms ease; }
+.thumb-btn:active { transform: scale(0.94); }
+.thumb-btn.on { background: var(--text); color: var(--bg); }
+.thumb-btn.down.on { background: var(--bg-muted); color: var(--text); }
+.bar { height: 4px; border-radius: 2px; background: var(--bg-muted); margin-top: 10px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--text); transition: width 300ms var(--ease-out); }
+
+/* Forms */
+.field { display: block; border: 1px solid var(--border-strong); border-radius: 12px; padding: 10px 14px; }
+.field label { display: block; font-size: 12px; font-weight: 500; color: var(--muted); }
+.field input { width: 100%; border: 0; outline: 0; font-size: 16px; background: transparent; padding: 2px 0; }
+.field:focus-within { border-color: var(--text); box-shadow: 0 0 0 1px var(--text); }
+.check { width: 24px; height: 24px; border-radius: 6px; border: 1.5px solid var(--border-strong); display: grid; place-items: center; flex: none; color: transparent; }
+.check.on { background: var(--text); border-color: var(--text); color: var(--bg); }
+.switch { width: 44px; height: 26px; border-radius: 13px; background: var(--border-strong); position: relative; flex: none; transition: background-color 200ms ease; }
+.switch::after { content: ""; position: absolute; left: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.2); transition: transform 200ms var(--ease-out); }
+.switch.on { background: var(--text); }
+.switch.on::after { transform: translateX(18px); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--bg-muted); border-radius: 10px; padding: 3px; }
+.seg button { height: 36px; border-radius: 8px; font-size: 14px; font-weight: 500; color: var(--muted); }
+.seg button.on { background: var(--bg); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.1); }
+.hint { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 12px; background: var(--bg-subtle); border: 1px solid var(--border); font-size: 14px; }
+.hint.good { background: var(--live-bg); border-color: transparent; }
+.big-amount { font-family: var(--display); font-weight: 700; font-size: 48px; line-height: 52px; }
+
+/* Balance */
+.stat { border: 1px solid var(--border); border-radius: 16px; padding: 20px; display: flex; gap: 20px; align-items: center; }
+.stat .nums { font-family: var(--display); font-weight: 700; font-size: 44px; line-height: 1; display: flex; align-items: baseline; gap: 10px; }
+.stat s { color: var(--subtle); font-size: 28px; }
+.paid { color: var(--live); font-weight: 600; font-size: 14px; display: inline-flex; gap: 4px; align-items: center; }
+
+/* Sheet / dialog */
+.overlay { position: fixed; inset: 0; z-index: 50; background: rgba(9,9,11,.4); display: flex; align-items: flex-end; justify-content: center; animation: fade 200ms ease; }
+@keyframes fade { from { opacity: 0; } }
+.sheet { width: 100%; max-width: 560px; max-height: 88vh; overflow: auto; background: var(--bg); border-radius: 20px 20px 0 0; padding: 8px var(--pad) calc(24px + env(safe-area-inset-bottom)); animation: up 320ms cubic-bezier(0.32, 0.72, 0, 1); }
+@keyframes up { from { transform: translateY(100%); } }
+.sheet-head { display: flex; align-items: center; height: 56px; margin-bottom: 4px; }
+.sheet-head .t { flex: 1; text-align: center; font-weight: 600; }
+.dialog { text-align: center; padding-top: 28px; }
+.dialog .art { width: 150px; margin: 0 auto 20px; transform: rotate(-4deg); }
+.dialog .art .collage { box-shadow: 0 10px 24px rgba(0,0,0,.18); border: 4px solid #fff; border-radius: 18px; }
+.dialog h2 { font-size: 26px; line-height: 32px; }
+.dialog p { margin: 8px auto 24px; max-width: 340px; color: var(--muted); }
+@media (min-width: 720px) {
+  .overlay { align-items: center; }
+  .sheet { border-radius: 20px; animation-name: pop; padding-bottom: 24px; }
+  @keyframes pop { from { opacity: 0; transform: scale(0.96); } }
+}
+
+/* Toast */
+.toast-root { position: fixed; left: 0; right: 0; bottom: 96px; z-index: 60; display: flex; justify-content: center; pointer-events: none; padding: 0 var(--pad); }
+.toast { background: var(--text); color: var(--bg); border-radius: 12px; padding: 12px 16px; font-size: 14px; max-width: 420px; display: flex; gap: 10px; align-items: center; box-shadow: 0 8px 24px rgba(0,0,0,.2); animation: toast-in 260ms var(--ease-out); transition: opacity 200ms ease, transform 200ms ease; }
+.toast.out { opacity: 0; transform: translateY(8px); }
+@keyframes toast-in { from { opacity: 0; transform: translateY(12px); } }
+
+/* Done */
+.done-page { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; text-align: center; padding-top: 40px; }
+.done-page .art { width: 200px; margin: 0 auto 28px; transform: rotate(-3deg); }
+.done-page .art .collage { border: 5px solid #fff; box-shadow: 0 14px 30px rgba(0,0,0,.18); border-radius: 20px; }
+.stats3 { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--border); border-radius: 16px; margin: 28px 0; }
+.stats3 > div { padding: 16px 8px; }
+.stats3 > div + div { border-left: 1px solid var(--border); }
+.stats3 b { display: block; font-family: var(--display); font-size: 26px; }
+.stats3 span { font-size: 12px; color: var(--muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  .page, .page.back-in, .sheet, .toast { animation: fade 200ms ease; }
+  .row.flash { animation: none; background: var(--live-bg); }
+}
+
+/* v4: title row, trip map with sticker pins, bottom sheet with tabs, horizontal poll cards with progress */
+.title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.bottombar .info b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#map-root { position: fixed; inset: 0; z-index: 0; }
+#map-root[hidden] { display: none; }
+#map { position: absolute; inset: 0; background: #f1f3f4; }
+.map-fallback { position: absolute; inset: 0; display: grid; place-items: center; color: var(--subtle); font-weight: 500; }
+.map-top { position: fixed; top: 0; left: 0; right: 0; z-index: 25; display: flex; justify-content: space-between; padding: calc(12px + env(safe-area-inset-top)) 16px 0; pointer-events: none; }
+.map-top .circle { pointer-events: auto; border: 0; box-shadow: 0 2px 8px rgba(0,0,0,.18); }
+.leaflet-top.leaflet-right { top: calc(56px + env(safe-area-inset-top)); }
+.leaflet-container { font-family: Geist, system-ui, sans-serif; }
+.sticker-pin, .dot-pin { background: none; border: 0; }
+#map .sticker-pin img { width: 100% !important; height: auto; filter: drop-shadow(0 3px 4px rgba(0,0,0,.28)); transition: transform 160ms var(--ease-out); }
+@media (hover: hover) and (pointer: fine) { #map .sticker-pin:hover img { transform: scale(1.1) !important; } }
+.dot-pin span { display: inline-flex; align-items: center; gap: 4px; height: 30px; padding: 0 10px; border-radius: 15px; background: var(--text); color: #fff; font-size: 12px; font-weight: 600; white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,.25); }
+.dot-pin.live span { background: var(--live); }
+.tsheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--bg); border-radius: 20px 20px 0 0; box-shadow: 0 -6px 24px rgba(0,0,0,.14); display: flex; flex-direction: column; will-change: transform; }
+.tsheet.anim { transition: transform 420ms cubic-bezier(0.32, 0.72, 0, 1); }
+.tsheet-head { touch-action: none; cursor: grab; padding: 8px var(--pad) 4px; flex: none; }
+.tsheet .grab { width: 36px; height: 5px; border-radius: 3px; background: var(--border-strong); margin: 0 auto 12px; }
+.trip-head { display: flex; align-items: center; gap: 10px; }
+.trip-head .grow { flex: 1; min-width: 0; }
+.tsheet-body { flex: 1; overflow-y: auto; padding: 0 var(--pad) 104px; overscroll-behavior: contain; }
+.strip-label { font-size: 13px; font-weight: 500; color: var(--muted); margin: 14px 0 8px; }
+.today-strip { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; margin: 0 calc(-1 * var(--pad)); padding: 0 var(--pad) 4px; scroll-padding: 0 var(--pad); scrollbar-width: none; }
+.today-strip::-webkit-scrollbar { display: none; }
+.today-card { flex: none; width: 250px; scroll-snap-align: start; display: flex; gap: 12px; align-items: center; padding: 10px; border: 1px solid var(--border); border-radius: 14px; text-align: left; transition: transform 160ms var(--ease-out); }
+.today-card:active { transform: scale(0.98); }
+.today-card .thumb { width: 56px; height: 56px; border-radius: 10px; flex: none; }
+.today-card .body { min-width: 0; flex: 1; }
+.today-card .body b { display: block; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.today-card .body span { display: block; font-size: 12px; color: var(--muted); }
+.today-card.next { border-color: var(--text); }
+.today-card.done { opacity: .6; }
+.today-card.flash { animation: flash 1.6s ease 2; }
+.tabs { position: sticky; top: 0; z-index: 2; background: var(--bg); padding: 16px 0 8px; }
+.seg3 { display: grid; grid-template-columns: repeat(2, 1fr); background: var(--bg-muted); border-radius: 10px; padding: 3px; }
+.seg3 button { height: 36px; border-radius: 8px; font-size: 14px; font-weight: 500; color: var(--muted); transition: background-color 160ms ease, color 160ms ease; }
+.seg3 button.on { background: var(--bg); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.1); }
+.add-row .circle { width: 44px; height: 44px; border-style: dashed; border-color: var(--border-strong); }
+.owe { font-size: 13px; font-weight: 500; white-space: nowrap; }
+.owe.neg { color: var(--danger); }
+.owe.pos { color: var(--live); }
+.sum-card { border: 1px solid var(--border); border-radius: 16px; padding: 16px; display: flex; align-items: center; gap: 12px; margin: 4px 0 8px; }
+.day { font-size: 13px; font-weight: 600; color: var(--muted); margin: 18px 0 0; }
+@media (min-width: 900px) {
+  .tsheet { top: 0; right: auto; width: 460px; border-radius: 0; transform: none !important; box-shadow: 1px 0 0 var(--border); height: auto !important; }
+  .tsheet .grab { display: none; }
+  .tsheet-head { cursor: default; padding-top: 68px; }
+  #map { left: 460px; }
+}
+.poll-progress { border: 1px solid var(--border); border-radius: 16px; padding: 14px 16px; margin: 18px 0 20px; }
+.segs { display: grid; grid-template-columns: repeat(var(--n), 1fr); gap: 4px; }
+.segs i { height: 6px; border-radius: 3px; background: var(--bg-muted); transition: background-color 300ms ease; }
+.segs i.on { background: var(--text); }
+.pp-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 12px; font-size: 14px; }
+.opt-card { border: 1px solid var(--border); border-radius: 16px; padding: 12px; margin-bottom: 12px; }
+.opt-card.lead { border: 2px solid var(--text); padding: 11px; }
+.opt-main { display: flex; gap: 12px; }
+.opt-main .thumb { width: 84px; height: 84px; border-radius: 12px; flex: none; }
+.opt-body { flex: 1; min-width: 0; }
+.opt-title { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+.opt-title b { font-weight: 600; font-size: 15px; line-height: 20px; }
+/* v10: research gaps. Recap for a late joiner, a why for each payment */
+.opt-title .tag { white-space: nowrap; }
+.recap { text-align: left; margin: 0 0 20px; }
+.recap .list-row:last-child { border-bottom: 0; }
+.why-link { color: var(--text); text-decoration: underline; text-underline-offset: 2px; }
+/* v11: receipt scan, every bill line assignable */
+.cam { position: relative; margin: 8px auto 0; max-width: 340px; aspect-ratio: 3 / 4; border-radius: 20px; background: #27272a; display: grid; place-items: center; overflow: hidden; }
+.receipt { width: 74%; background: #fff; color: #18181b; font: 11px/1.55 ui-monospace, Menlo, monospace; padding: 14px 12px 18px; transform: rotate(-2deg); box-shadow: 0 10px 24px rgba(0,0,0,.35); }
+.receipt .r-head { text-align: center; font-weight: 700; }
+.receipt .r-row { display: flex; justify-content: space-between; gap: 8px; }
+.receipt hr { border: 0; border-top: 1px dashed #a1a1aa; margin: 6px 0; }
+.cam-corners { position: absolute; inset: 6%; pointer-events: none; }
+.cam-corners i { position: absolute; width: 26px; height: 26px; border: 3px solid #fff; }
+.cam-corners i:nth-child(1) { top: 0; left: 0; border-right: 0; border-bottom: 0; border-top-left-radius: 12px; }
+.cam-corners i:nth-child(2) { top: 0; right: 0; border-left: 0; border-bottom: 0; border-top-right-radius: 12px; }
+.cam-corners i:nth-child(3) { bottom: 0; left: 0; border-right: 0; border-top: 0; border-bottom-left-radius: 12px; }
+.cam-corners i:nth-child(4) { bottom: 0; right: 0; border-left: 0; border-top: 0; border-bottom-right-radius: 12px; }
+/* the line sits at the top of a box as tall as the zone; moving the box by its own height sweeps the line top to bottom */
+.scan-zone { position: absolute; inset: 8% 6%; overflow: hidden; pointer-events: none; }
+.scan-zone i { position: absolute; inset: 0 0 3px; animation: scan 1.1s cubic-bezier(0.77, 0, 0.175, 1) infinite alternate; }
+.scan-zone i::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px; border-radius: 2px; background: var(--live); box-shadow: 0 0 16px 2px var(--live); }
+@keyframes scan { to { transform: translateY(100%); } }
+@media (prefers-reduced-motion: reduce) { .scan-zone i { animation: none; transform: translateY(50%); } }
+.scan-note { display: flex; gap: 8px; align-items: center; margin: 14px 0 2px; font-size: 13px; color: var(--muted); }
+.warn-text { color: var(--danger) !important; }
+.why-total { display: flex; justify-content: space-between; align-items: baseline; padding: 14px 0 4px; font-weight: 600; }
+.opt-bar { height: 8px; border-radius: 4px; background: var(--bg-muted); margin-top: 10px; overflow: hidden; }
+.opt-bar i { display: block; height: 100%; border-radius: 4px; background: var(--text); transition: width 500ms var(--ease-out); }
+.opt-votes { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 13px; color: var(--muted); min-height: 22px; }
+.opt-actions { display: flex; align-items: center; gap: 6px; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border); }
+.opt-actions .link { flex: 1; text-align: left; font-size: 13px; }
+@media (prefers-reduced-motion: reduce) { .today-card.flash { animation: none; background: var(--live-bg); } .opt-bar i, .segs i { transition: none; } }
+
+/* v6: + menu (liquid-gooey), plan sheet, plan pins */
+.fab-root[hidden] { display: none; }
+.fab-wrap { position: fixed; right: 20px; bottom: calc(24px + env(safe-area-inset-bottom)); z-index: 40; pointer-events: none; }
+/* v8: the FAB floats in the corner over the sheet. The scrim is invisible, it only catches the tap that closes the menu */
+.fab-scrim { position: fixed; inset: 0; z-index: -1; pointer-events: auto; }
+/* Pieces are transparent: the liquid (fill) is the surface, per libraries.dev */
+.goo-btn { width: 48px; height: 48px; border-radius: 50%; background: transparent; color: #fff; display: grid; place-items: center; pointer-events: auto; }
+.goo-btn.fab { width: 56px; height: 56px; }
+.goo-btn[aria-hidden="true"] { pointer-events: none; }
+/* drop icons show only while open, so nothing stacks under the + */
+.goo-btn .ic { display: grid; opacity: 0; transform: scale(0.6); transition: opacity 100ms ease, transform 200ms var(--ease-out); }
+.goo-btn.on .ic { opacity: 1; transform: none; transition-delay: 140ms; }
+@media (prefers-reduced-motion: reduce) { .goo-btn .ic { transform: none; } }
+.fab-plus { display: block; transition: transform 250ms var(--ease-out); }
+.fab-plus.x { transform: rotate(45deg); }
+.fab-label { position: absolute; right: 68px; height: 32px; padding: 0 12px; border-radius: 16px; background: var(--bg); color: var(--text); font-size: 14px; font-weight: 600; white-space: nowrap; display: flex; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,.16); pointer-events: auto;
+  opacity: 0; transform: translateX(8px); transition: opacity 180ms ease, transform 220ms var(--ease-out); }
+.fab-label.on { opacity: 1; transform: none; transition-delay: 120ms; }
+@media (prefers-reduced-motion: reduce) { .fab-label { transform: none; } }
+.fab-fallback { position: fixed; right: 20px; bottom: calc(24px + env(safe-area-inset-bottom)); z-index: 40; width: 56px; height: 56px; border-radius: 28px; background: var(--primary); color: #fff; display: grid; place-items: center; box-shadow: 0 6px 16px rgba(0,0,0,.25); }
+.cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.cat { border: 1px solid var(--border); border-radius: 14px; padding: 12px 8px; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; text-align: center; transition: transform 160ms var(--ease-out); }
+.cat:active { transform: scale(0.97); }
+.cat img { width: 64px; height: 46px; object-fit: contain; }
+.cat.on { border: 2px solid var(--text); padding: 11px 7px; }
+.how { width: 100%; text-align: left; border: 1px solid var(--border); border-radius: 16px; padding: 16px; display: flex; gap: 14px; align-items: flex-start; margin-bottom: 10px; transition: transform 160ms var(--ease-out); }
+.how:active { transform: scale(0.98); }
+.how .ic { width: 40px; height: 40px; border-radius: 12px; background: var(--bg-muted); display: grid; place-items: center; flex: none; }
+.how b { display: block; font-weight: 600; }
+.how span { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
+.plan-pin span { cursor: pointer; }
+.dot-pin.vote span { background: #b45309; }
+.dot-pin.flash span { animation: pin-pop 600ms var(--ease-out) 3; }
+@keyframes pin-pop { 50% { transform: scale(1.15); } }
+@media (prefers-reduced-motion: reduce) { .dot-pin.flash span { animation: none; } .fab-plus { transition: none; } }
+.pin-c { position: absolute; left: 0; top: 0; transform: translateX(-50%); }
+</style>
+</head>
+<body>
+<div id="map-root" hidden><div id="map"></div></div>
+<div id="app"></div>
+<div id="fab-root" class="fab-root" hidden></div>
+<div id="sheet-root"></div>
+<div class="toast-root" id="toast-root" aria-live="polite"></div>
+
+<script>
+(function () {
+  'use strict';
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var PHOTO = '../assets/photos/', STICKER = '../assets/stickers/', ICONS = '../assets/icons/';
+  var MAP_STYLE = '../assets/map/style-google.json',
+    MAP_CREDIT = '<a href="https://openfreemap.org" target="_blank">OpenFreeMap</a> © <a href="https://www.openmaptiles.org/" target="_blank">OpenMapTiles</a> © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>';
+
+  // ---------- data (same scenario as prototype v1) ----------
+  var M = {
+    ari: { name: 'Ari', full: 'Ari Navarro', c: '#FFC83D' },
+    nic: { name: 'Nic', full: 'Nic Stout', c: '#7DD3FC' },
+    maya: { name: 'Maya', full: 'Maya Costa', c: '#FDA4AF' },
+    leo: { name: 'Leo', full: 'Leo Brandt', c: '#86EFAC' },
+    ren: { name: 'Ren', full: 'Ren Okafor', c: '#C4B5FD' }
+  };
+  var PLACES = {
+    mercado: { name: 'Mercado da Ribeira Nova', area: 'Cais do Sodré', vibe: 'Lively food hall', rating: 4.5, price: '€€', walk: 8, img: 'place-mercado', ll: [38.7069, -9.1459] },
+    tasca: { name: 'Tasca do Largo', area: 'Alfama', vibe: 'Cozy and traditional', rating: 4.7, price: '€€', walk: 12, img: 'place-tasca', ll: [38.7113, -9.1308] },
+    rooftop: { name: 'Sol Poente Rooftop', area: 'Bairro Alto', vibe: 'Sunset rooftop', rating: 4.3, price: '€€€', walk: 15, img: 'place-rooftop', ll: [38.7128, -9.1452] },
+    marisco: { name: 'Casa do Marisco', area: 'Baixa', vibe: 'Seafood classic', rating: 4.6, price: '€€€', walk: 10, img: 'place-marisco', ll: [38.7110, -9.1380] },
+    lua: { name: 'Pizzaria Lua', area: 'Graça', vibe: 'Casual and cheap', rating: 4.2, price: '€', walk: 6, img: 'place-lua', ll: [38.7168, -9.1307] }
+  };
+  // Plan something: categories, times, and options per category (restaurants are the 'food' places above)
+  var CATS = {
+    food: { label: 'Food and drinks', icon: 'dinner', q: 'Where should we eat tonight?', when: 'Tonight · 20:30' },
+    activity: { label: 'Activity', icon: 'activity', q: 'What should we do tomorrow?', when: 'Tomorrow · 10:00' },
+    transport: { label: 'Getting around', icon: 'tram', q: 'How do we get to the airport?', when: 'Tomorrow · 15:00' }
+  };
+  var WHEN = ['Today · 16:00', 'Tonight · 20:30', 'Tomorrow · 10:00', 'Tomorrow · 15:00'];
+  [['miradouro', 'activity', 'Miradouro da Senhora do Monte', 'Graça', 'Best view of the city', 4.8, 'Free', 14, 'lisbon-tram', [38.7192, -9.1328]],
+   ['feira', 'activity', 'Feira da Ladra', 'Alfama', 'Flea market', 4.4, 'Free', 9, 'lisbon-azulejo', [38.7146, -9.1262]],
+   ['cruise', 'activity', 'Sunset sailing on the Tagus', 'Alcântara', 'Two-hour boat trip', 4.9, '€€€', 25, 'lisbon-caravel', [38.7035, -9.1630]],
+   ['fadoclub', 'activity', 'Clube de Fado', 'Alfama', 'Live fado, small room', 4.6, '€€', 6, 'place-tasca', [38.7104, -9.1305]],
+   ['metro', 'transport', 'Metro, red line', 'Alameda', 'About 25 min, €1.85 each', 4.3, '€', 18, null, [38.7369, -9.1335]],
+   ['aerobus', 'transport', 'Aerobus', 'Cais do Sodré', 'About 35 min, €4 each', 4.1, '€', 16, null, [38.7060, -9.1446]],
+   ['taxi', 'transport', 'Taxi for five', 'From the flat', 'About 20 min, around €25 total', 4.5, '€€', 0, null, [38.7128, -9.1279]]
+  ].forEach(function (o) { PLACES[o[0]] = { cat: o[1], name: o[2], area: o[3], vibe: o[4], rating: o[5], price: o[6], walk: o[7], img: o[8], ll: o[9] }; });
+  Object.keys(PLACES).forEach(function (k) { PLACES[k].cat = PLACES[k].cat || 'food'; });
+  function optionsFor(cat) { return Object.keys(PLACES).filter(function (k) { return PLACES[k].cat === cat; }); }
+  function placeMeta(pl) { return (pl.cat === 'transport' ? pl.vibe : '★ ' + pl.rating + ' · ' + pl.area + ' · ' + pl.price) + (pl.walk ? ' · ' + pl.walk + ' min' : ''); }
+  // The dinner menu (the same for every restaurant in this prototype). People can pick their dishes before dinner (S.picks)
+  var MENU = [
+    { id: 'polvo', name: 'Polvo à lagareiro', price: 22 },
+    { id: 'bacalhau', name: 'Bacalhau à Brás', price: 16.5 },
+    { id: 'bitoque', name: 'Bitoque', price: 14 },
+    { id: 'caldo', name: 'Caldo verde', price: 5 },
+    { id: 'wine', name: 'Vinho Verde', price: 18 },
+    { id: 'sumol', name: 'Sumol', price: 3 },
+    { id: 'nata', name: 'Pastel de nata', price: 1.5 }
+  ];
+  // The bill as the receipt prints it. Scanning it reads these lines
+  var RECEIPT = [{ id: 'polvo', qty: 2 }, { id: 'bacalhau', qty: 2 }, { id: 'bitoque', qty: 1 }, { id: 'caldo', qty: 1 }, { id: 'wine', qty: 2 }, { id: 'sumol', qty: 2 }, { id: 'nata', qty: 4 }];
+  function dish(id) { return MENU.filter(function (m) { return m.id === id; })[0]; }
+  var EARLIER = [
+    { id: 'flat', title: 'Airbnb, Alfama flat', payer: 'maya', amount: 600, among: ['ari', 'nic', 'maya', 'leo'], when: 'Tue 12 May' },
+    { id: 'tuk', title: 'Tuk-tuk tour', payer: 'nic', amount: 80, among: ['ari', 'nic', 'maya', 'leo'], when: 'Wed 13 May' },
+    { id: 'groc', title: 'Groceries and drinks', payer: 'leo', amount: 46, among: ['ari', 'nic', 'maya', 'leo'], when: 'Thu 14 May' }
+  ];
+  var TRIPS = [
+    { id: 'berlin', city: 'Berlin', when: 'Mar 2026', people: 4, status: 'Settled', photos: ['berlin', 'berlin-currywurst', 'berlin-bear', null] },
+    { id: 'mallorca', city: 'Mallorca', when: 'Aug 2025', people: 6, status: 'Settled', photos: ['mallorca-cathedral', 'mallorca', 'mallorca-bellver', null] },
+    { id: 'bansko', city: 'Bansko', when: 'Jan 2026', people: 5, status: '€12 open', photos: ['bansko', 'bansko-banitsa', 'bansko-kukeri', null] }
+  ];
+
+  var VISITED = [
+    { s: 'belem', name: 'Belém Tower', day: 'Today', ll: [38.6916, -9.2160], w: 64, r: -6 },
+    { s: 'padrao', name: 'Padrão dos Descobrimentos', day: 'Today', ll: [38.6936, -9.2057], w: 60, r: 5 },
+    { s: 'nata', name: 'Pastéis de Belém', day: 'Today', ll: [38.6975, -9.2032], w: 54, r: -8 },
+    { s: 'galo', name: 'LX Factory', day: 'Today', ll: [38.7037, -9.1784], w: 56, r: 6 },
+    { s: 'caravel', name: 'Sunset at Cais do Sodré', day: 'Wed', ll: [38.7058, -9.1445], w: 62, r: -4 },
+    { s: 'tram', name: 'Tram 28', day: 'Wed', ll: [38.7159, -9.1349], w: 54, r: 7 },
+    { s: 'guitar', name: 'Fado night, Alfama', day: 'Tue', ll: [38.7102, -9.1262], w: 50, r: -10 },
+    { s: 'sardine_tin', name: 'Sardine shop, Baixa', day: 'Thu', ll: [38.7098, -9.1386], w: 60, r: 4 },
+    { s: 'azulejo', name: 'Tile Museum', day: 'Thu', ll: [38.7247, -9.1136], w: 56, r: -5 }
+  ];
+  var FLAT = [38.7132, -9.1285];
+
+  var S, timers = [], dir = 'fwd';
+  function fresh() {
+    return {
+      route: 'trips', stack: [], sheet: null,
+      renAdded: false,
+      poll: null,
+      // menu picks made before dinner. Nobody picked the wine, so the scan gives it to everyone
+      picks: { polvo: ['leo', 'ari'], bacalhau: ['maya', 'ren'], bitoque: ['nic'], caldo: ['ari'], sumol: ['nic', 'ren'], nata: ['nic', 'maya', 'leo', 'ren'] },
+      bill: null, split: 'items', billLogged: false,
+      paid: {}, paying: null,
+      flash: null, seenActivity: true, plans: [], planDraft: null, flashPin: null, snap: 'peek', tripTab: 'people', animSnap: false, barW: {}, segOn: 0,
+      events: [
+        { t: 'Thu 14 May', text: 'Leo added Groceries and drinks, €46.00' },
+        { t: 'Thu 14 May', text: 'Tile Museum and a sardine shop in Baixa' },
+        { t: 'Wed 13 May', text: 'Nic added Tuk-tuk tour, €80.00' },
+        { t: 'Tue 12 May', text: 'Maya added Airbnb, Alfama flat, €600.00' },
+        { t: 'Tue 12 May', text: 'Trip started. Ari, Nic, Maya and Leo arrived' }
+      ]
+    };
+  }
+
+  // ---------- helpers ----------
+  function members() { return S.renAdded ? ['ari', 'nic', 'maya', 'leo', 'ren'] : ['ari', 'nic', 'maya', 'leo']; }
+  function nm(id) { return id === 'ari' ? 'You' : M[id].name; }
+  function eur(n) { return '€' + (Math.round(n * 100) / 100).toFixed(2); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function av(id, size) { return '<span class="av ' + (size || '') + '" style="--c:' + M[id].c + '" title="' + M[id].full + '">' + M[id].name[0] + '</span>'; }
+  function stack(ids, size) { return '<span class="stack">' + ids.map(function (i) { return av(i, size); }).join('') + '</span>'; }
+  function names(ids) { var n = ids.map(nm); return n.length < 2 ? n.join('') : n.slice(0, -1).join(', ') + ' and ' + n[n.length - 1]; }
+  function cap(t) { return t.charAt(0).toUpperCase() + t.slice(1); }
+  function namesLower(ids) { var n = ids.map(function (id) { return id === 'ari' ? 'you' : M[id].name; }); return n.length < 2 ? n.join('') : n.slice(0, -1).join(', ') + ' and ' + n[n.length - 1]; }
+  function thumb(pl, size) { var st = size ? 'width:' + size + 'px;height:' + size + 'px;border-radius:10px;flex:none' : 'width:100%;height:100%'; return pl.img ? '<div class="ph" style="' + st + '"><img src="' + PHOTO + pl.img + '.jpg" alt=""></div>' : placeholder('', '', st); }
+  function photo(name) { return '<div class="ph"><img src="' + PHOTO + name + '.jpg" alt="" loading="lazy"></div>'; }
+  function placeholder(label, cls, style) { return '<div class="ph ' + (cls || '') + '" style="' + (style || '') + '"><span class="ph-label">' + I.image + (label ? esc(label) : '') + '</span></div>'; }
+  function later(ms, fn) { timers.push(setTimeout(fn, ms)); }
+  function log(text) { S.events.unshift({ t: 'Today', text: text }); if (S.route !== 'activity') S.seenActivity = false; }
+  var I = {
+    back: '<svg class="icon" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>',
+    x: '<svg class="icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+    chev: '<svg class="icon chev" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M9 6l6 6-6 6"/></svg>',
+    share: '<svg class="icon" viewBox="0 0 24 24"><path d="M12 3v13M7 8l5-5 5 5M5 14v6h14v-6"/></svg>',
+    plus: '<svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+    check: '<svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px;stroke-width:2.6"><path d="M5 12l5 5L20 7"/></svg>',
+    up: '<svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M7 11v9H4v-9h3zM7 11l4-8a2 2 0 012 2v4h5a2 2 0 012 2.3l-1.2 7A2 2 0 0116.8 20H7"/></svg>',
+    down: '<svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M17 13V4h3v9h-3zM17 13l-4 8a2 2 0 01-2-2v-4H6a2 2 0 01-2-2.3l1.2-7A2 2 0 017.2 4H17"/></svg>',
+    poll: '<svg class="icon" viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>',
+    wallet: '<svg class="icon" viewBox="0 0 24 24"><path d="M3 7h15a3 3 0 013 3v7a3 3 0 01-3 3H3zM3 7l12-4v4M16 14h2"/></svg>',
+    cal: '<svg class="icon" viewBox="0 0 24 24"><path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4"/></svg>',
+    userPlus: '<svg class="icon" viewBox="0 0 24 24"><path d="M9 11a4 4 0 100-8 4 4 0 000 8zM2 21a7 7 0 0114 0M19 8v6M16 11h6"/></svg>',
+    homeS: '<svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 11l8-7 8 7v9H4z"/></svg>',
+    users: '<svg class="icon" viewBox="0 0 24 24"><path d="M9 11a4 4 0 100-8 4 4 0 000 8zM2 21a7 7 0 0114 0M16 3.5a4 4 0 010 7.5M22 21a7 7 0 00-5-6.7"/></svg>',
+    bell: '<svg class="icon" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0112 0v5l2 2H4l2-2zM10 21h4"/></svg>',
+    user: '<svg class="icon" viewBox="0 0 24 24"><path d="M12 12a4 4 0 100-8 4 4 0 000 8zM4 21a8 8 0 0116 0"/></svg>',
+    suitcase: '<svg class="icon" viewBox="0 0 24 24"><path d="M4 7h16v13H4zM9 7V4h6v3M4 12h16"/></svg>',
+    image: '<svg class="icon" viewBox="0 0 24 24" style="width:22px;height:22px"><path d="M4 5h16v14H4zM4 15l5-5 5 5 2-2 4 4"/><circle cx="15" cy="9" r="1.5"/></svg>',
+    link: '<svg class="icon" viewBox="0 0 24 24"><path d="M10 14a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1M14 10a5 5 0 00-7 0l-3 3a5 5 0 007 7l1-1"/></svg>',
+    qr: '<svg class="icon" viewBox="0 0 24 24"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 18h2v2h-2zM14 18h2M18 14h2"/></svg>',
+    bank: '<svg class="icon" viewBox="0 0 24 24"><path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/></svg>',
+    card: '<svg class="icon" viewBox="0 0 24 24"><path d="M3 6h18v12H3zM3 10h18"/></svg>',
+    cash: '<svg class="icon" viewBox="0 0 24 24"><path d="M3 7h18v10H3zM12 15a3 3 0 100-6 3 3 0 000 6z"/></svg>',
+    pin: '<svg class="icon" viewBox="0 0 24 24"><path d="M12 21s-7-6.5-7-12a7 7 0 0114 0c0 5.5-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>',
+    note: '<svg class="icon" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M4 20h4L19 9l-4-4L4 16v4z"/></svg>'
+  };
+
+  // ---------- money (same model as v1) ----------
+  function inTrip(x) { return members().indexOf(x) >= 0; }
+  function lineTotal(l) { return dish(l.id).price * l.qty; }
+  function assignees(l) { return ((S.bill && S.bill.assign[l.id]) || []).filter(inTrip); }
+  function unassigned() { return RECEIPT.filter(function (l) { return !assignees(l).length; }); }
+  function dinnerTotal() { return RECEIPT.reduce(function (s, l) { return s + lineTotal(l); }, 0); }
+  function dinnerShares() {
+    var shares = {}, ids = members();
+    ids.forEach(function (id) { shares[id] = 0; });
+    if (S.split === 'equal') { ids.forEach(function (id) { shares[id] = dinnerTotal() / ids.length; }); return shares; }
+    RECEIPT.forEach(function (l) { var w = assignees(l); w.forEach(function (x) { shares[x] += lineTotal(l) / w.length; }); });
+    return shares;
+  }
+  // what the scan does: each receipt line goes to the people who picked that dish. No picks: everyone shares it
+  function autoAssign() {
+    var a = {}, src = {};
+    RECEIPT.forEach(function (l) {
+      var p = (S.picks[l.id] || []).filter(inTrip);
+      a[l.id] = p.length ? p : members().slice(); src[l.id] = p.length ? 'picks' : 'everyone';
+    });
+    S.bill.assign = a; S.bill.src = src;
+  }
+  function expenses() {
+    var list = EARLIER.map(function (e) {
+      var shares = {}; e.among.forEach(function (x) { shares[x] = e.amount / e.among.length; });
+      return { id: e.id, title: e.title, payer: e.payer, amount: e.amount, shares: shares, when: e.when };
+    });
+    if (S.billLogged) list.push({ id: 'dinner', title: 'Dinner, ' + PLACES[winner()].name, payer: 'ari', amount: dinnerTotal(), shares: dinnerShares(), when: 'Today' });
+    return list;
+  }
+  function nets() {
+    var n = {}; members().forEach(function (id) { n[id] = 0; });
+    expenses().forEach(function (e) {
+      n[e.payer] += e.amount;
+      for (var k in e.shares) n[k] -= e.shares[k];
+    });
+    for (var k in n) n[k] = Math.round(n[k] * 100);
+    return n;
+  }
+  function naiveCount() { var c = 0; expenses().forEach(function (e) { for (var k in e.shares) if (k !== e.payer && e.shares[k] > 0) c++; }); return c; }
+  function transfers() {
+    var n = nets(), cred = [], debt = [];
+    for (var k in n) { if (n[k] > 0) cred.push({ id: k, v: n[k] }); else if (n[k] < 0) debt.push({ id: k, v: -n[k] }); }
+    cred.sort(function (a, b) { return b.v - a.v; }); debt.sort(function (a, b) { return b.v - a.v; });
+    var out = [], i = 0, j = 0;
+    while (i < debt.length && j < cred.length) {
+      var x = Math.min(debt[i].v, cred[j].v);
+      if (x > 0) out.push({ from: debt[i].id, to: cred[j].id, cents: x, key: debt[i].id + '>' + cred[j].id });
+      debt[i].v -= x; cred[j].v -= x;
+      if (!debt[i].v) i++;
+      if (!cred[j].v) j++;
+    }
+    return out.sort(function (a, b) { return (b.from === 'ari') - (a.from === 'ari'); });
+  }
+  // what each shared cost did to one person's balance: paid minus their share
+  function breakdown(p) {
+    return expenses().map(function (e) {
+      var share = e.shares[p] || 0, paid = e.payer === p ? e.amount : 0;
+      return { e: e, share: share, paid: paid, d: paid - share };
+    }).filter(function (r) { return r.share > 0.004 || r.paid > 0; });
+  }
+  function myNet() { return nets().ari / 100; }
+  function allPaid() { var t = transfers(); return t.length > 0 && t.every(function (x) { return S.paid[x.key]; }); }
+
+  // ---------- poll ----------
+  function tally() {
+    var t = {}; S.poll.options.forEach(function (o) { t[o] = { up: [], down: [] }; });
+    for (var m in S.poll.votes) if (t[S.poll.votes[m]]) t[S.poll.votes[m]].up.push(m);
+    for (var d in S.poll.downs) S.poll.downs[d].forEach(function (o) { if (t[o]) t[o].down.push(d); });
+    return t;
+  }
+  function voted() { return members().filter(function (m) { return S.poll.votes[m]; }); }
+  function leader(strict) {   // strict: a tie has no leader
+    var t = tally(), best = null, tie = false;
+    S.poll.options.forEach(function (o) {
+      if (!best || t[o].up.length > t[best].up.length) { best = o; tie = false; }
+      else if (t[o].up.length === t[best].up.length) tie = true;
+    });
+    return t[best].up.length && !(strict && tie) ? best : null;
+  }
+  // votes between the leading option and the next one (0 = tie)
+  function margin() { var t = tally(), c = S.poll.options.map(function (o) { return t[o].up.length; }).sort(function (a, b) { return b - a; }); return c[0] - (c[1] || 0); }
+  function winner() { var d = S.plans.filter(function (x) { return x.cat === 'food'; })[0]; return d ? d.key : null; }   // tonight's dinner, from a poll or picked
+
+  // ---------- navigation ----------
+  function go(route) { S.stack.push(S.route); S.route = route; dir = 'fwd'; S.sheet = null; render(true); }
+  function back() { S.route = S.stack.pop() || 'trips'; dir = 'back'; S.sheet = null; render(true); }
+  function home(route) { S.stack = []; S.route = route; dir = 'fwd'; S.sheet = null; render(true); }
+
+  var toastTimer;
+  function toast(text) {
+    var root = document.getElementById('toast-root');
+    clearTimeout(toastTimer);
+    root.innerHTML = '<div class="toast">' + esc(text) + '</div>';
+    toastTimer = setTimeout(function () {
+      var t = root.querySelector('.toast'); if (!t) return;
+      t.classList.add('out'); setTimeout(function () { root.innerHTML = ''; }, 220);
+    }, 2800);
+  }
+
+  // ---------- shared pieces ----------
+  function topbar(left, title, right) {
+    return '<header class="topbar"><div class="topbar-in">' + (left || '<span class="spacer"></span>') +
+      '<span class="t">' + esc(title || '') + '</span>' + (right || '<span class="spacer"></span>') + '</div></header>';
+  }
+  var backBtn = '<button class="circle" data-a="back" aria-label="Back">' + I.back + '</button>';
+  var closeBtn = '<button class="circle" data-a="back" aria-label="Close">' + I.x + '</button>';
+  function bottombar(info, action) { return '<div class="bottombar"><div class="bottombar-in"><div class="info">' + info + '</div>' + action + '</div></div>'; }
+  function tabbar(on) {
+    var tabs = [['trips', 'Trips', I.suitcase], ['activity', 'Activity', I.bell], ['profile', 'Profile', I.user]];
+    return '<nav class="tabbar"><div class="tabbar-in">' + tabs.map(function (t) {
+      var dot = t[0] === 'activity' && !S.seenActivity ? '<span class="dot"></span>' : '';
+      return '<button class="tab ' + (on === t[0] ? 'on' : '') + '" data-a="tab" data-v="' + t[0] + '">' + t[2] + t[1] + dot + '</button>';
+    }).join('') + '</div></nav>';
+  }
+  function lisbonCollage(cls) { return '<div class="collage ' + (cls || 'c3') + '">' + photo('lisbon-tram') + photo('lisbon-belem') + photo('lisbon-nata') + (cls === 'c4' ? photo('lisbon-azulejo') : '') + '</div>'; }
+  function tripStatus() {
+    if (allPaid()) return [I.check, 'Everyone is squared up'];
+    if (S.billLogged) { var n = myNet(); return [I.wallet, n < 0 ? 'You owe ' + eur(-n) + ' · tap to settle' : 'You get back ' + eur(n)]; }
+    if (S.poll && S.poll.status === 'open') return [I.poll, 'Dinner poll · ' + voted().length + ' of ' + members().length + ' voted'];
+    if (winner()) return [I.cal, 'Dinner at 20:30 · ' + PLACES[winner()].name];
+    return [I.cal, 'Tonight: dinner not decided yet'];
+  }
+
+  // ---------- screens ----------
+  var SCREENS = {};
+
+  // 1. Trips (Airbnb wishlists grid, current trip as hero)
+  SCREENS.trips = function () {
+    var st = tripStatus();
+    return '<main class="page" style="padding-top:28px">' +
+      '<div class="title-row"><h1>Trips</h1><button class="circle" data-a="toast" data-v="Creating a trip is out of scope for this prototype" aria-label="Plan a new trip">' + I.plus + '</button></div>' +
+      '<section class="section" style="padding-top:20px">' +
+        '<button class="hero" data-a="go" data-v="trip">' +
+          '<div class="hero-wrap">' + lisbonCollage() + '<span class="badge live">Happening now</span>' + stack(members(), 's') + '</div>' +
+          '<div class="hero-title"><h2>Lisbon</h2><span class="muted small">12–16 May · day 4 of 5</span></div>' +
+          '<div class="status-line">' + st[0] + '<span>' + st[1] + '</span></div>' +
+        '</button>' +
+      '</section>' +
+      '<section class="section"><div class="section-head"><h2>Past trips</h2></div><div class="grid2">' +
+        TRIPS.map(function (t) {
+          return '<button class="card-small" data-a="toast" data-v="Past trips are out of scope for this prototype">' +
+            '<div class="collage c4">' + t.photos.map(function (n) { return n ? photo(n) : placeholder(''); }).join('') + '</div>' +
+            '<h3>' + t.city + '</h3><div class="muted small">' + t.when + ' · ' + t.status + '</div></button>';
+        }).join('') +
+      '</div></section>' +
+    '</main>' + tabbar('trips');
+  };
+
+  // 2. Trip: map with sticker pins (the map is the trip's history) + bottom sheet (People, Expenses). Planning starts from the + menu.
+  SCREENS.trip = function () {
+    var tabs = [['people', 'People'], ['expenses', 'Expenses']];
+    return '<div class="map-top">' + backBtn + '<button class="circle" data-a="toast" data-v="Share is out of scope for this prototype" aria-label="Share">' + I.share + '</button></div>' +
+      '<section class="tsheet" id="tsheet" aria-label="Trip details">' +
+        '<div class="tsheet-head" id="tsheet-head"><div class="grab"></div>' +
+          '<div class="trip-head"><div class="grow"><h1 style="font-size:30px;line-height:34px">Lisbon</h1><div class="muted small">12–16 May · day 4 of 5</div></div>' +
+            '<button class="pill" style="padding:0 6px" data-a="tripTab" data-v="people" aria-label="' + members().length + ' people">' + stack(members(), 's') + '</button>' +
+            '<button class="circle" data-a="sheet" data-v="invite" aria-label="Add people">' + I.userPlus + '</button></div>' +
+        '</div>' +
+        '<div class="tsheet-body" id="tsheet-body">' +
+          '<div class="tabs"><div class="seg3" role="tablist">' + tabs.map(function (t) {
+            return '<button role="tab" aria-selected="' + (S.tripTab === t[0]) + '" class="' + (S.tripTab === t[0] ? 'on' : '') + '" data-a="tripTab" data-v="' + t[0] + '">' + t[1] + '</button>';
+          }).join('') + '</div></div>' +
+          TRIP_TABS[S.tripTab]() +
+        '</div>' +
+      '</section>' +
+      (window.__fabReady ? '' : '<button class="fab-fallback" data-a="sheet" data-v="add" aria-label="Add to the trip">' + I.plus + '</button>');
+  };
+  var TRIP_TABS = {
+    people: function () {
+      var n = nets(), roles = { ari: 'Organizer · you', nic: 'Since 12 May', maya: 'Since 12 May', leo: 'Since 12 May', ren: 'Joined today' };
+      return members().map(function (id) {
+        var v = n[id] / 100, bal;
+        if (allPaid() || Math.abs(v) < 0.005) bal = '<span class="owe muted">Settled</span>';
+        else bal = v < 0 ? '<span class="owe neg">Owes ' + eur(-v) + '</span>' : '<span class="owe pos">Gets ' + eur(v) + '</span>';
+        return '<div class="list-row">' + av(id, 'l') + '<span class="body"><b>' + M[id].full + '</b><span>' + roles[id] + '</span></span>' + bal + '</div>';
+      }).join('');
+    },
+    expenses: function () {
+      var me = myNet(), w = winner();
+      var sum = allPaid()
+        ? '<div class="sum-card"><span style="flex:1"><b style="display:block">Squared up</b><span class="muted small">No open payments</span></span><button class="btn sm outline" data-a="go" data-v="balance">Balance</button></div>'
+        : '<div class="sum-card"><span style="flex:1"><span class="muted small">' + (me < 0 ? 'You owe' : 'You get back') + '</span><b style="display:block;font-family:var(--display);font-size:26px;line-height:32px">' + eur(Math.abs(me)) + '</b><span class="muted small">' + transfers().length + ' payments settle the trip</span></span><button class="btn" data-a="go" data-v="balance">Settle up</button></div>';
+      var hint = w && !S.billLogged ? '<div class="hint" style="margin-top:12px"><span>Back from dinner? Log the bill from the + button.</span></div>' : '';
+      return sum + expenses().slice().reverse().map(function (e) {
+        return '<div class="list-row"><span class="body"><b>' + esc(e.title) + '</b><span>' + (e.payer === 'ari' ? 'You' : M[e.payer].name) + ' paid · ' + e.when + '</span></span><span class="amt">' + eur(e.amount) + '</span></div>';
+      }).join('') + hint;
+    }
+  };
+
+  // 3. New poll (options come from the category picked in Plan something)
+  SCREENS.newpoll = function () {
+    var d = S.draft, cat = CATS[d.cat];
+    var opts = optionsFor(d.cat).map(function (k) {
+      var pl = PLACES[k], on = d.picked.indexOf(k) >= 0;
+      return '<button class="list-row" data-a="pick" data-v="' + k + '">' + thumb(pl, 56) +
+        '<span class="body"><b>' + pl.name + '</b><span>' + placeMeta(pl) + '</span></span>' +
+        '<span class="check ' + (on ? 'on' : '') + '">' + I.check + '</span></button>';
+    }).join('');
+    var closes = [['30', '30 min'], ['60', '1 hour'], ['120', '2 hours']];
+    return topbar(closeBtn, 'New poll · ' + cat.label) +
+    '<main class="page">' +
+      '<label class="field"><label>Question</label><input data-in="q" value="' + esc(d.q) + '"></label>' +
+      '<section class="section" style="border:0;padding-top:24px"><div class="section-head"><h2>Options</h2><span class="muted small">Pick 2 to 4</span></div>' + opts + '</section>' +
+      '<section class="section"><h3 style="margin-bottom:12px">Voting closes in</h3><div class="chips">' +
+        closes.map(function (c) { return '<button class="chip ' + (d.closeIn === c[0] ? 'on' : '') + '" data-a="closeIn" data-v="' + c[0] + '">' + c[1] + '</button>'; }).join('') +
+      '</div>' +
+      '<button class="list-row" style="margin-top:12px;border:0" data-a="autoAdd"><span class="body"><b>Add the winner to the plan</b><span>' + d.when + '. You can undo it.</span></span><span class="switch ' + (d.autoAdd ? 'on' : '') + '"></span></button>' +
+      '</section>' +
+    '</main>' +
+    bottombar('<b>' + d.picked.length + ' options</b><span>Everyone in the trip gets notified</span>',
+      '<button class="btn" data-a="startPoll"' + (d.picked.length < 2 || d.picked.length > 4 ? ' disabled' : '') + '>Start poll</button>');
+  };
+
+  // 4. Poll with live votes: progress on top, horizontal cards
+  SCREENS.poll = function () {
+    var p = S.poll, t = tally(), lead = leader(true), total = members().length, v = voted();
+    var top = Math.max.apply(null, p.options.map(function (o) { return t[o].up.length; })), m = margin();
+    var cards = p.options.map(function (o) {
+      var pl = PLACES[o], up = t[o].up, down = t[o].down, mine = p.votes.ari === o, myDown = (p.downs.ari || []).indexOf(o) >= 0;
+      var pct = v.length ? Math.round(up.length / v.length * 100) : 0, from = S.barW[o] || 0;
+      S.barW[o] = pct;
+      var isLead = p.status === 'closed' ? o === p.winner : o === lead;
+      var tied = p.status === 'open' && !lead && top > 0 && up.length === top;
+      var tag = isLead ? '<span class="tag ' + (p.status === 'closed' ? '' : 'live') + '">' + (p.status === 'closed' ? 'Winner' : 'Leading by ' + m + (m === 1 ? ' vote' : ' votes')) + '</span>'
+        : tied ? '<span class="tag">Tied</span>' : '';
+      var notes = (p.notes[o] || []).map(function (n) { return '<div class="note">' + av(n.by, 's') + '<span><b>' + nm(n.by) + ':</b> ' + esc(n.text) + '</span></div>'; }).join('');
+      var off = p.status === 'closed' ? ' disabled' : '';
+      return '<article class="opt-card ' + (isLead ? 'lead' : '') + '">' +
+        '<div class="opt-main"><div class="ph thumb"><img src="' + PHOTO + pl.img + '.jpg" alt=""></div><div class="opt-body">' +
+          '<div class="opt-title"><b>' + pl.name + '</b>' + tag + '</div>' +
+          '<div class="muted small">★ ' + pl.rating + ' · ' + pl.area + ' · ' + pl.price + ' · ' + pl.walk + ' min</div>' +
+          '<div class="opt-bar"><i style="width:' + from + '%" data-w="' + pct + '%"></i></div>' +
+          '<div class="opt-votes">' + (up.length ? stack(up, 's') : '') + '<span>' + up.length + (up.length === 1 ? ' vote' : ' votes') + ' · ' + pct + '%</span></div>' +
+        '</div></div>' + notes +
+        '<div class="opt-actions"><button class="link" data-a="sheet" data-v="note:' + o + '">Add note</button>' +
+          '<button class="thumb-btn ' + (mine ? 'on' : '') + '" data-a="vote" data-v="' + o + '" aria-label="Vote for ' + pl.name + '"' + off + '>' + I.up + up.length + '</button>' +
+          '<button class="thumb-btn down ' + (myDown ? 'on' : '') + '" data-a="downvote" data-v="' + o + '" aria-label="Not keen on ' + pl.name + '"' + off + '>' + I.down + (down.length || '') + '</button>' +
+        '</div></article>';
+    }).join('');
+    var segFrom = S.segOn; S.segOn = v.length;
+    var segs = members().map(function (m, i) { return '<i class="' + (i < segFrom ? 'on' : '') + '" data-on="' + (i < v.length ? 1 : 0) + '"></i>'; }).join('');
+    var waiting = members().filter(function (m) { return !p.votes[m]; });
+    return topbar(backBtn, 'Lisbon · Poll', '<button class="circle" data-a="toast" data-v="Share is out of scope for this prototype" aria-label="Share">' + I.share + '</button>') +
+    '<main class="page">' +
+      '<h1 style="font-size:28px;line-height:34px;margin-top:4px">' + esc(p.q) + '</h1>' +
+      '<div class="poll-progress"><div class="segs" style="--n:' + total + '">' + segs + '</div>' +
+        '<div class="pp-row"><span><b>' + v.length + ' of ' + total + '</b> voted</span><span class="muted">' + (p.status === 'open' ? 'Closes ' + p.closes : 'Closed') + '</span></div>' +
+        '<button class="pp-row" style="width:100%;margin-top:10px" data-a="sheet" data-v="voters">' + (v.length ? stack(v, 's') : '') +
+          '<span class="muted small" style="flex:1;text-align:left">' + (waiting.length ? 'Waiting for ' + namesLower(waiting) : 'Everyone voted') + '</span>' + I.chev + '</button>' +
+      '</div>' + cards +
+    '</main>' +
+    (p.status === 'open'
+      ? bottombar('<b>' + (p.votes.ari ? 'You voted for ' + PLACES[p.votes.ari].name : 'Vote for your pick') + '</b><span>Results update live</span>', '<button class="btn outline" data-a="endPoll">End poll</button>')
+      : bottombar('<b>' + PLACES[p.winner].name + ' won</b><span>' + (p.added ? 'Added to today at 20:30' : 'Not added to the plan') + '</span>', '<button class="btn" data-a="back">Done</button>'));
+  };
+
+  // 5. Add expense: scan the receipt, lines go to people by their menu picks, any line can be reassigned
+  function receiptHtml() {
+    var pl = PLACES[winner()] || { name: 'Restaurant' };
+    return '<div class="receipt"><div class="r-head">' + esc(pl.name.toUpperCase()) + '</div><div style="text-align:center">Lisboa · 15/05/2026 22:14</div><hr>' +
+      RECEIPT.map(function (l) { return '<div class="r-row"><span>' + l.qty + ' ' + esc(dish(l.id).name) + '</span><span>' + lineTotal(l).toFixed(2) + '</span></div>'; }).join('') +
+      '<hr><div class="r-row" style="font-weight:700"><span>TOTAL EUR</span><span>' + dinnerTotal().toFixed(2) + '</span></div></div>';
+  }
+  SCREENS.expense = function () {
+    var w = winner(), b = S.bill, ids = members();
+    if (b.stage !== 'done') {
+      var reading = b.stage === 'reading';
+      return topbar(closeBtn, 'Add expense') +
+      '<main class="page">' +
+        '<div class="cam">' + receiptHtml() + '<div class="cam-corners"><i></i><i></i><i></i><i></i></div>' + (reading ? '<div class="scan-zone"><i></i></div>' : '') + '</div>' +
+        '<p class="muted small" style="text-align:center;margin-top:14px">' + (reading ? 'Reading the receipt…' : 'Fit the receipt in the frame. TripUp reads every line and matches it to the dishes people picked.') + '</p>' +
+        '<p style="text-align:center;margin-top:8px"><button class="link" data-a="skipScan">No receipt? Split equally</button></p>' +
+      '</main>' +
+      bottombar('<b>' + esc(w ? PLACES[w].name : 'Dinner') + '</b><span>Paid by you</span>', '<button class="btn" data-a="scanBill"' + (reading ? ' disabled' : '') + '>' + (reading ? 'Reading…' : 'Scan receipt') + '</button>');
+    }
+    var shares = dinnerShares(), open = unassigned();
+    var matched = RECEIPT.filter(function (l) { return b.src[l.id] === 'picks'; }).length;
+    var items = RECEIPT.map(function (l) {
+      var who = assignees(l), d = dish(l.id);
+      var sub = !who.length ? '<span class="warn-text">Nobody yet · tap to assign</span>'
+        : (who.length === ids.length && ids.length > 2 ? 'Everyone' : cap(namesLower(who))) + (who.length > 1 ? ' · ' + eur(lineTotal(l) / who.length) + ' each' : '');
+      return '<button class="list-row" data-a="sheet" data-v="item:' + l.id + '"><span class="body"><b>' + esc(d.name) + (l.qty > 1 ? ' ×' + l.qty : '') + '</b><span>' + sub + '</span></span>' +
+        (who.length ? stack(who, 's') : '') + '<span class="amt" style="margin-left:8px">' + eur(lineTotal(l)) + '</span>' + I.chev + '</button>';
+    }).join('');
+    var per = ids.map(function (id) {
+      return '<div class="list-row">' + av(id) + '<span class="body"><b>' + (id === 'ari' ? 'You' : M[id].name) + '</b></span><span class="amt">' + eur(shares[id]) + '</span></div>';
+    }).join('');
+    return topbar(closeBtn, 'Add expense') +
+    '<main class="page">' +
+      '<label class="field"><label>What for</label><input value="Dinner, ' + esc(w ? PLACES[w].name : 'restaurant') + '"></label>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">' +
+        '<div class="field"><label>Paid by</label><div style="display:flex;gap:8px;align-items:center;padding-top:2px">' + av('ari', 's') + '<b style="font-weight:500">You</b></div></div>' +
+        '<div class="field"><label>Total</label><div style="font-size:16px;font-weight:600;padding-top:2px">' + eur(dinnerTotal()) + '</div></div>' +
+      '</div>' +
+      '<section class="section" style="border:0;padding-top:24px"><div class="section-head"><h2>Split</h2></div>' +
+        '<div class="seg"><button class="' + (S.split === 'items' ? 'on' : '') + '" data-a="split" data-v="items">By item</button><button class="' + (S.split === 'equal' ? 'on' : '') + '" data-a="split" data-v="equal">Equally</button></div>' +
+        (S.split === 'items'
+          ? (b.scanned ? '<div class="scan-note">' + I.check + '<span>' + RECEIPT.length + ' lines read from the receipt · ' + matched + ' matched to menu picks</span></div>' : '') + items
+          : '<p class="muted small" style="margin-top:14px">' + eur(dinnerTotal() / ids.length) + ' each for ' + ids.length + ' people.</p>') +
+      '</section>' +
+      '<section class="section"><div class="section-head"><h2>Each person pays</h2></div>' + per + '</section>' +
+    '</main>' +
+    bottombar(S.split === 'items' && open.length ? '<b>' + open.length + (open.length === 1 ? ' line has' : ' lines have') + ' nobody</b><span>Assign every line to save</span>' : '<b>' + eur(dinnerTotal()) + '</b><span>Paid by you</span>',
+      '<button class="btn" data-a="saveBill"' + (S.split === 'items' && open.length ? ' disabled' : '') + '>Save expense</button>');
+  };
+
+  // 6. Balance: fewest payments
+  SCREENS.balance = function () {
+    var t = transfers(), mine = t.filter(function (x) { return x.from === 'ari'; }), others = t.filter(function (x) { return x.from !== 'ari'; });
+    function row(x, me) {
+      var label = me ? 'You pay ' + M[x.to].name : M[x.from].name + ' pays ' + (x.to === 'ari' ? 'you' : M[x.to].name);
+      var right = S.paid[x.key] ? '<span class="paid">' + I.check + 'Paid</span>'
+        : me ? '<button class="btn sm" data-a="pay" data-v="' + x.key + '">Pay</button>' : '<span class="muted small">Pending</span>';
+      return '<div class="list-row">' + stack([x.from, x.to]) + '<button class="body" style="text-align:left" data-a="sheet" data-v="why:' + x.key + '"><b>' + label + '</b><span>' + eur(x.cents / 100) + ' · <span class="why-link" style="display:inline">See why</span></span></button>' + right + '</div>';
+    }
+    return topbar(backBtn, 'Lisbon') +
+    '<main class="page">' +
+      '<h1 style="margin-top:4px">Balance</h1>' +
+      '<div class="stat" style="margin-top:20px"><div class="nums"><s>' + naiveCount() + '</s>' + t.length + '</div>' +
+        '<div><b>' + t.length + ' payments settle the trip</b><div class="muted small">Instead of ' + naiveCount() + ', one for each shared cost. Everyone still pays the same total.</div></div></div>' +
+      (mine.length ? '<section class="section" style="border:0"><div class="section-head"><h2>Your payments</h2></div>' + mine.map(function (x) { return row(x, true); }).join('') + '</section>' : '') +
+      '<section class="section"><div class="section-head"><h2>Everyone else</h2></div>' + (others.length ? others.map(function (x) { return row(x, false); }).join('') : '<p class="muted">Nothing open.</p>') + '</section>' +
+      '<section class="section"><div class="section-head"><h2>Expenses</h2><span class="muted small">' + eur(expenses().reduce(function (s, e) { return s + e.amount; }, 0)) + ' total</span></div>' +
+        expenses().map(function (e) { return '<div class="list-row"><span class="body"><b>' + esc(e.title) + '</b><span>' + (e.payer === 'ari' ? 'You' : M[e.payer].name) + ' paid · your share ' + eur(e.shares.ari || 0) + '</span></span><span class="amt">' + eur(e.amount) + '</span></div>'; }).join('') +
+      '</section>' +
+    '</main>' +
+    (mine.length && !mine.every(function (x) { return S.paid[x.key]; })
+      ? bottombar('<b>You owe ' + eur(mine.reduce(function (s, x) { return s + x.cents; }, 0) / 100) + '</b><span>To ' + names(mine.map(function (x) { return x.to; })) + '</span>', '<button class="btn" data-a="pay" data-v="' + mine[0].key + '">Pay</button>')
+      : '');
+  };
+
+  // 7. Pay
+  SCREENS.pay = function () {
+    var x = transfers().filter(function (t) { return t.key === S.paying; })[0];
+    if (!x) return SCREENS.balance();
+    var methods = [
+      ['bank', I.bank, 'Bank transfer', 'Instant, from your bank app. No card fees.'],
+      ['card', I.card, 'Card', 'Visa ending 6411'],
+      ['cash', I.cash, 'Paid in cash', 'Just mark it as paid']
+    ];
+    return topbar(closeBtn, 'Settle up') +
+    '<main class="page" style="text-align:center">' +
+      '<div style="margin-top:12px">' + av(x.to, 'xl') + '</div>' +
+      '<p class="muted" style="margin-top:12px">You pay ' + M[x.to].full + '</p>' +
+      '<div class="big-amount" style="margin-top:4px">' + eur(x.cents / 100) + '</div>' +
+      '<p class="muted small" style="margin-top:6px">Covers all ' + expenses().length + ' Lisbon expenses · <button class="why-link" data-a="sheet" data-v="why:' + x.key + '">See why</button></p>' +
+      '<section class="section" style="text-align:left;margin-top:24px"><h3 style="margin-bottom:6px">Pay with</h3>' +
+        methods.map(function (m) {
+          return '<button class="list-row" data-a="method" data-v="' + m[0] + '">' + m[1] + '<span class="body"><b>' + m[2] + '</b><span>' + m[3] + '</span></span><span class="check ' + (S.method === m[0] ? 'on' : '') + '" style="border-radius:50%">' + I.check + '</span></button>';
+        }).join('') +
+      '</section>' +
+    '</main>' +
+    bottombar('<b>' + eur(x.cents / 100) + '</b><span>To ' + M[x.to].name + '</span>',
+      '<button class="btn" data-a="confirmPay"' + (S.processing ? ' disabled' : '') + '>' + (S.processing ? 'Paying…' : S.method === 'cash' ? 'Mark as paid' : 'Pay ' + eur(x.cents / 100)) + '</button>');
+  };
+
+  // 8. Squared up
+  SCREENS.done = function () {
+    var t = transfers(), moved = t.reduce(function (s, x) { return s + x.cents; }, 0) / 100;
+    return '<main class="page done-page">' +
+      '<div class="art">' + lisbonCollage('c4') + '</div>' +
+      '<h1>Lisbon is squared up</h1>' +
+      '<p class="muted" style="margin-top:8px">Everyone paid. Nobody owes anything for this trip.</p>' +
+      '<div class="stats3"><div><b>' + t.length + '</b><span>payments</span></div><div><b>' + naiveCount() + '</b><span>without TripUp</span></div><div><b>' + eur(moved) + '</b><span>moved</span></div></div>' +
+      '<button class="btn block" data-a="homeTrip">Back to the trip</button>' +
+      '<button class="btn soft block" style="margin-top:10px" data-a="toast" data-v="Sharing is out of scope for this prototype">Share the trip summary</button>' +
+    '</main>';
+  };
+
+  SCREENS.activity = function () {
+    S.seenActivity = true;
+    return '<main class="page" style="padding-top:28px"><h1>Activity</h1><section class="section" style="padding-top:16px">' +
+      S.events.map(function (e) { return '<div class="list-row">' + I.bell + '<span class="body"><b>' + esc(e.text) + '</b><span>Lisbon · ' + e.t + '</span></span></div>'; }).join('') +
+      '</section></main>' + tabbar('activity');
+  };
+  SCREENS.profile = function () {
+    return '<main class="page" style="padding-top:28px"><h1>Profile</h1><section class="section" style="padding-top:16px">' +
+      '<div class="list-row">' + av('ari', 'l') + '<span class="body"><b>Ari Navarro</b><span>4 trips</span></span></div>' +
+      '<button class="list-row" data-a="restart">' + I.back + '<span class="body"><b>Restart the prototype</b><span>Back to the start of the Lisbon story</span></span></button>' +
+      '</section></main>' + tabbar('profile');
+  };
+
+  // ---------- sheets ----------
+  var SHEETS = {};
+  function sheetHead(title) { return '<div class="sheet-head"><button class="circle ghost" data-a="closeSheet" aria-label="Close">' + I.x + '</button><span class="t">' + esc(title) + '</span><span class="spacer"></span></div>'; }
+
+  // Members (Airbnb wishlist members sheet) + add Ren mid-trip
+  SHEETS.members = function () {
+    var roles = { ari: 'Organizer · you', nic: 'Joined 2 Apr', maya: 'Joined 2 Apr', leo: 'Joined 3 Apr', ren: 'Joined just now' };
+    return sheetHead('Lisbon · ' + members().length + ' people') +
+      members().map(function (id) { return '<div class="list-row">' + av(id, 'l') + '<span class="body"><b>' + M[id].full + '</b><span>' + roles[id] + '</span></span></div>'; }).join('') +
+      (S.renAdded ? '' : '<button class="btn block" style="margin-top:16px" data-a="sheet" data-v="invite">' + I.plus + 'Add people</button>');
+  };
+  SHEETS.invite = function () {
+    return sheetHead('Add to Lisbon') +
+      '<div class="hint good" style="margin-bottom:16px">' + I.check + '<span><b>No account needed.</b> They open the link, type their name and they’re in. No app, no sign-up.</span></div>' +
+      '<p class="muted small" style="margin-bottom:8px">Suggested</p>' +
+      '<div class="list-row">' + av('ren', 'l') + '<span class="body"><b>Ren Okafor</b><span>From your contacts · gets the link by text</span></span><button class="btn sm" data-a="addRen">Add</button></div>' +
+      '<button class="list-row" data-a="toast" data-v="Invite link copied">' + I.link + '<span class="body"><b>Copy invite link</b><span>Works in any browser, no account</span></span></button>' +
+      '<button class="list-row" data-a="toast" data-v="QR code is out of scope for this prototype">' + I.qr + '<span class="body"><b>Show QR code</b><span>For someone next to you</span></span></button>' +
+      '<div class="hint" style="margin-top:12px"><span>People who join mid-trip get a recap of the trip so far. They only share costs from the day they join.</span></div>';
+  };
+  // Joined (Airbnb "You've joined the wishlist" dialog)
+  SHEETS.joined = function () {
+    return '<div class="dialog"><div class="art">' + lisbonCollage('c4') + '</div>' +
+      '<h2>Ren joined Lisbon</h2><p>Ren joined from the link, without an account. This is the recap Ren sees first.</p>' +
+      '<div class="recap">' + recapRows().map(function (r) { return '<div class="list-row">' + r[0] + '<span class="body"><b>' + esc(r[1]) + '</b><span>' + esc(r[2]) + '</span></span></div>'; }).join('') + '</div>' +
+      '<button class="btn block" data-a="closeSheet">Got it</button></div>';
+  };
+  // Trip so far, for someone who joins mid-trip: what's decided, what's open, what they pay for
+  function recapRows() {
+    var before = EARLIER.reduce(function (s, e) { return s + e.amount; }, 0);
+    var plans = S.plans.map(function (x) { return x.when + ' · ' + PLACES[x.key].name; });
+    var rows = [
+      [I.suitcase, 'Lisbon, 12–16 May', 'Staying at the Alfama flat · day 4 of 5'],
+      [I.cal, plans.length ? 'Decided: ' + plans.join(', ') : 'Nothing planned for today yet', plans.length ? 'Already in the plan' : 'Ren can suggest something']
+    ];
+    if (S.poll && S.poll.status === 'open') rows.push([I.poll, 'Open poll: ' + S.poll.q, 'Closes ' + S.poll.closes + '. Ren can vote now']);
+    rows.push([I.pin, VISITED.length + ' places on the map', VISITED.slice(0, 3).map(function (v) { return v.name; }).join(', ') + ' and ' + (VISITED.length - 3) + ' more']);
+    rows.push([I.wallet, 'Ren pays only from today', eur(before) + ' spent before stays with the four of you']);
+    return rows;
+  };
+  // Why this payment: every shared cost and what it did to the payer's balance, then why it's one payment
+  SHEETS.why = function (key) {
+    var x = transfers().filter(function (t) { return t.key === key; })[0];
+    if (!x) return sheetHead('Why this amount') + '<p class="muted">This payment is settled.</p>';
+    var p = x.from, you = p === 'ari', P = you ? 'You' : M[p].name, poss = you ? 'Your' : M[p].name + '’s', possL = you ? 'your' : poss;
+    var rows = breakdown(p), net = nets()[p] / 100;
+    var payers = []; rows.forEach(function (r) { if (r.e.payer !== p && payers.indexOf(r.e.payer) < 0) payers.push(r.e.payer); });
+    var naive = rows.filter(function (r) { return r.e.payer !== p; }).length;
+    var outs = transfers().filter(function (t) { return t.from === p; });
+    var to = function (id) { return id === 'ari' ? 'you' : M[id].name; };
+    return sheetHead('Why ' + eur(x.cents / 100)) +
+      '<p class="muted small" style="margin-bottom:4px">Each shared cost adds to or takes from ' + possL + ' balance.</p>' +
+      rows.map(function (r) {
+        var e = r.e, who = e.payer === p ? P + ' paid ' + eur(e.amount) : (e.payer === 'ari' ? 'You' : M[e.payer].name) + ' paid';
+        return '<div class="list-row"><span class="body"><b>' + esc(e.title) + '</b><span>' + who + ' · ' + possL + ' share ' + eur(r.share) + '</span></span>' +
+          '<span class="owe ' + (r.d < 0 ? 'neg' : 'pos') + '">' + (r.d < 0 ? '−' : '+') + eur(Math.abs(r.d)) + '</span></div>';
+      }).join('') +
+      '<div class="why-total"><span>' + poss + ' balance</span><span class="owe neg" style="font-size:16px">−' + eur(-net) + '</span></div>' +
+      '<div class="hint" style="margin-top:12px"><span>' +
+        (outs.length > 1
+          ? P + ' pay' + (you ? '' : 's') + ' this in ' + outs.length + ' payments: ' + outs.map(function (t) { return eur(t.cents / 100) + ' to ' + to(t.to); }).join(' and ') + '.'
+          : 'Instead of ' + naive + ' payments to ' + namesLower(payers) + ', ' + (you ? 'you pay ' : P + ' pays ') + to(x.to) + ' once.') +
+        ' Everyone still pays the same total.</span></div>' +
+      '<button class="btn block" style="margin-top:16px" data-a="closeSheet">Got it</button>';
+  };
+  SHEETS.voters = function () {
+    var p = S.poll;
+    return sheetHead('Votes') + members().map(function (id) {
+      var v = p.votes[id];
+      return '<div class="list-row">' + av(id, 'l') + '<span class="body"><b>' + M[id].full + (id === 'ari' ? ' (you)' : '') + '</b><span>' + (v ? 'Voted for ' + PLACES[v].name : 'Hasn’t voted yet') + '</span></span></div>';
+    }).join('');
+  };
+  SHEETS.note = function (o) {
+    return sheetHead('Note on ' + PLACES[o].name) +
+      '<label class="field"><label>Your note</label><input data-in="note" placeholder="Booked a table for 5 at 20:30" autofocus></label>' +
+      '<button class="btn block" style="margin-top:16px" data-a="saveNote" data-v="' + o + '">Add note</button>';
+  };
+  // Poll result (dialog), winner added to the plan
+  SHEETS.result = function () {
+    var p = S.poll, pl = PLACES[p.winner], t = tally();
+    return '<div class="dialog"><div class="art"><div style="aspect-ratio:1;border-radius:16px;border:4px solid #fff;box-shadow:0 10px 24px rgba(0,0,0,.18);overflow:hidden">' + thumb(pl, 0) + '</div></div>' +
+      '<h2>' + pl.name + ' won</h2><p>' + t[p.winner].up.length + ' of ' + members().length + ' votes. ' + (p.added ? 'Added to the plan for ' + p.when.toLowerCase() + ', and everyone got a notification.' : 'Not added to the plan.') + '</p>' +
+      '<button class="btn block" data-a="seeplan">See it on the map</button>' +
+      (p.added ? '<button class="btn soft block" style="margin-top:10px" data-a="undoAdd">Undo, don’t add it</button>' : '') + '</div>';
+  };
+  // A planned item (Airbnb "Where we'll meet")
+  SHEETS.place = function (key) {
+    var pl = PLACES[key], plan = S.plans.filter(function (x) { return x.key === key; })[0];
+    return sheetHead((plan ? plan.when : '') + (plan && plan.fromPoll ? ' · from a poll' : '')) +
+      '<h2>' + pl.name + '</h2><p class="muted" style="margin-top:4px">' + placeMeta(pl) + '</p>' +
+      '<div style="aspect-ratio:1.6;border-radius:16px;margin-top:16px;overflow:hidden">' + thumb(pl, 0) + '</div>' +
+      '<div class="list-row" style="margin-top:8px">' + I.pin + '<span class="body"><b>' + pl.area + ', Lisbon</b><span>' + pl.walk + ' min from the flat</span></span></div>' +
+      '<div class="list-row">' + I.users + '<span class="body"><b>Everyone is in</b><span>' + names(members()) + '</span></span></div>' +
+      (plan && plan.cat === 'food' && !S.billLogged ? '<button class="list-row" data-a="sheet" data-v="picks:' + key + '">' + I.note + '<span class="body"><b>Menu picks</b><span>' + pickers().length + ' of ' + members().length + ' picked their dishes</span></span>' + stack(pickers(), 's') + I.chev + '</button>' +
+        '<button class="btn block" style="margin-top:12px" data-a="fabExpense">Log the bill</button>' : '');
+  };
+  // Plan something: what and when → vote or pick one
+  SHEETS.plan = function () {
+    var d = S.planDraft, cat = CATS[d.cat];
+    if (d.step === 1) {
+      return sheetHead('Plan something') +
+        '<h3 style="margin:4px 0 10px">What</h3><div class="cat-grid">' + Object.keys(CATS).map(function (k) {
+          return '<button class="cat ' + (d.cat === k ? 'on' : '') + '" data-a="planCat" data-v="' + k + '"><img src="' + ICONS + CATS[k].icon + '.png" alt="">' + CATS[k].label + '</button>';
+        }).join('') + '</div>' +
+        '<h3 style="margin:20px 0 10px">When</h3><div class="chips">' + WHEN.map(function (w) {
+          return '<button class="chip ' + (d.when === w ? 'on' : '') + '" data-a="planWhen" data-v="' + w + '">' + w + '</button>';
+        }).join('') + '</div>' +
+        '<button class="btn block" style="margin-top:24px" data-a="planStep" data-v="2">Next</button>';
+    }
+    var back = '<div class="sheet-head"><button class="circle ghost" data-a="planStep" data-v="' + (d.step - 1) + '" aria-label="Back">' + I.back + '</button><span class="t">' + esc(cat.label + ' · ' + d.when) + '</span><button class="circle ghost" data-a="closeSheet" aria-label="Close">' + I.x + '</button></div>';
+    if (d.step === 2) {
+      return back + '<h2 style="margin:4px 0 16px">How do you want to decide?</h2>' +
+        '<button class="how" data-a="planVote"><span class="ic">' + I.poll + '</span><span><b>Let the group vote</b><span>Pick 2 to 4 options. Everyone votes, and the winner goes into the plan.</span></span></button>' +
+        '<button class="how" data-a="planStep" data-v="3"><span class="ic">' + I.check + '</span><span><b>Just pick one</b><span>Choose it now. It goes into the plan and everyone gets a notification.</span></span></button>';
+    }
+    return back + '<h2 style="margin:4px 0 8px">Pick one</h2>' + optionsFor(d.cat).map(function (k) {
+      var pl = PLACES[k];
+      return '<button class="list-row" data-a="planPick" data-v="' + k + '">' + thumb(pl, 56) + '<span class="body"><b>' + pl.name + '</b><span>' + placeMeta(pl) + '</span></span>' + I.chev + '</button>';
+    }).join('');
+  };
+  // Without the gooey module: the same two choices as a sheet
+  SHEETS.add = function () {
+    return sheetHead('Add to Lisbon') +
+      '<button class="how" data-a="fabPlan"><span class="ic">' + I.cal + '</span><span><b>Plan something</b><span>Food, an activity, getting around</span></span></button>' +
+      '<button class="how" data-a="fabExpense"><span class="ic">' + I.wallet + '</span><span><b>Add expense</b><span>Split a bill with the group</span></span></button>';
+  };
+  // One receipt line: tap people in or out. The line total splits between whoever is in
+  SHEETS.item = function (id) {
+    var l = RECEIPT.filter(function (x) { return x.id === id; })[0], d = dish(id), who = assignees(l);
+    return sheetHead(d.name + (l.qty > 1 ? ' ×' + l.qty : '')) +
+      '<p class="muted small">' + eur(lineTotal(l)) + (who.length ? ' · ' + eur(lineTotal(l) / who.length) + ' each' : '') + ' · ' +
+        (S.bill.src[id] === 'picks' ? 'Matched from menu picks' : 'Nobody picked it, so it started with everyone') + '</p>' +
+      members().map(function (m) {
+        var on = who.indexOf(m) >= 0;
+        return '<button class="list-row" data-a="toggleLine" data-v="' + id + '|' + m + '">' + av(m, 'l') + '<span class="body"><b>' + (m === 'ari' ? 'You' : M[m].full) + '</b><span>' + (on ? 'Pays ' + eur(lineTotal(l) / who.length) : 'Not paying') + '</span></span><span class="check ' + (on ? 'on' : '') + '">' + I.check + '</span></button>';
+      }).join('') +
+      '<button class="btn block" style="margin-top:16px" data-a="closeSheet">Done</button>';
+  };
+  // Menu picks before dinner: what each person will have, so the scanned bill splits itself
+  function pickers() { var out = []; for (var k in S.picks) S.picks[k].forEach(function (x) { if (inTrip(x) && out.indexOf(x) < 0) out.push(x); }); return members().filter(function (x) { return out.indexOf(x) >= 0; }); }
+  SHEETS.picks = function (key) {
+    return sheetHead(PLACES[key].name + ' · menu') +
+      '<p class="muted small" style="margin-bottom:4px">Pick what you’ll have. When the bill comes, scan it and each line goes to whoever picked it.</p>' +
+      MENU.map(function (d) {
+        var who = (S.picks[d.id] || []).filter(inTrip), mine = who.indexOf('ari') >= 0;
+        return '<button class="list-row" data-a="pickDish" data-v="' + d.id + '|' + key + '"><span class="body"><b>' + esc(d.name) + '</b><span>' + eur(d.price) + '</span></span>' + (who.length ? stack(who, 's') : '') + '<span class="check ' + (mine ? 'on' : '') + '" style="margin-left:8px">' + I.check + '</span></button>';
+      }).join('') +
+      '<button class="btn block" style="margin-top:16px" data-a="sheet" data-v="place:' + key + '">Done</button>';
+  };
+
+  // ---------- render ----------
+  function render(nav) {
+    var app = document.getElementById('app'), onTrip = S.route === 'trip';
+    var oldBody = document.getElementById('tsheet-body'), keepY = !nav && oldBody ? oldBody.scrollTop : null;
+    var oldStrip = app.querySelector('.today-strip'), keepX = !nav && oldStrip ? oldStrip.scrollLeft : null;
+    document.getElementById('map-root').hidden = !onTrip;
+    document.getElementById('fab-root').hidden = !onTrip;
+    if (!onTrip && window.TripFab) window.TripFab.close();
+    app.innerHTML = SCREENS[S.route]();
+    var page = app.querySelector('.page');
+    if (page && dir === 'back') page.classList.add('back-in');
+    if (!nav && page) page.style.animation = 'none';
+    if (nav) window.scrollTo(0, 0);
+    if (onTrip) {
+      initMap(); syncMap();
+      var ts = document.getElementById('tsheet');
+      if (nav && !desktop() && !reduce) {   // the sheet rises over the map when the trip opens
+        ts.style.height = sheetMetrics().h + 'px';
+        ts.style.transform = 'translateY(' + innerHeight + 'px)';
+        ts.getBoundingClientRect();
+        applySnap(true);
+      } else applySnap(S.animSnap);
+      S.animSnap = false;
+      bindSheet();
+      if (keepY !== null) document.getElementById('tsheet-body').scrollTop = keepY;
+      if (keepX !== null) app.querySelector('.today-strip').scrollLeft = keepX;
+    }
+    // progress bars and vote segments animate from their previous value
+    requestAnimationFrame(function () { requestAnimationFrame(function () {
+      app.querySelectorAll('[data-w]').forEach(function (el) { el.style.width = el.dataset.w; });
+      app.querySelectorAll('[data-on]').forEach(function (el) { el.classList.toggle('on', el.dataset.on === '1'); });
+    }); });
+    renderSheet();
+    if (S.flash) setTimeout(function () { S.flash = null; }, 0);
+  }
+  function renderSheet() {
+    var root = document.getElementById('sheet-root');
+    if (!S.sheet) { root.innerHTML = ''; return; }
+    var parts = S.sheet.split(':'), fresh = !root.querySelector('.overlay');
+    root.innerHTML = '<div class="overlay" data-a="overlay"><div class="sheet" role="dialog" aria-modal="true">' + SHEETS[parts[0]](parts[1]) + '</div></div>';
+    if (!fresh) { root.querySelector('.overlay').style.animation = 'none'; root.querySelector('.sheet').style.animation = 'none'; }
+    var f = root.querySelector('[autofocus]'); if (f) f.focus();
+  }
+  function rerender() { render(false); }
+
+  // ---------- trip map + bottom sheet ----------
+  var map = null, dinnerMarker = null;
+  function desktop() { return innerWidth >= 900; }
+  function sheetMetrics() { var h = innerHeight - 64; return { h: h, peek: h - Math.round(innerHeight * 0.5) }; }
+  function applySnap(animate) {
+    var el = document.getElementById('tsheet'); if (!el) return;
+    if (desktop()) { el.style.transform = ''; el.style.height = ''; return; }
+    var m = sheetMetrics();
+    el.style.height = m.h + 'px';
+    el.classList.toggle('anim', !!animate && !reduce);
+    el.style.transform = 'translateY(' + (S.snap === 'full' ? 0 : m.peek) + 'px)';
+  }
+  function bindSheet() {
+    var head = document.getElementById('tsheet-head'), el = document.getElementById('tsheet'), body = document.getElementById('tsheet-body');
+    head.addEventListener('pointerdown', function (e) {
+      if (desktop() || e.target.closest('button')) return;
+      var m = sheetMetrics(), base = S.snap === 'full' ? 0 : m.peek, y0 = e.clientY, last = { y: e.clientY, t: e.timeStamp }, vel = 0, moved = false;
+      el.classList.remove('anim');
+      head.setPointerCapture(e.pointerId);
+      function move(ev) {
+        var dy = ev.clientY - y0, y = base + dy;
+        if (Math.abs(dy) > 5) moved = true;
+        if (y < 0) y *= 0.25; else if (y > m.peek) y = m.peek + (y - m.peek) * 0.25;   // resistance past the snap points
+        el.style.transform = 'translateY(' + y + 'px)';
+        if (ev.timeStamp > last.t) vel = (ev.clientY - last.y) / (ev.timeStamp - last.t);
+        last = { y: ev.clientY, t: ev.timeStamp };
+      }
+      function up(ev) {
+        head.removeEventListener('pointermove', move); head.removeEventListener('pointerup', up); head.removeEventListener('pointercancel', up);
+        if (!moved) S.snap = S.snap === 'full' ? 'peek' : 'full';
+        else if (vel > 0.4) S.snap = 'peek';
+        else if (vel < -0.4) S.snap = 'full';
+        else S.snap = base + (ev.clientY - y0) < m.peek / 2 ? 'full' : 'peek';
+        applySnap(true);
+      }
+      head.addEventListener('pointermove', move); head.addEventListener('pointerup', up); head.addEventListener('pointercancel', up);
+    });
+    body.addEventListener('scroll', function () { if (!desktop() && S.snap === 'peek' && body.scrollTop > 8) { S.snap = 'full'; applySnap(true); } }, { passive: true });
+  }
+  function initMap() {
+    var root = document.getElementById('map');
+    if (!window.L) { if (!root.firstChild) root.innerHTML = '<div class="map-fallback">Map</div>'; return; }
+    if (map) { map.invalidateSize(); return; }
+    map = L.map(root, { zoomControl: false, attributionControl: false });
+    L.control.attribution({ position: 'topright', prefix: false }).addTo(map);
+    // Google-like colors on free OpenStreetMap vector tiles (OpenFreeMap, no key). Style built by tools/google_style.py
+    if (L.maplibreGL) L.maplibreGL({ style: MAP_STYLE, attributionControl: { customAttribution: MAP_CREDIT } }).addTo(map);
+    else L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap contributors' }).addTo(map);
+    VISITED.forEach(function (v) {
+      L.marker(v.ll, { icon: L.divIcon({ className: 'sticker-pin', html: '<img src="' + STICKER + v.s + '.png" alt="" style="transform:rotate(' + v.r + 'deg)">', iconSize: [v.w, v.w], iconAnchor: [v.w / 2, v.w / 2] }) })
+        .addTo(map).bindTooltip(v.name + ' · ' + v.day, { direction: 'top', offset: [0, -v.w / 2] });
+    });
+    L.marker(FLAT, { icon: L.divIcon({ className: 'dot-pin', html: '<span>' + I.homeS + 'Flat</span>', iconSize: [64, 30], iconAnchor: [32, 15] }) }).addTo(map);
+    fitMap();
+  }
+  function fitMap() {
+    var b = L.latLngBounds(VISITED.map(function (v) { return v.ll; }));
+    map.fitBounds(b, desktop() ? { paddingTopLeft: [40, 80], paddingBottomRight: [40, 40] } : { paddingTopLeft: [24, 72], paddingBottomRight: [24, Math.round(innerHeight * 0.5) + 16] });
+  }
+  var planMarkers = [];
+  function pinHtml(cls, text) { return { className: 'dot-pin plan-pin ' + cls, html: '<div class="pin-c"><span>' + esc(text) + '</span></div>', iconSize: [0, 30], iconAnchor: [0, 15] }; }
+  function syncMap() {
+    if (!map) return;
+    planMarkers.forEach(function (m) { map.removeLayer(m); }); planMarkers = [];
+    S.plans.forEach(function (p) {
+      var pl = PLACES[p.key], time = p.when.split('· ')[1] || '';
+      var m = L.marker(pl.ll, { zIndexOffset: 1000, icon: L.divIcon(pinHtml('live' + (S.flashPin === p.key ? ' flash' : ''), time + ' · ' + pl.name)) })
+        .addTo(map).on('click', function () { A.sheet('place:' + p.key); });
+      planMarkers.push(m);
+    });
+    if (S.poll && S.poll.status === 'open') {   // open poll: one pin between its options
+      var ll = S.poll.options.reduce(function (a, k) { return [a[0] + PLACES[k].ll[0] / S.poll.options.length, a[1] + PLACES[k].ll[1] / S.poll.options.length]; }, [0, 0]);
+      planMarkers.push(L.marker(ll, { zIndexOffset: 1100, icon: L.divIcon(pinHtml('vote', 'Voting · ' + voted().length + ' of ' + members().length)) })
+        .addTo(map).on('click', function () { go('poll'); }));
+    }
+    S.flashPin = null;
+  }
+  var resizeT;
+  addEventListener('resize', function () { if (S.route !== 'trip') return; applySnap(false); clearTimeout(resizeT); resizeT = setTimeout(function () { if (map) { map.invalidateSize(); fitMap(); } }, 150); });
+
+  // ---------- poll simulation ----------
+  function startVotes() {
+    var o = S.poll.options, fav = o[1] || o[0];
+    var plan = [['nic', fav, 1800], ['leo', o[0], 3400], ['maya', fav, 5000]];
+    if (S.renAdded) plan.push(['ren', fav, 6600]);
+    var notes = S.poll.cat === 'food' ? { maya: [fav, 'Fado bar next door after'], leo: [o[0], 'Lots of choice, quick'] } : {};
+    plan.forEach(function (x) {
+      later(x[2], function () {
+        if (!S.poll || S.poll.status !== 'open') return;
+        S.poll.votes[x[0]] = x[1];
+        if (notes[x[0]]) (S.poll.notes[notes[x[0]][0]] = S.poll.notes[notes[x[0]][0]] || []).push({ by: x[0], text: notes[x[0]][1] });
+        log(M[x[0]].name + ' voted for ' + PLACES[x[1]].name);
+        if (S.route === 'poll' || S.route === 'trip' || S.route === 'trips') { rerender(); if (S.route === 'poll') toast(M[x[0]].name + ' voted for ' + PLACES[x[1]].name); }
+        maybeClose();
+      });
+    });
+  }
+  function maybeClose() { if (S.poll.status === 'open' && voted().length === members().length) later(1200, closePoll); }
+  function closePoll() {
+    if (!S.poll || S.poll.status !== 'open') return;
+    S.poll.status = 'closed'; S.poll.winner = leader() || S.poll.options[0]; S.poll.added = S.poll.autoAdd;
+    if (S.poll.added) addPlan(S.poll.cat, S.poll.when, S.poll.winner, true);
+    log('Poll closed: ' + PLACES[S.poll.winner].name + ' won');
+    if (S.route !== 'poll') { S.stack.push(S.route); S.route = 'poll'; dir = 'fwd'; }
+    S.sheet = 'result'; render(true);
+  }
+
+  function addPlan(cat, when, key, fromPoll) {
+    S.plans = S.plans.filter(function (x) { return !(x.cat === cat && x.when === when); });   // one plan per category and time
+    S.plans.push({ cat: cat, when: when, key: key, fromPoll: fromPoll });
+  }
+
+  // ---------- actions ----------
+  var A = {
+    back: back,
+    go: function (v) { go(v); },
+    tab: function (v) { home(v); },
+    toast: function (v) { toast(v); },
+    sheet: function (v) { S.sheet = v; renderSheet(); },
+    closeSheet: function () { S.sheet = null; renderSheet(); },
+    tripTab: function (v) { S.tripTab = v; if (S.snap !== 'full' && !desktop()) { S.snap = 'full'; S.animSnap = true; } rerender(); },
+    overlay: function (v, el, e) { if (e.target === el) A.closeSheet(); },
+    addRen: function () {
+      S.renAdded = true; S.tripTab = 'people'; log('You added Ren Okafor');
+      S.sheet = 'joined'; rerender();
+    },
+    pick: function (v) {
+      var p = S.draft.picked, i = p.indexOf(v);
+      if (i >= 0) p.splice(i, 1); else if (p.length < 4) p.push(v); else toast('Up to 4 places');
+      rerender();
+    },
+    closeIn: function (v) { S.draft.closeIn = v; rerender(); },
+    autoAdd: function () { S.draft.autoAdd = !S.draft.autoAdd; rerender(); },
+    startPoll: function () {
+      var d = S.draft, now = new Date(2026, 4, 15, 18, 42 + Number(d.closeIn));
+      S.poll = { q: d.q || CATS[d.cat].q, cat: d.cat, when: d.when, options: d.picked.slice(), votes: {}, downs: {}, notes: {}, status: 'open', autoAdd: d.autoAdd, barW: 0,
+        closes: String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') };
+      log('You started a poll: ' + S.poll.q);
+      S.route = 'poll'; dir = 'fwd'; S.sheet = null; render(true);   // replaces New poll, so Back returns to the trip
+      toast('Sent to ' + names(members().filter(function (m) { return m !== 'ari'; })));
+      startVotes();
+    },
+    vote: function (v) {
+      if (S.poll.status !== 'open') return;
+      S.poll.votes.ari = S.poll.votes.ari === v ? undefined : v;
+      if (!S.poll.votes.ari) delete S.poll.votes.ari;
+      rerender(); maybeClose();
+    },
+    downvote: function (v) {
+      var d = S.poll.downs.ari = S.poll.downs.ari || [], i = d.indexOf(v);
+      if (i >= 0) d.splice(i, 1); else d.push(v);
+      rerender();
+    },
+    saveNote: function (o) {
+      var t = (document.querySelector('[data-in="note"]') || {}).value;
+      if (t && t.trim()) (S.poll.notes[o] = S.poll.notes[o] || []).push({ by: 'ari', text: t.trim() });
+      S.sheet = null; rerender();
+    },
+    endPoll: function () { closePoll(); },
+    seeplan: function () { S.sheet = null; S.snap = 'peek'; S.flashPin = S.poll.added ? S.poll.winner : null; S.route = S.stack.pop() || 'trip'; if (S.route !== 'trip') { S.stack.push(S.route); S.route = 'trip'; } dir = 'back'; render(true); },
+    undoAdd: function () {
+      var p = S.poll; p.added = false;
+      S.plans = S.plans.filter(function (x) { return !(x.fromPoll && x.key === p.winner && x.when === p.when); });
+      toast('Removed from the plan'); S.sheet = null; rerender();
+    },
+    fabPlan: function () { S.planDraft = { step: 1, cat: 'food', when: CATS.food.when }; S.sheet = 'plan'; renderSheet(); },
+    fabExpense: function () {
+      if (winner() && !S.billLogged) { if (!S.bill) S.bill = { stage: 'scan', assign: {}, src: {} }; S.sheet = null; renderSheet(); go('expense'); }
+      else toast(S.billLogged ? 'Dinner is logged. Other expenses are out of scope for this prototype.' : 'In this story, the next expense is dinner. Plan it first.');
+    },
+    planCat: function (v) { S.planDraft.cat = v; S.planDraft.when = CATS[v].when; renderSheet(); },
+    planWhen: function (v) { S.planDraft.when = v; renderSheet(); },
+    planStep: function (v) { S.planDraft.step = Number(v); renderSheet(); },
+    planVote: function () {
+      if (S.poll && S.poll.status === 'open') { toast('Finish the open poll first'); return; }
+      var d = S.planDraft;
+      S.draft = newDraft(d.cat, d.when); S.barW = {}; S.segOn = 0;
+      S.sheet = null; renderSheet(); go('newpoll');
+    },
+    planPick: function (k) {
+      var d = S.planDraft, pl = PLACES[k];
+      addPlan(d.cat, d.when, k, false);
+      log('You added ' + pl.name + ', ' + d.when.toLowerCase());
+      S.sheet = null; S.snap = 'peek'; S.animSnap = true; S.flashPin = k; rerender();
+      toast('Added to the plan: ' + pl.name + '. Everyone got a notification.');
+    },
+    split: function (v) { S.split = v; rerender(); },
+    scanBill: function () {
+      S.bill.stage = 'reading'; rerender();
+      later(reduce ? 400 : 1600, function () { autoAssign(); S.bill.stage = 'done'; S.bill.scanned = true; rerender(); });
+    },
+    skipScan: function () { autoAssign(); S.bill.stage = 'done'; S.split = 'equal'; rerender(); },
+    toggleLine: function (v) {
+      var p = v.split('|'), a = S.bill.assign[p[0]] = assignees(RECEIPT.filter(function (l) { return l.id === p[0]; })[0]).slice(), i = a.indexOf(p[1]);
+      if (i >= 0) a.splice(i, 1); else a.push(p[1]);
+      rerender();
+    },
+    pickDish: function (v) {
+      var p = v.split('|'), a = S.picks[p[0]] = (S.picks[p[0]] || []).slice(), i = a.indexOf('ari');
+      if (i >= 0) a.splice(i, 1); else a.push('ari');
+      renderSheet();
+    },
+    saveBill: function () {
+      S.billLogged = true; log('You added Dinner, ' + PLACES[winner()].name + ', ' + eur(dinnerTotal()));
+      back(); toast('Expense saved. Balances updated.');
+    },
+    pay: function (v) { S.paying = v; S.method = 'bank'; S.processing = false; go('pay'); },
+    method: function (v) { S.method = v; rerender(); },
+    confirmPay: function () {
+      S.processing = true; rerender();
+      later(S.method === 'cash' ? 300 : 1400, function () {
+        S.processing = false; S.paid[S.paying] = true;
+        var x = transfers().filter(function (t) { return t.key === S.paying; })[0];
+        log('You paid ' + M[x.to].name + ' ' + eur(x.cents / 100));
+        back(); toast('Paid ' + M[x.to].name + ' ' + eur(x.cents / 100));
+        // the others settle shortly after, so the trip can reach squared up
+        transfers().filter(function (t) { return !S.paid[t.key]; }).forEach(function (t, i) {
+          later(1800 + i * 1400, function () {
+            S.paid[t.key] = true; log(M[t.from].name + ' paid ' + (t.to === 'ari' ? 'you' : M[t.to].name) + ' ' + eur(t.cents / 100));
+            if (S.route === 'balance') { rerender(); toast(M[t.from].name + ' paid ' + (t.to === 'ari' ? 'you' : M[t.to].name)); }
+            if (allPaid()) later(1200, function () { go('done'); });
+          });
+        });
+        if (allPaid()) later(1200, function () { go('done'); });
+      });
+    },
+    homeTrip: function () { S.stack = ['trips']; S.route = 'trip'; dir = 'back'; render(true); },
+    restart: function () { timers.forEach(clearTimeout); timers = []; if (map) { planMarkers.forEach(function (m) { map.removeLayer(m); }); planMarkers = []; } S = fresh(); S.draft = newDraft(); render(true); }
+  };
+  function newDraft(cat, when) { cat = cat || 'food'; return { cat: cat, when: when || CATS[cat].when, q: CATS[cat].q, picked: optionsFor(cat).slice(0, 3), closeIn: '30', autoAdd: true }; }
+
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest('[data-a]');
+    if (!el || el.disabled) return;
+    var fn = A[el.dataset.a];
+    if (fn) fn(el.dataset.v, el, e);
+  });
+  document.addEventListener('input', function (e) { if (e.target.dataset.in === 'q') S.draft.q = e.target.value; });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && S.sheet) A.closeSheet(); });
+  window.tripAction = function (name, v) { if (A[name]) A[name](v); };
+  window.tripRerender = function () { if (S && S.route === 'trip') rerender(); };
+
+  S = fresh(); S.draft = newDraft();
+  render(true);
+})();
+</script>
+<script type="module">
+// + menu on the trip page: liquid-gooey (libraries.dev, MIT) on React 18. The rest of the prototype stays vanilla.
+import React, { useState, useEffect } from 'https://esm.sh/react@18.3.1';
+import { createRoot } from 'https://esm.sh/react-dom@18.3.1/client';
+import { Liquid } from 'https://esm.sh/liquid-gooey@0.2.2?deps=react@18.3.1,react-dom@18.3.1';
+const h = React.createElement;
+const ICON = {
+  plan: '<svg class="icon" viewBox="0 0 24 24"><path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4M12 13v5M9.5 15.5h5"/></svg>',
+  expense: '<svg class="icon" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/></svg>'
+};
+// Feel of the gooey split
+const K = { blur: 10, contrast: 20, gap: 20, bounce: 1.3, open: 600, close: 260, stagger: 80 };
+const CLOSE_EASE = 'cubic-bezier(0.23, 1, 0.32, 1)';   // strong ease-out, no overshoot: the drops sink straight back into the +
+// Plus menu that splits into actions (libraries.dev recipe, morph): drops stack at the + slot and split upward.
+const ACTIONS = [
+  { label: 'Plan something', icon: ICON.plan, action: 'fabPlan' },
+  { label: 'Add expense', icon: ICON.expense, action: 'fabExpense' }
+];
+const FAB = 56, DROP = 48;
+function Fab() {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    window.TripFab = { close: () => setOpen(false) };
+    const esc = e => { if (e.key === 'Escape') setOpen(false); };
+    addEventListener('keydown', esc);
+    return () => removeEventListener('keydown', esc);
+  }, []);
+  const run = a => { setOpen(false); window.tripAction(a); };
+  const n = ACTIONS.length;
+  const ys = ACTIONS.map((_, i) => -(FAB / 2 + K.gap + DROP / 2) - i * (DROP + K.gap));
+  // the group holds the open footprint plus room for the overshoot, so the liquid never gets clipped
+  const groupH = FAB + n * (DROP + K.gap) + 24, fabTop = groupH - FAB;
+  return h('div', { className: 'fab-wrap' },
+      open ? h('div', { className: 'fab-scrim', onClick: () => setOpen(false) }) : null,
+      // crisp labels beside each drop, outside the liquid
+      ACTIONS.map((a, i) => h('button', { key: 'l' + a.action, className: 'fab-label' + (open ? ' on' : ''), style: { top: fabTop + FAB / 2 + ys[i] - 16 },
+        tabIndex: -1, 'aria-hidden': true, onClick: () => run(a.action) }, a.label)),
+      h(Liquid, { fill: '#09090b', blur: K.blur, contrast: K.contrast, shadow: '0 6px 16px rgba(0,0,0,.25)', style: { position: 'relative', width: FAB, height: groupH } },
+        ACTIONS.map((a, i) => h(Liquid.Item, {
+          key: a.action,
+          style: { position: 'absolute', left: (FAB - DROP) / 2, top: fabTop + (FAB - DROP) / 2 },
+          x: 0, y: open ? ys[i] : 0,
+          // open: nearest drop leaves first with a small overshoot. Close: farthest goes first, no overshoot
+          transition: open ? { duration: K.open, ease: 'cubic-bezier(0.34, ' + K.bounce + ', 0.64, 1)' } : { duration: K.close, ease: CLOSE_EASE },
+          delay: (open ? i : n - 1 - i) * K.stagger
+        },
+          h('button', { className: 'goo-btn' + (open ? ' on' : ''), 'aria-label': a.label, 'aria-hidden': !open, tabIndex: open ? 0 : -1, onClick: () => run(a.action) },
+            h('span', { className: 'ic', dangerouslySetInnerHTML: { __html: a.icon } })))),
+        h(Liquid.Item, { style: { position: 'absolute', left: 0, top: fabTop } },
+          h('button', { className: 'goo-btn fab', 'aria-label': open ? 'Close menu' : 'Add to the trip', 'aria-expanded': open, onClick: () => setOpen(o => !o) },
+            h('svg', { className: 'icon fab-plus' + (open ? ' x' : ''), viewBox: '0 0 24 24', style: { width: 26, height: 26 } }, h('path', { d: 'M12 5v14M5 12h14' }))))));
+}
+createRoot(document.getElementById('fab-root')).render(h(Fab));
+window.__fabReady = true;
+if (window.tripRerender) window.tripRerender();
+</script>
+</body>
+</html>
