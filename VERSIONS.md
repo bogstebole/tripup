@@ -156,6 +156,15 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - Figma: https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=41-4
 - Files: `Assets/map/styles/lisbon-google.png` (3584 × 2048), `tools/map_styles.html?style=google`
 
+### Prototype v10: research gaps closed
+- Four points from the competitive research that had dropped out over v3–v9:
+  - **Recap for Ren:** after joining, Ren first sees the trip so far: where you're staying, what's decided, any open poll, the places on the map, and that only costs from today count (€726 before stays with the four of you).
+  - **No account:** the invite says it up front: open the link, type a name, you're in. No app, no sign-up.
+  - **Why for each payment:** tap a payment on Balance (or "See why" on Pay) to see every shared cost, what it did to that person's balance, the total, and why it's one payment instead of several.
+  - **Leading by N votes:** the poll tag shows the margin ("Leading by 1 vote"), and a tie shows "Tied" on both options.
+- File: `prototype/versions/v10-midfi-research.html` (v9 kept)
+- Source: `process/research/tripup-competitive-research-v3-en.md` (key findings and design direction)
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 
