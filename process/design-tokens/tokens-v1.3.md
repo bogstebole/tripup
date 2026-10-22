@@ -10,7 +10,7 @@ Figma file G13GoEmstoKyMr5nCh8eoQ → Local variables. Built 21 Oct 2026. v1.1: 
 | Typography | Value | 52 | size, line height, weight, family per text style, plus `font-weight/regular · medium · semibold · bold` |
 
 Text styles (bound to Typography):
-- IBM Plex Sans Condensed (`font/family/display`): Display 36/40 Bold · Heading XL 30/36 Bold · LG 24/32 · MD 20/28 · SM 18/28 SemiBold. Tracking 0.
+- IBM Plex Sans Condensed (`font/family/display`): Display 36/40 · Heading XL 30/36 · LG 24/32 · MD 20/28 · SM 18/28, all Bold. Tracking 0.
 - Geist (`font/family/sans`): Body LG 18/28 · MD 16/24 · SM 14/20 · Label LG 16/24 · MD 14/20 · SM 12/16 · Caption 12/16 Regular.
 - Weights (v1.3): every Body size as `Body/<size>/Regular · Medium · Semibold · Bold`, every Label size as `Label/<size>/Medium · Semibold · Bold`. 27 text styles in total.
   - The old `Body/MD` is now `Body/MD/Regular` and `Label/MD` is `Label/MD/Medium` (same for LG and SM). Same style ids, so text that uses them keeps working.
