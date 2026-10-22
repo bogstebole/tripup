@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <title>loading</title>
 <!-- Renders one map style over the exact extent of Assets/map/lisbon-osm-z15.png (z15 tiles 15543..15556 × 12553..12560).
-     Open at 1792×1024 with device scale 2 → 3584×2048, same pixels as the OSM image. Usage: map_styles.html?style=positron|positron-nolabels|toner-lite|watercolor
+     Open at 1792×1024 with device scale 2 → 3584×2048, same pixels as the OSM image. Usage: map_styles.html?style=positron|positron-nolabels|google|toner-lite|watercolor
      Serve over http://localhost (Stadia tiles work without a key on localhost). Export: run tools/save_receiver.py, open with &save=1 in a browser. -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
@@ -20,8 +20,13 @@ const done = () => { document.title = 'ready'; };
 // save=1: draw at 1792×1024 with pixel ratio 2 and post the canvas to tools/save_receiver.py (port 8766)
 if (save) Object.assign(document.getElementById('map').style, { position: 'absolute', width: '1792px', height: '1024px' });
 
-if (style.startsWith('positron')) {
-  fetch('https://tiles.openfreemap.org/styles/positron').then(r => r.json()).then(s => {
+const vector = {
+  'positron': 'https://tiles.openfreemap.org/styles/positron',
+  'positron-nolabels': 'https://tiles.openfreemap.org/styles/positron',
+  'google': '../prototype/assets/map/style-google.json'   // built by tools/google_style.py
+}[style];
+if (vector) {
+  fetch(vector).then(r => r.json()).then(s => {
     if (style === 'positron-nolabels') s.layers = s.layers.filter(l => l.type !== 'symbol');
     const map = new maplibregl.Map({ container: 'map', style: s, bounds: [[W, S], [E, N]], fitBoundsOptions: { padding: 0 },
       interactive: false, attributionControl: false, fadeDuration: 0, preserveDrawingBuffer: true, pixelRatio: save ? 2 : devicePixelRatio });

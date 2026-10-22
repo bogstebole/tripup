@@ -151,6 +151,11 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - Files: `prototype/versions/v9-midfi-google-map.html` (v8 kept), `prototype/assets/map/style-google.json`, `tools/google_style.py`
 - Credit line on the map: OpenFreeMap © OpenMapTiles © OpenStreetMap.
 
+### Google-like map in Figma
+- A fifth frame in Figma, page Assets → "Map styles · Lisbon": the v9 Google-like style over the same Lisbon area, with the same pins and credit line.
+- Figma: https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=41-4
+- Files: `Assets/map/styles/lisbon-google.png` (3584 × 2048), `tools/map_styles.html?style=google`
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 
