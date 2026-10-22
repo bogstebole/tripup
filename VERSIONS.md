@@ -181,6 +181,10 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - Files: `process/design-tokens/tokens-v1.2.md`, `process/design-tokens/surfaces-v1.2.png` (v1.1 kept)
 - Feedback that led here: the surface layers were too similar.
 
+### Sticker: sushi plate (Bogdan's photo)
+- Apple Vision cutout of the whole plate, then the library treatment: white die-cut outline and soft shadow (`tools/sticker_lib.py`).
+- Files: `Assets/user-stickers/sushi-plate/` (`source.png`, `cutout.png`, `sticker.png` 622 × 687). The source photo is only 344 px wide, so the sticker is soft at full size; it's fine at map-pin size.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 
