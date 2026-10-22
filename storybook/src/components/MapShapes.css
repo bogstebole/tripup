@@ -1,0 +1,46 @@
+/* Pin tail */
+.tu-tail { display: inline-flex; flex-direction: column; align-items: center; }
+.tu-tail__shape { width: var(--d-pin-tail-width); height: var(--d-pin-tail-height); overflow: visible; filter: var(--filter-surface); }
+.tu-tail__dash { width: var(--d-pin-dash-width); height: var(--d-pin-dash-height); border-radius: var(--radius-control); background: var(--c-pin-dash); }
+
+/* Edge arrow */
+.tu-edge-arrow { width: var(--d-widget-edge-arrow); height: var(--d-widget-edge-arrow); overflow: visible; flex: none; filter: var(--filter-slightly-raised); }
+
+/* My location */
+.tu-me { position: relative; display: inline-grid; place-items: center; width: var(--d-me-dot); height: var(--d-me-dot); }
+.tu-me__dot {
+  width: var(--d-me-dot);
+  height: var(--d-me-dot);
+  border-radius: var(--radius-pill);
+  background: var(--c-me-dot);
+  border: var(--d-surface-edge-width) solid var(--c-me-dot-edge);
+  box-shadow: var(--inset-button-primary), var(--shadow-me-dot);
+}
+/* The cone fans out from the dot's centre toward its heading */
+.tu-me__cone {
+  position: absolute;
+  left: 50%;
+  bottom: 50%;
+  width: var(--d-me-cone);
+  height: var(--d-me-cone);
+  transform-origin: 0 100%;
+  clip-path: polygon(0 100%, 30% 0, 100% 45%);
+  background: linear-gradient(to top right, var(--c-me-cone), transparent);
+}
+
+/* Me off-screen */
+.tu-me-edge { position: relative; display: inline-flex; align-items: center; gap: var(--space-3xs); transform-origin: 100% 50%; }
+.tu-me-edge__glow {
+  width: var(--d-me-glow-width);
+  height: var(--d-me-glow-height);
+  clip-path: polygon(0 0, 100% 27%, 100% 73%, 0 100%);
+  background: linear-gradient(to right, transparent, var(--c-me-cone));
+}
+.tu-me-edge__capsule {
+  width: var(--d-me-edge-width);
+  height: var(--d-me-edge-height);
+  border-radius: var(--radius-pill);
+  background: var(--c-me-dot);
+  border: var(--d-surface-edge-width) solid var(--c-me-dot-edge);
+  box-shadow: var(--inset-button-primary), var(--shadow-me-dot);
+}

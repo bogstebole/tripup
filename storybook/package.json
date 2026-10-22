@@ -1,0 +1,29 @@
+{
+  "name": "tripup-storybook",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "tokens": "node ../design-system/build-tokens.mjs",
+    "storybook": "npm run tokens && storybook dev -p 6006 --no-open",
+    "build-storybook": "npm run tokens && storybook build -o dist"
+  },
+  "dependencies": {
+    "@fontsource/geist": "5.3.0",
+    "@fontsource/ibm-plex-sans-condensed": "5.3.0",
+    "lucide-react": "1.61.0",
+    "motion": "14.6.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@storybook/addon-docs": "10.6.3",
+    "@storybook/react-vite": "10.6.3",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "5.2.0",
+    "storybook": "10.6.3",
+    "typescript": "5.9.3",
+    "vite": "7.3.7"
+  }
+}

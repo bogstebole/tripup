@@ -1,0 +1,62 @@
+// Demo content for the Lisbon trip. Shared by every story; the Flutter app has the same data in lib/data.dart.
+
+export const stickerUrl = (name: string) => `/assets/stickers/${name}.png`;
+export const photoUrl = (name: string) => `/assets/photos/${name}.png`;
+
+export type Person = { id: string; name: string; sticker: string; status: string };
+export const PEOPLE: Person[] = [
+  { id: 'ari', name: 'You', sticker: 'person-04', status: 'On the way · 12 min' },
+  { id: 'maya', name: 'Maya', sticker: 'person-01', status: 'Already there' },
+  { id: 'nic', name: 'Nic', sticker: 'person-05', status: 'On the way · 8 min' },
+  { id: 'leo', name: 'Leo', sticker: 'person-02', status: 'Leaves in 20 min' },
+  { id: 'ren', name: 'Ren', sticker: 'person-03', status: 'Not going' },
+];
+
+/** Food stickers fanned out on the Up next card: content, placed by hand in Figma (height in px, tilt in degrees). */
+export const DISH_FAN = [
+  { sticker: 'pho', height: 44.79, tilt: 0 },
+  { sticker: 'sushi', height: 78.53, tilt: -7.99 },
+  { sticker: 'wings', height: 95, tilt: 0 },
+  { sticker: 'ice-cream', height: 65.47, tilt: 8.59 },
+];
+
+export type Dish = { id: string; name: string; price: string; sticker: string; pickedBy: string[] };
+export const MENU: Dish[] = [
+  { id: 'wings', name: 'Spicy chicken wings', price: '€12', sticker: 'wings', pickedBy: ['ari', 'nic'] },
+  { id: 'sushi', name: 'Sushi plate for two', price: '€24', sticker: 'sushi', pickedBy: ['maya', 'leo'] },
+  { id: 'pho', name: 'Beef pho', price: '€14', sticker: 'pho', pickedBy: ['leo'] },
+  { id: 'ice-cream', name: 'Lime sorbet', price: '€6', sticker: 'ice-cream', pickedBy: ['ari', 'maya', 'nic'] },
+];
+
+export const EVENT = {
+  label: 'Up next',
+  name: "La Brasserie de L'Entrecôte - Alvalade",
+  rating: '4.4 (1,431)',
+  cuisine: 'French',
+  price: '€€',
+  when: '5 PM • Today',
+  eta: 'In 64 mins',
+  sticker: 'wings',
+  photos: ['brasserie-1', 'brasserie-2', 'brasserie-3'],
+  about:
+    'La Brasserie de L’Entrecôte is a unique restaurant in many ways. For 30 years we have specialized in preparing a very special dish: the tender and sliced Entrecote, served with delicious and crispy French fries, complemented with delicious starters, countless deserts and an excellent wine list.',
+  tips: [
+    'Visitors highlight the exceptional secret sauce served over the tender entrecote',
+    'Reviewers say the crisp fries are unlimited so you can ask for more refills',
+    'Some say dining room can be quite noisy during busy hours',
+  ],
+};
+
+export const TRIP = { title: 'Schmedeswurtherwesterdeich', dates: '12 May - 21 May' };
+
+/** The Up next widget's content, as on the Figma screens. */
+export const UP_NEXT = {
+  label: EVENT.label,
+  name: EVENT.name,
+  rating: EVENT.rating,
+  cuisine: EVENT.cuisine,
+  eta: EVENT.eta,
+  sticker: EVENT.sticker,
+  fan: DISH_FAN,
+  chips: [{ text: '+3', sticker: 'person-05', tilt: -6.22 }, { text: EVENT.price, grow: true }, { text: EVENT.when }],
+};

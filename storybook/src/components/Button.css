@@ -1,0 +1,16 @@
+.tu-btn {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  border-radius: var(--radius-pill);
+  transition: transform var(--press-ms) var(--ease-out);
+}
+.tu-btn--soft { background: var(--c-button-soft-bg); color: var(--c-button-soft-fg); box-shadow: var(--inset-button-soft), var(--shadow-slightly-raised); }
+.tu-btn--primary { background: var(--c-button-primary-bg); color: var(--c-button-primary-fg); box-shadow: var(--inset-button-primary), var(--shadow-slightly-raised); }
+.tu-btn--sm { width: var(--d-button-sm); height: var(--d-button-sm); }
+.tu-btn--md { width: var(--d-button-md); height: var(--d-button-md); }
+.tu-btn--lg { width: var(--d-button-lg); height: var(--d-button-lg); }
+.tu-btn__icon { width: var(--d-button-icon); height: var(--d-button-icon); }
+.tu-btn:active { transform: scale(var(--press-scale)); }
+.tu-btn:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: var(--space-3xs); }

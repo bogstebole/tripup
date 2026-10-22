@@ -1,0 +1,20 @@
+@import './Button.css';
+
+.tu-topbar {
+  padding: var(--space-xl) var(--space-md);
+  background: linear-gradient(to bottom, var(--color-bg-default) calc(var(--d-top-bar-fade-start) * 100%), transparent);
+}
+.tu-topbar__row { display: flex; align-items: center; gap: var(--space-md); }
+.tu-topbar__title { flex: 1 1 0; min-width: 0; }
+.tu-topbar__dates { color: var(--color-text-muted); }
+
+.tu-actionbar { display: flex; align-items: center; justify-content: center; gap: var(--space-xs); padding: 0 var(--space-md) var(--space-2xl); }
+
+.tu-recenter__dot {
+  width: var(--d-me-dot);
+  height: var(--d-me-dot);
+  border-radius: var(--radius-pill);
+  background: var(--c-me-dot);
+  border: var(--d-surface-edge-width) solid var(--c-me-dot-edge);
+  box-shadow: var(--inset-button-primary), 0 0 0 var(--d-me-ring) var(--c-me-ring), var(--shadow-me-dot);
+}

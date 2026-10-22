@@ -1,0 +1,38 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Introduction" />
+
+# TripUp components
+
+The component spec for the TripUp trip screen: the map, the **Up next** widget and its full view. The phone app is Flutter; this Storybook is the reference it follows, built from the same tokens.
+
+## One source of tokens
+
+`design-system/tokens.json` holds every value. `node design-system/build-tokens.mjs` writes it to `storybook/src/tokens.css` and `app/lib/design/tokens.dart`, so the web spec and the Flutter app can't drift.
+
+- **Primitives**: the Tailwind v3 palette, plus zinc 150 / 750 / 850.
+- **Semantic**: the Figma variables (tokens v1.3), light and dark. `bg/*`, `text/*`, `border/*`, `icon/*`.
+- **Component**: values the components need that aren't semantic yet (button glass, surface fade, widget sizes). They point at primitives or semantic tokens, never at raw values.
+
+Components use only tokens. Where a Figma screen used a value outside the system, the closest token replaced it:
+
+| In Figma | Token used |
+|---|---|
+| Soft button fill `#e7e7e7` | `bg/muted` (zinc 200) |
+| Card fade end `#eeeeee` | `bg/subtle` (zinc 150) |
+| Primary button `#1237d9` | `blue.700` |
+| Glass edge shade `#c0c0c0` | `zinc.300` |
+| Primary glass light `#037fde` / `#0186df` | `sky.600` |
+| Primary glass shade `#001e81` | `blue.900` |
+| Edge arrow `#4063ff` → `#1402da` | `blue.500` → `blue.700` |
+| Location ring `#a7cdff`, cone `#62b0ff` | `blue.300`, `blue.400` |
+| Card shadow `#474747` | `zinc.700` |
+| Gap 6 px (rating), 2.9 px (people pill), overlap 19 / 10 px | `space.2xs`, `space.3xs`, `space.lg`, `space.xs` |
+
+## Motion
+
+Every state change is one continuous object, not a swap (Emil Kowalski's rules): springs for morphs, ease-out for fades, nothing over 300 ms for UI fades, press feedback at 0.97, reduced motion turns movement into crossfades. Spring values are tokens (`motion.spring-*`).
+
+## Icons
+
+Lucide, 16 px, 2 px stroke, colored by the component's foreground token.

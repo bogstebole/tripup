@@ -1,0 +1,23 @@
+.tu-people {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3xs);
+  height: var(--d-button-md);
+  padding: var(--space-2xs) var(--space-3xs) var(--space-2xs) var(--space-xs);
+  border-radius: var(--radius-pill);
+  background: var(--c-button-soft-bg);
+  box-shadow: var(--inset-button-soft), var(--shadow-slightly-raised);
+  transition: transform var(--press-ms) var(--ease-out);
+}
+.tu-people:active { transform: scale(var(--press-scale)); }
+.tu-people__faces { display: flex; align-items: center; }
+.tu-people__faces > * + * { margin-left: calc(var(--d-avatar-overlap) * -1); }
+.tu-people__more {
+  display: grid;
+  place-items: center;
+  width: var(--d-count-bubble-size);
+  height: var(--d-count-bubble-size);
+  border-radius: var(--radius-pill);
+  background: var(--c-count-bubble-bg);
+  color: var(--c-count-bubble-fg);
+}

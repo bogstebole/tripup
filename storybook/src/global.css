@@ -1,0 +1,8 @@
+/* Base for every story: tokens only, no raw values. */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; background: var(--color-bg-canvas); color: var(--color-text-default); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; border: 0; padding: 0; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+p { margin: 0; }
+img { display: block; }
+.tu-ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 1ms !important; animation-duration: 1ms !important; } }

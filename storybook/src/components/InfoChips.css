@@ -1,0 +1,15 @@
+.tu-chips { display: flex; align-items: center; gap: var(--d-chip-gap); flex: 1 1 0; min-width: 0; }
+.tu-chips__chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--d-chip-height);
+  padding: var(--space-2xs) var(--space-xs);
+  background: var(--c-chip-bg);
+  color: var(--c-chip-fg);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.tu-chips__chip--grow { flex: 1 1 0; min-width: 0; }
+.tu-chips__chip:first-child { border-top-left-radius: var(--d-chip-radius); border-bottom-left-radius: var(--d-chip-radius); }
+.tu-chips__chip:last-child { border-top-right-radius: var(--d-chip-radius); border-bottom-right-radius: var(--d-chip-radius); }

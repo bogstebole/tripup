@@ -1,0 +1,29 @@
+import type { CSSProperties } from 'react';
+import { stickerUrl } from '../data';
+
+export type StickerSize = 'avatar' | 'chip' | 'mini' | 'edge' | 'row';
+
+export interface StickerProps {
+  /** File name in app/assets/stickers, without .png. */
+  name: string;
+  /** A sticker size token (height; width follows the image), or an exact height for hand-placed compositions. */
+  size: StickerSize | number;
+  /** Tilt in degrees; stickers look hand-placed, not aligned. */
+  tilt?: number;
+  className?: string;
+  style?: CSSProperties;
+}
+
+/** A die-cut photo sticker (white outline baked into the image). */
+export function Sticker({ name, size, tilt = 0, className, style }: StickerProps) {
+  const height = typeof size === 'number' ? size : `var(--d-sticker-${size})`;
+  return (
+    <img
+      src={stickerUrl(name)}
+      alt=""
+      className={className}
+      style={{ height, width: 'auto', flex: 'none', transform: tilt ? `rotate(${tilt}deg)` : undefined, ...style }}
+      draggable={false}
+    />
+  );
+}

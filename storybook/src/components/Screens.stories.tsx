@@ -1,0 +1,35 @@
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { useState } from 'react';
+import { EVENT, MENU, PEOPLE, TRIP } from '../data';
+import { ActionBar, TopBar } from './Bars';
+import { DetailSheet, type DetailTab } from './DetailSheet';
+
+const faces = Object.fromEntries(PEOPLE.map(p => [p.id, p.sticker]));
+const phone = { width: 393, height: 852, position: 'relative' as const, overflow: 'hidden', borderRadius: 'var(--radius-sheet)', background: 'var(--color-bg-canvas)' };
+
+const meta = { title: 'Screens/Trip', parameters: { layout: 'centered' } } satisfies Meta;
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Bars: Story = {
+  name: 'Top bar and action bar',
+  render: () => (
+    <div style={{ ...phone, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+      <TopBar title={TRIP.title} dates={TRIP.dates} faces={['person-04', 'person-01']} more={3} />
+      <ActionBar />
+    </div>
+  ),
+};
+
+function Sheet({ start }: { start: DetailTab }) {
+  const [tab, setTab] = useState<DetailTab>(start);
+  return (
+    <div style={{ ...phone, padding: 'var(--d-sheet-inset)', paddingTop: 'calc(var(--space-xl) + var(--d-button-md))' }}>
+      <DetailSheet {...EVENT} cuisine={EVENT.cuisine} menu={MENU} people={PEOPLE} faces={faces} tab={tab} onTabChange={setTab} />
+    </div>
+  );
+}
+
+export const Overview: Story = { name: 'Full view · Overview', render: () => <Sheet start="Overview" /> };
+export const Menu: Story = { name: 'Full view · Menu', render: () => <Sheet start="Menu" /> };
+export const People: Story = { name: 'Full view · People', render: () => <Sheet start="People" /> };

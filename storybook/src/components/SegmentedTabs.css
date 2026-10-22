@@ -1,0 +1,21 @@
+@import './Surface.css';
+
+.tu-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--d-segment-gap);
+  padding: var(--d-segment-track-padding);
+  border-radius: var(--radius-pill);
+  background: var(--c-segment-track);
+}
+.tu-tabs__tab {
+  position: relative;
+  height: var(--d-segment-height);
+  padding: 0 var(--space-sm);
+  border-radius: var(--radius-pill);
+  color: var(--c-segment-off-fg);
+  transition: color var(--fade-ms) var(--ease-out);
+}
+.tu-tabs__tab--on { color: var(--c-segment-on-fg); }
+.tu-tabs__pill { position: absolute; inset: 0; }
+.tu-tabs__label { position: relative; }

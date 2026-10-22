@@ -1,0 +1,5 @@
+.tu-rating { display: flex; align-items: center; gap: var(--space-3xs); color: var(--color-text-muted); width: 100%; }
+.tu-rating--center { justify-content: center; }
+.tu-rating--start { justify-content: flex-start; }
+.tu-rating__score { display: inline-flex; align-items: center; gap: var(--space-2xs); }
+.tu-rating__star { width: var(--size-icon-sm); height: var(--size-icon-sm); color: var(--color-icon-brand); }

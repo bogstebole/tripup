@@ -2,3 +2,12 @@
 # Screen recordings stay in Assets/ but are too big for git history
 *.mov
 Assets/map/tiles-*/
+# Storybook and Flutter build output
+storybook/node_modules/
+storybook/dist/
+storybook/storybook-static/
+app/build/
+app/.dart_tool/
+app/ios/Pods/
+app/ios/.symlinks/
+app/.flutter-plugins-dependencies
