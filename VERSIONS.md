@@ -173,6 +173,14 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - File: `prototype/versions/v11-midfi-receipt.html` (v10 kept)
 - Feedback that led here: the wine shouldn't need its own banner; any item should be assignable; and an OCR scan could split the bill from what people picked beforehand.
 
+### Design tokens v1.2: clearer surface layers
+- In light mode the old surfaces were nearly the same tone (white, base-50, base-100, white). Each layer now has its own step: canvas base-100 → default white → raised white with a shadow; inside a card, subtle base-150, then muted base-200. In dark mode the layers get lighter toward the front: 950 → 900 → 750, with subtle 850 and muted 800.
+- New: `bg/canvas`, zinc and base 150 / 750 / 850, Elevation/Raised and Elevation/Overlay effect styles. `bg/surface` is renamed to `bg/raised`; existing bindings keep working.
+- Changed values: bg/default (dark), bg/subtle, bg/muted (light), border/subtle (dark).
+- Figma: page Assets → "Surfaces · tokens v1.2" (Light and Dark side by side): https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=46-11
+- Files: `process/design-tokens/tokens-v1.2.md`, `process/design-tokens/surfaces-v1.2.png` (v1.1 kept)
+- Feedback that led here: the surface layers were too similar.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 
