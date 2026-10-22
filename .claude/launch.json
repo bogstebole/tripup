@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "static",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8765", "--bind", "127.0.0.1"],
+      "runtimeExecutable": "/bin/sh",
+      "runtimeArgs": ["-c", "cd / && exec python3 -m http.server 8765 --bind 127.0.0.1 --directory \"/Users/bogste/Documents/Projects/Personal/Bending Spoon Test Task\""],
       "port": 8765
     }
   ]
