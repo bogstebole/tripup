@@ -8,9 +8,9 @@
 <body>
 <!-- Always opens the newest prototype: reads the versions/ folder listing (python3 -m http.server shows one)
      and picks the highest vN-*.html. Falls back to the last known version if there's no listing. -->
-<p><a id="go" href="versions/v8-midfi-fab.html">Open the latest prototype</a></p>
+<p><a id="go" href="versions/v9-midfi-google-map.html">Open the latest prototype</a></p>
 <script>
-  var fallback = 'versions/v8-midfi-fab.html';
+  var fallback = 'versions/v9-midfi-google-map.html';
   fetch('versions/', { cache: 'no-store' })
     .then(function (r) { return r.text(); })
     .then(function (html) {

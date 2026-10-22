@@ -144,6 +144,13 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - File: `prototype/versions/v8-midfi-fab.html` (v7 kept)
 - Feedback that led here: the gooey effect was weak, closing overshot a lot, icons stacked into a mess, there was a grey box behind the buttons, and the + should be a FAB.
 
+### Prototype v9: Google-style map, no key
+- The trip map now looks like Google Maps (light grey land, white streets, blue water, green parks, yellow highways), but runs on free OpenStreetMap data from OpenFreeMap. No API key and no billing.
+- Drawn with MapLibre inside Leaflet, so the stickers, plan pins and the poll pin work as before. If MapLibre doesn't load, the old OSM tiles show instead.
+- Real Google Maps was ruled out: it needs a key with a billing account, and pulling Google's tiles without one breaks their terms.
+- Files: `prototype/versions/v9-midfi-google-map.html` (v8 kept), `prototype/assets/map/style-google.json`, `tools/google_style.py`
+- Credit line on the map: OpenFreeMap © OpenMapTiles © OpenStreetMap.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 
