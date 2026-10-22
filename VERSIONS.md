@@ -122,5 +122,13 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - Positron is free with no key and its style can be edited (colors, labels). Toner Lite and Watercolor need a free Stadia key for a public URL.
 - Files: `Assets/map/styles/` (four images, 3584 × 2048, same pixels as the OSM map), `tools/map_styles.html`, `tools/save_receiver.py`
 
+### Prototype v6: planning from a + menu
+- Trip page: the "Today" strip is gone. "Add people" stays only in the trip header; the row in People is removed.
+- New + button with a gooey menu (liquid-gooey from libraries.dev, MIT, loaded as a small React piece): "Plan something" and "Add expense". On the half-open sheet the + sits on the map, so it never covers the list.
+- Plan something: pick what (Food and drinks, Activity, Getting around, with the 3D icons) and when, then decide how: "Let the group vote" opens a poll with options for that category, or "Just pick one" adds it straight to the plan.
+- Plans show up as pins on the map ("20:30 · Tasca do Largo"); an open poll shows as a "Voting · 3 of 5" pin that updates live. Tap a pin for details or to vote.
+- File: `prototype/versions/v6-midfi-plan.html` (v5 kept), category icons in `prototype/assets/icons/`
+- Feedback that led here: no Today section, one Add people, and a clear way to plan something from the trip.
+
 ## Tools
 Scripts behind all of the above are in `tools/` (see `tools/README.md`).
