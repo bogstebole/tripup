@@ -265,6 +265,9 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - How soon, on the pins: minutes for the next hour and a half ("In 64 mins"), then hours the same day ("In 2 hrs"), "Tomorrow", then days ("In 2 days" … "In 5 days"); "Now" once it starts. The Up next card's time chip ("5 PM • Today") and the People subtitle ("Today, 5 PM") come from the same start.
 - Day filter: tapping a chip that's half off the edge slides it fully into view.
 
+### Final UI, iteration 1.11: People tab is now Group
+- The full view's third tab is called **Group**: it holds who's coming, what each person picked, roughly what they'll pay and the total, not only a list of people, and it fits plans without a menu too. The page title stays "Who's coming". Storybook's story is now "Full view · Group".
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

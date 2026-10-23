@@ -15,7 +15,7 @@ import { Sticker } from './Sticker';
 import './Surface.css';
 import './DetailSheet.css';
 
-export const DETAIL_TABS = ['Overview', 'Menu', 'People'] as const;
+export const DETAIL_TABS = ['Overview', 'Menu', 'Group'] as const;
 export type DetailTab = (typeof DETAIL_TABS)[number];
 
 type MenuItem = { name: string; price: string; note?: string; photo?: string; pickedBy?: string[] };
@@ -174,7 +174,7 @@ export function DetailSheet(p: DetailSheetProps) {
                 <Block i={SECTIONS.length + 1}><p className="text-body-sm tu-sheet__subtle tu-sheet__pad">Prices with VAT. From the restaurant's own menu. Entrecôte photos are the restaurant's; other dish photos are illustrative, from Wikimedia Commons.</p></Block>
               </>
             )}
-            {tab === 'People' && (
+            {tab === 'Group' && (
               <>
                 <Block i={0} className="tu-sheet__head">
                   <h2 className="tu-sheet__title text-heading-lg">Who's coming</h2>
@@ -213,8 +213,8 @@ export function DetailSheet(p: DetailSheetProps) {
         {/* Content scrolling up passes under a blur and the surface's white instead of being cut at the edge */}
         <div className="tu-sheet__top-fade" aria-hidden style={{ '--under': under } as CSSProperties} />
       </div>
-      {/* People: the total stays put at the bottom while the list scrolls above it */}
-      {tab === 'People' && total > 0 && (
+      {/* Group: the total stays put at the bottom while the list scrolls above it */}
+      {tab === 'Group' && total > 0 && (
         <div className="tu-sheet__footer">
           <p className="text-label-lg tu-sheet__total-label">Estimated total</p>
           <p className="text-heading-lg tu-sheet__cost">≈ {euros(total)}</p>

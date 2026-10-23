@@ -77,7 +77,7 @@
 .tu-dish__foot { display: flex; align-items: center; gap: var(--space-xs); }
 .tu-dish__price { flex: 1 1 0; color: var(--color-text-default); }
 
-/* People: a little pile of what each person picked */
+/* Group: a little pile of what each person picked */
 .tu-sheet__picks { display: flex; align-items: center; flex: none; }
 .tu-sheet__picks > * + * { margin-left: calc(var(--d-avatar-overlap) * -1); }
 
@@ -91,7 +91,7 @@
 .tu-facts__check { width: var(--size-icon-sm); height: var(--size-icon-sm); color: var(--color-icon-success); }
 .tu-facts__status { color: var(--color-text-success); }
 
-/* People: roughly what each person's picks come to, and everyone's together */
+/* Group: roughly what each person's picks come to, and everyone's together */
 .tu-sheet__cost { flex: none; color: var(--color-text-default); }
 .tu-sheet__footer { flex: none; display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-xs) var(--space-xs) var(--space-md); }
 .tu-sheet__total-label { flex: 1 1 0; color: var(--color-text-default); }

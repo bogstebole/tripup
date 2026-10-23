@@ -36,4 +36,4 @@ function Sheet({ start }: { start: DetailTab }) {
 
 export const Overview: Story = { name: 'Full view · Overview', render: () => <Sheet start="Overview" /> };
 export const Menu: Story = { name: 'Full view · Menu', render: () => <Sheet start="Menu" /> };
-export const People: Story = { name: 'Full view · People', render: () => <Sheet start="People" /> };
+export const Group: Story = { name: 'Full view · Group', render: () => <Sheet start="Group" /> };

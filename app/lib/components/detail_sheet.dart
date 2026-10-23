@@ -12,7 +12,7 @@ import 'progressive_blur.dart';
 import 'segmented_tabs.dart';
 import 'stagger.dart';
 
-const detailTabs = ['Overview', 'Menu', 'People'];
+const detailTabs = ['Overview', 'Menu', 'Group'];
 
 /// The full view of a plan (see Storybook: Screens/Trip → Full view). The tabs and close sit in a header at the
 /// top, and each tab replaces the whole page under it: the new page staggers in with a light blur while the old
@@ -154,7 +154,7 @@ class _DetailSheetState extends State<DetailSheet> {
   Widget _page(BuildContext context) => switch (_tab) {
         0 => _overview(context),
         1 => _menu(context),
-        _ => _people(context),
+        _ => _group(context),
       };
 
   /// Content scrolling past the bottom of its area fades out over the last few pixels instead of being cut off.
@@ -226,8 +226,8 @@ class _DetailSheetState extends State<DetailSheet> {
     });
   }
 
-  // ---------- People: who's coming, how far away each person is, and what they've picked
-  Widget _people(BuildContext context) {
+  // ---------- Group: who's coming, how far away each person is, what they've picked and what it comes to
+  Widget _group(BuildContext context) {
     final t = context.tok;
     return _withMenu((sections, mine) {
       final dishes = [for (final s in sections) ...s.items];
