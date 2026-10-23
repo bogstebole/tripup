@@ -316,6 +316,37 @@ class _AddPageState extends State<AddPage> {
   }
 }
 
+/// The demo's moments of the brief's story, in order: tap one to jump there. The ones the app doesn't have yet are
+/// listed too, greyed out, so the list doubles as what's left to build.
+class StoryPage extends StatelessWidget {
+  const StoryPage({super.key, this.onPick});
+  final ValueChanged<StoryMoment>? onPick;
+
+  static const subtitle = "Jump to a moment in the brief's scenario";
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tok;
+    final current = demoMoment.value ?? storyMoments.firstWhere((m) => m.at == tripNowAtLaunch);
+    return StaggerIn(children: [
+      for (final (i, m) in storyMoments.indexed) ...[
+        if (i > 0) const Hairline(),
+        SheetRow(
+          title: m.title,
+          subtitle: [
+            'Step ${m.steps}',
+            if (m.at != null) '${dayName(m.at!, tripNowAtLaunch)}, ${clockTime(m.at!)}',
+            if (!m.built) 'Not built yet',
+          ].join(' · '),
+          muted: !m.built,
+          trailing: m == current ? LucideIcon(TuIcons.check, size: TokSize.iconSm, color: t.iconBrand) : null,
+          onTap: m.built && onPick != null ? () => onPick!(m) : null,
+        ),
+      ],
+    ]);
+  }
+}
+
 /// Stickers come in their own widths; a fixed slot keeps the names after them in one line.
 Widget _slot(Widget sticker, [double width = TokDim.stickerRow]) => SizedBox(width: width, child: Center(child: sticker));
 

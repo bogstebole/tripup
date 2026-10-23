@@ -10,9 +10,12 @@ import 'progressive_blur.dart';
 
 /// Trip header over the map: back, trip name and dates, people. Fades the map out behind it.
 class TopBar extends StatelessWidget {
-  const TopBar({super.key, required this.title, required this.dates, this.onBack, this.filter});
+  const TopBar({super.key, required this.title, required this.dates, this.onBack, this.filter, this.trailing});
   final String title, dates;
   final VoidCallback? onBack;
+
+  /// At the end of the title row (the demo's moment picker).
+  final Widget? trailing;
 
   /// Day filter, right under the title row (inside the bar's fade, so it reads over the map).
   final Widget? filter;
@@ -43,6 +46,7 @@ class TopBar extends StatelessWidget {
                 Text(dates, style: TokText.labelMd.copyWith(color: t.textMuted)),
               ]),
             ),
+            ?trailing,
           ]),
         ),
         ?filter,
@@ -102,6 +106,34 @@ class _CrewButton extends StatelessWidget {
           ),
         ),
       );
+}
+
+/// Not part of the product: the demo's clock, and a way to jump between moments of the brief's story.
+class DemoButton extends StatelessWidget {
+  const DemoButton({super.key, required this.time, this.onTap});
+
+  /// The demo's "now" ("3:56 PM").
+  final String time;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tok;
+    return Pressable(
+      onTap: onTap,
+      semanticLabel: 'Demo, $time: jump to a moment in the story',
+      child: Glass(
+        kind: GlassKind.soft,
+        height: TokDim.buttonMd,
+        radius: BorderRadius.circular(TokRadius.pill),
+        padding: const EdgeInsets.symmetric(horizontal: TokSpace.sm),
+        child: Row(mainAxisSize: MainAxisSize.min, spacing: TokSpace.x2xs, children: [
+          LucideIcon(TuIcons.hours, size: TokSize.iconSm, color: t.textMuted),
+          Text('Demo · $time', style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textDefault)),
+        ]),
+      ),
+    );
+  }
 }
 
 /// Brings the map back to my location. Shown only while I'm off-screen.

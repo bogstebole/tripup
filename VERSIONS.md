@@ -403,6 +403,11 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 ### Final UI, iteration 1.22: no people pill in the header
 - The two-faces-and-"+3" pill is gone from the top bar (app and Storybook); the trip's name gets the room. `PeopleButton` is removed in both, and so are `topFaces` and `moreFaces`.
 
+### Demo moments (branch `feature/demo-moments`)
+- A Demo button in the top bar ("Demo · 3:56 PM") opens Story, a pop-up listing the brief's moments in order. Jumping moves the demo clock (`jumpTo` in `data.dart`), and the people, the "here" chip, times and the Up next card follow at once.
+  - Built so far: On the way (3:30 PM), Before dinner (3:56 PM), Everyone's there (4:50 PM), and Settle up, which opens Money.
+  - Not built yet, shown greyed: Your trips, Ren joins, Dinner poll, The poll closes, The bill, Squared up.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

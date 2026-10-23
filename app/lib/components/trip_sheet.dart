@@ -222,9 +222,12 @@ class SheetSection extends StatelessWidget {
 /// One line in a pop-up's list: something on the left (a sticker or faces), a name and a line under it, and
 /// whatever sits at the end (an amount, a time, a button).
 class SheetRow extends StatelessWidget {
-  const SheetRow({super.key, this.leading, required this.title, this.subtitle, this.subtitleColor, this.trailing, this.onTap});
+  const SheetRow({super.key, this.leading, required this.title, this.subtitle, this.subtitleColor, this.trailing, this.onTap, this.muted = false});
   final Widget? leading;
   final String title;
+
+  /// Greyed out: there, but not available (yet).
+  final bool muted;
   final String? subtitle;
   final Color? subtitleColor;
   final Widget? trailing;
@@ -239,8 +242,8 @@ class SheetRow extends StatelessWidget {
         ?leading,
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x3xs, children: [
-            Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: TokText.labelLg.copyWith(color: t.textDefault)),
-            if (subtitle != null) Text(subtitle!, style: TokText.bodySm.copyWith(color: subtitleColor ?? t.textMuted)),
+            Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: TokText.labelLg.copyWith(color: muted ? t.textSubtle : t.textDefault)),
+            if (subtitle != null) Text(subtitle!, style: TokText.bodySm.copyWith(color: muted ? t.textSubtle : subtitleColor ?? t.textMuted)),
           ]),
         ),
         ?trailing,

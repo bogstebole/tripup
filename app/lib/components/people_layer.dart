@@ -25,8 +25,17 @@ class _PeopleLayerState extends State<PeopleLayer> {
   late final Timer _tick = Timer.periodic(const Duration(seconds: 5), (_) => setState(() {}));
 
   @override
+  void initState() {
+    super.initState();
+    demoMoment.addListener(_jumped);   // a demo jump moves everyone at once
+  }
+
+  void _jumped() => setState(() {});
+
+  @override
   void dispose() {
     _tick.cancel();
+    demoMoment.removeListener(_jumped);
     super.dispose();
   }
 

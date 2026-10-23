@@ -272,10 +272,44 @@ const today = 14;
 
 /// Where the demo starts: Thursday 14 May, 15:56, an hour before dinner.
 final tripNowAtLaunch = DateTime(tripYear, tripMonth, today, 15, 56);
-final _launch = DateTime.now();
+var _launch = DateTime.now();
 
-/// Now, in the trip: the demo's start plus however long the app has been open.
-DateTime tripNow() => tripNowAtLaunch.add(DateTime.now().difference(_launch));
+/// Now, in the trip: the demo's start plus however long the app has been open (or since the last [jumpTo]).
+DateTime tripNow() => (demoMoment.value?.at ?? tripNowAtLaunch).add(DateTime.now().difference(_launch));
+
+// ---------- Demo: moments of the brief's story to jump between (Demo button, top right)
+
+/// A moment in the brief's scenario: when it happens, which steps it shows (see USER-STORIES.md), and whether the
+/// app has it yet. [opens] names a pop-up to open there ('money').
+class StoryMoment {
+  const StoryMoment(this.title, this.steps, {this.at, this.opens, this.built = true});
+  final String title, steps;
+  final DateTime? at;
+  final String? opens;
+  final bool built;
+}
+
+final storyMoments = [
+  StoryMoment('Your trips', '01', built: false),
+  StoryMoment('Ren joins', '03', at: DateTime(tripYear, tripMonth, today, 14, 10), built: false),
+  StoryMoment('Dinner poll', '04–06', at: DateTime(tripYear, tripMonth, today, 14, 30), built: false),
+  StoryMoment('The poll closes', '07', at: DateTime(tripYear, tripMonth, today, 15, 0), built: false),
+  StoryMoment('On the way', '02', at: DateTime(tripYear, tripMonth, today, 15, 30)),
+  StoryMoment('Before dinner', '02, 07', at: tripNowAtLaunch),
+  StoryMoment("Everyone's there", '02', at: DateTime(tripYear, tripMonth, today, 16, 50)),
+  StoryMoment('The bill', '08', at: DateTime(tripYear, tripMonth, today, 19, 30), built: false),
+  StoryMoment('Settle up', '09–10', at: tripNowAtLaunch, opens: 'money'),
+  StoryMoment('Squared up', '11', at: DateTime(tripYear, tripMonth, today, 20, 30), built: false),
+];
+
+/// The moment the demo last jumped to (null: it runs on from the start).
+final demoMoment = ValueNotifier<StoryMoment?>(null);
+
+/// Jumps the demo's clock to [m] and runs on from there.
+void jumpTo(StoryMoment m) {
+  _launch = DateTime.now();
+  demoMoment.value = m;
+}
 
 // ---------- Live: where everyone is (simulated on the demo clock; in the real app, their shared locations)
 

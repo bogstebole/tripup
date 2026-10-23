@@ -95,6 +95,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     });
     // A plan added from the Add pop-up shows on the map (which is a picture while the pop-up is up)
     addedPlans.addListener(_sceneChanged);
+    demoMoment.addListener(_sceneChanged);
     // The money pop-up estimates tonight's dinner from the menu's picks, so load it now
     brasserieMenu.then((_) => _sceneChanged());
     _pop.addListener(() {
@@ -282,6 +283,19 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     }
   }
 
+  /// The demo jumps to [m]: the clock moves there, the Up next card comes back, and the moment's pop-up (if it has
+  /// one) takes the place of the moment list; otherwise the list closes.
+  void _jump(StoryMoment m) {
+    HapticFeedback.selectionClick();
+    jumpTo(m);
+    setState(() => _upNextMid = true);
+    if (m.opens == 'money') {
+      setState(() => _popup = _Popup.money);
+    } else {
+      _closePopup();
+    }
+  }
+
   void _closePopup({double velocity = 0}) {
     _popClosing = true;
     _release(_still);
@@ -321,6 +335,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
         }) as Widget),
       _Popup.money => ('Money', MoneyPage.subtitle, MoneyPage(toast: _popToast)),
       _Popup.add => ('Add to the trip', AddPage.subtitle, AddPage(toast: _popToast)),
+      _Popup.story => ('Story', StoryPage.subtitle, StoryPage(onPick: _jump)),
     };
     return Positioned.fromRect(
       rect: to,
@@ -437,6 +452,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     _popDrag.dispose();
     _popToast.dispose();
     addedPlans.removeListener(_sceneChanged);
+    demoMoment.removeListener(_sceneChanged);
     _fly.dispose();
     _map.dispose();
     super.dispose();
@@ -489,6 +505,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           child: TopBar(
             title: tripTitle,
             dates: tripDates,
+            trailing: DemoButton(time: clockTime(tripNow()), onTap: () => _openPopup(_Popup.story)),
             filter: ToggleChips<int>(options: tripDays, selected: _days, labelOf: _dayLabel, onChanged: (d) => _setDays(d, size)),
           ),
         ),
@@ -812,4 +829,4 @@ class _PlansLayer extends StatelessWidget {
 }
 
 /// The footer's pop-ups.
-enum _Popup { itinerary, money, add }
+enum _Popup { itinerary, money, add, story }

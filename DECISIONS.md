@@ -103,6 +103,13 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
   - Charts and budgets: no story needs them, and users call cluttered money screens a reason to leave.
 - **In the prototype only my payment can be made,** so the trip can't reach "squared up" from here yet. That comes with the settle-up story.
 
+## Demo (decided 23 Oct)
+
+- **A small Demo button in the header** (top right, where the people pill was) shows the demo's clock and opens the moments of the brief's story. A tap jumps the clock there, and everything that runs on it follows: where people are, who's here, the times.
+  - Moments the app doesn't have yet are listed, greyed out, so the list is also what's left to build.
+  - It's a tool for the demo, not part of the product, so it isn't in Storybook.
+- **The story should play out from the situation, not from special controls** (Bogdan, 23 Oct). When the group gets to the restaurant (a geofence), the dinner turns active and its actions appear; nothing is built for one case like "two people skip the wine".
+
 ## Sharing with testers (decided 23 Oct)
 
 - **iPhone: TestFlight.** It's the easiest install for people with iPhones, and we have a paid Apple developer account.
