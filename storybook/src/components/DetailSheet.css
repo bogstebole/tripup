@@ -1,9 +1,10 @@
+/* The tabs and close sit in a header over the page; pages scroll up under it, through a blur and the surface's white */
 .tu-sheet {
+  --header: calc(var(--space-xs) + max(calc(var(--d-segment-height) + var(--d-segment-track-padding) * 2), var(--d-button-sm)));
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
-  /* No inset at the top: pages scroll up to the sheet's edge, under a blur and the surface's white */
-  padding: 0 var(--space-xs) var(--space-xs);
+  padding: 0 var(--space-xs);
   height: 100%;
   overflow: hidden;
 }
@@ -17,21 +18,21 @@
   flex-direction: column;
   gap: var(--space-md);
   scrollbar-width: none;
-  /* Content scrolling under the tab bar fades out over the last few px instead of being cut off */
+  /* Content scrolling past the sheet's bottom edge fades out over the last few px instead of being cut off */
   mask-image: linear-gradient(to bottom, black calc(100% - var(--d-sheet-fade)), transparent);
-  /* The sheet's inset on top; room for the last block to scroll clear of the bottom fade */
-  padding-top: var(--space-xs);
-  padding-bottom: var(--d-sheet-fade);
+  /* Starts under the header; room at the end for the last block to scroll clear of the bottom fade */
+  padding-top: calc(var(--header) + var(--space-xs));
+  padding-bottom: calc(var(--d-sheet-fade) + var(--space-xs));
 }
-/* Shows as content goes under the edge (--under, 0–1), so a page at rest isn't faded at the top */
+/* The header's backdrop shows as content goes under it (--under, 0–1), so a page at rest isn't faded at the top */
 .tu-sheet__top-fade {
   grid-area: 1 / 1;
   align-self: start;
   position: relative;
   z-index: 1;
-  height: var(--d-sheet-top-fade);
+  height: calc(var(--header) + var(--d-sheet-top-fade));
   pointer-events: none;
-  background: linear-gradient(to bottom, color-mix(in srgb, var(--c-surface-top) calc(var(--under) * 100%), transparent), transparent);
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--c-surface-top) calc(var(--under) * 100%), transparent) var(--header), transparent);
 }
 .tu-sheet__top-fade::before {
   content: '';
@@ -40,7 +41,7 @@
   opacity: var(--under);
   backdrop-filter: blur(var(--d-sheet-top-blur));
   -webkit-backdrop-filter: blur(var(--d-sheet-top-blur));
-  mask-image: linear-gradient(to bottom, black, transparent);
+  mask-image: linear-gradient(to bottom, black var(--header), transparent);
 }
 .tu-sheet__scroll::-webkit-scrollbar { display: none; }
 
@@ -69,7 +70,7 @@
 .tu-sheet__faces > * + * { margin-left: calc(var(--d-avatar-overlap) * -1); }
 .tu-sheet__face { display: grid; place-items: center; width: var(--d-sticker-row); height: var(--d-sticker-row); flex: none; }
 
-.tu-sheet__bar { display: flex; align-items: flex-end; justify-content: space-between; flex: none; }
+.tu-sheet__bar { position: absolute; top: 0; left: var(--space-xs); right: var(--space-xs); z-index: 2; display: flex; align-items: center; justify-content: space-between; padding-top: var(--space-xs); }
 
 /* Menu: a plain list; under each dish's photo and text, the price, who else picked it, and Add */
 /* Add's touch target reaches past its circle; the row's right inset leaves the circle on the text's edge */

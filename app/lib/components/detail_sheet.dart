@@ -13,9 +13,10 @@ import 'stagger.dart';
 
 const detailTabs = ['Overview', 'Menu', 'People'];
 
-/// The full view of a plan (see Storybook: Screens/Trip → Full view). Each tab replaces everything above the
-/// tabs; the new page staggers in with a light blur while the old one fades out. Every page scrolls; pulling
-/// down once it's at the top pulls the sheet down instead ([onHeaderDragUpdate] / [onHeaderDragEnd]).
+/// The full view of a plan (see Storybook: Screens/Trip → Full view). The tabs and close sit in a header at the
+/// top, and each tab replaces the whole page under it: the new page staggers in with a light blur while the old
+/// one fades out. Every page scrolls up under the header; pulling the header, or a page past its top, pulls the
+/// sheet down ([onHeaderDragUpdate] / [onHeaderDragEnd]).
 class DetailSheet extends StatefulWidget {
   const DetailSheet({super.key, required this.plan, this.onClose, this.onHeaderDragUpdate, this.onHeaderDragEnd});
   final Plan plan;
@@ -44,62 +45,85 @@ class _DetailSheetState extends State<DetailSheet> {
 
   late final _pull = _Pull((dy) => widget.onHeaderDragUpdate?.call(DragUpdateDetails(globalPosition: Offset.zero, delta: Offset(0, dy), primaryDelta: dy)));
 
+  /// The header's height: its top inset, then the taller of the tab bar and the close button.
+  static double get _headerHeight => TokSpace.xs + math.max(TokDim.segmentHeight + TokDim.segmentTrackPadding * 2, TokDim.buttonSm);
+
   @override
   Widget build(BuildContext context) {
     final t = context.tok;
-    // No inset at the top: pages scroll up to the sheet's edge, under a blur and the surface's white
+    final header = _headerHeight, solid = header / (header + TokDim.sheetTopFade);
+    // The tabs and close sit in a header over the page; content scrolls up under it, through a blur and the surface's white
     return Padding(
-      padding: const EdgeInsets.fromLTRB(TokSpace.xs, 0, TokSpace.xs, TokSpace.xs),
-      child: Column(spacing: TokSpace.md, children: [
-        Expanded(
-          child: NotificationListener<ScrollNotification>(
-            onNotification: _onScroll,
-            child: Stack(children: [
-              Positioned.fill(
-                child: AnimatedSwitcher(
-                  duration: TokMotion.fade,
-                  layoutBuilder: (current, previous) => Stack(alignment: Alignment.topCenter, children: [...previous, ?current]),
-                  // The new page runs its own stagger; only the old one needs the switcher's fade
-                  transitionBuilder: (child, anim) => child.key == ValueKey(_tab) ? child : fadeBlurOut(anim, child),
-                  child: KeyedSubtree(key: ValueKey(_tab), child: _page(context)),
-                ),
-              ),
-              // Shows as content goes under the edge, so a page at rest isn't faded at the top
-              Positioned(
-                left: 0,
-                right: 0,
-                top: 0,
-                height: TokDim.sheetTopFade,
-                child: IgnorePointer(
-                  child: ValueListenableBuilder<double>(
-                    valueListenable: _under,
-                    builder: (context, v, _) => v <= 0
-                        ? const SizedBox.shrink()
-                        : Opacity(
-                            opacity: v,
-                            child: Stack(fit: StackFit.expand, children: [
-                              const ProgressiveBlur(sigma: TokDim.sheetTopBlur),
-                              DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [t.cSurfaceTop, t.cSurfaceTop.withValues(alpha: 0)]))),
-                            ]),
+      padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
+      child: NotificationListener<ScrollNotification>(
+        onNotification: _onScroll,
+        child: Stack(children: [
+          Positioned.fill(
+            child: AnimatedSwitcher(
+              duration: TokMotion.fade,
+              layoutBuilder: (current, previous) => Stack(alignment: Alignment.topCenter, children: [...previous, ?current]),
+              // The new page runs its own stagger; only the old one needs the switcher's fade
+              transitionBuilder: (child, anim) => child.key == ValueKey(_tab) ? child : fadeBlurOut(anim, child),
+              child: KeyedSubtree(key: ValueKey(_tab), child: _page(context)),
+            ),
+          ),
+          // The header's backdrop shows once content goes under it, so a page at rest isn't faded at the top
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            height: header + TokDim.sheetTopFade,
+            child: IgnorePointer(
+              child: ValueListenableBuilder<double>(
+                valueListenable: _under,
+                builder: (context, v, _) => v <= 0
+                    ? const SizedBox.shrink()
+                    : Opacity(
+                        opacity: v,
+                        child: Stack(fit: StackFit.expand, children: [
+                          ProgressiveBlur(sigma: TokDim.sheetTopBlur, solidUntil: solid),
+                          DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [t.cSurfaceTop, t.cSurfaceTop, t.cSurfaceTop.withValues(alpha: 0)],
+                                stops: [0, solid, 1],
+                              ),
+                            ),
                           ),
-                  ),
-                ),
+                        ]),
+                      ),
               ),
-            ]),
+            ),
           ),
-        ),
-        Row(crossAxisAlignment: CrossAxisAlignment.end, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          SegmentedTabs(
-            tabs: detailTabs,
-            index: _tab,
-            onChanged: (i) {
-              _under.value = 0;   // the new page starts at its top
-              setState(() => _tab = i);
-            },
+          // The header, which is also a handle for pulling the sheet down
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onVerticalDragUpdate: widget.onHeaderDragUpdate,
+              onVerticalDragEnd: widget.onHeaderDragEnd,
+              child: Padding(
+                padding: const EdgeInsets.only(top: TokSpace.xs),
+                child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                  SegmentedTabs(
+                    tabs: detailTabs,
+                    index: _tab,
+                    onChanged: (i) {
+                      _under.value = 0;   // the new page starts at its top
+                      setState(() => _tab = i);
+                    },
+                  ),
+                  TuButton(icon: TuIcons.close, label: 'Close', size: TuButtonSize.sm, onTap: widget.onClose),
+                ]),
+              ),
+            ),
           ),
-          TuButton(icon: TuIcons.close, label: 'Close', size: TuButtonSize.sm, onTap: widget.onClose),
         ]),
-      ]),
+      ),
     );
   }
 
@@ -118,8 +142,8 @@ class _DetailSheetState extends State<DetailSheet> {
 
   Widget _scroll(Widget child) => SingleChildScrollView(
         physics: _SheetPhysics(pull: _pull, parent: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics())),
-        // The sheet's inset on top; room for the last block to scroll clear of the bottom fade
-        padding: const EdgeInsets.only(top: TokSpace.xs, bottom: TokDim.sheetFade),
+        // Starts under the header; room at the end for the last block to scroll clear of the bottom fade
+        padding: EdgeInsets.only(top: _headerHeight + TokSpace.xs, bottom: TokDim.sheetFade + TokSpace.xs),
         child: child,
       );
 
@@ -129,7 +153,7 @@ class _DetailSheetState extends State<DetailSheet> {
         _ => _people(context),
       });
 
-  /// Content scrolling under the tab bar fades out over the last few pixels instead of being cut off.
+  /// Content scrolling past the sheet's bottom edge fades out over the last few pixels instead of being cut off.
   Widget _fadeBottom(BuildContext context, Widget child) {
     final solid = context.tok.textDefault;   // only its alpha matters for the mask
     return ShaderMask(

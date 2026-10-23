@@ -45,7 +45,8 @@ const FACT_ICON: Record<PlaceDetail['kind'], LucideIcon> = { address: MapPin, ho
 const ease = m['ease-out'] as [number, number, number, number];
 
 /**
- * The full view of a plan. Each tab replaces everything above the tabs: the new page's blocks arrive one after
+ * The full view of a plan. The tabs and close sit in a header at the top, and each tab replaces the whole page
+ * under it, which scrolls up under the header: the new page's blocks arrive one after
  * another (fade, light blur, a few px up), the old page fades out with a blur. Menu is the restaurant's real menu.
  */
 export function DetailSheet(p: DetailSheetProps) {
@@ -77,6 +78,10 @@ export function DetailSheet(p: DetailSheetProps) {
 
   return (
     <article className="tu-sheet tu-surface tu-surface--sheet" aria-label={p.name}>
+      <div className="tu-sheet__bar">
+        <SegmentedTabs tabs={[...DETAIL_TABS]} value={tab} onChange={t => select(t as DetailTab)} />
+        <Button icon={X} label="Close" size="sm" onClick={p.onClose} />
+      </div>
       <div className="tu-sheet__pages">
         <AnimatePresence initial={false}>
           <motion.div
@@ -196,10 +201,6 @@ export function DetailSheet(p: DetailSheetProps) {
         </AnimatePresence>
         {/* Content scrolling up passes under a blur and the surface's white instead of being cut at the edge */}
         <div className="tu-sheet__top-fade" aria-hidden style={{ '--under': under } as CSSProperties} />
-      </div>
-      <div className="tu-sheet__bar">
-        <SegmentedTabs tabs={[...DETAIL_TABS]} value={tab} onChange={t => select(t as DetailTab)} />
-        <Button icon={X} label="Close" size="sm" onClick={p.onClose} />
       </div>
     </article>
   );

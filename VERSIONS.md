@@ -244,6 +244,9 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - **Top edge of the full view:** pages now scroll up to the sheet's edge instead of being cut 8 px below it. As content goes under the edge it passes under a progressive blur and a fade to the surface's white (32 px, blur 8). It shows only once the page has scrolled, so a page at rest isn't faded at the top. The progressive blur is now one shared component (`ProgressiveBlur`, used by the header too).
 - New tokens: `sheet/top-fade`, `sheet/top-blur`.
 
+### Final UI, iteration 1.6: tabs and close in the full view's header
+- The tab switcher and the close button moved from the bottom of the full view into a header at the top, so the bottom no longer crowds. Pages start under the header and scroll up beneath it, through the same progressive blur and white fade (shown only once a page has scrolled). The header is also a handle for pulling the sheet down, as is pulling a page past its top. The bottom fade stays at the sheet's lower edge.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 
