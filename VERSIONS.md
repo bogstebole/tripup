@@ -239,6 +239,11 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - New tokens: `top-bar/blur`, `sheet/fade`, `menu/photo-edge`, `menu/photo-tilt`, `dish-pick/size`, `dish-pick/edge`, `dish/edge`; `top-bar/fade-start` 0.17 → 0.5. New components: `DishSticker` (Flutter and Storybook). New icons: clock, banknote, truck, globe, phone.
 - Checked on the simulator: the header, scrolling and pull-to-close on Overview, Menu cards, People piles, and the Details rows.
 
+### Final UI, iteration 1.5: menu as a plain list, soft top edge in the full view
+- **Menu:** the same layout per dish (sticker photo, name, full description, then price, who picked it and Add), but as a plain list with hairlines instead of cards.
+- **Top edge of the full view:** pages now scroll up to the sheet's edge instead of being cut 8 px below it. As content goes under the edge it passes under a progressive blur and a fade to the surface's white (32 px, blur 8). It shows only once the page has scrolled, so a page at rest isn't faded at the top. The progressive blur is now one shared component (`ProgressiveBlur`, used by the header too).
+- New tokens: `sheet/top-fade`, `sheet/top-blur`.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

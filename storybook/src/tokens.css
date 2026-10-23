@@ -189,6 +189,8 @@
   --d-sheet-inset: 16px;
   --d-sheet-backdrop-blur: 12px;
   --d-sheet-fade: 16px;
+  --d-sheet-top-fade: 32px;
+  --d-sheet-top-blur: 8px;
   --d-tab-enter-shift: 8px;
   --d-me-dot: 16px;
   --d-me-ring: 5px;

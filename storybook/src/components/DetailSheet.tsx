@@ -1,6 +1,6 @@
 import { Banknote, Calendar, Check, Clock, Globe, MapPin, Phone, Truck, X, type LucideIcon } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion, type Variants } from 'motion/react';
-import { useState, type ReactNode } from 'react';
+import { useState, type CSSProperties, type ReactNode } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import realMenu from '../../../app/assets/data/brasserie-menu.json';
 import { photoUrl, type Person, type PlaceDetail } from '../data';
@@ -51,7 +51,9 @@ const ease = m['ease-out'] as [number, number, number, number];
 export function DetailSheet(p: DetailSheetProps) {
   const [own, setOwn] = useState<DetailTab>('Overview');
   const tab = p.tab ?? own;
-  const select = (t: DetailTab) => { setOwn(t); p.onTabChange?.(t); };
+  // How far the page has scrolled under the top edge, 0–1 over the top fade's height
+  const [under, setUnder] = useState(0);
+  const select = (t: DetailTab) => { setOwn(t); setUnder(0); p.onTabChange?.(t); };
   const reduce = useReducedMotion();
   const [added, setAdded] = useState<Set<string>>(() => new Set(SECTIONS.flatMap(s => s.items).filter(i => i.pickedBy?.includes('ari')).map(i => i.name)));
   const toggle = (name: string) => setAdded(a => { const n = new Set(a); n.has(name) ? n.delete(name) : n.add(name); return n; });
@@ -80,6 +82,7 @@ export function DetailSheet(p: DetailSheetProps) {
           <motion.div
             key={tab}
             className="tu-sheet__scroll"
+            onScroll={e => setUnder(Math.min(1, e.currentTarget.scrollTop / parseFloat(getComputedStyle(e.currentTarget).getPropertyValue('--d-sheet-top-fade'))))}
             initial="hidden"
             animate="shown"
             exit={{ opacity: 0, filter: reduce ? 'none' : `blur(${m['enter-blur']}px)`, transition: { duration: reduce ? 0 : m['fade-ms'] / 1000, ease } }}
@@ -142,7 +145,7 @@ export function DetailSheet(p: DetailSheetProps) {
                       {s.items.map((item, i) => {
                         const others = (item.pickedBy ?? []).filter(id => id !== 'ari');
                         return (
-                          <div key={item.name} className="tu-dish tu-surface">
+                          <div key={item.name} className="tu-dish">
                             <div className="tu-dish__top">
                               {item.photo && <DishSticker photo={item.photo} size="menu" tilt={i % 2 ? tilt : -tilt} />}
                               <div className="tu-dish__text">
@@ -191,6 +194,8 @@ export function DetailSheet(p: DetailSheetProps) {
             )}
           </motion.div>
         </AnimatePresence>
+        {/* Content scrolling up passes under a blur and the surface's white instead of being cut at the edge */}
+        <div className="tu-sheet__top-fade" aria-hidden style={{ '--under': under } as CSSProperties} />
       </div>
       <div className="tu-sheet__bar">
         <SegmentedTabs tabs={[...DETAIL_TABS]} value={tab} onChange={t => select(t as DetailTab)} />

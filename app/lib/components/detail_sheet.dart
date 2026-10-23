@@ -7,6 +7,7 @@ import '../design/theme.dart';
 import '../design/tokens.dart';
 import 'basics.dart';
 import 'glass.dart';
+import 'progressive_blur.dart';
 import 'segmented_tabs.dart';
 import 'stagger.dart';
 
@@ -32,27 +33,70 @@ class _DetailSheetState extends State<DetailSheet> {
   /// The dishes I'll have: my picks from before, then whatever I add or remove here.
   Set<String>? _mine;
 
+  /// How far the page has scrolled under the top edge, 0–1 over the top fade's height.
+  final _under = ValueNotifier<double>(0);
+
+  @override
+  void dispose() {
+    _under.dispose();
+    super.dispose();
+  }
+
   late final _pull = _Pull((dy) => widget.onHeaderDragUpdate?.call(DragUpdateDetails(globalPosition: Offset.zero, delta: Offset(0, dy), primaryDelta: dy)));
 
   @override
   Widget build(BuildContext context) {
+    final t = context.tok;
+    // No inset at the top: pages scroll up to the sheet's edge, under a blur and the surface's white
     return Padding(
-      padding: const EdgeInsets.all(TokSpace.xs),
+      padding: const EdgeInsets.fromLTRB(TokSpace.xs, 0, TokSpace.xs, TokSpace.xs),
       child: Column(spacing: TokSpace.md, children: [
         Expanded(
           child: NotificationListener<ScrollNotification>(
             onNotification: _onScroll,
-            child: AnimatedSwitcher(
-              duration: TokMotion.fade,
-              layoutBuilder: (current, previous) => Stack(alignment: Alignment.topCenter, children: [...previous, ?current]),
-              // The new page runs its own stagger; only the old one needs the switcher's fade
-              transitionBuilder: (child, anim) => child.key == ValueKey(_tab) ? child : fadeBlurOut(anim, child),
-              child: KeyedSubtree(key: ValueKey(_tab), child: _page(context)),
-            ),
+            child: Stack(children: [
+              Positioned.fill(
+                child: AnimatedSwitcher(
+                  duration: TokMotion.fade,
+                  layoutBuilder: (current, previous) => Stack(alignment: Alignment.topCenter, children: [...previous, ?current]),
+                  // The new page runs its own stagger; only the old one needs the switcher's fade
+                  transitionBuilder: (child, anim) => child.key == ValueKey(_tab) ? child : fadeBlurOut(anim, child),
+                  child: KeyedSubtree(key: ValueKey(_tab), child: _page(context)),
+                ),
+              ),
+              // Shows as content goes under the edge, so a page at rest isn't faded at the top
+              Positioned(
+                left: 0,
+                right: 0,
+                top: 0,
+                height: TokDim.sheetTopFade,
+                child: IgnorePointer(
+                  child: ValueListenableBuilder<double>(
+                    valueListenable: _under,
+                    builder: (context, v, _) => v <= 0
+                        ? const SizedBox.shrink()
+                        : Opacity(
+                            opacity: v,
+                            child: Stack(fit: StackFit.expand, children: [
+                              const ProgressiveBlur(sigma: TokDim.sheetTopBlur),
+                              DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [t.cSurfaceTop, t.cSurfaceTop.withValues(alpha: 0)]))),
+                            ]),
+                          ),
+                  ),
+                ),
+              ),
+            ]),
           ),
         ),
         Row(crossAxisAlignment: CrossAxisAlignment.end, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          SegmentedTabs(tabs: detailTabs, index: _tab, onChanged: (i) => setState(() => _tab = i)),
+          SegmentedTabs(
+            tabs: detailTabs,
+            index: _tab,
+            onChanged: (i) {
+              _under.value = 0;   // the new page starts at its top
+              setState(() => _tab = i);
+            },
+          ),
           TuButton(icon: TuIcons.close, label: 'Close', size: TuButtonSize.sm, onTap: widget.onClose),
         ]),
       ]),
@@ -62,6 +106,7 @@ class _DetailSheetState extends State<DetailSheet> {
   /// A page pulled past its top pulls the sheet; letting go hands the finger's speed to the sheet.
   bool _onScroll(ScrollNotification n) {
     if (n.depth != 0) return false;
+    if (n is ScrollUpdateNotification || n is ScrollEndNotification) _under.value = (n.metrics.pixels / TokDim.sheetTopFade).clamp(0.0, 1.0);
     if (n is OverscrollNotification && n.dragDetails != null && n.overscroll < 0) {
       _pull.move(-n.overscroll);
     } else if (n is ScrollEndNotification && _pull.pulled > 0) {
@@ -73,8 +118,8 @@ class _DetailSheetState extends State<DetailSheet> {
 
   Widget _scroll(Widget child) => SingleChildScrollView(
         physics: _SheetPhysics(pull: _pull, parent: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics())),
-        // Room for the last block to scroll clear of the fade
-        padding: const EdgeInsets.only(bottom: TokDim.sheetFade),
+        // The sheet's inset on top; room for the last block to scroll clear of the bottom fade
+        padding: const EdgeInsets.only(top: TokSpace.xs, bottom: TokDim.sheetFade),
         child: child,
       );
 
@@ -301,23 +346,26 @@ class _MenuSectionView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tok;
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: TokSpace.xs, children: [
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Padding(
-        padding: const EdgeInsets.fromLTRB(TokSpace.xs, 0, TokSpace.xs, TokSpace.x2xs),
+        padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x3xs, children: [
           Text(section.title, style: TokText.headingSm.copyWith(color: t.textDefault)),
           if (section.note != null) Text(section.note!, style: TokText.bodySm.copyWith(color: t.textMuted)),
         ]),
       ),
-      for (var i = 0; i < section.items.length; i++) _MenuCard(item: section.items[i], index: i, added: mine.contains(section.items[i].name), onToggle: onToggle),
+      for (var i = 0; i < section.items.length; i++) ...[
+        if (i > 0) const _Hairline(),
+        _MenuRow(item: section.items[i], index: i, added: mine.contains(section.items[i].name), onToggle: onToggle),
+      ],
     ]);
   }
 }
 
-/// One dish: its photo as a sticker, name and the full description; the footer holds the price,
+/// One dish in a plain list: its photo as a sticker, name and the full description; under them, the price,
 /// who else has picked it, and Add.
-class _MenuCard extends StatelessWidget {
-  const _MenuCard({required this.item, required this.index, required this.added, required this.onToggle});
+class _MenuRow extends StatelessWidget {
+  const _MenuRow({required this.item, required this.index, required this.added, required this.onToggle});
   final MenuItem item;
   final int index;
   final bool added;
@@ -327,12 +375,13 @@ class _MenuCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tok;
     final others = item.pickedBy.where((id) => id != myId).toList();
-    return Container(
-      padding: const EdgeInsets.fromLTRB(TokSpace.sm, TokSpace.sm, TokSpace.x2xs, TokSpace.x2xs),
-      decoration: surfaceDecoration(context, BorderRadius.circular(TokRadius.card)),
+    // Add's touch target reaches past its circle; the outer right inset leaves the circle on the text's edge
+    const addInset = (TokSize.touchTarget - TokDim.buttonPillHeight) / 2;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.sm, TokSpace.xs - addInset, TokSpace.x2xs),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Padding(
-          padding: const EdgeInsets.only(right: TokSpace.xs),
+          padding: const EdgeInsets.only(right: addInset),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.sm, children: [
             if (item.photo != null)
               DishSticker(item.photo!, size: TokDim.menuPhoto, edge: TokDim.menuPhotoEdge, radius: TokDim.menuPhotoRadius, tilt: index.isEven ? -TokDim.menuPhotoTilt : TokDim.menuPhotoTilt),

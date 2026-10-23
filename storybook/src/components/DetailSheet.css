@@ -2,7 +2,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
-  padding: var(--space-xs);
+  /* No inset at the top: pages scroll up to the sheet's edge, under a blur and the surface's white */
+  padding: 0 var(--space-xs) var(--space-xs);
   height: 100%;
   overflow: hidden;
 }
@@ -18,8 +19,28 @@
   scrollbar-width: none;
   /* Content scrolling under the tab bar fades out over the last few px instead of being cut off */
   mask-image: linear-gradient(to bottom, black calc(100% - var(--d-sheet-fade)), transparent);
-  /* Room for the last block to scroll clear of the fade */
+  /* The sheet's inset on top; room for the last block to scroll clear of the bottom fade */
+  padding-top: var(--space-xs);
   padding-bottom: var(--d-sheet-fade);
+}
+/* Shows as content goes under the edge (--under, 0–1), so a page at rest isn't faded at the top */
+.tu-sheet__top-fade {
+  grid-area: 1 / 1;
+  align-self: start;
+  position: relative;
+  z-index: 1;
+  height: var(--d-sheet-top-fade);
+  pointer-events: none;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--c-surface-top) calc(var(--under) * 100%), transparent), transparent);
+}
+.tu-sheet__top-fade::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: var(--under);
+  backdrop-filter: blur(var(--d-sheet-top-blur));
+  -webkit-backdrop-filter: blur(var(--d-sheet-top-blur));
+  mask-image: linear-gradient(to bottom, black, transparent);
 }
 .tu-sheet__scroll::-webkit-scrollbar { display: none; }
 
@@ -50,10 +71,12 @@
 
 .tu-sheet__bar { display: flex; align-items: flex-end; justify-content: space-between; flex: none; }
 
-/* Menu: each dish is a card; the footer holds the price, who else picked it, and Add */
-.tu-sheet__cards { display: flex; flex-direction: column; gap: var(--space-xs); }
-.tu-dish { display: flex; flex-direction: column; padding: var(--space-sm) var(--space-2xs) var(--space-2xs) var(--space-sm); border-radius: var(--radius-card); }
-.tu-dish__top { display: flex; align-items: flex-start; gap: var(--space-sm); padding-right: var(--space-xs); }
+/* Menu: a plain list; under each dish's photo and text, the price, who else picked it, and Add */
+/* Add's touch target reaches past its circle; the row's right inset leaves the circle on the text's edge */
+.tu-sheet__cards { --add-inset: calc((var(--size-touch-target) - var(--d-button-pill-height)) / 2); display: flex; flex-direction: column; }
+.tu-dish { display: flex; flex-direction: column; padding: var(--space-sm) calc(var(--space-xs) - var(--add-inset)) var(--space-2xs) var(--space-xs); }
+.tu-dish + .tu-dish { border-top: var(--d-surface-edge-width) solid var(--color-border-default); }
+.tu-dish__top { display: flex; align-items: flex-start; gap: var(--space-sm); padding-right: var(--add-inset); }
 .tu-dish__text { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: var(--space-3xs); color: var(--color-text-default); }
 .tu-dish__foot { display: flex; align-items: center; gap: var(--space-xs); }
 .tu-dish__price { flex: 1 1 0; color: var(--color-text-default); }
