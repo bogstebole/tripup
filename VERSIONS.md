@@ -400,6 +400,9 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
   - Not mirrored: pull-down to close, and the springs (Storybook uses ease-out tweens).
   - New stories: `pop-ups--itinerary`, `pop-ups--money`, `pop-ups--add`, `widget-up-next--mid-nobody-there`, `widget-up-next--mid-four-there`, `components-button--text`, `foundations--component-dimensions`.
 
+### Final UI, iteration 1.22: no people pill in the header
+- The two-faces-and-"+3" pill is gone from the top bar (app and Storybook); the trip's name gets the room. `PeopleButton` is removed in both, and so are `topFaces` and `moreFaces`.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

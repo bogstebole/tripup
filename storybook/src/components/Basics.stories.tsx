@@ -8,7 +8,6 @@ import { DishSticker } from './DishSticker';
 import { FacePile } from './FacePile';
 import { InfoChips } from './InfoChips';
 import { KnowRow, KnowSection } from './KnowSection';
-import { PeopleButton } from './PeopleButton';
 import { RatingLine } from './RatingLine';
 import { SegmentedTabs } from './SegmentedTabs';
 import { Sticker } from './Sticker';
@@ -27,12 +26,6 @@ export const SurfaceCard: Story = {
       <Surface shape="pill" style={{ width: 'var(--d-widget-edge-size)', height: 'var(--d-widget-edge-size)' }} />
     </div>
   ),
-};
-
-export const People: Story = {
-  name: 'PeopleButton',
-  parameters: { docs: { description: { story: 'Soft pill in the top bar: the first two people as stickers plus a "+N" bubble. Opens the people on the trip.' } } },
-  render: () => <PeopleButton faces={['person-04', 'person-01']} more={3} />,
 };
 
 export const Rating: Story = {

@@ -41,7 +41,7 @@ function Screen({ start }: { start: Which }) {
   return (
     <div style={phone}>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-        <TopBar title={TRIP.title} dates={TRIP.dates} faces={['person-04', 'person-01']} more={3} />
+        <TopBar title={TRIP.title} dates={TRIP.dates} />
         <ActionBar onItinerary={() => setOpen('itinerary')} onMoney={() => setOpen('money')} onAdd={() => setOpen('add')} />
       </div>
       <AnimatePresence>

@@ -359,8 +359,6 @@ String dayName(DateTime t, DateTime now) => switch (_daysBetween(now, t)) {
       1 => 'Tomorrow',
       _ => '${weekdayShort(t)} ${t.day}',
     };
-const topFaces = ['person-04', 'person-01'];
-const moreFaces = 3;
 
 // ── Money ────────────────────────────────────────────────────────────────────────────────────────────────────────────
 // What the trip has cost so far, from the earlier prototypes (prototype/versions/v11-midfi-receipt.html): the flat, the

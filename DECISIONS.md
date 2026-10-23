@@ -52,6 +52,7 @@ What we decided, and why, in the order it happened. Each item: **the decision**,
   - Next to each person, a little pile of what they picked: at most two dishes, the rest counted as "+N".
   - Then roughly what their picks cost, and the estimated total fixed at the bottom.
 - **The top and bottom bars sit on see-through white that fades out over the map,** so they read over any map without a hard white slab. The bottom one is less see-through (85% white against the top's 70%), because the buttons sit right on it. At first a progressive blur of the map sat under the white; it went for speed (see Performance).
+- **No people pill in the header.** The group is on the footer's Money button now, so the header holds only back, the trip's name and dates, and the days. The full name fits.
 - **The pin's tail is blue,** with a thin white edge. White was hard to see on the map's pale streets.
 - **Three bottom actions instead of four: Itinerary, Money, Add.** Fewer, and each opens one place:
   - Itinerary: every day of the trip, where we've been and what's planned, opening on today. Tapping a stop shows it on the map.

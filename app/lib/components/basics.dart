@@ -82,39 +82,6 @@ class DishSticker extends StatelessWidget {
   }
 }
 
-/// Soft pill in the top bar: two people stickers and a "+N" bubble.
-class PeopleButton extends StatelessWidget {
-  const PeopleButton({super.key, required this.faces, required this.more, this.onTap});
-  final List<String> faces;
-  final int more;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tok;
-    return Pressable(
-      onTap: onTap,
-      semanticLabel: '${faces.length + more} people on this trip',
-      child: Glass(
-        kind: GlassKind.soft,
-        height: TokDim.buttonMd,
-        radius: BorderRadius.circular(TokRadius.pill),
-        padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.x2xs, TokSpace.x3xs, TokSpace.x2xs),
-        child: Row(mainAxisSize: MainAxisSize.min, spacing: TokSpace.x3xs, children: [
-          Overlapped(overlap: TokDim.avatarOverlap, children: [for (final f in faces) Sticker(f, size: StickerSize.avatar)]),
-          Container(
-            width: TokDim.countBubbleSize,
-            height: TokDim.countBubbleSize,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(color: t.cCountBubbleBg, borderRadius: BorderRadius.circular(TokRadius.pill)),
-            child: Text('+$more', style: TokText.labelMd.copyWith(fontWeight: TokWeight.bold, color: t.cCountBubbleFg)),
-          ),
-        ]),
-      ),
-    );
-  }
-}
-
 /// Children overlapping by [overlap] and centred as a group (the overlap is taken out of the width).
 class Overlapped extends StatelessWidget {
   const Overlapped({super.key, required this.overlap, required this.children});

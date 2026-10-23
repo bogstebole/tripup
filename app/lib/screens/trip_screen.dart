@@ -489,8 +489,6 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           child: TopBar(
             title: tripTitle,
             dates: tripDates,
-            faces: topFaces,
-            more: moreFaces,
             filter: ToggleChips<int>(options: tripDays, selected: _days, labelOf: _dayLabel, onChanged: (d) => _setDays(d, size)),
           ),
         ),

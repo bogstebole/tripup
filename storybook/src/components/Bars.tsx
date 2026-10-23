@@ -2,7 +2,6 @@ import { ArrowLeft, MapPin, Plus } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { CREW_PILE } from '../data';
 import { Button } from './Button';
-import { PeopleButton } from './PeopleButton';
 import { Sticker } from './Sticker';
 import { easedFade } from './easedFade';
 import './Bars.css';
@@ -10,16 +9,14 @@ import './Bars.css';
 export interface TopBarProps {
   title: string;
   dates: string;
-  faces: [string, string];
-  more: number;
   onBack?: () => void;
-  onPeople?: () => void;
   /** Day filter, right under the title row (inside the bar's fade, so it reads over the map). */
   filter?: ReactNode;
 }
 
-/** Trip header over the map: back, trip name and dates, people, and the day filter. Fades the map out behind it. */
-export function TopBar({ title, dates, faces, more, onBack, onPeople, filter }: TopBarProps) {
+/** Trip header over the map: back, trip name and dates, and the day filter. Fades the map out behind it. (The group
+ *  lives on the footer's Money button now.) */
+export function TopBar({ title, dates, onBack, filter }: TopBarProps) {
   return (
     <header className="tu-topbar" style={{ background: easedFade('var(--c-top-bar-bg)', { from: 'calc(var(--d-top-bar-fade-start) * 100%)' }) }}>
       <div className="tu-topbar__row">
@@ -28,7 +25,6 @@ export function TopBar({ title, dates, faces, more, onBack, onPeople, filter }: 
           <p className="text-heading-sm tu-ellipsis">{title}</p>
           <p className="text-label-md tu-topbar__dates">{dates}</p>
         </div>
-        <PeopleButton faces={faces} more={more} onClick={onPeople} />
       </div>
       {filter}
     </header>

@@ -10,11 +10,9 @@ import 'progressive_blur.dart';
 
 /// Trip header over the map: back, trip name and dates, people. Fades the map out behind it.
 class TopBar extends StatelessWidget {
-  const TopBar({super.key, required this.title, required this.dates, required this.faces, required this.more, this.onBack, this.onPeople, this.filter});
+  const TopBar({super.key, required this.title, required this.dates, this.onBack, this.filter});
   final String title, dates;
-  final List<String> faces;
-  final int more;
-  final VoidCallback? onBack, onPeople;
+  final VoidCallback? onBack;
 
   /// Day filter, right under the title row (inside the bar's fade, so it reads over the map).
   final Widget? filter;
@@ -45,7 +43,6 @@ class TopBar extends StatelessWidget {
                 Text(dates, style: TokText.labelMd.copyWith(color: t.textMuted)),
               ]),
             ),
-            PeopleButton(faces: faces, more: more, onTap: onPeople),
           ]),
         ),
         ?filter,
