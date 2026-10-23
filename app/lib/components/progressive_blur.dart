@@ -8,14 +8,10 @@ import 'package:flutter/widgets.dart';
 /// its far edge never shows as a line. A masked blur doesn't render on iOS, so it's built from bands, all
 /// reading one shared backdrop.
 class ProgressiveBlur extends StatelessWidget {
-  const ProgressiveBlur({super.key, required this.sigma, this.solidUntil = 0, this.fromBottom = false, this.shared = false, this.solidHidden = false});
+  const ProgressiveBlur({super.key, required this.sigma, this.solidUntil = 0, this.fromBottom = false, this.solidHidden = false});
   final double sigma;
   final double solidUntil;
   final bool fromBottom;
-
-  /// Reads the backdrop of a [BackdropGroup] above it instead of its own: blurs that don't overlap, like the top
-  /// and bottom bars, then cost one read of the screen between them instead of one each.
-  final bool shared;
 
   /// The solid part sits under something opaque, so it isn't blurred at all (no one would see it).
   final bool solidHidden;
@@ -45,7 +41,7 @@ class ProgressiveBlur extends StatelessWidget {
             if (sigma * math.pow(1 - (j + 0.5) / _bands, 2) case final s when s >= _least)
               band(start + (h - start) * j / _bands, start + (h - start) * (j + 1) / _bands, s),
         ]);
-        return shared ? bands : BackdropGroup(child: bands);
+        return BackdropGroup(child: bands);
       });
 }
 

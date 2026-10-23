@@ -358,6 +358,13 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - Two fixes Android needed. Its first frame comes before the screen has a size: the safe area for pins turned inside out (and clamping into it threw), and the pin measured its card as 0 × 0 and never measured again, so only the tail showed. Now the safe area is never inside out, and the pin waits for a real size.
 - The builds hung at first because iCloud had moved project files off the disk to make room (the Android tools take about 6 GB). See `app/README.md`.
 
+### Final UI, iteration 1.20: no blur under the bars
+- Bogdan's call after the measurements in 1.19: the blur under the top and bottom bars was the biggest GPU cost on the map, and with the breathing dot it ran 60 times a second. On a warm phone that made every frame late, even at rest.
+- Both bars now only fade the map out under their see-through white; the fades themselves didn't change. The full view's header keeps its blur.
+- Measured beforehand on the phone with the blur switched off: about 3.6 ms a frame and no late frames, where it had been about 20 ms with nearly every frame late.
+- The map's labels now show sharp through the white behind the title, the day chips and the buttons.
+- Tokens `top-bar/blur` and `action-bar/blur` are removed; Storybook's bars drop their `backdrop-filter` too.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

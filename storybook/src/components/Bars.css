@@ -9,22 +9,12 @@
   padding: var(--space-xl) 0 var(--space-2xl);
   background: linear-gradient(to bottom, var(--c-top-bar-bg) calc(var(--d-top-bar-fade-start) * 100%), transparent);
 }
-/* The map blurs more toward the top under the white fade, both running past the day filter */
-.tu-topbar::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  backdrop-filter: blur(var(--d-top-bar-blur));
-  -webkit-backdrop-filter: blur(var(--d-top-bar-blur));
-  mask-image: linear-gradient(to bottom, black calc(var(--d-top-bar-fade-start) * 100%), transparent);
-}
 .tu-topbar__row { display: flex; align-items: center; gap: var(--space-md); padding: 0 var(--space-md); }
 .tu-topbar__title { flex: 1 1 0; min-width: 0; }
 .tu-topbar__dates { color: var(--color-text-muted); }
 
-/* The same treatment as the top bar, upside down: a light blur of the map, strongest at the bottom,
-   under a see-through white that fades out a little above the buttons */
+/* The same treatment as the top bar, upside down: a see-through white, strongest at the bottom, that fades out
+   a little above the buttons */
 .tu-actionbar {
   position: relative;
   isolation: isolate;
@@ -34,15 +24,6 @@
   gap: var(--space-xs);
   padding: var(--space-2xl) var(--space-md) var(--space-2xl);
   background: linear-gradient(to top, var(--c-action-bar-bg) calc(var(--d-action-bar-fade-start) * 100%), transparent);
-}
-.tu-actionbar::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  backdrop-filter: blur(var(--d-action-bar-blur));
-  -webkit-backdrop-filter: blur(var(--d-action-bar-blur));
-  mask-image: linear-gradient(to top, black calc(var(--d-action-bar-fade-start) * 100%), transparent);
 }
 
 .tu-recenter__dot {

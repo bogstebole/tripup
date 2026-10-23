@@ -206,8 +206,6 @@
   --d-me-glow-height: 36px;
   --d-me-cone: 24px;
   --d-top-bar-fade-start: 0.5;
-  --d-top-bar-blur: 12px;
-  --d-action-bar-blur: 8px;
   --d-action-bar-fade-start: 0.5;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);

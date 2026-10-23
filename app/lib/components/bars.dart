@@ -28,10 +28,8 @@ class TopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tok;
     final top = MediaQuery.paddingOf(context).top;
-    // The map blurs more toward the top under a white fade, both running past the day filter, so the bar reads over any map
+    // The map fades out under a see-through white running past the day filter, so the bar reads over any map
     return Stack(children: [
-      const Positioned.fill(child: ProgressiveBlur(sigma: TokDim.topBarBlur, solidUntil: TokDim.topBarFadeStart, shared: true)),
-      // See-through white: the blurred map still shows through it
       Positioned.fill(child: DecoratedBox(decoration: BoxDecoration(gradient: easedFade(t.cTopBarBg, from: TokDim.topBarFadeStart)))),
       Container(
       padding: EdgeInsets.fromLTRB(0, top + TokSpace.xl, 0, TokSpace.x2xl),
@@ -56,7 +54,7 @@ class TopBar extends StatelessWidget {
   }
 }
 
-/// The trip's four actions: plan, places, money, and add (the one primary). Blurs and fades the map out behind it.
+/// The trip's four actions: plan, places, money, and add (the one primary). Fades the map out behind it.
 class ActionBar extends StatelessWidget {
   const ActionBar({super.key, this.onCalendar, this.onPlaces, this.onMoney, this.onAdd});
   final VoidCallback? onCalendar, onPlaces, onMoney, onAdd;
@@ -67,10 +65,9 @@ class ActionBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tok;
     final bottom = MediaQuery.paddingOf(context).bottom;
-    // The same treatment as the top bar, upside down: a light blur of the map, strongest at the bottom,
-    // under a see-through white that fades out a little above the buttons
+    // The same treatment as the top bar, upside down: a see-through white, strongest at the bottom, that fades out
+    // a little above the buttons
     return Stack(children: [
-      const Positioned.fill(child: ProgressiveBlur(sigma: TokDim.actionBarBlur, solidUntil: TokDim.actionBarFadeStart, fromBottom: true, shared: true)),
       Container(
       padding: EdgeInsets.fromLTRB(TokSpace.md, TokSpace.x2xl, TokSpace.md, bottom > 0 ? bottom : TokSpace.x2xl),
       decoration: BoxDecoration(gradient: easedFade(t.cActionBarBg, from: TokDim.actionBarFadeStart, up: true)),

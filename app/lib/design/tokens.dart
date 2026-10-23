@@ -319,8 +319,6 @@ abstract final class TokDim {
   static const double meGlowHeight = 36;
   static const double meCone = 24;
   static const double topBarFadeStart = 0.5;
-  static const double topBarBlur = 12;
-  static const double actionBarBlur = 8;
   static const double actionBarFadeStart = 0.5;
 }
 

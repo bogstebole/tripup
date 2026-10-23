@@ -331,8 +331,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     final safe = _safe(size);
     final under = ColoredBox(
       color: t.bgCanvas,
-      // The top and bottom bars blur parts of the map that don't overlap, so they share one read of it
-      child: BackdropGroup(child: Stack(children: [
+      child: Stack(children: [
         Positioned.fill(
           child: FlutterMap(
             mapController: _map,
@@ -415,7 +414,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
             ),
           ),
         ),
-      ])),
+      ]),
     );
     final scene = Stack(children: [
       Positioned.fill(child: _under.build(context, under)),
