@@ -72,6 +72,8 @@ class TokColors {
     'c/count-bubble/bg': Color(0x1A000000),
     'c/count-bubble/fg': Color(0xFF09090B),
     'c/pin/dash': Color(0xFF2563EB),
+    'c/pin/tail': Color(0xFF2563EB),
+    'c/pin/tail-edge': Color(0xFFFFFFFF),
     'c/edge-arrow/from': Color(0xFF3B82F6),
     'c/edge-arrow/to': Color(0xFF1D4ED8),
     'c/me/dot': Color(0xFF1D4ED8),
@@ -80,7 +82,7 @@ class TokColors {
     'c/me/cone': Color(0xFF60A5FA),
     'c/sheet/scrim': Color(0x33FFFFFF),
     'c/top-bar/bg': Color(0xB3FFFFFF),
-    'c/action-bar/bg': Color(0xD9FFFFFF),
+    'c/action-bar/bg': Color(0xFFFFFFFF),
     'c/toast/bg': Color(0xFF1D4ED8),
     'c/toast/fg': Color(0xFFFFFFFF),
     'c/attribution/fg': Color(0xFF71717A),
@@ -142,6 +144,8 @@ class TokColors {
     'c/count-bubble/bg': Color(0x1A000000),
     'c/count-bubble/fg': Color(0xFFFAFAFA),
     'c/pin/dash': Color(0xFF2563EB),
+    'c/pin/tail': Color(0xFF2563EB),
+    'c/pin/tail-edge': Color(0xFFFFFFFF),
     'c/edge-arrow/from': Color(0xFF3B82F6),
     'c/edge-arrow/to': Color(0xFF1D4ED8),
     'c/me/dot': Color(0xFF1D4ED8),
@@ -150,7 +154,7 @@ class TokColors {
     'c/me/cone': Color(0xFF60A5FA),
     'c/sheet/scrim': Color(0x3318181B),
     'c/top-bar/bg': Color(0xB318181B),
-    'c/action-bar/bg': Color(0xD918181B),
+    'c/action-bar/bg': Color(0xFF18181B),
     'c/toast/bg': Color(0xFF1D4ED8),
     'c/toast/fg': Color(0xFFFFFFFF),
     'c/attribution/fg': Color(0xFFA1A1AA),
@@ -211,6 +215,8 @@ class TokColors {
   Color get cCountBubbleBg => _m['c/count-bubble/bg']!;
   Color get cCountBubbleFg => _m['c/count-bubble/fg']!;
   Color get cPinDash => _m['c/pin/dash']!;
+  Color get cPinTail => _m['c/pin/tail']!;
+  Color get cPinTailEdge => _m['c/pin/tail-edge']!;
   Color get cEdgeArrowFrom => _m['c/edge-arrow/from']!;
   Color get cEdgeArrowTo => _m['c/edge-arrow/to']!;
   Color get cMeDot => _m['c/me/dot']!;
@@ -269,6 +275,7 @@ abstract final class TokDim {
   static const double chipHeight = 40;
   static const double chipGap = 2;
   static const double chipRadius = 16;
+  static const double chipFaceOverlap = 10;
   static const double toggleChipHeight = 32;
   static const double toggleChipPaddingX = 12;
   static const double toggleChipGap = 8;
@@ -307,6 +314,7 @@ abstract final class TokDim {
   static const double sheetBackdropBlur = 12;
   static const double sheetFade = 16;
   static const double sheetTopFade = 32;
+  static const double sheetCompactHeight = 480;
   static const double sheetTopBlur = 8;
   static const double tabEnterShift = 8;
   static const double tabSlide = 24;
@@ -319,7 +327,7 @@ abstract final class TokDim {
   static const double meGlowHeight = 36;
   static const double meCone = 24;
   static const double topBarFadeStart = 0.5;
-  static const double actionBarFadeStart = 0.5;
+  static const double actionBarFadeStart = 0;
 }
 
 abstract final class TokFont {

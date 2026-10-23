@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../data.dart';
 import '../design/theme.dart';
 import '../design/tokens.dart';
 import 'basics.dart';
@@ -54,32 +55,56 @@ class TopBar extends StatelessWidget {
   }
 }
 
-/// The trip's four actions: plan, places, money, and add (the one primary). Fades the map out behind it.
+/// The trip's three actions: the itinerary, the group's money (the whole group as one little pile), and add (the
+/// one primary). A white fade, strongest at the bottom, lifts them off the map.
 class ActionBar extends StatelessWidget {
-  const ActionBar({super.key, this.onCalendar, this.onPlaces, this.onMoney, this.onAdd});
-  final VoidCallback? onCalendar, onPlaces, onMoney, onAdd;
+  const ActionBar({super.key, this.onItinerary, this.onMoney, this.onAdd});
+  final VoidCallback? onItinerary, onMoney, onAdd;
 
-  static const double contentHeight = TokDim.buttonLg + TokSpace.x2xl;
+  /// The buttons' row, side to side: pins pass beside it, never under it.
+  static const double width = TokDim.buttonLg * 3 + TokSpace.xs * 2;
 
   @override
   Widget build(BuildContext context) {
     final t = context.tok;
     final bottom = MediaQuery.paddingOf(context).bottom;
-    // The same treatment as the top bar, upside down: a see-through white, strongest at the bottom, that fades out
-    // a little above the buttons
-    return Stack(children: [
-      Container(
-      padding: EdgeInsets.fromLTRB(TokSpace.md, TokSpace.x2xl, TokSpace.md, bottom > 0 ? bottom : TokSpace.x2xl),
+    return Container(
+      padding: EdgeInsets.fromLTRB(TokSpace.md, TokSpace.md, TokSpace.md, bottom > 0 ? bottom : TokSpace.x2xl),
       decoration: BoxDecoration(gradient: easedFade(t.cActionBarBg, from: TokDim.actionBarFadeStart, up: true)),
       child: Row(mainAxisAlignment: MainAxisAlignment.center, spacing: TokSpace.xs, children: [
-        TuButton(icon: TuIcons.calendar, label: 'Plan', size: TuButtonSize.lg, onTap: onCalendar),
-        TuButton(icon: TuIcons.places, label: 'Places', size: TuButtonSize.lg, onTap: onPlaces),
-        TuButton(icon: TuIcons.money, label: 'Money', size: TuButtonSize.lg, onTap: onMoney),
+        TuButton(icon: TuIcons.places, label: 'Itinerary', size: TuButtonSize.lg, onTap: onItinerary),
+        _CrewButton(onTap: onMoney),
         TuButton(icon: TuIcons.add, label: 'Add to the trip', size: TuButtonSize.lg, kind: GlassKind.primary, onTap: onAdd),
       ]),
-      ),
-    ]);
+    );
   }
+}
+
+/// The money button: everyone on the trip, piled up, on a soft glass circle.
+class _CrewButton extends StatelessWidget {
+  const _CrewButton({this.onTap});
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) => Pressable(
+        onTap: onTap,
+        semanticLabel: 'Money: who paid and who owes',
+        child: Glass(
+          kind: GlassKind.soft,
+          width: TokDim.buttonLg,
+          height: TokDim.buttonLg,
+          radius: BorderRadius.circular(TokRadius.pill),
+          child: Center(
+            child: SizedBox(
+              width: crewPile.width,
+              height: crewPile.height,
+              child: Stack(clipBehavior: Clip.none, children: [
+                for (final s in crewPile.stickers) Positioned(left: s.left, top: s.top, child: Sticker(s.sticker, height: s.height, tilt: s.tilt)),
+              ]),
+            ),
+          ),
+        ),
+      );
 }
 
 /// Brings the map back to my location. Shown only while I'm off-screen.

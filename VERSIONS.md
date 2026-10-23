@@ -365,6 +365,25 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - The map's labels now show sharp through the white behind the title, the day chips and the buttons.
 - Tokens `top-bar/blur` and `action-bar/blur` are removed; Storybook's bars drop their `backdrop-filter` too.
 
+### Final UI, iteration 1.21: three actions, three pop-ups, a blue tail, pins in the corners
+- **Footer** (Bogdan's Figma, node 70:5362): Itinerary, Money (the group as one pile of stickers) and Add, 56 px each. A white fade from the bottom, no blur. The map's credit moved under the buttons.
+- **Pop-ups** rise from the bottom in the full view's place, over the same blurred map, and close with ×, a tap outside, or a pull down. New `TripSheet`, `SheetSection` and `SheetRow` (`lib/components/trip_sheet.dart`); the pages are in `lib/components/trip_pages.dart`.
+  - **Itinerary:** every day, opening on today. Visited places get a check; plans show their time, and Up next is marked. Tapping one flies the map there.
+  - **Money:**
+    - "You owe Maya €181.50" with Pay, which flips to "You're square with Maya" with a toast.
+    - Then the €726 spent so far, and 3 payments instead of 9.
+    - Then each person's balance (Ren joined today), and the expenses.
+    - Tonight's dinner shows as an estimate from the menu's picks.
+  - **Add:** Plan something (three ideas, each going into a free slot, shown at once on the map and the itinerary), or Invite someone (a link to copy).
+- **Card chips** (Figma 70:5191): "4 coming", or once people arrive their faces and "here", next to "€20–40". The price shrinks to its text once four or more faces need the room. The corner pile is back to the mini pin only.
+- **Blue tail** (Figma 67:5034): `pin/tail` is `color.bg/brand`, with a white edge just inside.
+- **Edge pins** go down beside the buttons. They avoid only the buttons' row (`PinArea` with a dock), not the whole width.
+- Tokens:
+  - new: `chip/face-overlap` 10, `pin/tail`, `pin/tail-edge`, `sheet/compact-height` 480;
+  - changed: `action-bar/bg` 100% white, `action-bar/fade-start` 0.
+  - New Lucide icons: copy, user-plus, map-pin-plus, chevron-left, circle-check.
+- Android: checked on the emulator before these changes (card, full view, tabs, Add with toast, Group, day filter, panning). The widgets were missing there only because the emulator still had the build from before the 0 × 0 fix.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

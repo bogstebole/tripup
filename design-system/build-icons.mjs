@@ -5,7 +5,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const icons = ['arrow-left', 'arrow-right', 'calendar', 'map-pin', 'euro', 'plus', 'x', 'star', 'check', 'clock', 'banknote', 'truck', 'globe', 'phone'];
+const icons = ['arrow-left', 'arrow-right', 'calendar', 'map-pin', 'euro', 'plus', 'x', 'star', 'check', 'clock', 'banknote', 'truck', 'globe', 'phone', 'copy', 'user-plus', 'map-pin-plus', 'chevron-left', 'circle-check'];
 const camel = s => s.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
 
 const out = [

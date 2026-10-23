@@ -25,9 +25,12 @@ typedef PartWrap<P> = Widget Function(P part, int index, Widget child);
 
 /// The Up next card's content (mid state). Also drawn by the full-view morph as its starting picture.
 class UpNextMid extends StatelessWidget {
-  const UpNextMid({super.key, required this.plan, this.onOpen, this.part});
+  const UpNextMid({super.key, required this.plan, this.onOpen, this.part, this.here = const []});
   final Plan plan;
   final VoidCallback? onOpen;
+
+  /// Stickers of whoever is already at the place.
+  final List<String> here;
 
   /// Lets the pin move each part on its own while it morphs. Nothing by default.
   final PartWrap<MidPart>? part;
@@ -56,8 +59,14 @@ class UpNextMid extends StatelessWidget {
             ])),
           ),
           p(MidPart.chips, Row(spacing: TokSpace.md, children: [
-            // Equal-width chips: who's coming and the price range. Who's already there sits on the corner (see PlanPin).
-            Expanded(child: InfoChips(items: plan.chips)),
+            // Who's coming, or once people arrive, who's already there; then the price range. The two share the width
+            // equally until four or more faces need the room, then the price shrinks to its text.
+            Expanded(
+              child: InfoChips(items: [
+                if (here.isEmpty) InfoChip('${people.where((p) => p.going).length} coming', grow: true) else InfoChip('here', faces: here, grow: true),
+                if (plan.priceRange case final price?) InfoChip(price, grow: here.length < 4),
+              ]),
+            ),
             TuButton(icon: TuIcons.forward, label: 'Open ${plan.name}', kind: GlassKind.primary, size: TuButtonSize.sm, onTap: onOpen),
           ])),
         ]),
@@ -101,7 +110,7 @@ class PlanPin extends StatefulWidget {
     super.key,
     required this.plan,
     required this.anchor,
-    required this.safe,
+    required this.area,
     required this.wantMid,
     this.cardKey,
     this.hidden = false,
@@ -117,8 +126,8 @@ class PlanPin extends StatefulWidget {
   /// The plan's place on screen, in the map's coordinates. Changes every frame while the map moves.
   final Offset anchor;
 
-  /// Where pins may sit (the map minus the bars). Outside it the pin goes to the edge.
-  final Rect safe;
+  /// Where pins may sit (the map between the bars, beside the bottom buttons). Outside it the pin goes to the edge.
+  final PinArea area;
 
   /// Show the big card (only for Up next, and only until the map moves).
   final bool wantMid;
@@ -184,7 +193,7 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
     }
   }
 
-  bool _isOutside(Offset p, double inset) => !widget.safe.deflate(inset).contains(p);
+  bool _isOutside(Offset p, double inset) => !widget.area.contains(p, inset);
 
   void _go(AnimationController c, double target) {
     if (_reduce) {
@@ -261,8 +270,7 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
     final mapCenter = Offset(cardX, widget.anchor.dy - tailH - tailGap - onMap.height / 2);
 
     // Where it sits at the edge: clamped inside the safe area, arrow toward the place
-    final keep = nonInverted(widget.safe.deflate(TokDim.widgetEdgeSize / 2 + TokDim.widgetEdgeArrow + TokDim.widgetEdgeInset));
-    final edgeCenter = Offset(widget.anchor.dx.clamp(keep.left, keep.right), widget.anchor.dy.clamp(keep.top, keep.bottom));
+    final edgeCenter = widget.area.clamp(widget.anchor, TokDim.widgetEdgeSize / 2 + TokDim.widgetEdgeArrow + TokDim.widgetEdgeInset);
     final toPlace = widget.anchor - edgeCenter;
     final angle = math.atan2(toPlace.dy, toPlace.dx);
     final center = Offset.lerp(mapCenter, edgeCenter, eC)!;
@@ -335,7 +343,7 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
                                   width: midSize.width,
                                   child: IgnorePointer(
                                     ignoring: m < 0.5 || eC > 0.5,
-                                    child: UpNextMid(plan: widget.plan, onOpen: widget.onOpen, part: (p, i, c) => _midPart(p, i, c, m)),
+                                    child: UpNextMid(plan: widget.plan, onOpen: widget.onOpen, here: widget.here, part: (p, i, c) => _midPart(p, i, c, m)),
                                   ),
                                 ),
                               if (m < 0.999)
@@ -358,19 +366,15 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
           ),
         ),
       ),
-      // Who's already there, on the pin's top-right corner. On the mini pin it sits across the corner; as the pin
-      // grows into the card it settles just inside it, clear of whatever is above the card (the top bar's fade).
-      if (widget.here.isNotEmpty && onMapOp > 0)
+      // Who's already there, across the mini pin's top-right corner (on the card they're in the first chip)
+      if (widget.here.isNotEmpty && m < 0.5 && onMapOp > 0)
         Positioned(
           left: center.dx + size.width / 2,
           top: center.dy - size.height / 2,
           child: IgnorePointer(
-            child: Transform.translate(
-              offset: Offset(-TokSpace.xs, TokSpace.xs) * m.clamp(0.0, 1.0),
-              child: FractionalTranslation(
-                translation: Offset.lerp(const Offset(-0.5, -0.5), const Offset(-1, 0), m.clamp(0.0, 1.0))!,
-                child: Opacity(opacity: onMapOp * hide, child: FacePile(faces: widget.here, size: StickerSize.chip)),
-              ),
+            child: FractionalTranslation(
+              translation: const Offset(-0.5, -0.5),
+              child: Opacity(opacity: (1 - smoothstep(0, 0.5, m)) * onMapOp * hide, child: FacePile(faces: widget.here, size: StickerSize.chip)),
             ),
           ),
         ),
@@ -448,6 +452,26 @@ Widget _move(Widget child, {required Rect rect, required Offset pivot, Offset sh
     w = Transform(transform: Matrix4.diagonal3Values(scale, scale, 1)..setTranslationRaw(t.dx, t.dy, 0), child: w);
   }
   return opacity >= 0.999 ? w : Opacity(opacity: opacity, child: w);
+}
+
+/// Where pins may sit: a rect (the map between the bars) minus a [dock] (the bottom buttons), which pins pass
+/// beside but never sit on. The buttons sit in the middle, so the bottom corners stay free for pins.
+class PinArea {
+  const PinArea(this.rect, {this.dock = Rect.zero});
+  final Rect rect;
+  final Rect dock;
+
+  /// Whether [p] is inside, by at least [inset].
+  bool contains(Offset p, [double inset = 0]) => rect.deflate(inset).contains(p) && (dock.isEmpty || !dock.inflate(inset).contains(p));
+
+  /// The nearest place to [p] where something [reach] across stays inside: clamped into the rect, then lifted
+  /// above the dock if it would sit on the buttons.
+  Offset clamp(Offset p, double reach) {
+    final keep = nonInverted(rect.deflate(reach));
+    final c = Offset(p.dx.clamp(keep.left, keep.right), p.dy.clamp(keep.top, keep.bottom));
+    final avoid = dock.inflate(reach);
+    return !dock.isEmpty && avoid.contains(c) ? Offset(c.dx, avoid.top) : c;
+  }
 }
 
 /// [r], but never inside out: deflating a small rect, or measuring before the screen has a size (Android's

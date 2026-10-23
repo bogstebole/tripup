@@ -21,6 +21,8 @@ import '../components/detail_sheet.dart';
 import '../components/map_shapes.dart';
 import '../components/people_layer.dart';
 import '../components/plan_pin.dart';
+import '../components/trip_pages.dart';
+import '../components/trip_sheet.dart';
 import '../data.dart';
 import '../design/theme.dart';
 import '../design/tokens.dart';
@@ -38,6 +40,17 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   final _cardKey = GlobalKey();
   late final _open = AnimationController.unbounded(vsync: this);   // 0 = card on the map, 1 = full view
   late final _drag = AnimationController.unbounded(vsync: this);   // how far the full view is pulled down
+  late final _pop = AnimationController.unbounded(vsync: this);   // 0 = closed, 1 = a footer pop-up open
+  late final _popDrag = AnimationController.unbounded(vsync: this);   // how far it is pulled down
+
+  /// Which footer pop-up is up (or closing), if any.
+  _Popup? _popup;
+  bool _popClosing = false;
+  final _popToast = ValueNotifier<String?>(null);
+  final _todayKey = GlobalKey();
+
+  /// Whether the full view or a pop-up covers the map.
+  bool get _covered => _sheet || _popup != null;
   late final _fly = AnimationController(vsync: this);
   Timer? _tick;
   Theme? _theme;
@@ -66,7 +79,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   /// Whoever has already got to the Up next place.
   List<String> get _here => [for (final p in people) if (p.id != myId && isHere(p, tripNow())) p.sticker];
 
-  Plan get _upNext => plans.first;
+  Plan get _upNext => tripPlans.first;
   bool get _reduce => MediaQuery.maybeDisableAnimationsOf(context) ?? false;
 
   @override
@@ -79,6 +92,20 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       if (!mounted) return;
       _sceneChanged();
       _tick = Timer.periodic(const Duration(minutes: 1), (_) => _sceneChanged());
+    });
+    // A plan added from the Add pop-up shows on the map (which is a picture while the pop-up is up)
+    addedPlans.addListener(_sceneChanged);
+    // The money pop-up estimates tonight's dinner from the menu's picks, so load it now
+    brasserieMenu.then((_) => _sceneChanged());
+    _pop.addListener(() {
+      if (_popup != null && _popClosing && _pop.value <= 0.002) {
+        _pop.stop();
+        _release(_under);
+        setState(() {
+          _popup = null;
+          _popClosing = false;
+        });
+      }
     });
     _open.addListener(() {
       // Hand back to the pin's card as soon as the overlay is within a pixel of it; the spring's
@@ -116,7 +143,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     if (byUser && _upNextMid && (e is MapEventMoveStart || e is MapEventDoubleTapZoomStart || e is MapEventScrollWheelZoom || e is MapEventFlingAnimationStart)) {
       setState(() => _upNextMid = false);
     }
-    final off = !_safe(MediaQuery.sizeOf(context)).contains(e.camera.latLngToScreenOffset(me));
+    final off = !_area(MediaQuery.sizeOf(context)).contains(e.camera.latLngToScreenOffset(me));
     if (off != _meOff) setState(() => _meOff = off);
     // The actions step out of the way while the person moves the map, and come back once it has been still a moment
     // (a short pause between two drags shouldn't bring them back)
@@ -142,6 +169,15 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       size.width - TokDim.widgetEdgeInset,
       size.height - math.max(pad.bottom, TokSpace.x2xl) - TokDim.buttonLg - TokDim.widgetEdgeInset,
     ));
+  }
+
+  /// Where pins sit: [_safe], but reaching down to the bottom buttons' row, beside the buttons and never on them.
+  PinArea _area(Size size) {
+    final pad = MediaQuery.paddingOf(context);
+    final safe = _safe(size);
+    final row = size.height - math.max(pad.bottom, TokSpace.x2xl);
+    final dock = Rect.fromLTRB((size.width - ActionBar.width) / 2, row - TokDim.buttonLg, (size.width + ActionBar.width) / 2, row).inflate(TokDim.widgetEdgeInset);
+    return PinArea(nonInverted(Rect.fromLTRB(safe.left, safe.top, safe.right, row)), dock: dock);
   }
 
   /// Moves the map so [target] lands on [screenPoint] (default: the middle), on the snap spring.
@@ -198,7 +234,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       _flyCamera(startCenter, startZoom);
       return;
     }
-    final points = [for (final p in plans) if (days.contains(p.day)) p.at, for (final v in visited) if (days.contains(v.day)) v.at];
+    final points = [for (final p in tripPlans) if (days.contains(p.day)) p.at, for (final v in visited) if (days.contains(v.day)) v.at];
     if (points.isEmpty) return;
     final safe = _safe(size);
     const half = TokDim.widgetMiniWidth / 2;
@@ -231,6 +267,85 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   /// The Up next card's height with its tail, reported by the pin once it has measured itself.
   double _upNextHeight = 0;
 
+  /// Opens one of the footer's pop-ups: it rises from the bottom, where its button is, over the blurred map.
+  void _openPopup(_Popup which) {
+    if (_covered) return;
+    _popDrag.value = 0;
+    _popClosing = false;
+    setState(() => _popup = which);
+    _holdUnder();
+    if (_reduce) {
+      _pop.value = 1;
+      _holdStill();
+    } else {
+      springTo(_pop, 1, TokMotion.springExpand).whenCompleteOrCancel(_holdStill);
+    }
+  }
+
+  void _closePopup({double velocity = 0}) {
+    _popClosing = true;
+    _release(_still);
+    if (_reduce) {
+      _pop.value = 0;
+      _release(_under);
+      setState(() {
+        _popup = null;
+        _popClosing = false;
+      });
+      return;
+    }
+    springTo(_pop, 0, TokMotion.springCollapse, velocity: velocity);
+  }
+
+  /// The open pop-up, in the full view's place, sliding up from below the screen (with reduced motion, fading in).
+  Widget _popupSheet(BuildContext context, Size size, EdgeInsets pad) {
+    final bottom = size.height - math.max(pad.bottom, TokDim.sheetInset), full = pad.top + TokSpace.xs + TokDim.buttonMd + TokSpace.x3xs;
+    // Add has only a few rows, so it's shorter
+    final to = Rect.fromLTRB(TokDim.sheetInset, _popup == _Popup.add ? math.max(full, bottom - TokDim.sheetCompactHeight) : full, size.width - TokDim.sheetInset, bottom);
+    void dragEnd(DragEndDetails d) {
+      final vy = d.velocity.pixelsPerSecond.dy;
+      if (_popDrag.value > TokSpace.x5xl * 2 || vy > 900) {
+        HapticFeedback.lightImpact();   // the pull commits
+        _closePopup(velocity: -vy / (size.height - to.top));
+        springTo(_popDrag, 0, TokMotion.springCollapse);
+      } else {
+        springTo(_popDrag, 0, TokMotion.springSnap, velocity: vy);
+      }
+    }
+
+    void dragUpdate(DragUpdateDetails d) => _popDrag.value = math.max(0, _popDrag.value + d.delta.dy);
+    final (title, subtitle, page) = switch (_popup!) {
+      _Popup.itinerary => ('Itinerary', ItineraryPage.subtitle, ItineraryPage(todayKey: _todayKey, onPick: (at) {
+          _closePopup();
+          _flyTo(at);
+        }) as Widget),
+      _Popup.money => ('Money', MoneyPage.subtitle, MoneyPage(toast: _popToast)),
+      _Popup.add => ('Add to the trip', AddPage.subtitle, AddPage(toast: _popToast)),
+    };
+    return Positioned.fromRect(
+      rect: to,
+      child: AnimatedBuilder(
+        animation: Listenable.merge([_pop, _popDrag]),
+        builder: (context, child) {
+          final v = _pop.value;
+          if (_reduce) return Opacity(opacity: v.clamp(0.0, 1.0), child: child);
+          return Transform.translate(offset: Offset(0, (1 - v) * (size.height - to.top) + _popDrag.value), child: child);
+        },
+        child: TripSheet(
+          key: ValueKey(_popup),
+          title: title,
+          subtitle: subtitle,
+          onClose: () => _closePopup(),
+          onHeaderDragUpdate: dragUpdate,
+          onHeaderDragEnd: dragEnd,
+          toast: _popToast,
+          focus: _popup == _Popup.itinerary ? _todayKey : null,
+          child: page,
+        ),
+      ),
+    );
+  }
+
   void _openSheet() {
     final box = _cardKey.currentContext?.findRenderObject() as RenderBox?;
     if (box == null) return;
@@ -261,10 +376,10 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
 
   /// The map and bars stay put while the full view is up (it covers them), so from the first frame of opening they can
   /// be a picture; only if the map isn't still gliding.
-  void _holdUnder() => _hold(_under, () => _sheet && !_fly.isAnimating && _mapQuiet.elapsedMilliseconds > 100);
+  void _holdUnder() => _hold(_under, () => _covered && !_fly.isAnimating && _mapQuiet.elapsedMilliseconds > 100);
 
   /// Once the full view rests open, the backdrop's blur stops changing too.
-  void _holdStill() => _hold(_still, () => _sheet && !_closing && !_open.isAnimating);
+  void _holdStill() => _hold(_still, () => _covered && !_closing && !_popClosing && !_open.isAnimating && !_pop.isAnimating);
 
   /// Pictures [held] right after this frame is drawn, if [when] still holds then.
   void _hold(_Held held, bool Function() when) {
@@ -318,6 +433,10 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     _settle?.cancel();
     _open.dispose();
     _drag.dispose();
+    _pop.dispose();
+    _popDrag.dispose();
+    _popToast.dispose();
+    addedPlans.removeListener(_sceneChanged);
     _fly.dispose();
     _map.dispose();
     super.dispose();
@@ -328,7 +447,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     final t = context.tok;
     final size = MediaQuery.sizeOf(context);
     final pad = MediaQuery.paddingOf(context);
-    final safe = _safe(size);
+    final area = _area(size);
     final under = ColoredBox(
       color: t.bgCanvas,
       child: Stack(children: [
@@ -348,9 +467,9 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
               _VisitedLayer(shows: _shows),
               // Where everyone is right now; they only show for today
               PeopleLayer(shown: _shows(today)),
-              _MeLayer(safe: safe, breathe: !_sheet),
+              _MeLayer(area: area, breathe: !_covered),
               _PlansLayer(
-                safe: safe,
+                area: area,
                 upNextMid: _upNextMid,
                 cardKey: _cardKey,
                 sheetOpen: _sheet,
@@ -386,15 +505,17 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
               offset: _moving && !_reduce ? const Offset(0, 1) : Offset.zero,
               duration: _moving ? TokMotion.fade : TokMotion.enter,
               curve: TokMotion.easeOut,
-              child: AnimatedOpacity(opacity: _moving ? 0 : 1, duration: _moving ? TokMotion.fade : TokMotion.enter, curve: TokMotion.easeOut, child: const ActionBar()),
+              child: AnimatedOpacity(opacity: _moving ? 0 : 1, duration: _moving ? TokMotion.fade : TokMotion.enter, curve: TokMotion.easeOut, child: ActionBar(onItinerary: () => _openPopup(_Popup.itinerary), onMoney: () => _openPopup(_Popup.money), onAdd: () => _openPopup(_Popup.add))),
             ),
           ),
         ),
-        // The map's credit sits on top of the bar's blur, so it always stays sharp
+        // The map's credit, under the buttons where pins never go, so it always stays readable (and stays while the
+        // buttons step away)
         Positioned(
-          left: TokSpace.xs,
-          bottom: math.max(pad.bottom, TokSpace.x2xl) + TokDim.buttonLg + TokSpace.xs,
-          child: IgnorePointer(child: Text('© OpenFreeMap © OpenMapTiles © OpenStreetMap', style: TokText.bodySm.copyWith(color: t.cAttributionFg))),
+          left: 0,
+          right: 0,
+          bottom: math.max(pad.bottom, TokSpace.x2xl) - TokText.bodySm.fontSize! * TokText.bodySm.height! - TokSpace.x3xs,
+          child: IgnorePointer(child: Text('© OpenFreeMap © OpenMapTiles © OpenStreetMap', textAlign: TextAlign.center, style: TokText.bodySm.copyWith(color: t.cAttributionFg))),
         ),
         Positioned(
           right: TokSpace.md,
@@ -418,7 +539,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     );
     final scene = Stack(children: [
       Positioned.fill(child: _under.build(context, under)),
-      if (_sheet) Positioned.fill(child: _backdrop(context)),
+      if (_covered) Positioned.fill(child: _backdrop(context)),
     ]);
     return Listener(
       onPointerDown: (_) => _touches++,
@@ -431,6 +552,10 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           Positioned.fill(child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: () => _closeSheet())),
           Positioned.fill(child: _expanded(context, size, pad)),
         ],
+        if (_popup != null) ...[
+          Positioned.fill(child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: () => _closePopup())),
+          _popupSheet(context, size, pad),
+        ],
       ]),
     );
   }
@@ -439,9 +564,9 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   Widget _backdrop(BuildContext context) {
     final t = context.tok;
     return AnimatedBuilder(
-      animation: _open,
+      animation: Listenable.merge([_open, _pop]),
       builder: (context, _) {
-        final p = _open.value.clamp(0.0, 1.0);
+        final p = math.max(_open.value, _pop.value).clamp(0.0, 1.0);
         return BackdropFilter(
           filter: ui.ImageFilter.blur(sigmaX: TokDim.sheetBackdropBlur * p, sigmaY: TokDim.sheetBackdropBlur * p),
           child: ColoredBox(color: t.cSheetScrim.withValues(alpha: t.cSheetScrim.a * p)),
@@ -604,8 +729,8 @@ class _Filtered extends StatelessWidget {
 
 /// My location: the dot with a heading cone, or the edge mark when I'm off-screen.
 class _MeLayer extends StatelessWidget {
-  const _MeLayer({required this.safe, required this.breathe});
-  final Rect safe;
+  const _MeLayer({required this.area, required this.breathe});
+  final PinArea area;
 
   /// Off while the full view covers the map, so the dot isn't animating unseen.
   final bool breathe;
@@ -614,8 +739,8 @@ class _MeLayer extends StatelessWidget {
   Widget build(BuildContext context) {
     final cam = MapCamera.of(context);
     final p = cam.latLngToScreenOffset(me);
-    final inside = safe.contains(p);
-    final c = Offset(p.dx.clamp(safe.left, safe.right), p.dy.clamp(safe.top, safe.bottom));
+    final inside = area.contains(p);
+    final c = area.clamp(p, 0);
     final angle = math.atan2(p.dy - c.dy, p.dx - c.dx);
     const edge = Size(MeEdge.width, TokDim.meGlowHeight);
     // Put the capsule (the mark's outer end) on the clamp point
@@ -646,8 +771,8 @@ class _MeLayer extends StatelessWidget {
 
 /// Every planned stop as a pin; the first (Up next) can grow into the card.
 class _PlansLayer extends StatelessWidget {
-  const _PlansLayer({required this.safe, required this.upNextMid, required this.cardKey, required this.sheetOpen, required this.onOpen, required this.onTap, required this.onMidHeight, required this.shows, required this.here});
-  final Rect safe;
+  const _PlansLayer({required this.area, required this.upNextMid, required this.cardKey, required this.sheetOpen, required this.onOpen, required this.onTap, required this.onMidHeight, required this.shows, required this.here});
+  final PinArea area;
   final List<String> here;
   final bool Function(int day) shows;
   final bool upNextMid, sheetOpen;
@@ -661,8 +786,9 @@ class _PlansLayer extends StatelessWidget {
     final cam = MapCamera.of(context);
     final size = cam.nonRotatedSize;
     // Later plans first so Up next draws on top
+    final all = tripPlans;
     return Stack(children: [
-      for (final p in plans.reversed)
+      for (final p in all.reversed)
         Positioned.fill(
           child: _Filtered(
             shown: shows(p.day),
@@ -672,17 +798,20 @@ class _PlansLayer extends StatelessWidget {
               key: ValueKey(p.id),
               plan: p,
               anchor: cam.latLngToScreenOffset(p.at),
-              safe: safe,
-              wantMid: p == plans.first && upNextMid,
-              cardKey: p == plans.first ? cardKey : null,
-              hidden: p == plans.first && sheetOpen,
+              area: area,
+              wantMid: p == all.first && upNextMid,
+              cardKey: p == all.first ? cardKey : null,
+              hidden: p == all.first && sheetOpen,
               onOpen: onOpen,
               onTap: () => onTap(p),
-              onMidHeight: p == plans.first ? onMidHeight : null,
-              here: p == plans.first ? here : const [],
+              onMidHeight: p == all.first ? onMidHeight : null,
+              here: p == all.first ? here : const [],
             ),
           ),
         ),
     ]);
   }
 }
+
+/// The footer's pop-ups.
+enum _Popup { itinerary, money, add }

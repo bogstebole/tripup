@@ -22,25 +22,29 @@ Path _tailPath(Size s) {
 }
 
 class _TailPainter extends CustomPainter {
-  _TailPainter(this.top, this.bottom, this.edge);
-  final Color top, bottom, edge;
+  _TailPainter(this.fill, this.edge);
+  final Color fill, edge;
 
   @override
   void paint(Canvas canvas, Size size) {
     final path = _tailPath(size);
     paintPathShadows(canvas, path, TokShadow.surface, shape: ('tail', size));
-    canvas.drawPath(path, Paint()..shader = LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [top, bottom]).createShader(Offset.zero & size));
+    canvas.drawPath(path, Paint()..color = fill);
+    // A thin white edge just inside, so the blue reads on blue water and dark map alike
+    canvas.save();
+    canvas.clipPath(path);
     canvas.drawPath(path, Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = TokDim.surfaceEdgeWidth
+      ..strokeWidth = TokDim.surfaceEdgeWidth * 2
       ..color = edge);
+    canvas.restore();
   }
 
   @override
-  bool shouldRepaint(_TailPainter o) => o.top != top || o.bottom != bottom || o.edge != edge;
+  bool shouldRepaint(_TailPainter o) => o.fill != fill || o.edge != edge;
 }
 
-/// The tail under a widget plus the blue dash that marks the exact spot. Its bottom is the map point.
+/// The blue tail under a widget plus the blue dash that marks the exact spot. Its bottom is the map point.
 class PinTail extends StatelessWidget {
   const PinTail({super.key, this.gap = TokSpace.xs});
   final double gap;
@@ -49,7 +53,7 @@ class PinTail extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tok;
     return Column(mainAxisSize: MainAxisSize.min, spacing: gap, children: [
-      CustomPaint(size: const Size(TokDim.pinTailWidth, TokDim.pinTailHeight), painter: _TailPainter(t.cSurfaceTop, t.cSurfaceBottom, t.cSurfaceEdge)),
+      CustomPaint(size: const Size(TokDim.pinTailWidth, TokDim.pinTailHeight), painter: _TailPainter(t.cPinTail, t.cPinTailEdge)),
       Container(
         width: TokDim.pinDashWidth,
         height: TokDim.pinDashHeight,

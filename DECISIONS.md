@@ -52,6 +52,13 @@ What we decided, and why, in the order it happened. Each item: **the decision**,
   - Next to each person, a little pile of what they picked: at most two dishes, the rest counted as "+N".
   - Then roughly what their picks cost, and the estimated total fixed at the bottom.
 - **The top and bottom bars sit on see-through white that fades out over the map,** so they read over any map without a hard white slab. The bottom one is less see-through (85% white against the top's 70%), because the buttons sit right on it. At first a progressive blur of the map sat under the white; it went for speed (see Performance).
+- **The pin's tail is blue,** with a thin white edge. White was hard to see on the map's pale streets.
+- **Three bottom actions instead of four: Itinerary, Money, Add.** Fewer, and each opens one place:
+  - Itinerary: every day of the trip, where we've been and what's planned, opening on today. Tapping a stop shows it on the map.
+  - Money: its button is the whole group as one little pile, since money is about the people. See Money below.
+  - Add: a plan (an idea goes into a free slot, on everyone's itinerary and map) or someone new (a link, no account).
+  - They open as pop-ups from the bottom, where their buttons are, on the full view's surface. They look the same so they feel like one family. They close with the ×, a tap outside, or a pull down.
+- **Pins at the screen's edge use the bottom corners,** beside the buttons. Before, they stopped at the footer's height across the whole width, even where there are no buttons. The map's credit moved under the buttons, where pins never go, so it stays readable.
 - **The bottom actions slide away while the map moves** and come back once the map has been still for 0.8 s: exploring gets the whole map, and a short pause between two drags doesn't bring them back (at 0.26 s they kept popping back too soon).
 - **The bars' edges over the map have no line.** The white fades along a smoothstep, not a straight ramp, which always leaves a visible edge where it ends (while the bars still had a blur, it eased off to nothing for the same reason). We didn't stretch the fade further down the map: it blurred the top of the card.
 - **Motion follows Emil Kowalski's rules** for every transition:
@@ -74,12 +81,26 @@ What we decided, and why, in the order it happened. Each item: **the decision**,
 - **On the map, people near each other merge into one pile of faces with "+N",** so a group walking together or a table of friends doesn't turn into a heap.
 - **Once people arrive, their faces leave the map and attach to the place.**
   - On the mini pin, a small pile sits on its corner.
-  - On the card, it settles just inside the same corner: the pile stays on the corner through the morph, so it reads as the same badge. It sits inside rather than across the corner because the card's top often lies under the top bar's fade.
-  - We first had "1 here" as a chip on the card; it didn't work there, so it moved to the corner.
-- **The card's time moved up next to "Up next"** ("Up next · 5 PM"). The two chips are the same width: who's coming (+3) and the real price range (€20–40, from the Google Maps details), which says more than "€€".
+  - On the card, the first chip turns into the faces and "here" (Bogdan's Figma states for one to five faces). Before anyone arrives it says how many are coming ("4 coming").
+  - On the way there: "1 here" as a chip crowded it, then a pile on the card's corner. The final chip has no number, only the faces, so it reads at a glance.
+- **The card's time moved up next to "Up next"** ("Up next · 5 PM"). The second chip is the real price range (€20–40, from the Google Maps details), which says more than "€€". The two chips share the width equally until four or more faces need the room; then the price shrinks to its text.
 - **My dot breathes, like a live location.** Only the blue scales; the white rim stays still (as in Apple Maps). It stops with reduced motion and whenever it can't be seen, since a constant animation keeps the screen redrawing.
 - **"Arrived" only after a couple of minutes inside a circle around the place.** City GPS drifts 20–50 m; without that wait, statuses would flicker.
 - **In the prototype it's simulated:** people move along routes on the demo clock.
+
+## Money (decided 23 Oct)
+
+From the competitor research (`process/research/tripup-competitive-research-v3-en.md`) and the earlier prototypes:
+- **What I owe comes first, with Pay next to it.** A prefilled pay button is the pattern that works (Venmo); everything else is context for it.
+- **Then the fewest payments that square everyone ("3 payments instead of 9").** Fewest transfers is what wins (Splitwise, Tricount). The research also says people don't trust a number they can't trace, so balances and every expense are listed under it.
+- **Balances per person, in plain words:** "Gets back", "Owes", and for Ren, "Joined today · shares costs from then on". Costs from before someone joins stay with the people who were there.
+- **Tonight's dinner isn't an expense yet;** it's an estimate from what everyone picked on the menu. It joins once the bill comes, split by who had what (the wine story).
+- **Left out:**
+  - A switch for simplifying debts: it's always on.
+  - Payment methods: they belong to the Pay step.
+  - Receipt lines: they belong to the dinner's own detail.
+  - Charts and budgets: no story needs them, and users call cluttered money screens a reason to leave.
+- **In the prototype only my payment can be made,** so the trip can't reach "squared up" from here yet. That comes with the settle-up story.
 
 ## Sharing with testers (decided 23 Oct)
 

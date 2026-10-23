@@ -329,7 +329,7 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
                 ),
                 for (var i = 0; i < items.length; i++)
                   Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                    if (i > 0) const _Hairline(),
+                    if (i > 0) const Hairline(),
                     _MenuRow(item: items[i], index: i, added: mine.contains(items[i].name), onToggle: _toggle),
                   ]),
               ],
@@ -358,7 +358,7 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
         const SizedBox(height: TokSpace.md),
         for (var i = 0; i < people.length; i++)
           Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            if (i > 0) const _Hairline(),
+            if (i > 0) const Hairline(),
             _PersonRow(person: people[i], picks: picksOf(people[i].id), cost: cost[people[i].id]!),
           ]),
       ]));
@@ -482,7 +482,7 @@ class _PlaceFacts extends StatelessWidget {
     ];
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Padding(padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs), child: Text('Details', style: TokText.headingSm.copyWith(color: t.textDefault))),
-      for (var i = 0; i < rows.length; i++) ...[if (i > 0) const _Hairline(), rows[i]],
+      for (var i = 0; i < rows.length; i++) ...[if (i > 0) const Hairline(), rows[i]],
     ]);
   }
 }
@@ -644,16 +644,6 @@ class _MorePicks extends StatelessWidget {
 }
 
 /// A 1 px line between rows of a plain list.
-class _Hairline extends StatelessWidget {
-  const _Hairline();
-
-  @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
-        child: SizedBox(width: double.infinity, height: TokDim.surfaceEdgeWidth, child: ColoredBox(color: context.tok.borderDefault)),
-      );
-}
-
 /// The place's photos as a Material 3 multi-browse carousel: a large photo first, then a medium and a small one,
 /// each growing or shrinking as it moves between those places, and snapping to whole photos.
 class _PhotoCarousel extends StatelessWidget {

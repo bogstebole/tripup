@@ -2,15 +2,17 @@
 // (Google Maps and the restaurant's own English menu, in assets/data/brasserie-menu.json).
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:latlong2/latlong.dart';
 
-import 'components/basics.dart';
-
 class Person {
-  const Person(this.id, this.name, this.sticker, {this.going = true, this.route = const [], this.leaves = 0, this.arrives = 0});
+  const Person(this.id, this.name, this.sticker, {this.going = true, this.route = const [], this.leaves = 0, this.arrives = 0, this.joined = 12});
   final String id, name, sticker;
   final bool going;
+
+  /// The day they joined the trip. Costs from before it aren't theirs.
+  final int joined;
 
   /// Their way to the Up next place, the last point being the place. Empty for me: I'm the blue dot, and my times
   /// come from how far I am (see [timesOf]).
@@ -33,7 +35,7 @@ const people = [
   Person('leo', 'Leo', 'person-02', leaves: 16 * 60 + 16, arrives: 16 * 60 + 36, route: [
     LatLng(38.7570, -9.1590), LatLng(38.7560, -9.1520), LatLng(38.7552, -9.1460), LatLng(38.754444, -9.140476),
   ]),
-  Person('ren', 'Ren', 'person-03', going: false),
+  Person('ren', 'Ren', 'person-03', going: false, joined: today),   // joined mid-trip, today
 ];
 String faceOf(String id) => people.firstWhere((p) => p.id == id).sticker;
 
@@ -52,6 +54,26 @@ class FanSticker {
   final String sticker;
   final double height, tilt;
 }
+
+/// A sticker placed by hand in a small composition: its top-left corner, height and tilt (degrees), as in Figma.
+class PlacedSticker {
+  const PlacedSticker(this.sticker, this.left, this.top, this.height, {this.tilt = 0});
+  final String sticker;
+  final double left, top, height, tilt;
+}
+
+/// The whole group as one little pile, on the footer's money button (Figma "People", 38.6 × 38.2), back to front.
+const crewPile = (
+  width: 38.58,
+  height: 38.21,
+  stickers: [
+    PlacedSticker('person-02', 1, 7, 24),
+    PlacedSticker('person-04', 0, 10, 24),
+    PlacedSticker('person-01', 9, 0, 24.59),
+    PlacedSticker('person-05', 10.24, 13.1, 24, tilt: -6.22),
+    PlacedSticker('person-03', 17, 10, 24),
+  ],
+);
 
 class MenuItem {
   const MenuItem(this.name, this.price, {this.note, this.photo, this.pickedBy = const []});
@@ -113,7 +135,7 @@ class Plan {
     this.rating = '',
     this.cuisine = '',
     this.fan = const [],
-    this.chips = const [],
+    this.priceRange,
     this.photos = const [],
     this.about = '',
     this.tips = const [],
@@ -141,7 +163,9 @@ class Plan {
   /// "5 PM" if it's today, else "Tomorrow, 10 AM": next to "Up next".
   String get startsAt => dayName(start, tripNow()) == 'Today' ? clockTime(start) : whenLong;
   final List<FanSticker> fan;
-  final List<InfoChip> chips;
+
+  /// What it costs a person, as the place's details put it ("€20–40"), for the card.
+  final String? priceRange;
   final List<String> photos, tips;
   final List<Dish> menu;
 
@@ -174,8 +198,7 @@ const plans = [
     rating: '4.2 (173)',
     cuisine: 'French',
     fan: [FanSticker('pho', 44.79, 0), FanSticker('sushi', 78.53, -7.99), FanSticker('wings', 95, 0), FanSticker('ice-cream', 65.47, 8.59)],
-    // Equal widths: who's coming, and the price range from the details below. The time sits by "Up next".
-    chips: [InfoChip('+3', sticker: 'person-05', tilt: -6.22, grow: true), InfoChip('€20–40', grow: true)],
+    priceRange: '€20–40',   // from the price detail below
     photos: ['brasserie-2', 'brasserie-3', 'brasserie-1', 'brasserie-4', 'brasserie-5'],   // 4 and 5 are from the restaurant's own menu
     // From the place's Google Maps card
     services: ['Dine-in', 'Takeaway', 'Delivery'],
@@ -212,22 +235,22 @@ const plans = [
 
 /// Places already visited: stickers on the map, the trip's history.
 class Visited {
-  const Visited(this.sticker, this.at, this.tilt, this.day);
-  final String sticker;
+  const Visited(this.name, this.sticker, this.at, this.tilt, this.day);
+  final String name, sticker;
   final LatLng at;
   final double tilt;
   final int day;
 }
 
 const visited = [
-  Visited('azulejo', LatLng(38.7560, -9.1462), -5, 12),      // Igreja de São João de Brito
-  Visited('galo', LatLng(38.7600, -9.1500), 6, 12),          // Jardim do Campo Grande
-  Visited('caravel', LatLng(38.7612, -9.1608), -4, 12),      // Estádio José Alvalade
-  Visited('guitar', LatLng(38.7465, -9.1390), -10, 12),      // Teatro Maria Matos
-  Visited('nata', LatLng(38.7395, -9.1458), -8, 13),         // Pastelaria Versailles
-  Visited('sardine-tin', LatLng(38.7340, -9.1350), 4, 13),   // Mercado de Arroios
-  Visited('belem', LatLng(38.6916, -9.2160), -6, 13),
-  Visited('padrao', LatLng(38.6936, -9.2057), 5, 13),
+  Visited('Igreja de São João de Brito', 'azulejo', LatLng(38.7560, -9.1462), -5, 12),
+  Visited('Jardim do Campo Grande', 'galo', LatLng(38.7600, -9.1500), 6, 12),
+  Visited('Estádio José Alvalade', 'caravel', LatLng(38.7612, -9.1608), -4, 12),
+  Visited('Teatro Maria Matos', 'guitar', LatLng(38.7465, -9.1390), -10, 12),
+  Visited('Pastelaria Versailles', 'nata', LatLng(38.7395, -9.1458), -8, 13),
+  Visited('Mercado de Arroios', 'sardine-tin', LatLng(38.7340, -9.1350), 4, 13),
+  Visited('Torre de Belém', 'belem', LatLng(38.6916, -9.2160), -6, 13),
+  Visited('Padrão dos Descobrimentos', 'padrao', LatLng(38.6936, -9.2057), 5, 13),
 ];
 
 const me = LatLng(38.7478, -9.1475);
@@ -338,3 +361,84 @@ String dayName(DateTime t, DateTime now) => switch (_daysBetween(now, t)) {
     };
 const topFaces = ['person-04', 'person-01'];
 const moreFaces = 3;
+
+// ── Money ────────────────────────────────────────────────────────────────────────────────────────────────────────────
+// What the trip has cost so far, from the earlier prototypes (prototype/versions/v11-midfi-receipt.html): the flat, the
+// tuk-tuk and the groceries, each split between the four who were here then. Ren joined today, so none of it is Ren's.
+// Tonight's dinner isn't on the bill yet; until it is, it's an estimate from what everyone picked.
+
+class Expense {
+  const Expense(this.title, this.amount, this.paidBy, this.split, this.day);
+  final String title;
+  final double amount;
+
+  /// Person ids: who paid, and who shares it (equally).
+  final String paidBy;
+  final List<String> split;
+  final int day;
+
+  double shareOf(String id) => split.contains(id) ? amount / split.length : 0;
+}
+
+const expenses = [
+  Expense('Groceries and drinks', 46, 'leo', ['ari', 'maya', 'nic', 'leo'], 13),
+  Expense('Tuk-tuk tour', 80, 'nic', ['ari', 'maya', 'nic', 'leo'], 13),
+  Expense('Airbnb, Alfama flat', 600, 'maya', ['ari', 'maya', 'nic', 'leo'], 12),
+];
+
+double get spentSoFar => expenses.fold(0.0, (sum, e) => sum + e.amount);
+
+/// What [id] has paid, minus their share: above zero they get money back, below they owe.
+double balanceOf(String id) => expenses.fold(0.0, (sum, e) => sum + (e.paidBy == id ? e.amount : 0) - e.shareOf(id));
+
+/// One person paying another to settle up.
+typedef Payment = ({String from, String to, double amount});
+
+/// The fewest payments that square everyone up: the biggest debt pays the biggest credit, again and again.
+List<Payment> get settleUp {
+  final owe = {for (final p in people) if (balanceOf(p.id) < -0.005) p.id: -balanceOf(p.id)};
+  final get = {for (final p in people) if (balanceOf(p.id) > 0.005) p.id: balanceOf(p.id)};
+  final out = <Payment>[];
+  while (owe.isNotEmpty && get.isNotEmpty) {
+    final d = owe.entries.reduce((a, b) => a.value >= b.value ? a : b), c = get.entries.reduce((a, b) => a.value >= b.value ? a : b);
+    final amount = d.value < c.value ? d.value : c.value;
+    out.add((from: d.key, to: c.key, amount: amount));
+    if ((owe[d.key] = d.value - amount) < 0.005) owe.remove(d.key);
+    if ((get[c.key] = c.value - amount) < 0.005) get.remove(c.key);
+  }
+  return out;
+}
+
+/// How many payments it would take one expense at a time: everyone in a split pays whoever paid it.
+int get paymentsOneByOne => expenses.fold(0, (sum, e) => sum + e.split.where((id) => id != e.paidBy).length);
+
+/// Tonight's dinner, roughly, from what everyone has picked on the menu (null until the menu has loaded).
+double? get dinnerEstimate => loadedMenu == null
+    ? null
+    : [for (final s in loadedMenu!) ...s.items].fold<double>(0, (sum, d) => sum + (eurosIn(d.price) ?? 0) * d.pickedBy.length);
+
+Person personById(String id) => people.firstWhere((p) => p.id == id);
+
+// ── Ideas to add ─────────────────────────────────────────────────────────────────────────────────────────────────────
+
+/// A place the Add pop-up suggests, with the free slot it would go in.
+class PlanIdea {
+  const PlanIdea(this.id, this.name, this.kind, this.sticker, this.at, this.day, this.hour);
+  final String id, name, kind, sticker;
+  final LatLng at;
+  final int day, hour;
+
+  Plan get plan => Plan(id: id, name: name, sticker: sticker, at: at, day: day, hour: hour);
+}
+
+const planIdeas = [
+  PlanIdea('timeout', 'Time Out Market', 'Food hall', 'sardine-tin', LatLng(38.7069, -9.1459), 15, 13),
+  PlanIdea('santini', 'Gelados Santini', 'Ice cream', 'ice-cream', LatLng(38.7108, -9.1418), 16, 15),
+  PlanIdea('lxfactory', 'LX Factory', 'Shops and street art', 'azulejo', LatLng(38.7034, -9.1786), 20, 11),
+];
+
+/// Plans the group adds during the trip, on top of [plans].
+final addedPlans = ValueNotifier<List<Plan>>(const []);
+
+/// Every plan, in the order they happen.
+List<Plan> get tripPlans => [...plans, ...addedPlans.value]..sort((a, b) => a.start.compareTo(b.start));
