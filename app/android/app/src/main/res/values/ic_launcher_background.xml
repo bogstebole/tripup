@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The icon's own grey, sampled from its corner -->
+    <color name="ic_launcher_background">#F4F4F5</color>
+</resources>

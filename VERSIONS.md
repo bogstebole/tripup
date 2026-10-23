@@ -389,6 +389,12 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - **For the App Store:** the app runs on iPhone only, in portrait. It declares that it uses no non-exempt encryption, so App Store Connect doesn't ask on every build.
 - **The archive** (1.0.0, build 1) is built from main at 539889d plus these changes. Uploading it and the public TestFlight link need Bogdan's Apple account.
 
+### TestFlight build 1.0.0 (2) and the Android icon (branch `release/1.21-testflight`)
+- **TestFlight 1.0.0 (2)** is built from 1.21 plus the TestFlight settings and app icon above (`flutter build ipa`). The archive is open in Xcode's Organizer. The upload needs Bogdan's Apple account in Xcode, plus the app in App Store Connect (TripUp, `com.bogste.tripup`). Build 1 shouldn't be sent: it predates 1.21.
+- The same build is installed on Bogdan's iPhone 15.
+- **Android icon:** the same light icon, as an adaptive icon (`mipmap-anydpi-v26`). The launcher's mask cuts it to shape over the icon's own grey (#F4F4F5). The full icon is also kept for older launchers. The APK is rebuilt (`releases/TripUp-android.apk`); checked in the emulator's app drawer.
+- From now on, every bigger change gets its own branch and goes into `main` once it's checked.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 
