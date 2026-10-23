@@ -310,6 +310,11 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - The Up next card's time left the chip row and sits by the label: "Up next · 5 PM" (or "Up next · Tomorrow, 10 AM"). The two chips left, who's coming / who's here and the price level, are the same width, so "2 here" no longer squeezes anything.
 - Not installed on the phone yet: the performance session is profiling on it.
 
+### Final UI, iteration 1.17: actions out of the way while panning
+- The bottom actions slide down past the edge and fade out as soon as the map is moved (160 ms), and come back up once it has been still for 260 ms (also 260 ms to return), ease-out both ways. Their white is less see-through, 85% instead of 70%.
+- The full view has 16 px more room between its header (the tabs) and the page title.
+- Not installed on the phone yet: the performance session is profiling on it.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

@@ -64,7 +64,7 @@
   --c-me-cone: #60a5fa;
   --c-sheet-scrim: rgb(255 255 255 / 0.2);
   --c-top-bar-bg: rgb(255 255 255 / 0.7);
-  --c-action-bar-bg: rgb(255 255 255 / 0.7);
+  --c-action-bar-bg: rgb(255 255 255 / 0.85);
   --c-toast-bg: #1d4ed8;
   --c-toast-fg: #ffffff;
   --c-attribution-fg: #71717a;
@@ -287,7 +287,7 @@
   --c-me-cone: #60a5fa;
   --c-sheet-scrim: rgb(24 24 27 / 0.2);
   --c-top-bar-bg: rgb(24 24 27 / 0.7);
-  --c-action-bar-bg: rgb(24 24 27 / 0.7);
+  --c-action-bar-bg: rgb(24 24 27 / 0.85);
   --c-toast-bg: #1d4ed8;
   --c-toast-fg: #ffffff;
   --c-attribution-fg: #a1a1aa;

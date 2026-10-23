@@ -51,7 +51,8 @@ What we decided, and why, in the order it happened. Each item: **the decision**,
 - **Group:**
   - Next to each person, a little pile of what they picked: at most two dishes, the rest counted as "+N".
   - Then roughly what their picks cost, and the estimated total fixed at the bottom.
-- **The top and bottom bars sit on see-through white over a progressive blur of the map,** so they read over any map without a hard white slab.
+- **The top and bottom bars sit on see-through white over a progressive blur of the map,** so they read over any map without a hard white slab. The bottom one is less see-through (85% white against the top's 70%), because the buttons sit right on it.
+- **The bottom actions slide away while the map moves** and come back once it settles: exploring gets the whole map, and the actions are back the moment you stop.
 - **Motion follows Emil Kowalski's rules** for every transition:
   - ease-out, under 300 ms per element, the exit quicker than the entry;
   - a short stagger, blur to mask crossfades;

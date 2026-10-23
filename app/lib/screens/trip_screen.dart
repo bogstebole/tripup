@@ -98,7 +98,19 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     }
     final off = !_safe(MediaQuery.sizeOf(context)).contains(e.camera.latLngToScreenOffset(me));
     if (off != _meOff) setState(() => _meOff = off);
+    // The actions step out of the way while the person moves the map, and come back once it has settled
+    if (byUser) {
+      if (!_moving) setState(() => _moving = true);
+      _settle?.cancel();
+      _settle = Timer(TokMotion.enter, () {
+        if (mounted) setState(() => _moving = false);
+      });
+    }
   }
+
+  /// Whether the person is moving the map (the actions slide down meanwhile).
+  bool _moving = false;
+  Timer? _settle;
 
   /// Where pins may sit: the map minus the top bar and the action bar.
   Rect _safe(Size size) {
@@ -221,6 +233,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   @override
   void dispose() {
     _tick?.cancel();
+    _settle?.cancel();
     _open.dispose();
     _drag.dispose();
     _fly.dispose();
@@ -280,7 +293,21 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
             filter: ToggleChips<int>(options: tripDays, selected: _days, labelOf: _dayLabel, onChanged: (d) => _setDays(d, size)),
           ),
         ),
-        const Positioned(left: 0, right: 0, bottom: 0, child: ActionBar()),
+        // Slides down past the edge while the map moves (quick), and back up once it settles (a little slower)
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: IgnorePointer(
+            ignoring: _moving,
+            child: AnimatedSlide(
+              offset: _moving && !_reduce ? const Offset(0, 1) : Offset.zero,
+              duration: _moving ? TokMotion.fade : TokMotion.enter,
+              curve: TokMotion.easeOut,
+              child: AnimatedOpacity(opacity: _moving ? 0 : 1, duration: _moving ? TokMotion.fade : TokMotion.enter, curve: TokMotion.easeOut, child: const ActionBar()),
+            ),
+          ),
+        ),
         // The map's credit sits on top of the bar's blur, so it always stays sharp
         Positioned(
           left: TokSpace.xs,

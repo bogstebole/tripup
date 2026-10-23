@@ -231,7 +231,7 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
         SingleChildScrollView(
           physics: _SheetPhysics(pull: _pull, parent: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics())),
           // Starts under the header; room at the end for the last block to scroll clear of the bottom fade
-          padding: EdgeInsets.only(top: _headerHeight + TokSpace.xs, bottom: TokDim.sheetFade + TokSpace.xs),
+          padding: EdgeInsets.only(top: _headerHeight + TokSpace.xs + TokSpace.md, bottom: TokDim.sheetFade + TokSpace.xs),
           child: child,
         ),
       );
