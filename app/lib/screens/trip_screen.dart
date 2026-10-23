@@ -14,7 +14,7 @@ import 'package:vector_tile_renderer/vector_tile_renderer.dart' show Theme, Them
 
 import '../components/bars.dart';
 import '../components/basics.dart';
-import '../components/day_filter.dart';
+import '../components/toggle_chips.dart';
 import '../components/detail_sheet.dart';
 import '../components/map_shapes.dart';
 import '../components/plan_pin.dart';
@@ -270,7 +270,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
             dates: tripDates,
             faces: topFaces,
             more: moreFaces,
-            filter: DayFilter(days: tripDays, selected: _days, labelOf: _dayLabel, onChanged: (d) => _setDays(d, size)),
+            filter: ToggleChips<int>(options: tripDays, selected: _days, labelOf: _dayLabel, onChanged: (d) => _setDays(d, size)),
           ),
         ),
         const Positioned(left: 0, right: 0, bottom: 0, child: ActionBar()),

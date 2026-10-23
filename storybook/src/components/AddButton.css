@@ -18,6 +18,7 @@
   border-radius: var(--radius-pill);
   transition: background-color var(--fade-ms) var(--ease-out), color var(--fade-ms) var(--ease-out), box-shadow var(--fade-ms) var(--ease-out);
 }
-.tu-add__icon { width: var(--size-icon-sm); height: var(--size-icon-sm); animation: tu-add-icon var(--fade-ms) var(--ease-out); }
-@keyframes tu-add-icon { from { opacity: 0; transform: scale(var(--press-scale)); } }
+/* Plus and check swap like an icon swap should: the new one grows in from a little smaller, sharpening from a blur */
+.tu-add__icon { width: var(--size-icon-sm); height: var(--size-icon-sm); animation: tu-add-icon var(--enter-ms) var(--ease-out); }
+@keyframes tu-add-icon { from { opacity: 0; transform: scale(var(--morph-enter-scale)); filter: blur(var(--enter-blur)); } }
 @media (prefers-reduced-motion: reduce) { .tu-add__icon { animation: none; } }

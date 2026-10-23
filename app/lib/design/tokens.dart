@@ -67,8 +67,8 @@ class TokColors {
     'c/chip/bg': Color(0xFFE4E4E7),
     'c/chip/fg': Color(0xFF2563EB),
     'c/dish/edge': Color(0xFFFFFFFF),
-    'c/day-chip/off-bg': Color(0xFFE4E4E7),
-    'c/day-chip/off-fg': Color(0xFF09090B),
+    'c/toggle-chip/off-bg': Color(0xFFE4E4E7),
+    'c/toggle-chip/off-fg': Color(0xFF09090B),
     'c/count-bubble/bg': Color(0x1A000000),
     'c/count-bubble/fg': Color(0xFF09090B),
     'c/pin/dash': Color(0xFF2563EB),
@@ -81,6 +81,8 @@ class TokColors {
     'c/sheet/scrim': Color(0x33FFFFFF),
     'c/top-bar/bg': Color(0xB3FFFFFF),
     'c/action-bar/bg': Color(0xB3FFFFFF),
+    'c/toast/bg': Color(0xFF1D4ED8),
+    'c/toast/fg': Color(0xFFFFFFFF),
     'c/attribution/fg': Color(0xFF71717A),
   });
   static const dark = TokColors._({
@@ -135,8 +137,8 @@ class TokColors {
     'c/chip/bg': Color(0xFF27272A),
     'c/chip/fg': Color(0xFF60A5FA),
     'c/dish/edge': Color(0xFFFFFFFF),
-    'c/day-chip/off-bg': Color(0xFF27272A),
-    'c/day-chip/off-fg': Color(0xFFFAFAFA),
+    'c/toggle-chip/off-bg': Color(0xFF27272A),
+    'c/toggle-chip/off-fg': Color(0xFFFAFAFA),
     'c/count-bubble/bg': Color(0x1A000000),
     'c/count-bubble/fg': Color(0xFFFAFAFA),
     'c/pin/dash': Color(0xFF2563EB),
@@ -149,6 +151,8 @@ class TokColors {
     'c/sheet/scrim': Color(0x3318181B),
     'c/top-bar/bg': Color(0xB318181B),
     'c/action-bar/bg': Color(0xB318181B),
+    'c/toast/bg': Color(0xFF1D4ED8),
+    'c/toast/fg': Color(0xFFFFFFFF),
     'c/attribution/fg': Color(0xFFA1A1AA),
   });
   Color get bgCanvas => _m['bg/canvas']!;
@@ -202,8 +206,8 @@ class TokColors {
   Color get cChipBg => _m['c/chip/bg']!;
   Color get cChipFg => _m['c/chip/fg']!;
   Color get cDishEdge => _m['c/dish/edge']!;
-  Color get cDayChipOffBg => _m['c/day-chip/off-bg']!;
-  Color get cDayChipOffFg => _m['c/day-chip/off-fg']!;
+  Color get cToggleChipOffBg => _m['c/toggle-chip/off-bg']!;
+  Color get cToggleChipOffFg => _m['c/toggle-chip/off-fg']!;
   Color get cCountBubbleBg => _m['c/count-bubble/bg']!;
   Color get cCountBubbleFg => _m['c/count-bubble/fg']!;
   Color get cPinDash => _m['c/pin/dash']!;
@@ -216,6 +220,8 @@ class TokColors {
   Color get cSheetScrim => _m['c/sheet/scrim']!;
   Color get cTopBarBg => _m['c/top-bar/bg']!;
   Color get cActionBarBg => _m['c/action-bar/bg']!;
+  Color get cToastBg => _m['c/toast/bg']!;
+  Color get cToastFg => _m['c/toast/fg']!;
   Color get cAttributionFg => _m['c/attribution/fg']!;
 }
 
@@ -263,9 +269,9 @@ abstract final class TokDim {
   static const double chipHeight = 40;
   static const double chipGap = 2;
   static const double chipRadius = 16;
-  static const double dayChipHeight = 32;
-  static const double dayChipPaddingX = 12;
-  static const double dayChipGap = 8;
+  static const double toggleChipHeight = 32;
+  static const double toggleChipPaddingX = 12;
+  static const double toggleChipGap = 8;
   static const double segmentHeight = 36;
   static const double segmentTrackPadding = 2;
   static const double segmentGap = 4;
@@ -376,6 +382,7 @@ abstract final class TokMotion {
   static const int staggerMax = 8;
   static const enter = Duration(milliseconds: 260);
   static const pageEnterDelay = Duration(milliseconds: 80);
+  static const toast = Duration(milliseconds: 3000);
   static const double pressScale = 0.97;
   static const press = Duration(milliseconds: 120);
   static const fade = Duration(milliseconds: 160);

@@ -57,9 +57,12 @@ double? eurosIn(String price) {
 String euros(double v) => '€${v.toStringAsFixed(2)}';
 
 class MenuSection {
-  const MenuSection(this.title, this.items, {this.note});
+  const MenuSection(this.title, this.items, {this.note, this.course = ''});
   final String title;
   final String? note;
+
+  /// "starters", "mains", "desserts" or "drinks", for the menu's filter.
+  final String course;
   final List<MenuItem> items;
 }
 
@@ -74,6 +77,7 @@ final Future<List<MenuSection>> brasserieMenu = rootBundle.loadString('assets/da
       MenuSection(
         s['title'] as String,
         note: s['note'] as String?,
+        course: s['course'] as String? ?? '',
         [
           for (final i in s['items'] as List)
             MenuItem(i['name'] as String, i['price'] as String, note: i['note'] as String?, photo: i['photo'] as String?, pickedBy: [for (final id in (i['pickedBy'] as List? ?? const [])) id as String]),

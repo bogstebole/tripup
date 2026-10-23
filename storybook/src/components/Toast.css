@@ -1,0 +1,33 @@
+.tu-toast {
+  position: absolute;
+  left: 50%;
+  bottom: var(--space-md);
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  height: var(--d-button-md);
+  padding-left: var(--space-md);
+  border-radius: var(--radius-pill);
+  background: var(--c-toast-bg);
+  color: var(--c-toast-fg);
+  white-space: nowrap;
+  /* Hidden: just past the bottom edge (the sheet clips it) */
+  transform: translate(-50%, calc(100% + var(--space-md)));
+  opacity: 0;
+  pointer-events: none;
+  /* Leaving: a little quicker than arriving */
+  transition: transform var(--fade-ms) var(--ease-out), opacity var(--fade-ms) var(--ease-out);
+}
+.tu-toast[data-shown] {
+  transform: translate(-50%, 0);
+  opacity: 1;
+  pointer-events: auto;
+  transition-duration: var(--enter-ms);
+}
+.tu-toast__icon { width: var(--size-icon-sm); height: var(--size-icon-sm); flex: none; }
+.tu-toast__action { height: 100%; padding: 0 var(--space-md); color: inherit; border-radius: var(--radius-pill); }
+.tu-toast__action:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: calc(var(--space-3xs) * -1); }
+@media (prefers-reduced-motion: reduce) {
+  .tu-toast { transform: translate(-50%, 0); }
+}

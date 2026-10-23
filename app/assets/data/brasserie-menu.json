@@ -3,6 +3,7 @@
  "sections": [
   {
    "title": "Starters",
+   "course": "starters",
    "items": [
     {
      "name": "Individual couvert",
@@ -30,6 +31,7 @@
   },
   {
    "title": "Main courses",
+   "course": "mains",
    "items": [
     {
      "name": "Sirloin entrecôte with lettuce and rocket salad",
@@ -81,6 +83,7 @@
   },
   {
    "title": "Menu exécutif",
+   "course": "mains",
    "note": "Monday to Friday except holidays, lunch until 3:30 pm. Drinks not included.",
    "items": [
     {
@@ -105,6 +108,7 @@
   },
   {
    "title": "Sandwiches",
+   "course": "mains",
    "items": [
     {
      "name": "Entrecôte sandwich",
@@ -122,6 +126,7 @@
   },
   {
    "title": "Extras",
+   "course": "mains",
    "items": [
     {
      "name": "Lettuce and rocket salad",
@@ -152,6 +157,7 @@
   },
   {
    "title": "Desserts",
+   "course": "desserts",
    "items": [
     {
      "name": "Liégeois coffee",
@@ -214,6 +220,7 @@
   },
   {
    "title": "White and rosé wines",
+   "course": "drinks",
    "note": "Fresh and fruity",
    "items": [
     {
@@ -256,6 +263,7 @@
   },
   {
    "title": "Red wines",
+   "course": "drinks",
    "note": "Gourmand and elegant",
    "items": [
     {
@@ -298,6 +306,7 @@
   },
   {
    "title": "Full-bodied reds",
+   "course": "drinks",
    "note": "Full-bodied and complex",
    "items": [
     {
@@ -364,6 +373,7 @@
   },
   {
    "title": "Sparkling and champagne",
+   "course": "drinks",
    "items": [
     {
      "name": "Pierre Gimonnet Gastronome Vintage, Brut",
@@ -394,6 +404,7 @@
   },
   {
    "title": "Beers",
+   "course": "drinks",
    "items": [
     {
      "name": "Beer flute",
@@ -423,6 +434,7 @@
   },
   {
    "title": "Water and soft drinks",
+   "course": "drinks",
    "items": [
     {
      "name": "Luso water 25cl",
@@ -465,6 +477,7 @@
   },
   {
    "title": "Coffee and tea",
+   "course": "drinks",
    "items": [
     {
      "name": "Espresso or decaf",
@@ -494,6 +507,7 @@
   },
   {
    "title": "Cocktails",
+   "course": "drinks",
    "items": [
     {
      "name": "Martini",
@@ -545,6 +559,7 @@
   },
   {
    "title": "Liqueurs and spirits",
+   "course": "drinks",
    "items": [
     {
      "name": "Ginja de Óbidos",

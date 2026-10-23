@@ -1,6 +1,6 @@
 import { Banknote, Calendar, Check, Clock, Globe, MapPin, Phone, Truck, X, type LucideIcon } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion, type Variants } from 'motion/react';
-import { createContext, useContext, useState, type CSSProperties, type ReactNode } from 'react';
+import { createContext, useContext, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import realMenu from '../../../app/assets/data/brasserie-menu.json';
 import { euros, eurosIn, type Person, type PlaceDetail } from '../data';
@@ -11,6 +11,8 @@ import { KnowRow, KnowSection } from './KnowSection';
 import { PhotoCarousel } from './PhotoCarousel';
 import { RatingLine } from './RatingLine';
 import { SegmentedTabs } from './SegmentedTabs';
+import { Toast } from './Toast';
+import { ToggleChips } from './ToggleChips';
 import { Sticker } from './Sticker';
 import './Surface.css';
 import './DetailSheet.css';
@@ -19,7 +21,16 @@ export const DETAIL_TABS = ['Overview', 'Menu', 'Group'] as const;
 export type DetailTab = (typeof DETAIL_TABS)[number];
 
 type MenuItem = { name: string; price: string; note?: string; photo?: string; pickedBy?: string[] };
-type MenuSection = { title: string; note?: string; items: MenuItem[] };
+type MenuSection = { title: string; course?: string; note?: string; items: MenuItem[] };
+
+/** What the menu can be narrowed to: what anyone has picked, or a course. */
+const MENU_FILTERS = [
+  { id: 'picked', label: 'Picked' },
+  { id: 'starters', label: 'Starters' },
+  { id: 'mains', label: 'Mains' },
+  { id: 'desserts', label: 'Desserts' },
+  { id: 'drinks', label: 'Drinks' },
+];
 const SECTIONS = (realMenu as { sections: MenuSection[] }).sections;
 
 export interface DetailSheetProps {
@@ -70,10 +81,26 @@ export function DetailSheet(p: DetailSheetProps) {
   const [under, setUnder] = useState(0);
   // Which way the last tab change went: 1 to the right, -1 to the left, 0 for the page the sheet opened on
   const [dir, setDir] = useState(0);
-  const select = (t: DetailTab) => { setDir(Math.sign(DETAIL_TABS.indexOf(t) - DETAIL_TABS.indexOf(tab))); setOwn(t); setUnder(0); p.onTabChange?.(t); };
+  const select = (t: DetailTab) => { setDir(Math.sign(DETAIL_TABS.indexOf(t) - DETAIL_TABS.indexOf(tab))); setOwn(t); setUnder(0); setFiltered(false); p.onTabChange?.(t); };
   const reduce = useReducedMotion();
   const [added, setAdded] = useState<Set<string>>(() => new Set(SECTIONS.flatMap(s => s.items).filter(i => i.pickedBy?.includes('ari')).map(i => i.name)));
-  const toggle = (name: string) => setAdded(a => { const n = new Set(a); n.has(name) ? n.delete(name) : n.add(name); return n; });
+  // The menu's filter (empty means everything); once it changes, the list under it swaps on its own
+  const [filter, setFilter] = useState<string[]>([]);
+  const [filtered, setFiltered] = useState(false);
+  // The "added" toast: shown for toast-ms, Undo takes the dish back off
+  const [toast, setToast] = useState<{ name: string; shown: boolean } | null>(null);
+  const timer = useRef<number | undefined>(undefined);
+  const hideToast = () => { window.clearTimeout(timer.current); setToast(t => (t ? { ...t, shown: false } : t)); };
+  const toggle = (name: string) => {
+    const adding = !added.has(name);
+    setAdded(a => { const n = new Set(a); adding ? n.add(name) : n.delete(name); return n; });
+    if (adding) {
+      setToast({ name, shown: true });
+      window.clearTimeout(timer.current);
+      timer.current = window.setTimeout(hideToast, m['toast-ms']);
+    } else if (toast?.name === name) hideToast();
+  };
+  const undo = () => { if (toast) setAdded(a => { const n = new Set(a); n.delete(toast.name); return n; }); hideToast(); };
 
   // The new page comes in from the side the tab is on, once the old one has mostly gone; the first page rises.
   // Each block waits its turn (capped so a long list doesn't drag), then sharpens into place. Full transform
@@ -85,6 +112,14 @@ export function DetailSheet(p: DetailSheetProps) {
     shown: (i: number) => ({
       opacity: 1, transform: reduce ? 'none' : 'translate(0px, 0px)', filter: 'blur(0px)',
       transition: { duration: reduce ? 0 : m['enter-ms'] / 1000, ease, delay: reduce ? 0 : ((dir ? m['page-enter-delay-ms'] : 0) + Math.min(i, m['stagger-max'] - 1) * m['stagger-ms']) / 1000 },
+    }),
+  };
+  // A new filter's list rises in on its own, once the old one has gone
+  const listBlock: Variants = {
+    hidden: { opacity: 0, transform: reduce ? 'none' : `translate(0px, ${rise}px)`, filter: blur },
+    shown: (i: number) => ({
+      opacity: 1, transform: reduce ? 'none' : 'translate(0px, 0px)', filter: 'blur(0px)',
+      transition: { duration: reduce ? 0 : m['enter-ms'] / 1000, ease, delay: reduce ? 0 : (Math.min(i, m['stagger-max'] - 1) * m['stagger-ms']) / 1000 },
     }),
   };
   // The old page leaves toward the side away from the new tab, quicker than the new one arrives
@@ -163,40 +198,68 @@ export function DetailSheet(p: DetailSheetProps) {
                   <h2 className="tu-sheet__name text-heading-md tu-ellipsis">Menu</h2>
                   <p className="text-body-sm tu-sheet__muted">{pickers.size} of {p.people.length} have picked. Add what you'll have, and the bill splits itself.</p>
                 </Block>
-                {/* One block per title and per dish, so the list cascades in rather than arriving in lumps */}
-                {SECTIONS.map((s, si) => {
-                  const first = 1 + SECTIONS.slice(0, si).reduce((n, x) => n + 1 + x.items.length, 0);
-                  return (
-                    <div key={s.title} className="tu-sheet__section">
-                      <Block i={first} className="tu-sheet__section-head">
-                        <h3 className="tu-sheet__title text-heading-sm">{s.title}</h3>
-                        {s.note && <p className="text-body-sm tu-sheet__muted">{s.note}</p>}
-                      </Block>
-                      <div className="tu-sheet__cards">
-                        {s.items.map((item, i) => {
-                          const others = (item.pickedBy ?? []).filter(id => id !== 'ari');
-                          return (
-                            <Block key={item.name} i={first + 1 + i} className="tu-dish">
-                              <div className="tu-dish__top">
-                                {item.photo && <DishSticker photo={item.photo} size="menu" tilt={i % 2 ? tilt : -tilt} />}
-                                <div className="tu-dish__text">
-                                  <p className="text-label-md">{item.name}</p>
-                                  {item.note && <p className="text-body-sm tu-sheet__muted">{item.note}</p>}
-                                </div>
-                              </div>
-                              <div className="tu-dish__foot">
-                                <p className="text-label-md weight-semibold tu-dish__price">{item.price}</p>
-                                {others.length > 0 && <span className="tu-sheet__faces">{others.map(id => <Sticker key={id} name={p.faces[id]} size="chip" />)}</span>}
-                                <AddButton added={added.has(item.name)} itemName={item.name} onToggle={() => toggle(item.name)} />
-                              </div>
+                <Block i={1}>
+                  <ToggleChips label="Filter the menu" options={MENU_FILTERS} selected={filter} onChange={f => { setFilter(f); setFiltered(true); }} />
+                </Block>
+                {/* A new filter swaps the list: the old one fades out, then the new one cascades in */}
+                <Stagger.Provider value={filtered ? listBlock : block}>
+                  <AnimatePresence mode="wait">
+                    <motion.div key={filter.join('|') || 'all'} className="tu-sheet__list" initial="hidden" animate="shown" exit={{ opacity: 0, filter: blur, transition: { duration: reduce ? 0 : m['fade-ms'] / 1000, ease } }}>
+                      {(() => {
+                        // One block per title and per dish, so the list cascades in rather than arriving in lumps
+                        const shows = (s: MenuSection, i: MenuItem) => !filter.length || filter.some(f => (f === 'picked' ? (i.pickedBy ?? []).some(id => id !== 'ari') || added.has(i.name) : f === s.course));
+                        let k = filtered ? 0 : 2;
+                        return SECTIONS.map(s => ({ s, items: s.items.filter(i => shows(s, i)) })).filter(x => x.items.length).map(({ s, items }) => (
+                          <div key={s.title} className="tu-sheet__section">
+                            <Block i={k++} className="tu-sheet__section-head">
+                              <h3 className="tu-sheet__title text-heading-sm">{s.title}</h3>
+                              {s.note && <p className="text-body-sm tu-sheet__muted">{s.note}</p>}
                             </Block>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-                <Block i={dishes.length + SECTIONS.length + 1}><p className="text-body-sm tu-sheet__subtle tu-sheet__pad">Prices with VAT. From the restaurant's own menu. Entrecôte photos are the restaurant's; other dish photos are illustrative, from Wikimedia Commons.</p></Block>
+                            <div className="tu-sheet__cards">
+                              {items.map((item, i) => {
+                                const others = (item.pickedBy ?? []).filter(id => id !== 'ari');
+                                const mine = added.has(item.name);
+                                return (
+                                  <Block key={item.name} i={k++} className="tu-dish">
+                                    <div className="tu-dish__top">
+                                      {item.photo && <DishSticker photo={item.photo} size="menu" tilt={i % 2 ? tilt : -tilt} />}
+                                      <div className="tu-dish__text">
+                                        <p className="text-label-md">{item.name}</p>
+                                        {item.note && <p className="text-body-sm tu-sheet__muted">{item.note}</p>}
+                                      </div>
+                                    </div>
+                                    <div className="tu-dish__foot">
+                                      <p className="text-label-md weight-semibold tu-dish__price">{item.price}</p>
+                                      {/* Who picked it, and me at the end once I add it, coming in from Add's side */}
+                                      <span className="tu-sheet__faces">
+                                        {others.map(id => <Sticker key={id} name={p.faces[id]} size="chip" />)}
+                                        <AnimatePresence initial={false}>
+                                          {mine && (
+                                            <motion.span
+                                              key="me"
+                                              className="tu-sheet__me"
+                                              initial={{ opacity: 0, transform: reduce ? 'none' : `translate(${tokens.space.xs}px, 0px) scale(${m['morph-enter-scale']})`, filter: blur }}
+                                              animate={{ opacity: 1, transform: 'translate(0px, 0px) scale(1)', filter: 'blur(0px)', transition: { duration: reduce ? 0 : m['enter-ms'] / 1000, ease } }}
+                                              exit={{ opacity: 0, transform: reduce ? 'none' : `translate(${tokens.space.xs}px, 0px) scale(${m['morph-enter-scale']})`, filter: blur, transition: { duration: reduce ? 0 : m['fade-ms'] / 1000, ease } }}
+                                            >
+                                              <Sticker name={p.faces.ari} size="chip" />
+                                            </motion.span>
+                                          )}
+                                        </AnimatePresence>
+                                      </span>
+                                      <AddButton added={mine} itemName={item.name} onToggle={() => toggle(item.name)} />
+                                    </div>
+                                  </Block>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ));
+                      })()}
+                      <Block i={m['stagger-max']}><p className="text-body-sm tu-sheet__subtle tu-sheet__pad">Prices with VAT. From the restaurant's own menu. Entrecôte photos are the restaurant's; other dish photos are illustrative, from Wikimedia Commons.</p></Block>
+                    </motion.div>
+                  </AnimatePresence>
+                </Stagger.Provider>
               </>
             )}
             {tab === 'Group' && (
@@ -246,6 +309,8 @@ export function DetailSheet(p: DetailSheetProps) {
           <p className="text-heading-lg tu-sheet__cost">≈ {euros(total)}</p>
         </motion.div>
       )}
+      {/* What I just added, with Undo, centred at the bottom; it comes up from past the edge and goes back down */}
+      <Toast label={`Added for ${p.whenLong ?? 'later'}`} shown={!!toast?.shown} actionLabel="Undo" onAction={undo} />
     </article>
   );
 }

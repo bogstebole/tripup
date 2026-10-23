@@ -285,6 +285,14 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - The map's credit moved out of the map onto the bar's layer, so the blur never softens it (the OSM credit stays readable).
 - New tokens: `action-bar/bg`, `action-bar/blur`, `action-bar/fade-start`.
 
+### Final UI, iteration 1.14: menu filters, an "added" toast, my face on what I pick
+- **Menu filters** right under the Menu title: All, Picked, Starters, Mains, Desserts, Drinks. They are the same toggles as the days, now one component (`ToggleChips`, tokens renamed to `toggle-chip/*`), and they combine ("Picked" plus "Desserts" shows both). A new filter swaps the list: the old one fades out, the new one cascades in from below. Each menu section carries its course in the data.
+- **Add:**
+  - The plus/check swap now grows in from a little smaller and sharpens from a blur.
+  - A toast comes up from past the bottom edge: a flat brand-blue pill (not glass, so it isn't another button) with a check, "Added for Today, 5 PM" and Undo. It stays 3 s (`motion.toast-ms`) and leaves the way it came, a little quicker. A new add while it's up just restarts it, and Undo takes the dish back off.
+  - My face joins the faces of whoever else picked the dish, coming in from Add's side, and leaves the same way.
+- New tokens: `toast/bg`, `toast/fg`, `motion.toast-ms`. New components: `ToggleChips`/`ToggleChip` (replaces `DayFilter`), `Toast`, `ToastSlot`.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

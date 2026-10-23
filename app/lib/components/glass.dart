@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../design/lucide.dart';
 import '../design/theme.dart';
 import '../design/tokens.dart';
+import 'stagger.dart';
 
 enum GlassKind { soft, primary }
 
@@ -122,15 +123,17 @@ class AddButton extends StatelessWidget {
     return Pressable(
       onTap: onTap,
       semanticLabel: added ? 'Remove $itemName from your picks' : 'Add $itemName to your picks',
-      // A small circle, with a full touch target around it
+      // A small circle, with a full touch target around it. Plus and check swap like an icon swap should:
+      // the new one grows in from a little smaller, sharpening from a blur, while the old one blurs away
       child: SizedBox.square(
         dimension: TokSize.touchTarget,
         child: Center(
           child: AnimatedSwitcher(
-            duration: TokMotion.fade,
+            duration: TokMotion.enter,
+            reverseDuration: TokMotion.fade,
             switchInCurve: TokMotion.easeOut,
             switchOutCurve: TokMotion.easeOut,
-            transitionBuilder: (child, a) => FadeTransition(opacity: a, child: ScaleTransition(scale: Tween(begin: TokMotion.pressScale, end: 1.0).animate(a), child: child)),
+            transitionBuilder: (child, a) => ScaleTransition(scale: Tween(begin: TokMotion.morphEnterScale, end: 1.0).animate(a), child: fadeBlurOut(a, child)),
             child: Glass(
               key: ValueKey(added),
               kind: added ? GlassKind.primary : GlassKind.soft,

@@ -22,7 +22,7 @@ class TopBar extends StatelessWidget {
   static const double contentHeight = TokSpace.xl + TokDim.buttonMd;
 
   /// The same with the day filter under it.
-  static const double contentHeightWithFilter = contentHeight + TokSpace.md + TokDim.dayChipHeight;
+  static const double contentHeightWithFilter = contentHeight + TokSpace.md + TokDim.toggleChipHeight;
 
   @override
   Widget build(BuildContext context) {

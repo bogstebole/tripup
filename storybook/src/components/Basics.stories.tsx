@@ -2,7 +2,8 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
 import { EVENT, MENU, PEOPLE, TRIP_DAYS } from '../data';
 import { AddButton } from './AddButton';
-import { DayFilter } from './DayFilter';
+import { Toast } from './Toast';
+import { ToggleChips } from './ToggleChips';
 import { DishSticker } from './DishSticker';
 import { InfoChips } from './InfoChips';
 import { KnowRow, KnowSection } from './KnowSection';
@@ -84,11 +85,11 @@ export const Add: Story = {
 };
 
 export const Days: Story = {
-  name: 'DayFilter',
-  parameters: { docs: { description: { story: 'Under the top bar: All, then each day of the trip ("Tue 12"). Toggles: flat (muted fill, no shadow) when off, primary glass when on, so only the picked days stand out. Days combine; with none picked, All is on. On the map, other days\' pins and places fade out and the map frames what is left; All brings back the opening view. Scrolls sideways.' } } },
+  name: 'ToggleChips',
+  parameters: { docs: { description: { story: 'A row of toggles, used for the days under the top bar ("Tue 12") and the courses in the menu. Flat (muted fill, no shadow) when off, primary glass when on, so only the picked ones stand out. Days combine; with none picked, All is on. On the map, other days\' pins and places fade out and the map frames what is left; All brings back the opening view. Scrolls sideways.' } } },
   render: function Render() {
     const [days, setDays] = useState<number[]>([]);
-    return <div style={{ width: 393 }}><DayFilter days={TRIP_DAYS} selected={days} onChange={setDays} /></div>;
+    return <div style={{ width: 393 }}><ToggleChips label="Filter by day" options={TRIP_DAYS.map(d => ({ id: d.day, label: d.label }))} selected={days} onChange={setDays} /></div>;
   },
 };
 
@@ -102,4 +103,18 @@ export const Dish: Story = {
       <span style={{ display: 'flex', gap: 'var(--space-3xs)' }}><DishSticker photo="entrecote" size="pick" tilt={3} /><DishSticker photo="fondant" size="pick" tilt={-3} /></span>
     </div>
   ),
+};
+
+export const Note: Story = {
+  name: 'Toast',
+  parameters: { docs: { description: { story: 'A flat pill in the brand blue (not glass, so it does not read as a button): a check, the one line that matters, and Undo. Shown when a dish is added; it comes up from past the bottom edge, stays for toast-ms (3 s), and goes back down the way it came, a little quicker. CSS transitions, so a new one while it is up just retargets.' } } },
+  render: function Render() {
+    const [shown, setShown] = useState(true);
+    return (
+      <div style={{ position: 'relative', width: 343, height: 120, overflow: 'hidden', borderRadius: 'var(--radius-card)', background: 'var(--color-bg-default)' }}>
+        <button type="button" className="text-label-md" style={{ margin: 'var(--space-md)' }} onClick={() => setShown(s => !s)}>{shown ? 'Hide' : 'Show'}</button>
+        <Toast label="Added for Today, 5 PM" shown={shown} actionLabel="Undo" onAction={() => setShown(false)} />
+      </div>
+    );
+  },
 };

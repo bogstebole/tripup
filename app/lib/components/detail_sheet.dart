@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart' show CarouselView;
@@ -11,8 +12,22 @@ import 'glass.dart';
 import 'progressive_blur.dart';
 import 'segmented_tabs.dart';
 import 'stagger.dart';
+import 'toast.dart';
+import 'toggle_chips.dart';
 
 const detailTabs = ['Overview', 'Menu', 'Group'];
+
+/// What the menu can be narrowed to: what anyone has picked, or a course.
+enum MenuFilter {
+  picked('Picked'),
+  starters('Starters'),
+  mains('Mains'),
+  desserts('Desserts'),
+  drinks('Drinks');
+
+  const MenuFilter(this.label);
+  final String label;
+}
 
 /// The full view of a plan (see Storybook: Screens/Trip → Full view). The tabs and close sit in a header at the
 /// top, and each tab replaces the whole page under it: the new page staggers in with a light blur while the old
@@ -29,7 +44,7 @@ class DetailSheet extends StatefulWidget {
   State<DetailSheet> createState() => _DetailSheetState();
 }
 
-class _DetailSheetState extends State<DetailSheet> {
+class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStateMixin {
   int _tab = 0;
 
   /// Which way the last tab change went: 1 to the right, -1 to the left, 0 for the page the sheet opened on.
@@ -46,11 +61,49 @@ class _DetailSheetState extends State<DetailSheet> {
   /// The dishes I'll have: my picks from before, then whatever I add or remove here.
   Set<String>? _mine;
 
+  /// The menu's filter. Empty means everything.
+  Set<MenuFilter> _filter = const {};
+
+  /// Set once the filter changes, so the list under it swaps on its own instead of arriving with the page.
+  bool _filtered = false;
+
+  // The "added" toast: up quickly, down a little quicker, both ease-out
+  late final _toast = AnimationController(vsync: this, duration: TokMotion.enter, reverseDuration: TokMotion.fade);
+  late final _toastShown = CurvedAnimation(parent: _toast, curve: TokMotion.easeOut, reverseCurve: TokMotion.easeOut.flipped);
+  MenuItem? _toasted;
+  Timer? _toastTimer;
+
+  void _toggle(MenuItem item) {
+    final adding = !_mine!.contains(item.name);
+    setState(() => adding ? _mine!.add(item.name) : _mine!.remove(item.name));
+    if (adding) {
+      setState(() => _toasted = item);
+      _toast.forward();
+      _toastTimer?.cancel();
+      _toastTimer = Timer(TokMotion.toast, _toast.reverse);
+    } else if (_toasted?.name == item.name) {
+      _hideToast();
+    }
+  }
+
+  void _hideToast() {
+    _toastTimer?.cancel();
+    _toast.reverse();
+  }
+
+  void _undo() {
+    final item = _toasted;
+    if (item != null && _mine!.contains(item.name)) setState(() => _mine!.remove(item.name));
+    _hideToast();
+  }
+
   /// How far the page has scrolled under the top edge, 0–1 over the top fade's height.
   final _under = ValueNotifier<double>(0);
 
   @override
   void dispose() {
+    _toastTimer?.cancel();
+    _toast.dispose();
     _under.dispose();
     super.dispose();
   }
@@ -80,6 +133,20 @@ class _DetailSheetState extends State<DetailSheet> {
                   ? child
                   : fadeBlurOut(anim, child, to: (MediaQuery.maybeDisableAnimationsOf(context) ?? false) ? Offset.zero : Offset(-_dir * TokDim.tabSlide, 0)),
               child: KeyedSubtree(key: ValueKey(_tab), child: _page(context)),
+            ),
+          ),
+          // What I just added, with Undo, centred at the bottom of the page
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: TokSpace.md,
+            child: Center(
+              child: ToastSlot(
+                animation: _toastShown,
+                child: _toasted == null
+                    ? const SizedBox.shrink(key: ValueKey(''))
+                    : Toast(key: ValueKey(_toasted!.name), label: 'Added for ${widget.plan.whenLong}', actionLabel: 'Undo', onAction: _undo),
+              ),
             ),
           ),
           // The header's backdrop shows once content goes under it, so a page at rest isn't faded at the top
@@ -132,6 +199,7 @@ class _DetailSheetState extends State<DetailSheet> {
                       setState(() {
                         _dir = (i - _tab).sign;
                         _tab = i;
+                        _filtered = false;   // the list arrives with its page again
                       });
                     },
                   ),
@@ -200,7 +268,6 @@ class _DetailSheetState extends State<DetailSheet> {
         },
       );
 
-  void _toggle(String name) => setState(() => _mine!.contains(name) ? _mine!.remove(name) : _mine!.add(name));
 
   // ---------- Overview: Bogdan's design, then the place's facts from Google Maps
   Widget _overview(BuildContext context) {
@@ -227,26 +294,59 @@ class _DetailSheetState extends State<DetailSheet> {
     final t = context.tok;
     return _withMenu((sections, mine) {
       final pickers = {for (final s in sections) for (final i in s.items) ...i.pickedBy.where((id) => id != myId), if (mine.isNotEmpty) myId};
-      // One block per title and per dish, so the list cascades in rather than arriving in lumps
-      return _scroll(_enter(children: [
-        _PageTitle(title: 'Menu', subtitle: '${pickers.length} of ${people.length} have picked. Add what you\'ll have, and the bill splits itself.'),
-        for (final s in sections) ...[
+      bool shows(MenuSection s, MenuItem i) =>
+          _filter.isEmpty || _filter.any((f) => f == MenuFilter.picked ? i.pickedBy.any((id) => id != myId) || mine.contains(i.name) : f.name == s.course);
+      final visible = [for (final s in sections) (s, [for (final i in s.items) if (shows(s, i)) i])].where((e) => e.$2.isNotEmpty);
+      final rise = const Offset(0, TokDim.tabEnterShift);
+      return _scroll(Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        _enter(children: [
+          _PageTitle(title: 'Menu', subtitle: '${pickers.length} of ${people.length} have picked. Add what you\'ll have, and the bill splits itself.'),
           Padding(
-            padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.xl, TokSpace.xs, 0),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x3xs, children: [
-              Text(s.title, style: TokText.headingSm.copyWith(color: t.textDefault)),
-              if (s.note != null) Text(s.note!, style: TokText.bodySm.copyWith(color: t.textMuted)),
-            ]),
+            padding: const EdgeInsets.only(top: TokSpace.md),
+            child: ToggleChips<MenuFilter>(
+              options: MenuFilter.values,
+              selected: _filter,
+              labelOf: (f) => f.label,
+              padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
+              onChanged: (f) => setState(() {
+                _filter = f;
+                _filtered = true;
+              }),
+            ),
           ),
-          for (var i = 0; i < s.items.length; i++)
-            Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              if (i > 0) const _Hairline(),
-              _MenuRow(item: s.items[i], index: i, added: mine.contains(s.items[i].name), onToggle: _toggle),
-            ]),
-        ],
-        Padding(
-          padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.xl, TokSpace.xs, 0),
-          child: Text('Prices with VAT. From the restaurant\'s own menu. Entrecôte photos are the restaurant\'s; other dish photos are illustrative, from Wikimedia Commons.', style: TokText.bodySm.copyWith(color: t.textSubtle)),
+        ]),
+        // A new filter swaps the list: the old one fades out, the new one cascades in
+        AnimatedSwitcher(
+          duration: TokMotion.fade,
+          layoutBuilder: (current, previous) => Stack(alignment: Alignment.topCenter, children: [...previous, ?current]),
+          transitionBuilder: (child, anim) => child.key == ValueKey(_filter) ? child : fadeBlurOut(anim, child),
+          child: StaggerIn(
+            key: ValueKey(_filter),
+            // With the page, it follows the title and chips; on its own, it waits for the old list to go
+            from: _filtered ? rise : (_dir == 0 ? rise : Offset(_dir * TokDim.tabSlide, 0)),
+            delay: _filtered || _dir != 0 ? TokMotion.pageEnterDelay + (_filtered ? Duration.zero : TokMotion.stagger * 2) : TokMotion.stagger * 2,
+            // One block per title and per dish, so the list cascades in rather than arriving in lumps
+            children: [
+              for (final (s, items) in visible) ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.xl, TokSpace.xs, 0),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x3xs, children: [
+                    Text(s.title, style: TokText.headingSm.copyWith(color: t.textDefault)),
+                    if (s.note != null) Text(s.note!, style: TokText.bodySm.copyWith(color: t.textMuted)),
+                  ]),
+                ),
+                for (var i = 0; i < items.length; i++)
+                  Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                    if (i > 0) const _Hairline(),
+                    _MenuRow(item: items[i], index: i, added: mine.contains(items[i].name), onToggle: _toggle),
+                  ]),
+              ],
+              Padding(
+                padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.xl, TokSpace.xs, 0),
+                child: Text('Prices with VAT. From the restaurant\'s own menu. Entrecôte photos are the restaurant\'s; other dish photos are illustrative, from Wikimedia Commons.', style: TokText.bodySm.copyWith(color: t.textSubtle)),
+              ),
+            ],
+          ),
         ),
       ]));
     });
@@ -417,12 +517,13 @@ class _MenuRow extends StatelessWidget {
   final MenuItem item;
   final int index;
   final bool added;
-  final ValueChanged<String> onToggle;
+  final ValueChanged<MenuItem> onToggle;
 
   @override
   Widget build(BuildContext context) {
     final t = context.tok;
     final others = item.pickedBy.where((id) => id != myId).toList();
+    final pickedBy = [for (final id in [...others, if (added) myId]) people.firstWhere((p) => p.id == id).name];
     // Add's touch target reaches past its circle; the outer right inset leaves the circle on the text's edge
     const addInset = (TokSize.touchTarget - TokDim.buttonPillHeight) / 2;
     return Padding(
@@ -443,12 +544,15 @@ class _MenuRow extends StatelessWidget {
         ),
         Row(spacing: TokSpace.xs, children: [
           Expanded(child: Text(item.price, style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textDefault))),
-          if (others.isNotEmpty)
-            Semantics(
-              label: 'Picked by ${others.map((id) => people.firstWhere((p) => p.id == id).name).join(', ')}',
-              child: Overlapped(overlap: TokDim.avatarOverlap, children: [for (final id in others) Sticker(faceOf(id), size: StickerSize.chip)]),
-            ),
-          AddButton(added: added, itemName: item.name, onTap: () => onToggle(item.name)),
+          // Who picked it, and me at the end once I add it
+          Semantics(
+            label: pickedBy.isEmpty ? null : 'Picked by ${pickedBy.join(', ')}',
+            child: Overlapped(overlap: TokDim.avatarOverlap, children: [
+              for (final id in others) Sticker(faceOf(id), size: StickerSize.chip),
+              _MyFace(on: added),
+            ]),
+          ),
+          AddButton(added: added, itemName: item.name, onTap: () => onToggle(item)),
         ]),
       ]),
     );
@@ -497,6 +601,28 @@ class _PersonRow extends StatelessWidget {
       ]),
     );
   }
+}
+
+/// My face joining the faces of whoever picked a dish: it comes in from Add's side, growing from a little smaller
+/// and sharpening from a blur, and leaves the same way when I take the dish off.
+class _MyFace extends StatelessWidget {
+  const _MyFace({required this.on});
+  final bool on;
+
+  @override
+  Widget build(BuildContext context) => AnimatedSwitcher(
+        duration: TokMotion.enter,
+        reverseDuration: TokMotion.fade,
+        switchInCurve: TokMotion.easeOut,
+        switchOutCurve: TokMotion.easeOut,
+        transitionBuilder: (child, a) => SizeTransition(
+          axis: Axis.horizontal,
+          sizeFactor: a,
+          alignment: Alignment.centerLeft,
+          child: ScaleTransition(scale: Tween(begin: TokMotion.morphEnterScale, end: 1.0).animate(a), child: fadeBlurOut(a, child, to: const Offset(TokDim.avatarOverlap, 0))),
+        ),
+        child: on ? Sticker(faceOf(myId), key: const ValueKey(true), size: StickerSize.chip) : const SizedBox.shrink(key: ValueKey(false)),
+      );
 }
 
 /// The rest of a person's picks, as one more sticker on the pile: "+2".
