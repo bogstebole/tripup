@@ -1,7 +1,10 @@
 import 'dart:math' as math;
 
+import 'dart:ui' as ui;
+
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import '../data.dart';
@@ -170,8 +173,6 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  static double _interval(double begin, double end, double v) => ((v - begin) / (end - begin)).clamp(0.0, 1.0);
-
   @override
   Widget build(BuildContext context) {
     final measured = _midSize != null && _miniSize != null;
@@ -228,9 +229,14 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
     final angle = math.atan2(toPlace.dy, toPlace.dx);
     final center = Offset.lerp(mapCenter, edgeCenter, eC)!;
 
-    final midOp = _interval(0.5, 1, m) * (1 - _interval(0, 0.5, eC));
-    final miniOp = _interval(0.5, 1, 1 - m) * (1 - _interval(0, 0.5, eC));
-    final edgeOp = _interval(0.5, 1, eC);
+    // Overlapping crossfades, never a frame with neither state showing; a light blur hides the overlap
+    final onMapOp = 1 - smoothstep(0.15, 0.65, eC);
+    final edgeOp = smoothstep(0.35, 0.85, eC);
+    final midOp = smoothstep(0.35, 0.85, m) * onMapOp;
+    final miniOp = (1 - smoothstep(0.15, 0.65, m)) * onMapOp;
+    final seam = TokMotion.crossfadeBlur * 4 * math.max(smoothstep(0.35, 0.85, m) * (1 - smoothstep(0.15, 0.65, m)), onMapOp * edgeOp);
+    // The card's content shrinks with the surface instead of being cut off by it (it's gone before it gets small)
+    final midScale = math.min(1.0, size.width / _midSize!.width);
     final arrowDist = edgeSize.width / 2 + TokSpace.x3xs + TokDim.widgetEdgeArrow / 2;
     final hide = widget.hidden ? 0.0 : 1.0;
 
@@ -259,7 +265,15 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
             ignoring: widget.hidden,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: () => m > 0.5 && eC < 0.5 ? widget.onOpen?.call() : widget.onTap?.call(),
+              onTap: () {
+                if (m > 0.5 && eC < 0.5) {
+                  HapticFeedback.lightImpact();
+                  widget.onOpen?.call();
+                } else {
+                  HapticFeedback.mediumImpact();   // focusing a pin: a heavier tick than a button
+                  widget.onTap?.call();
+                }
+              },
               child: Semantics(
                 button: true,
                 label: m > 0.5 ? 'Open ${widget.plan.name}' : '${widget.plan.name}, ${widget.plan.eta}',
@@ -268,12 +282,12 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
                   decoration: surfaceDecoration(context, BorderRadius.circular(radius)),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(radius),
-                    child: Stack(clipBehavior: Clip.hardEdge, children: [
+                    child: _Seam(sigma: seam, child: Stack(clipBehavior: Clip.hardEdge, children: [
                       if (midOp > 0)
                         Positioned(
                           top: 0,
                           left: (size.width - _midSize!.width) / 2,
-                          child: Opacity(opacity: midOp, child: UpNextMid(plan: widget.plan, onOpen: widget.onOpen)),
+                          child: Opacity(opacity: midOp, child: Transform.scale(scale: midScale, alignment: Alignment.topCenter, child: UpNextMid(plan: widget.plan, onOpen: widget.onOpen))),
                         ),
                       if (miniOp > 0)
                         Positioned(
@@ -283,7 +297,7 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
                         ),
                       if (edgeOp > 0)
                         Positioned.fill(child: Opacity(opacity: edgeOp, child: Center(child: Sticker(widget.plan.sticker, size: StickerSize.edge)))),
-                    ]),
+                    ])),
                   ),
                 ),
               ),
@@ -296,6 +310,26 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
 }
 
 double lerpDouble(double a, double b, double t) => a + (b - a) * t;
+
+/// 0 before [a], 1 after [b], an S-curve between: for crossfade windows driven by a spring's progress.
+double smoothstep(double a, double b, double v) {
+  final t = ((v - a) / (b - a)).clamp(0.0, 1.0);
+  return t * t * (3 - 2 * t);
+}
+
+/// Blurs its child slightly while two states overlap, so the crossfade reads as one object changing.
+class _Seam extends StatelessWidget {
+  const _Seam({required this.sigma, required this.child});
+  final double sigma;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) =>
+      sigma < 0.05 ? child : ImageFiltered(imageFilter: ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma), child: child);
+}
+
+/// The same seam blur, for other files.
+Widget crossfadeSeam({required double sigma, required Widget child}) => _Seam(sigma: sigma, child: child);
 
 /// Reports its child's size after layout.
 class _SizeReporter extends SingleChildRenderObjectWidget {

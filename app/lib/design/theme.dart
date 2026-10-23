@@ -1,4 +1,5 @@
 import 'package:flutter/physics.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import 'tokens.dart';
@@ -69,7 +70,7 @@ void paintPathShadows(Canvas canvas, Path path, List<BoxShadow> shadows) {
   }
 }
 
-/// Scales to the press token while held, like the CSS `:active` rule.
+/// Scales to the press token while held, like the CSS `:active` rule, and ticks a light haptic on the tap.
 class Pressable extends StatefulWidget {
   const Pressable({super.key, required this.child, this.onTap, this.semanticLabel, this.button = true});
   final Widget child;
@@ -99,7 +100,10 @@ class _PressableState extends State<Pressable> {
         onTapDown: (_) => _set(true),
         onTapUp: (_) => _set(false),
         onTapCancel: () => _set(false),
-        onTap: widget.onTap,
+        onTap: () {
+          HapticFeedback.lightImpact();   // same frame as the press, one per tap
+          widget.onTap?.call();
+        },
         child: AnimatedScale(
           scale: _down && !reduce ? TokMotion.pressScale : 1,
           duration: TokMotion.press,

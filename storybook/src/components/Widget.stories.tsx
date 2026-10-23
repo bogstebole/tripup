@@ -23,7 +23,7 @@ const meta = {
           '| **mini** | The map starts moving (pan or zoom), or any later plan | Grows back to mid |',
           '| **edge** | The place leaves the screen; the pin slides along the edge and the arrow points at it | Pans the map to the place |',
           '',
-          'Motion: size, position and corner radius follow one spring (spring-morph: 0.45 s, bounce 0.12); content crossfades in 160 ms with ease-out. While the map is being dragged, the pin follows the finger frame by frame, with no animation. Reduced motion: instant state changes, crossfade only.',
+          'Motion: size, position and corner radius follow one spring (spring-morph: 0.45 s, bounce 0.12). The two contents crossfade with overlap, so there is never a frame with neither; a 2 px blur (crossfade-blur) hides the overlap, and the outgoing card content shrinks with the surface. While the map is being dragged, the pin follows the finger frame by frame. Haptics on the phone: light on buttons, medium when a pin gets focus. Reduced motion: instant state changes, crossfade only.',
         ].join('\n'),
       },
     },

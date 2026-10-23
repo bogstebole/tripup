@@ -89,7 +89,9 @@ export const Motion: Story = {
       rows={[
         ['spring-morph', `${tokens.motion['spring-morph'].duration} s, bounce ${tokens.motion['spring-morph'].bounce}`, 'Widget mid ↔ mini ↔ edge'],
         ['spring-expand', `${tokens.motion['spring-expand'].duration} s, bounce ${tokens.motion['spring-expand'].bounce}`, 'Widget → full view and back'],
+        ['spring-collapse', `${tokens.motion['spring-collapse'].duration} s, bounce ${tokens.motion['spring-collapse'].bounce}`, 'Full view → card: quicker than opening, no bounce'],
         ['spring-snap', `${tokens.motion['spring-snap'].duration} s, bounce ${tokens.motion['spring-snap'].bounce}`, 'Tab pill, map recenter'],
+        ['crossfade-blur', `${tokens.motion['crossfade-blur']} px`, 'Blur on the seam while two states overlap (never a blank frame)'],
         ['press-scale / press-ms', `${tokens.motion['press-scale']} / ${tokens.motion['press-ms']} ms`, 'Every button press'],
         ['fade-ms', `${tokens.motion['fade-ms']} ms, ease-out`, 'Content crossfades'],
         ['ease-out', tokens.motion['ease-out'].join(', '), 'Entering, fades'],

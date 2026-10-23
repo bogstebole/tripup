@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
+import '../design/lucide.dart';
 import '../design/theme.dart';
 import '../design/tokens.dart';
 
@@ -41,7 +42,7 @@ enum TuButtonSize { sm, md, lg }
 /// Round icon button. Every icon button in TripUp is this component (see Storybook: Components/Button).
 class TuButton extends StatelessWidget {
   const TuButton({super.key, required this.icon, required this.label, this.kind = GlassKind.soft, this.size = TuButtonSize.md, this.onTap});
-  final IconData icon;
+  final String icon;
   final String label;
   final GlassKind kind;
   final TuButtonSize size;
@@ -66,7 +67,7 @@ class TuButton extends StatelessWidget {
         height: d,
         radius: BorderRadius.circular(TokRadius.pill),
         child: Center(
-          child: Icon(icon, size: TokDim.buttonIcon, color: kind == GlassKind.soft ? t.cButtonSoftFg : t.cButtonPrimaryFg),
+          child: LucideIcon(icon, size: TokDim.buttonIcon, color: kind == GlassKind.soft ? t.cButtonSoftFg : t.cButtonPrimaryFg),
         ),
       ),
     );
@@ -75,12 +76,29 @@ class TuButton extends StatelessWidget {
 
 /// The Lucide icons used in the app, in one place.
 abstract final class TuIcons {
-  static const back = LucideIcons.arrowLeft;
-  static const forward = LucideIcons.arrowRight;
-  static const calendar = LucideIcons.calendar;
-  static const places = LucideIcons.mapPin;
-  static const money = LucideIcons.euro;
-  static const add = LucideIcons.plus;
-  static const close = LucideIcons.x;
-  static const star = LucideIcons.star;
+  static const back = Lucide.arrowLeft;
+  static const forward = Lucide.arrowRight;
+  static const calendar = Lucide.calendar;
+  static const places = Lucide.mapPin;
+  static const money = Lucide.euro;
+  static const add = Lucide.plus;
+  static const close = Lucide.x;
+  static const star = Lucide.star;
+}
+
+/// A Lucide icon with a 2 px stroke at any size (like lucide-react's `absoluteStrokeWidth` in Storybook).
+class LucideIcon extends StatelessWidget {
+  const LucideIcon(this.body, {super.key, required this.size, required this.color, this.filled = false});
+  final String body;
+  final double size;
+  final Color color;
+  final bool filled;
+
+  @override
+  Widget build(BuildContext context) {
+    final stroke = TokDim.iconStroke * 24 / size;   // the view box is 24 wide
+    final svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${filled ? '#000' : 'none'}" stroke="#000" '
+        'stroke-width="$stroke" stroke-linecap="round" stroke-linejoin="round">$body</svg>';
+    return SvgPicture.string(svg, width: size, height: size, colorFilter: ColorFilter.mode(color, BlendMode.srcIn));
+  }
 }

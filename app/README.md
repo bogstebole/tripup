@@ -29,4 +29,7 @@ After changing `design-system/tokens.json`, run `node ../design-system/build-tok
 - Moving the map collapses the card to mini; tapping the mini grows it back (the map makes room first). When the place leaves the screen the pin slides to the edge and points at it; tapping it flies the map there.
 - Full view: the card's rect grows into the sheet on `spring-expand` while the map blurs; its content crossfades. Close with X, a tap on the backdrop, or a pull down on the photos (the pull's speed goes into the close spring).
 - My location: dot with a heading cone, or an edge capsule pointing at me when I'm off-screen, plus a recenter button.
+- Crossfades overlap (no blank frame) with a light blur on the seam (`crossfade-blur`); closing the full view uses `spring-collapse`, quicker than opening and without bounce, and hands back to the pin's card the moment they line up.
+- Haptics: light on every button and row, a selection tick on tabs, medium when a pin gets focus, light when a pull-to-close commits.
+- Icons: Lucide geometry from the same lucide-react package as Storybook (`node ../design-system/build-icons.mjs` writes `lib/design/lucide.dart`), drawn with a 2 px stroke at any size.
 - Reduced motion: state changes are instant, fades stay.

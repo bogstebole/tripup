@@ -142,6 +142,7 @@
   --d-button-md: 44px;
   --d-button-lg: 56px;
   --d-button-icon: 16px;
+  --d-icon-stroke: 2px;
   --d-surface-radius: 24px;
   --d-surface-edge-width: 1px;
   --d-chip-height: 40px;
@@ -185,6 +186,7 @@
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --crossfade-blur: 2px;
   --press-scale: 0.97;
   --press-ms: 120ms;
   --fade-ms: 160ms;

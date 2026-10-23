@@ -241,6 +241,7 @@ abstract final class TokDim {
   static const double buttonMd = 44;
   static const double buttonLg = 56;
   static const double buttonIcon = 16;
+  static const double iconStroke = 2;
   static const double surfaceRadius = 24;
   static const double surfaceEdgeWidth = 1;
   static const double chipHeight = 40;
@@ -333,7 +334,9 @@ class TokSpring {
 abstract final class TokMotion {
   static const springMorph = TokSpring(0.45, 0.12);
   static const springExpand = TokSpring(0.55, 0.08);
+  static const springCollapse = TokSpring(0.38, 0);
   static const springSnap = TokSpring(0.35, 0);
+  static const double crossfadeBlur = 2;
   static const double pressScale = 0.97;
   static const press = Duration(milliseconds: 120);
   static const fade = Duration(milliseconds: 160);

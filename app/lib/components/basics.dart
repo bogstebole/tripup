@@ -1,7 +1,5 @@
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../design/theme.dart';
 import '../design/tokens.dart';
@@ -117,9 +115,6 @@ class _RenderPull extends RenderShiftedBox {
   }
 }
 
-/// Lucide "star", filled (the icon font only has the outline).
-const _lucideStar = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#000" stroke="#000" stroke-width="2" stroke-linejoin="round" d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></svg>';
-
 /// Filled brand star, rating and review count, then the place type.
 class RatingLine extends StatelessWidget {
   const RatingLine({super.key, required this.rating, required this.kind, this.center = true});
@@ -136,7 +131,7 @@ class RatingLine extends StatelessWidget {
       spacing: TokSpace.x3xs,
       children: [
         Row(mainAxisSize: MainAxisSize.min, spacing: TokSpace.x2xs, children: [
-          SvgPicture.string(_lucideStar, width: TokSize.iconSm, height: TokSize.iconSm, colorFilter: ColorFilter.mode(t.iconBrand, BlendMode.srcIn)),
+          LucideIcon(TuIcons.star, size: TokSize.iconSm, color: t.iconBrand, filled: true),
           Text(rating, style: muted),
         ]),
         Text('-', style: TokText.labelSm.copyWith(color: t.textMuted)),
@@ -216,7 +211,7 @@ class KnowRow extends StatelessWidget {
               ]),
             ),
             ?trailing,
-            Icon(LucideIcons.arrowRight, size: TokSize.iconSm, color: t.iconBrand),
+            LucideIcon(TuIcons.forward, size: TokSize.iconSm, color: t.iconBrand),
           ]),
         ),
       ),

@@ -207,6 +207,13 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - Checked on the iPhone 16 simulator (every state and transition above) and installed on Bogdan's iPhone.
 - Files: `design-system/`, `storybook/`, `app/` (see each README)
 
+### Final UI, iteration 1.1: haptics, 2 px icons, transitions without blank frames
+- **Full view → card:** the "second of nothing, then the card pops in" was a layout bug: the card's content inside the morph had no height bound and was never drawn, so only the real card appeared at the end. Fixed, and the crossfade now overlaps (the sheet's content leaves while the card's arrives) with a 2 px blur on the seam, per Emil's crossfade recipe. Closing uses a new `spring-collapse` (0.38 s, no bounce): the system's answer is quicker than the opening. The real card takes over the moment the morph lines up with it.
+- **Pin mid ↔ mini ↔ edge:** the same blank-middle problem (both contents at 0 halfway); now overlapping with the seam blur, and the card's content shrinks with the surface instead of being cut off.
+- **Haptics:** light on every button and row, a selection tick on tab changes, medium when a pin gets focus, light when pulling the full view down commits.
+- **Icons:** Lucide drawn as SVG from the same lucide-react package as Storybook, with a true 2 px stroke at 16 px (token `icon/stroke`). `design-system/build-icons.mjs` writes them for Flutter.
+- Checked frame by frame on the simulator at 6× slow motion; installed on Bogdan's iPhone.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

@@ -70,7 +70,7 @@ for (const mode of modes) {
     for (const [k, v] of Object.entries(dims)) css.push(`  --d-${kebab(k)}: ${k.endsWith('fade-start') ? v : v + 'px'};`);
     const bez = a => `cubic-bezier(${a.join(', ')})`;
     css.push(`  --ease-out: ${bez(t.motion['ease-out'])};`, `  --ease-in-out: ${bez(t.motion['ease-in-out'])};`, `  --ease-drawer: ${bez(t.motion['ease-drawer'])};`);
-    css.push(`  --press-scale: ${t.motion['press-scale']};`, `  --press-ms: ${t.motion['press-ms']}ms;`, `  --fade-ms: ${t.motion['fade-ms']}ms;`);
+    css.push(`  --crossfade-blur: ${t.motion['crossfade-blur']}px;`, `  --press-scale: ${t.motion['press-scale']};`, `  --press-ms: ${t.motion['press-ms']}ms;`, `  --fade-ms: ${t.motion['fade-ms']}ms;`);
   }
   css.push('}');
 }
@@ -114,8 +114,8 @@ dart.push('}', '');
 dart.push('/// Apple-style spring: perceived duration (s) and bounce (0 = no overshoot).');
 dart.push('class TokSpring {', '  const TokSpring(this.duration, this.bounce);', '  final double duration;', '  final double bounce;', '}', '');
 dart.push('abstract final class TokMotion {');
-for (const k of ['spring-morph', 'spring-expand', 'spring-snap']) dart.push(`  static const ${camel(k)} = TokSpring(${t.motion[k].duration}, ${t.motion[k].bounce});`);
-dart.push(`  static const double pressScale = ${t.motion['press-scale']};`, `  static const press = Duration(milliseconds: ${t.motion['press-ms']});`, `  static const fade = Duration(milliseconds: ${t.motion['fade-ms']});`);
+for (const k of ['spring-morph', 'spring-expand', 'spring-collapse', 'spring-snap']) dart.push(`  static const ${camel(k)} = TokSpring(${t.motion[k].duration}, ${t.motion[k].bounce});`);
+dart.push(`  static const double crossfadeBlur = ${t.motion['crossfade-blur']};`, `  static const double pressScale = ${t.motion['press-scale']};`, `  static const press = Duration(milliseconds: ${t.motion['press-ms']});`, `  static const fade = Duration(milliseconds: ${t.motion['fade-ms']});`);
 for (const k of ['ease-out', 'ease-in-out', 'ease-drawer']) dart.push(`  static const ${camel(k)} = Cubic(${t.motion[k].join(', ')});`);
 dart.push('}');
 mkdirSync(join(root, 'app/lib/design'), { recursive: true });

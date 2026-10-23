@@ -50,7 +50,10 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     _loadMap();
     _map.mapEventStream.listen(_onMapEvent);
     _open.addListener(() {
-      if (_open.value <= 0.001 && !_open.isAnimating && _sheet && _closing) {
+      // Hand back to the pin's card as soon as the overlay is within a pixel of it; the spring's
+      // last sub-pixel crawl would otherwise leave the real card hidden for no visible reason
+      if (_sheet && _closing && _open.value <= 0.002) {
+        _open.stop();
         setState(() => _sheet = _closing = false);
       }
     });
@@ -148,7 +151,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       setState(() => _sheet = _closing = false);
       return;
     }
-    springTo(_open, 0, TokMotion.springExpand, velocity: velocity);
+    springTo(_open, 0, TokMotion.springCollapse, velocity: velocity);   // the system's answer: quicker than opening, no bounce
   }
 
   @override
@@ -245,8 +248,11 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
         final rect = Rect.lerp(_from, to, v)!;
         final pull = _drag.value.clamp(0.0, double.infinity);
         final shrink = 1 - (pull / to.height) * (1 - TokMotion.pressScale) * 4;
-        final midOp = 1 - ((p - 0) / 0.35).clamp(0.0, 1.0);
-        final sheetOp = ((p - 0.25) / 0.45).clamp(0.0, 1.0);
+        // Overlapping crossfade: the card's content leaves over the first half of the way, the sheet's
+        // arrives over the second, both are partly there in the middle (blurred slightly), never neither
+        final midOp = 1 - smoothstep(0.05, 0.55, p);
+        final sheetOp = smoothstep(0.3, 0.8, p);
+        final seam = TokMotion.crossfadeBlur * 4 * midOp * sheetOp;
         final sx = rect.width / to.width;
         return Stack(children: [
           // Backdrop: the map and bars blur away behind the full view
@@ -270,12 +276,10 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
                   decoration: surfaceDecoration(context, BorderRadius.circular(TokDim.surfaceRadius)),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(TokDim.surfaceRadius),
-                    child: Stack(children: [
+                    child: crossfadeSeam(sigma: seam, child: Stack(children: [
                       if (midOp > 0)
-                        Positioned(
-                          top: 0,
-                          left: 0,
-                          right: 0,
+                        // The card's own content at its own width, scaled with the surface from its top edge
+                        Positioned.fill(
                           child: Opacity(
                             opacity: midOp,
                             child: Transform.scale(
@@ -285,6 +289,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
                                 alignment: Alignment.topCenter,
                                 minWidth: _from!.width,
                                 maxWidth: _from!.width,
+                                minHeight: 0,
                                 maxHeight: double.infinity,
                                 child: UpNextMid(plan: _upNext),
                               ),
@@ -315,9 +320,10 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
                                   onHeaderDragEnd: (d) {
                                     final vy = d.velocity.pixelsPerSecond.dy;
                                     if (_drag.value > TokSpace.x5xl * 2 || vy > 900) {
+                                      HapticFeedback.lightImpact();   // the pull commits
                                       // Hand the finger's speed to the close spring so it doesn't stall
                                       _closeSheet(velocity: -vy / to.height);
-                                      springTo(_drag, 0, TokMotion.springExpand);
+                                      springTo(_drag, 0, TokMotion.springCollapse);
                                     } else {
                                       springTo(_drag, 0, TokMotion.springSnap, velocity: vy);
                                     }
@@ -327,7 +333,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
                             ),
                           ),
                         ),
-                    ]),
+                    ])),
                   ),
                 ),
               ),

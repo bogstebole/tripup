@@ -1,4 +1,5 @@
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import '../design/theme.dart';
@@ -86,7 +87,11 @@ class _SegmentedTabsState extends State<SegmentedTabs> with TickerProviderStateM
               child: GestureDetector(
                 key: _keys[i],
                 behavior: HitTestBehavior.opaque,
-                onTap: () => widget.onChanged(i),
+                onTap: () {
+                  if (i == widget.index) return;
+                  HapticFeedback.selectionClick();   // a detent: the pill moves one step
+                  widget.onChanged(i);
+                },
                 child: Container(
                   height: TokDim.segmentHeight,
                   padding: const EdgeInsets.symmetric(horizontal: TokSpace.sm),
