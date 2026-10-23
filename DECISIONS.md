@@ -80,3 +80,10 @@ What we decided, and why, in the order it happened. Each item: **the decision**,
 - **My dot breathes, like a live location.** Only the blue scales; the white rim stays still (as in Apple Maps). It stops with reduced motion and whenever it can't be seen, since a constant animation keeps the screen redrawing.
 - **"Arrived" only after a couple of minutes inside a circle around the place.** City GPS drifts 20–50 m; without that wait, statuses would flicker.
 - **In the prototype it's simulated:** people move along routes on the demo clock.
+
+## Sharing with testers (decided 23 Oct)
+
+- **iPhone: TestFlight.** It's the easiest install for people with iPhones, and we have a paid Apple developer account.
+- **Android: an APK through Firebase App Distribution.** It's free, and testers get a link by email and install it. We didn't go through Google Play's internal testing, because it needs a paid Play account and a review.
+- **No Android phone here, so it's checked on the Android emulator on the Mac.** That shows layout and behaviour, but not real speed; the first Android testers will tell us that.
+- **The web link (Vercel) is the fallback for anyone else.** The task needs a public URL anyway, but it runs slower in a phone browser than the app does.

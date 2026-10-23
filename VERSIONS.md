@@ -322,6 +322,10 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - My location breathes: only the blue scales (to 75% and back, 1.2 s each way, an ease-in-out sine); the white rim stays still. It holds still with reduced motion and pauses while the full view covers the map or I'm off-screen.
 - Storybook: the same chips, corner badge and breathing dot; new tokens settle-ms, pulse-ms, ease-breathe and me/pulse-scale in Foundations → Motion. InfoChip's `faces` is gone (nothing used it any more).
 
+### Android version added (not built yet)
+- `app/android/` added with `flutter create --platforms=android` (app ID `com.bogste.tripup`, name TripUp, internet access declared so release builds can load the map).
+- Not built or run yet: this Mac has no Android Studio or Android SDK. Next: install them, check the app on the Android emulator, then send an APK to testers.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 
