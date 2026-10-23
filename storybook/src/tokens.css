@@ -59,6 +59,8 @@
   --c-me-dot-edge: #ffffff;
   --c-me-ring: #93c5fd;
   --c-me-cone: #60a5fa;
+  --c-sheet-scrim: rgb(255 255 255 / 0.2);
+  --c-attribution-fg: #71717a;
   --space-none: 0px;
   --space-3xs: 2px;
   --space-2xs: 4px;
@@ -156,6 +158,7 @@
   --d-sticker-mini: 28px;
   --d-sticker-edge: 20px;
   --d-sticker-row: 40px;
+  --d-sticker-map: 44px;
   --d-pin-tail-width: 35px;
   --d-pin-tail-height: 24px;
   --d-pin-dash-width: 7px;
@@ -164,11 +167,13 @@
   --d-widget-mini-width: 120px;
   --d-widget-edge-size: 30px;
   --d-widget-edge-arrow: 11px;
+  --d-widget-edge-inset: 8px;
   --d-know-row-height: 56px;
   --d-photos-height: 142px;
   --d-photos-peek-start: 36px;
   --d-photos-peek-end: 62px;
   --d-sheet-inset: 16px;
+  --d-sheet-backdrop-blur: 20px;
   --d-me-dot: 16px;
   --d-me-ring: 5px;
   --d-me-edge-width: 8px;
@@ -244,6 +249,8 @@
   --c-me-dot-edge: #ffffff;
   --c-me-ring: #93c5fd;
   --c-me-cone: #60a5fa;
+  --c-sheet-scrim: rgb(24 24 27 / 0.2);
+  --c-attribution-fg: #a1a1aa;
 }
 .text-display { font-family: var(--font-display); font-size: var(--text-display); line-height: var(--text-display--line-height); font-weight: var(--text-display--font-weight); letter-spacing: 0; }
 .text-heading-xl { font-family: var(--font-display); font-size: var(--text-heading-xl); line-height: var(--text-heading-xl--line-height); font-weight: var(--text-heading-xl--font-weight); letter-spacing: 0; }

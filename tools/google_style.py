@@ -4,14 +4,15 @@ Takes OpenFreeMap's Liberty style (OpenMapTiles schema), drops the layers Google
 (3D buildings, relief, shields, one-way arrows, POI icons) and recolors the rest with a Google-like palette.
 Only colors change: road widths, zoom ranges and label rules stay Liberty's.
 
-Usage: python3 tools/google_style.py  →  prototype/assets/map/style-google.json
+Usage: python3 tools/google_style.py  →  prototype/assets/map/ and app/assets/map/style-google.json
 """
 import json
 import pathlib
 import urllib.request
 
 SRC = 'https://tiles.openfreemap.org/styles/liberty'
-OUT = pathlib.Path(__file__).resolve().parent.parent / 'prototype/assets/map/style-google.json'
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+OUTS = [ROOT / 'prototype/assets/map/style-google.json', ROOT / 'app/assets/map/style-google.json']
 
 C = {
     'land': '#f1f3f4', 'park': '#c9e8c3', 'wood': '#bfe2b6', 'grass': '#d3edcb', 'sand': '#f5ecd5',
@@ -92,9 +93,10 @@ def main():
     style['layers'] = [l for l in style['layers'] if l['id'] not in DROP]
     for layer in style['layers']:
         recolor(layer)
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps(style, separators=(',', ':')))
-    print(f'{OUT}  ({len(style["layers"])} layers)')
+    for out in OUTS:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(style, separators=(',', ':')))
+        print(f'{out}  ({len(style["layers"])} layers)')
 
 
 if __name__ == '__main__':

@@ -75,6 +75,8 @@ class TokColors {
     'c/me/dot-edge': Color(0xFFFFFFFF),
     'c/me/ring': Color(0xFF93C5FD),
     'c/me/cone': Color(0xFF60A5FA),
+    'c/sheet/scrim': Color(0x33FFFFFF),
+    'c/attribution/fg': Color(0xFF71717A),
   });
   static const dark = TokColors._({
     'bg/canvas': Color(0xFF09090B),
@@ -136,6 +138,8 @@ class TokColors {
     'c/me/dot-edge': Color(0xFFFFFFFF),
     'c/me/ring': Color(0xFF93C5FD),
     'c/me/cone': Color(0xFF60A5FA),
+    'c/sheet/scrim': Color(0x3318181B),
+    'c/attribution/fg': Color(0xFFA1A1AA),
   });
   Color get bgCanvas => _m['bg/canvas']!;
   Color get bgDefault => _m['bg/default']!;
@@ -196,6 +200,8 @@ class TokColors {
   Color get cMeDotEdge => _m['c/me/dot-edge']!;
   Color get cMeRing => _m['c/me/ring']!;
   Color get cMeCone => _m['c/me/cone']!;
+  Color get cSheetScrim => _m['c/sheet/scrim']!;
+  Color get cAttributionFg => _m['c/attribution/fg']!;
 }
 
 abstract final class TokSpace {
@@ -251,6 +257,7 @@ abstract final class TokDim {
   static const double stickerMini = 28;
   static const double stickerEdge = 20;
   static const double stickerRow = 40;
+  static const double stickerMap = 44;
   static const double pinTailWidth = 35;
   static const double pinTailHeight = 24;
   static const double pinDashWidth = 7;
@@ -259,11 +266,13 @@ abstract final class TokDim {
   static const double widgetMiniWidth = 120;
   static const double widgetEdgeSize = 30;
   static const double widgetEdgeArrow = 11;
+  static const double widgetEdgeInset = 8;
   static const double knowRowHeight = 56;
   static const double photosHeight = 142;
   static const double photosPeekStart = 36;
   static const double photosPeekEnd = 62;
   static const double sheetInset = 16;
+  static const double sheetBackdropBlur = 20;
   static const double meDot = 16;
   static const double meRing = 5;
   static const double meEdgeWidth = 8;

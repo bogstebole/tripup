@@ -198,6 +198,15 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - Figma: page Assets → "Type weights · tokens v1.3": https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=55-21
 - Files: `process/design-tokens/tokens-v1.3.md`, `process/design-tokens/type-weights-v1.3.png` (v1.2 kept)
 
+### Final UI, iteration 1: trip screen in Flutter + Storybook spec
+- From the Figma screens "First few screens to test" and "Widget states" (node 62-4522, 62-4859).
+- **Tokens, one source:** `design-system/tokens.json` (primitives → semantic → component) builds `storybook/src/tokens.css` and `app/lib/design/tokens.dart`. Nothing in the components is a raw value. Where Figma used off-system values, the closest token replaced them (e.g. `#e7e7e7` → `bg/muted`, `#1237d9` → `blue.700`); the list is in Storybook → Introduction.
+- **Storybook** (`storybook/`, React, Storybook 10): Button documented in full, plus Surface, PeopleButton, RatingLine, InfoChips, SegmentedTabs, KnowSection, the Up next widget (mid, mini, edge, morph), map marks, top and action bars, the full view with Overview, Menu and People. Lucide icons.
+- **Flutter app** (`app/`): the map in the Google-like style, past places as stickers, all planned events as pins, the Up next card. Moving the map collapses it to mini, tapping grows it back, off-screen places slide to the edge and point at themselves, the card grows into the full view (map blurs), close by X, backdrop or pulling down. My location with heading cone, edge capsule and recenter. Springs from tokens throughout; Jakub's libraries.dev effects are React-only, so motion is built natively.
+- New tabs in the full view: **Menu** (menu picks: dishes, prices, who picked what) and **People** (who's coming, ETA).
+- Checked on the iPhone 16 simulator (every state and transition above) and installed on Bogdan's iPhone.
+- Files: `design-system/`, `storybook/`, `app/` (see each README)
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

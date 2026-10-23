@@ -1,0 +1,424 @@
+import 'dart:convert';
+import 'dart:math' as math;
+import 'dart:ui' as ui;
+
+import 'package:flutter/physics.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:http/http.dart' as http;
+import 'package:latlong2/latlong.dart';
+import 'package:vector_map_tiles/vector_map_tiles.dart';
+import 'package:vector_tile_renderer/vector_tile_renderer.dart' show Theme, ThemeReader;
+
+import '../components/bars.dart';
+import '../components/basics.dart';
+import '../components/detail_sheet.dart';
+import '../components/map_shapes.dart';
+import '../components/plan_pin.dart';
+import '../data.dart';
+import '../design/theme.dart';
+import '../design/tokens.dart';
+
+/// The trip: the map with past places and planned pins, the Up next card, and its full view.
+class TripScreen extends StatefulWidget {
+  const TripScreen({super.key});
+
+  @override
+  State<TripScreen> createState() => _TripScreenState();
+}
+
+class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
+  final _map = MapController();
+  final _cardKey = GlobalKey();
+  late final _open = AnimationController.unbounded(vsync: this);   // 0 = card on the map, 1 = full view
+  late final _drag = AnimationController.unbounded(vsync: this);   // how far the full view is pulled down
+  late final _fly = AnimationController(vsync: this);
+  Theme? _theme;
+  TileProviders? _tiles;
+  bool _upNextMid = true;
+  bool _meOff = false;
+  bool _sheet = false;
+  Rect? _from;
+
+  Plan get _upNext => plans.first;
+  bool get _reduce => MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMap();
+    _map.mapEventStream.listen(_onMapEvent);
+    _open.addListener(() {
+      if (_open.value <= 0.001 && !_open.isAnimating && _sheet && _closing) {
+        setState(() => _sheet = _closing = false);
+      }
+    });
+  }
+
+  /// Google-like style on free OpenStreetMap vector tiles (OpenFreeMap, no key). Built by tools/google_style.py.
+  Future<void> _loadMap() async {
+    final style = jsonDecode(await rootBundle.loadString('assets/map/style-google.json')) as Map<String, dynamic>;
+    final source = (style['sources'] as Map<String, dynamic>)['openmaptiles'] as Map<String, dynamic>;
+    final tileJson = jsonDecode((await http.get(Uri.parse(source['url'] as String))).body) as Map<String, dynamic>;
+    if (!mounted) return;
+    setState(() {
+      _theme = ThemeReader().read(style);
+      _tiles = TileProviders({
+        'openmaptiles': NetworkVectorTileProvider(urlTemplate: (tileJson['tiles'] as List).first as String, maximumZoom: (tileJson['maxzoom'] as num).toInt()),
+      });
+    });
+  }
+
+  void _onMapEvent(MapEvent e) {
+    // The card steps back to a mini pin as soon as the person moves the map
+    final byUser = e.source != MapEventSource.mapController && e.source != MapEventSource.nonRotatedSizeChange;
+    if (byUser && _upNextMid && (e is MapEventMoveStart || e is MapEventDoubleTapZoomStart || e is MapEventScrollWheelZoom || e is MapEventFlingAnimationStart)) {
+      setState(() => _upNextMid = false);
+    }
+    final off = !_safe(MediaQuery.sizeOf(context)).contains(e.camera.latLngToScreenOffset(me));
+    if (off != _meOff) setState(() => _meOff = off);
+  }
+
+  /// Where pins may sit: the map minus the top bar and the action bar.
+  Rect _safe(Size size) {
+    final pad = MediaQuery.paddingOf(context);
+    return Rect.fromLTRB(
+      TokDim.widgetEdgeInset,
+      pad.top + TopBar.contentHeight + TokDim.widgetEdgeInset,
+      size.width - TokDim.widgetEdgeInset,
+      size.height - math.max(pad.bottom, TokSpace.x2xl) - TokDim.buttonLg - TokDim.widgetEdgeInset,
+    );
+  }
+
+  /// Moves the map so [target] lands on [screenPoint] (default: the middle), on the snap spring.
+  void _flyTo(LatLng target, {Offset? screenPoint}) {
+    final cam = _map.camera;
+    final want = screenPoint ?? cam.nonRotatedSize.center(Offset.zero);
+    final shift = cam.latLngToScreenOffset(target) - want;
+    final from = cam.center;
+    final to = cam.screenOffsetToLatLng(cam.nonRotatedSize.center(Offset.zero) + shift);
+    if (_reduce) {
+      _map.move(to, cam.zoom);
+      return;
+    }
+    _fly
+      ..stop()
+      ..value = 0;
+    void step() {
+      final t = _fly.value;
+      _map.move(LatLng(from.latitude + (to.latitude - from.latitude) * t, from.longitude + (to.longitude - from.longitude) * t), cam.zoom);
+    }
+    _fly.addListener(step);
+    _fly.animateWith(SpringSimulation(springOf(TokMotion.springSnap), 0, 1, 0)).whenCompleteOrCancel(() => _fly.removeListener(step));
+  }
+
+  void _tapPlan(Plan p, Size size) {
+    if (p.id == _upNext.id) {
+      // Make room above the place for the card, then let it grow
+      final at = _map.camera.latLngToScreenOffset(p.at);
+      final safe = _safe(size);
+      final roomNeeded = safe.top + _upNextHeight;
+      if (at.dy < roomNeeded || !safe.contains(at)) _flyTo(p.at, screenPoint: Offset(size.width / 2, roomNeeded));
+      setState(() => _upNextMid = true);
+    } else {
+      _flyTo(p.at);
+    }
+  }
+
+  bool _closing = false;
+
+  /// The Up next card's height with its tail, reported by the pin once it has measured itself.
+  double _upNextHeight = 0;
+
+  void _openSheet() {
+    final box = _cardKey.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null) return;
+    _from = box.localToGlobal(Offset.zero) & box.size;
+    _drag.value = 0;
+    _closing = false;
+    setState(() => _sheet = true);
+    _reduce ? _open.value = 1 : springTo(_open, 1, TokMotion.springExpand);
+  }
+
+  void _closeSheet({double velocity = 0}) {
+    _closing = true;
+    if (_reduce) {
+      _open.value = 0;
+      setState(() => _sheet = _closing = false);
+      return;
+    }
+    springTo(_open, 0, TokMotion.springExpand, velocity: velocity);
+  }
+
+  @override
+  void dispose() {
+    _open.dispose();
+    _drag.dispose();
+    _fly.dispose();
+    _map.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tok;
+    final size = MediaQuery.sizeOf(context);
+    final pad = MediaQuery.paddingOf(context);
+    final safe = _safe(size);
+    return ColoredBox(
+      color: t.bgCanvas,
+      child: Stack(children: [
+        Positioned.fill(
+          child: FlutterMap(
+            mapController: _map,
+            options: MapOptions(
+              initialCenter: startCenter,
+              initialZoom: startZoom,
+              minZoom: 11,
+              maxZoom: 18,
+              backgroundColor: t.bgCanvas,
+              interactionOptions: const InteractionOptions(flags: InteractiveFlag.all & ~InteractiveFlag.rotate),
+            ),
+            children: [
+              if (_theme != null && _tiles != null) VectorTileLayer(theme: _theme!, tileProviders: _tiles!),
+              const _VisitedLayer(),
+              _MeLayer(safe: safe),
+              _PlansLayer(
+                safe: safe,
+                upNextMid: _upNextMid,
+                cardKey: _cardKey,
+                sheetOpen: _sheet,
+                onOpen: _openSheet,
+                onTap: (p) => _tapPlan(p, size),
+                onMidHeight: (h) => _upNextHeight = h,
+              ),
+              Align(
+                alignment: Alignment.bottomLeft,
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(TokSpace.xs, 0, 0, math.max(pad.bottom, TokSpace.x2xl) + TokDim.buttonLg + TokSpace.xs),
+                  child: Text('© OpenFreeMap © OpenMapTiles © OpenStreetMap', style: TokText.caption.copyWith(color: t.cAttributionFg)),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const Positioned(left: 0, right: 0, top: 0, child: TopBar(title: tripTitle, dates: tripDates, faces: topFaces, more: moreFaces)),
+        const Positioned(left: 0, right: 0, bottom: 0, child: ActionBar()),
+        Positioned(
+          right: TokSpace.md,
+          bottom: math.max(pad.bottom, TokSpace.x2xl) + TokDim.buttonLg + TokSpace.xl,
+          child: IgnorePointer(
+            ignoring: !_meOff,
+            child: AnimatedOpacity(
+              opacity: _meOff ? 1 : 0,
+              duration: TokMotion.fade,
+              curve: TokMotion.easeOut,
+              child: AnimatedScale(
+                scale: _meOff ? 1 : TokMotion.pressScale,
+                duration: TokMotion.fade,
+                curve: TokMotion.easeOut,
+                child: RecenterButton(onTap: () => _flyTo(me)),
+              ),
+            ),
+          ),
+        ),
+        if (_sheet) Positioned.fill(child: _expanded(context, size, pad)),
+      ]),
+    );
+  }
+
+  /// The card growing into the full view: one surface whose rect, content and backdrop all follow [_open].
+  Widget _expanded(BuildContext context, Size size, EdgeInsets pad) {
+    final t = context.tok;
+    final to = Rect.fromLTRB(
+      TokDim.sheetInset,
+      pad.top + TokSpace.xs + TokDim.buttonMd + TokSpace.x3xs,
+      size.width - TokDim.sheetInset,
+      size.height - math.max(pad.bottom, TokDim.sheetInset),
+    );
+    return AnimatedBuilder(
+      animation: Listenable.merge([_open, _drag]),
+      builder: (context, _) {
+        final v = _open.value;
+        final p = v.clamp(0.0, 1.0);
+        final rect = Rect.lerp(_from, to, v)!;
+        final pull = _drag.value.clamp(0.0, double.infinity);
+        final shrink = 1 - (pull / to.height) * (1 - TokMotion.pressScale) * 4;
+        final midOp = 1 - ((p - 0) / 0.35).clamp(0.0, 1.0);
+        final sheetOp = ((p - 0.25) / 0.45).clamp(0.0, 1.0);
+        final sx = rect.width / to.width;
+        return Stack(children: [
+          // Backdrop: the map and bars blur away behind the full view
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: () => _closeSheet(),
+              child: BackdropFilter(
+                filter: ui.ImageFilter.blur(sigmaX: TokDim.sheetBackdropBlur * p, sigmaY: TokDim.sheetBackdropBlur * p),
+                child: ColoredBox(color: t.cSheetScrim.withValues(alpha: t.cSheetScrim.a * p)),
+              ),
+            ),
+          ),
+          Positioned.fromRect(
+            rect: rect,
+            child: Transform.translate(
+              offset: Offset(0, pull),
+              child: Transform.scale(
+                scale: shrink,
+                alignment: Alignment.topCenter,
+                child: Container(
+                  decoration: surfaceDecoration(context, BorderRadius.circular(TokDim.surfaceRadius)),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(TokDim.surfaceRadius),
+                    child: Stack(children: [
+                      if (midOp > 0)
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          child: Opacity(
+                            opacity: midOp,
+                            child: Transform.scale(
+                              scale: rect.width / _from!.width,
+                              alignment: Alignment.topCenter,
+                              child: OverflowBox(
+                                alignment: Alignment.topCenter,
+                                minWidth: _from!.width,
+                                maxWidth: _from!.width,
+                                maxHeight: double.infinity,
+                                child: UpNextMid(plan: _upNext),
+                              ),
+                            ),
+                          ),
+                        ),
+                      if (sheetOp > 0)
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          height: rect.height / sx,
+                          child: Opacity(
+                            opacity: sheetOp,
+                            child: Transform.scale(
+                              scale: sx,
+                              alignment: Alignment.topLeft,
+                              child: OverflowBox(
+                                alignment: Alignment.topLeft,
+                                minWidth: to.width,
+                                maxWidth: to.width,
+                                minHeight: to.height,
+                                maxHeight: to.height,
+                                child: DetailSheet(
+                                  plan: _upNext,
+                                  onClose: () => _closeSheet(),
+                                  onHeaderDragUpdate: (d) => _drag.value = math.max(0, _drag.value + d.delta.dy),
+                                  onHeaderDragEnd: (d) {
+                                    final vy = d.velocity.pixelsPerSecond.dy;
+                                    if (_drag.value > TokSpace.x5xl * 2 || vy > 900) {
+                                      // Hand the finger's speed to the close spring so it doesn't stall
+                                      _closeSheet(velocity: -vy / to.height);
+                                      springTo(_drag, 0, TokMotion.springExpand);
+                                    } else {
+                                      springTo(_drag, 0, TokMotion.springSnap, velocity: vy);
+                                    }
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ]),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ]);
+      },
+    );
+  }
+}
+
+/// Past places: stickers on the map, the trip's history.
+class _VisitedLayer extends StatelessWidget {
+  const _VisitedLayer();
+
+  @override
+  Widget build(BuildContext context) => MarkerLayer(markers: [
+        for (final v in visited)
+          Marker(
+            point: v.at,
+            width: TokDim.stickerMap * 2,
+            height: TokDim.stickerMap,
+            child: IgnorePointer(child: Center(child: Sticker(v.sticker, size: StickerSize.map, tilt: v.tilt))),
+          ),
+      ]);
+}
+
+/// My location: the dot with a heading cone, or the edge mark when I'm off-screen.
+class _MeLayer extends StatelessWidget {
+  const _MeLayer({required this.safe});
+  final Rect safe;
+
+  @override
+  Widget build(BuildContext context) {
+    final cam = MapCamera.of(context);
+    final p = cam.latLngToScreenOffset(me);
+    final inside = safe.contains(p);
+    final c = Offset(p.dx.clamp(safe.left, safe.right), p.dy.clamp(safe.top, safe.bottom));
+    final angle = math.atan2(p.dy - c.dy, p.dx - c.dx);
+    const edge = Size(MeEdge.width, TokDim.meGlowHeight);
+    // Put the capsule (the mark's outer end) on the clamp point
+    final markCenter = c - Offset(math.cos(angle), math.sin(angle)) * (edge.width / 2 - TokDim.meEdgeWidth / 2);
+    return IgnorePointer(
+      child: Stack(children: [
+        Positioned(
+          left: p.dx - TokDim.meCone,
+          top: p.dy - TokDim.meCone,
+          child: AnimatedOpacity(opacity: inside ? 1 : 0, duration: TokMotion.fade, curve: TokMotion.easeOut, child: const MeMarker(heading: meHeadingDegrees * math.pi / 180)),
+        ),
+        Positioned(
+          left: markCenter.dx - edge.width / 2,
+          top: markCenter.dy - edge.height / 2,
+          width: edge.width,
+          height: edge.height,
+          child: AnimatedOpacity(opacity: inside ? 0 : 1, duration: TokMotion.fade, curve: TokMotion.easeOut, child: Center(child: MeEdge(angle: angle))),
+        ),
+      ]),
+    );
+  }
+}
+
+/// Every planned stop as a pin; the first (Up next) can grow into the card.
+class _PlansLayer extends StatelessWidget {
+  const _PlansLayer({required this.safe, required this.upNextMid, required this.cardKey, required this.sheetOpen, required this.onOpen, required this.onTap, required this.onMidHeight});
+  final Rect safe;
+  final bool upNextMid, sheetOpen;
+  final GlobalKey cardKey;
+  final VoidCallback onOpen;
+  final ValueChanged<Plan> onTap;
+  final ValueChanged<double> onMidHeight;
+
+  @override
+  Widget build(BuildContext context) {
+    final cam = MapCamera.of(context);
+    // Later plans first so Up next draws on top
+    return Stack(children: [
+      for (final p in plans.reversed)
+        Positioned.fill(
+          child: PlanPin(
+            key: ValueKey(p.id),
+            plan: p,
+            anchor: cam.latLngToScreenOffset(p.at),
+            safe: safe,
+            wantMid: p == plans.first && upNextMid,
+            cardKey: p == plans.first ? cardKey : null,
+            hidden: p == plans.first && sheetOpen,
+            onOpen: onOpen,
+            onTap: () => onTap(p),
+            onMidHeight: p == plans.first ? onMidHeight : null,
+          ),
+        ),
+    ]);
+  }
+}
