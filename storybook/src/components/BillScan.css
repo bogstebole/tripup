@@ -1,0 +1,82 @@
+/* The camera, over the whole screen: the restaurant dim behind the paper. In these frames the phone's top inset is
+   md, so the camera's bar sits at xl like the top bar's buttons, and there's no bottom inset. */
+.tu-scan { position: absolute; inset: 0; overflow: clip; background: var(--c-scan-bg); color: var(--c-scan-fg); }
+.tu-scan__photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: var(--d-scan-photo-opacity); }
+.tu-scan__middle { position: absolute; inset: 0; display: grid; place-items: center; }
+
+/* Where the frame starts: in from the screen's edges, clear of the bar and the hint */
+.tu-scan__aim { position: absolute; left: var(--space-xl); right: var(--space-xl); top: calc(var(--space-md) + var(--space-3xl)); bottom: var(--space-3xl); pointer-events: none; }
+
+/* The frame's four corner marks: each at its corner of the rect, which moves from the screen's edges onto the paper.
+   White while it looks, the brand blue once it has the paper. */
+.tu-scan__frame { position: absolute; inset: 0; pointer-events: none; color: var(--c-scan-fg); }
+.tu-scan__frame--locked { color: var(--c-scan-line); }
+.tu-scan__corner { position: absolute; left: 0; top: 0; overflow: visible; }
+.tu-scan__corner path { fill: none; stroke: currentColor; stroke-width: var(--d-scan-stroke); stroke-linecap: round; stroke-linejoin: round; }
+
+/* The reading line: across the paper, with a little glow */
+.tu-scan__line { position: absolute; height: var(--d-scan-stroke); background: var(--c-scan-line); box-shadow: 0 0 var(--space-xs) var(--c-scan-line); pointer-events: none; }
+
+.tu-scan__bar { position: absolute; left: var(--space-md); right: var(--space-md); top: var(--space-xl); display: flex; align-items: center; }
+.tu-scan__title { flex: 1 1 0; min-width: 0; text-align: center; color: var(--c-scan-fg); }
+.tu-scan__bar-end { width: var(--d-button-sm); flex: none; }
+.tu-scan__hint { position: absolute; left: var(--space-md); right: var(--space-md); bottom: calc(var(--space-md) + var(--space-xl)); text-align: center; color: var(--c-scan-fg); }
+
+/* The bill, in the full view's place once it's read */
+.tu-scan__place {
+  position: absolute;
+  top: calc(var(--space-xl) + var(--d-button-md));
+  left: var(--d-sheet-inset);
+  right: var(--d-sheet-inset);
+  bottom: var(--d-sheet-inset);
+  display: flex;
+  flex-direction: column;
+}
+
+/* The paper bill: dark ink on white, one line per item; it fades back once the bill is up */
+.tu-paper {
+  width: var(--d-scan-paper-width);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--space-3xs);
+  background: var(--c-scan-paper);
+  color: var(--c-scan-ink);
+  box-shadow: var(--shadow-surface);
+  transition: opacity var(--fade-ms) var(--ease-out);
+}
+.tu-scan[data-phase="review"] .tu-paper { opacity: var(--d-scan-off-opacity); }
+.tu-paper__centre { text-align: center; white-space: pre; }
+.tu-paper__line { display: flex; gap: var(--space-xs); }
+.tu-paper__item { flex: 1 1 0; min-width: 0; overflow: hidden; white-space: nowrap; }
+.tu-paper__rule { display: block; height: var(--d-surface-edge-width); margin: var(--space-2xs) 0; background: var(--c-scan-ink); }
+
+/* The bill's page: each line, then the faces to change who had it */
+.tu-bill__intro { padding: 0 var(--space-xs) var(--space-xs); color: var(--color-text-muted); }
+.tu-bill__amount { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-3xs); flex: none; color: var(--color-text-default); }
+.tu-bill__who { overflow: hidden; }
+.tu-bill__faces { display: flex; padding: 0 var(--space-xs) var(--space-sm); }
+.tu-bill__face {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3xs);
+  border-radius: var(--radius-card);
+  color: var(--color-text-default);
+  transition: opacity var(--fade-ms) var(--ease-out), transform var(--press-ms) var(--ease-out);
+}
+.tu-bill__face--off { opacity: var(--d-scan-off-opacity); }
+.tu-bill__face:active { transform: scale(var(--press-scale)); }
+.tu-bill__face:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: var(--space-3xs); }
+
+/* Under the page: what each person had, then who paid and Add */
+.tu-bill__footer { display: flex; flex-direction: column; gap: var(--space-sm); padding: var(--space-sm) var(--space-xs) var(--space-md); border-top: var(--d-surface-edge-width) solid var(--color-border-default); }
+.tu-bill__shares { display: flex; }
+.tu-bill__share { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: var(--space-3xs); color: var(--color-text-default); }
+.tu-bill__actions { display: flex; align-items: center; gap: var(--space-sm); }
+.tu-bill__payer { flex: 1 1 0; min-width: 0; text-align: left; color: var(--color-text-muted); border-radius: var(--radius-sm); transition: transform var(--press-ms) var(--ease-out); }
+.tu-bill__payer:active { transform: scale(var(--press-scale)); }
+.tu-bill__payer:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: var(--space-3xs); }
+.tu-bill__change { color: var(--color-text-brand); }

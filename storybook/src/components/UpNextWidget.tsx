@@ -14,11 +14,15 @@ import './UpNextWidget.css';
 export type WidgetState = 'mid' | 'mini' | 'edge';
 
 export interface UpNextEvent {
+  /** "Up next · 5 PM"; once the dinner is on, "Now · You're here" (see `upNextAt` in data.ts). */
   label: string;
   name: string;
   rating: string;
   cuisine: string;
+  /** How soon ("In 64 mins"), on the mini pin; "Now" once it's on. */
   eta: string;
+  /** The plan is on: its time has come and someone is there. The label gets a brand dot before it. */
+  now?: boolean;
   sticker: string;
   fan: { sticker: string; height: number; tilt: number }[];
   /** Who's coming or who's here, then the price range (see `upNextChips` in data.ts). */
@@ -50,6 +54,7 @@ const ease = m['ease-out'] as [number, number, number, number];
  * the fan opens out from the sticker, the label and rating follow the name, the chips rise in last.
  * Whoever is already there is in the card's first chip; on the mini pin they sit across its top-right corner instead,
  * fading in once the card has mostly shrunk and out quickly as it grows. Gone at the edge.
+ * Once the plan is on (`now`), the label starts with a brand dot: "Now · You're here", and the mini says "Now".
  */
 export function UpNextWidget({ event, state, edgeAngle = 90, onOpen, onTap }: UpNextWidgetProps) {
   const reduce = useReducedMotion();
@@ -92,7 +97,10 @@ export function UpNextWidget({ event, state, edgeAngle = 90, onOpen, onTap }: Up
           {state === 'mid' && (
             <motion.div key="mid" layout transition={spring} className="tu-upnext__mid" initial="out" animate="in" exit={{ opacity: 0, transition: fade }}>
               <div className="tu-upnext__head">
-                <motion.p variants={rise} custom={0} className="tu-upnext__label text-label-md weight-bold tu-ellipsis">{event.label}</motion.p>
+                <motion.p variants={rise} custom={0} className="tu-upnext__label text-label-md weight-bold">
+                  {event.now && <span className="tu-upnext__now-dot" aria-hidden />}
+                  <span className="tu-ellipsis">{event.label}</span>
+                </motion.p>
                 <motion.p {...shared('name')} layout="position" className="tu-upnext__name text-heading-sm tu-ellipsis">{event.name}</motion.p>
                 <motion.div variants={rise} custom={1}><RatingLine rating={event.rating} kind={event.cuisine} /></motion.div>
               </div>

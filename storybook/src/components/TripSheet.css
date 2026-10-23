@@ -7,9 +7,13 @@
   grid-template: minmax(0, 1fr) / minmax(0, 1fr);
   height: 100%;
   padding: 0 var(--space-xs);
-  overflow: hidden;
+  /* clip, not hidden: the hidden toast below the edge mustn't make the sheet itself scrollable */
+  overflow: clip;
   pointer-events: auto;
 }
+/* With a footer: the page above it, the footer in its own row under it (it doesn't scroll) */
+.tu-trip-sheet--footer { grid-template: minmax(0, 1fr) auto / minmax(0, 1fr); }
+.tu-trip-sheet__footer { grid-area: 2 / 1; min-width: 0; }
 /* Add has only a few rows, so it's shorter */
 .tu-trip-sheet--compact { max-height: var(--d-sheet-compact-height); }
 

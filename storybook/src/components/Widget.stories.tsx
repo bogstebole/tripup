@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
-import { UP_NEXT, upNextChips } from '../data';
+import { UP_NEXT, UP_NEXT_NOW, upNextChips } from '../data';
 import { EdgeArrow, MeEdge, MeMarker, PinTail } from './MapShapes';
 import { RecenterButton } from './Bars';
 import { UpNextWidget, type WidgetState } from './UpNextWidget';
@@ -37,12 +37,17 @@ export const Mid: Story = { args: { state: 'mid' }, parameters: { docs: { descri
 export const MidNobodyThere: Story = {
   name: 'Mid · nobody there yet',
   args: { state: 'mid', event: { ...UP_NEXT, chips: upNextChips([]), here: [] } },
-  parameters: { docs: { description: { story: 'Before anyone arrives, the first chip counts who\'s going: "4 coming" (Ren isn\'t).' } } },
+  parameters: { docs: { description: { story: 'Before anyone arrives, the first chip counts who\'s going: "5 coming".' } } },
 };
 export const MidFourThere: Story = {
   name: 'Mid · four there',
   args: { state: 'mid', event: { ...UP_NEXT, chips: upNextChips(['person-01', 'person-05', 'person-02', 'person-04']), here: ['person-01', 'person-05', 'person-02', 'person-04'] } },
   parameters: { docs: { description: { story: 'Four or more faces need the room, so the price chip shrinks to its text.' } } },
+};
+export const MidNow: Story = {
+  name: 'Mid · now',
+  args: { state: 'mid', event: UP_NEXT_NOW },
+  parameters: { docs: { description: { story: 'The dinner is on: its time has come (from a quarter of an hour before) and someone is inside the geofence. Nobody presses anything for it. The label turns to a brand dot and "Now · You\'re here" once I\'m there too ("Now · 5 PM" until then), and the first chip has the four others who are there (the app leaves me out of "here"). Switch `state` to mini: it says "Now" instead of how soon.' } } },
 };
 export const Mini: Story = { args: { state: 'mini' }, parameters: { docs: { description: { story: 'Whoever is already there sits across the mini pin\'s top-right corner.' } } } };
 export const Edge: Story = { args: { state: 'edge', edgeAngle: 90 } };

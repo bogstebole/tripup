@@ -30,6 +30,8 @@ export interface TripSheetProps {
   onClose?: () => void;
   /** Add's pop-up: only a few rows, so it stops at sheet/compact-height and sits at the bottom of its place. */
   compact?: boolean;
+  /** Stays put at the bottom while the page scrolls above it (the scanned bill's totals and its button). */
+  footer?: ReactNode;
 }
 
 /**
@@ -38,7 +40,7 @@ export interface TripSheetProps {
  * just past the bottom edge (its own height plus the inset), and goes back down quicker than it came; with reduced
  * motion it only fades. Put it in AnimatePresence so it can leave. On the phone, a pull down on the header closes it too.
  */
-export function TripSheet({ title, subtitle, children, onClose, compact }: TripSheetProps) {
+export function TripSheet({ title, subtitle, children, onClose, compact, footer }: TripSheetProps) {
   const reduce = useReducedMotion();
   const scroll = useRef<HTMLDivElement>(null);
   // How far the page has scrolled under the header, 0–1 over the top fade's height
@@ -70,7 +72,7 @@ export function TripSheet({ title, subtitle, children, onClose, compact }: TripS
 
   return (
     <motion.article
-      className={['tu-trip-sheet', 'tu-surface', 'tu-surface--sheet', compact && 'tu-trip-sheet--compact'].filter(Boolean).join(' ')}
+      className={['tu-trip-sheet', 'tu-surface', 'tu-surface--sheet', compact && 'tu-trip-sheet--compact', footer != null && 'tu-trip-sheet--footer'].filter(Boolean).join(' ')}
       aria-label={title}
       initial={reduce ? { opacity: 0 } : { transform: away }}
       animate={reduce ? { opacity: 1, transition: { duration: m['fade-ms'] / 1000, ease } } : { transform: here, transition: { duration: m['enter-ms'] / 1000, ease } }}
@@ -89,6 +91,7 @@ export function TripSheet({ title, subtitle, children, onClose, compact }: TripS
         <Button icon={X} label="Close" size="sm" onClick={onClose} />
       </div>
       <Toast label={toast?.label ?? ''} shown={!!toast?.shown} />
+      {footer != null && <div className="tu-trip-sheet__footer">{footer}</div>}
     </motion.article>
   );
 }

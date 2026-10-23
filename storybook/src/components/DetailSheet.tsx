@@ -1,11 +1,11 @@
-import { Banknote, Calendar, Check, Clock, Globe, MapPin, Phone, Truck, X, type LucideIcon } from 'lucide-react';
+import { Banknote, Calendar, Check, Clock, Globe, MapPin, Phone, ScanLine, Truck, X, type LucideIcon } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion, type Variants } from 'motion/react';
 import { createContext, useContext, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import realMenu from '../../../app/assets/data/brasserie-menu.json';
-import { euros, eurosIn, type Person, type PlaceDetail } from '../data';
+import { billShares, billTotal, euros, eurosIn, MY_ID, personById, type Bill, type Person, type PlaceDetail } from '../data';
 import { AddButton } from './AddButton';
-import { Button } from './Button';
+import { Button, TextButton } from './Button';
 import { DishMore, DishSticker } from './DishSticker';
 import { KnowRow, KnowSection } from './KnowSection';
 import { PhotoCarousel } from './PhotoCarousel';
@@ -19,6 +19,8 @@ import './DetailSheet.css';
 
 export const DETAIL_TABS = ['Overview', 'Menu', 'Group'] as const;
 export type DetailTab = (typeof DETAIL_TABS)[number];
+/** While the plan is on, the group and the bill matter more than the place's details: Group first, Overview last. */
+export const ACTIVE_TABS: DetailTab[] = ['Group', 'Menu', 'Overview'];
 
 type MenuItem = { name: string; price: string; note?: string; photo?: string; pickedBy?: string[] };
 type MenuSection = { title: string; course?: string; note?: string; items: MenuItem[] };
@@ -51,6 +53,14 @@ export interface DetailSheetProps {
   tab?: DetailTab;
   onTabChange?: (tab: DetailTab) => void;
   onClose?: () => void;
+  /** The plan is on (its time has come and someone is there): the tabs go Group · Menu · Overview, it opens on
+   *  Group, and Group's footer offers Scan the bill. */
+  active?: boolean;
+  /** Tonight's bill, once it's scanned: Group shows what each person had, exactly, and the bill's total. */
+  bill?: Bill;
+  onScan?: () => void;
+  /** Once the bill is in: who owes what (in the app, the full view closes and Money opens). */
+  onSettle?: () => void;
 }
 
 const m = tokens.motion;
@@ -75,13 +85,14 @@ const ease = m['ease-out'] as [number, number, number, number];
  * another (fade, light blur, a few px up), the old page fades out with a blur. Menu is the restaurant's real menu.
  */
 export function DetailSheet(p: DetailSheetProps) {
-  const [own, setOwn] = useState<DetailTab>('Overview');
+  const tabs = p.active ? ACTIVE_TABS : [...DETAIL_TABS];
+  const [own, setOwn] = useState<DetailTab>(tabs[0]);
   const tab = p.tab ?? own;
   // How far the page has scrolled under the top edge, 0–1 over the top fade's height
   const [under, setUnder] = useState(0);
   // Which way the last tab change went: 1 to the right, -1 to the left, 0 for the page the sheet opened on
   const [dir, setDir] = useState(0);
-  const select = (t: DetailTab) => { setDir(Math.sign(DETAIL_TABS.indexOf(t) - DETAIL_TABS.indexOf(tab))); setOwn(t); setUnder(0); setFiltered(false); p.onTabChange?.(t); };
+  const select = (t: DetailTab) => { setDir(Math.sign(tabs.indexOf(t) - tabs.indexOf(tab))); setOwn(t); setUnder(0); setFiltered(false); p.onTabChange?.(t); };
   const reduce = useReducedMotion();
   const [added, setAdded] = useState<Set<string>>(() => new Set(SECTIONS.flatMap(s => s.items).filter(i => i.pickedBy?.includes('ari')).map(i => i.name)));
   // The menu's filter (empty means everything); once it changes, the list under it swaps on its own
@@ -130,15 +141,16 @@ export function DetailSheet(p: DetailSheetProps) {
   const dishes = SECTIONS.flatMap(s => s.items);
   const pickers = new Set([...dishes.flatMap(i => (i.pickedBy ?? []).filter(id => id !== 'ari')), ...(added.size ? ['ari'] : [])]);
   const picksOf = (id: string) => dishes.filter(d => (id === 'ari' ? added.has(d.name) : d.pickedBy?.includes(id)));
-  // Roughly what each person's picks come to, and all of them together
-  const costOf = (id: string) => picksOf(id).reduce((sum, d) => sum + (eurosIn(d.price) ?? 0), 0);
-  const total = p.people.reduce((sum, x) => sum + costOf(x.id), 0);
-  const going = p.people.filter(x => x.status !== 'Not going').length;
+  // Roughly what each person's picks come to, and all of them together, until the bill is in; then what they had
+  const shares = p.bill && billShares(p.bill);
+  const costOf = (id: string) => (shares ? shares[id] ?? 0 : picksOf(id).reduce((sum, d) => sum + (eurosIn(d.price) ?? 0), 0));
+  const total = p.bill ? billTotal(p.bill) : p.people.reduce((sum, x) => sum + costOf(x.id), 0);
+  const going = p.people.filter(x => x.going).length;
 
   return (
     <article className="tu-sheet tu-surface tu-surface--sheet" aria-label={p.name}>
       <div className="tu-sheet__bar">
-        <SegmentedTabs tabs={[...DETAIL_TABS]} value={tab} onChange={t => select(t as DetailTab)} />
+        <SegmentedTabs tabs={tabs} value={tab} onChange={t => select(t as DetailTab)} />
         <Button icon={X} label="Close" size="sm" onClick={p.onClose} />
       </div>
       <div className="tu-sheet__pages">
@@ -274,7 +286,7 @@ export function DetailSheet(p: DetailSheetProps) {
                       <span className="tu-sheet__face"><Sticker name={x.sticker} size="avatar" /></span>
                       <div className="tu-sheet__row-text">
                         <p className="text-label-lg">{x.name}</p>
-                        <p className={`text-body-sm ${x.status === 'Not going' ? 'tu-sheet__subtle' : 'tu-sheet__muted'}`}>{x.status}</p>
+                        <p className={`text-body-sm ${x.going ? 'tu-sheet__muted' : 'tu-sheet__subtle'}`}>{x.status}</p>
                       </div>
                       {/* What they'll have, as a little pile of stickers: at a glance, who has already picked */}
                       {(() => {
@@ -282,15 +294,17 @@ export function DetailSheet(p: DetailSheetProps) {
                         // Two in the pile, the priciest (the mains, usually); the rest are counted on one more sticker
                         const shown = picks.filter(d => d.photo).sort((a, b) => (eurosIn(b.price) ?? 0) - (eurosIn(a.price) ?? 0)).slice(0, 2);
                         const more = picks.length - shown.length;
-                        if (picks.length) return (
+                        return picks.length ? (
                           <span className="tu-sheet__picks" aria-label={`${x.name} picked ${picks.map(d => d.name).join(', ')}`}>
                             {shown.map((d, i) => <DishSticker key={d.name} photo={d.photo!} size="pick" tilt={i % 2 ? -tilt : tilt} />)}
                             {more > 0 && <DishMore count={more} tilt={shown.length % 2 ? -tilt : tilt} />}
                           </span>
-                        );
-                        return x.status !== 'Not going' ? <span className="text-body-sm tu-sheet__subtle">No picks yet</span> : null;
+                        ) : null;
                       })()}
-                      {costOf(x.id) > 0 && <span className="text-label-md weight-semibold tu-sheet__cost">≈ {euros(costOf(x.id))}</span>}
+                      {/* Roughly what their picks come to; exactly what they had once the bill is in */}
+                      {costOf(x.id) > 0
+                        ? <span className="text-label-md weight-semibold tu-sheet__cost">{shares ? euros(costOf(x.id)) : `≈ ${euros(costOf(x.id))}`}</span>
+                        : x.going && <span className="text-body-sm tu-sheet__subtle">No picks yet</span>}
                     </Block>
                   ))}
                 </div>
@@ -302,11 +316,22 @@ export function DetailSheet(p: DetailSheetProps) {
         {/* Content scrolling up passes under a blur and the surface's white instead of being cut at the edge */}
         <div className="tu-sheet__top-fade" aria-hidden style={{ '--under': under } as CSSProperties} />
       </div>
-      {/* Group: the total stays put at the bottom while the list scrolls above it */}
+      {/* Group: the bottom stays put while the list scrolls above it: the estimate, then (while the plan is on) Scan
+          the bill; once it's in, the bill's total and who owes what */}
       {tab === 'Group' && total > 0 && (
         <motion.div className="tu-sheet__footer" variants={block} custom={1} initial="hidden" animate="shown">
-          <p className="text-label-lg tu-sheet__total-label">Estimated total</p>
-          <p className="text-heading-lg tu-sheet__cost">≈ {euros(total)}</p>
+          <div className="tu-sheet__footer-row">
+            <div className="tu-sheet__footer-text">
+              <p className="text-label-lg">{p.bill ? 'Bill' : 'Estimated total'}</p>
+              {p.bill
+                ? <p className="text-body-sm tu-sheet__muted">{p.bill.paidBy === MY_ID ? 'You' : personById(p.bill.paidBy).name} paid · split by who had what</p>
+                : p.active && <p className="text-body-sm tu-sheet__muted">The bill splits itself once scanned</p>}
+            </div>
+            <p className="text-heading-lg tu-sheet__cost">{p.bill ? euros(total) : `≈ ${euros(total)}`}</p>
+          </div>
+          {p.bill
+            ? <TextButton variant="soft" label="See who owes what" className="tu-sheet__footer-action" onClick={p.onSettle} />
+            : p.active && <TextButton label="Scan the bill" icon={ScanLine} className="tu-sheet__footer-action" onClick={p.onScan} />}
         </motion.div>
       )}
       {/* What I just added, with Undo, centred at the bottom; it comes up from past the edge and goes back down */}

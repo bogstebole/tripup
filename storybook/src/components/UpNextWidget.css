@@ -11,7 +11,10 @@
 /* Mid */
 .tu-upnext__mid { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-md); padding: var(--space-md) var(--space-xs) var(--space-xs); }
 .tu-upnext__head { display: flex; flex-direction: column; align-items: center; gap: var(--space-2xs); width: 100%; padding: 0 var(--space-md); }
-.tu-upnext__label { width: 100%; text-align: center; color: var(--color-text-brand); }
+.tu-upnext__label { display: flex; align-items: center; justify-content: center; gap: var(--space-2xs); width: 100%; color: var(--color-text-brand); }
+.tu-upnext__label > .tu-ellipsis { min-width: 0; }
+/* While the plan is on: a brand dot before "Now" */
+.tu-upnext__now-dot { width: var(--space-xs); height: var(--space-xs); flex: none; border-radius: var(--radius-pill); background: var(--color-bg-brand); }
 .tu-upnext__name { width: 100%; text-align: center; color: var(--color-text-default); }
 .tu-upnext__fan { display: flex; align-items: center; justify-content: center; width: 100%; }
 .tu-upnext__fan > * + * { margin-left: calc(var(--d-sticker-overlap) * -1); }

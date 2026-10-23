@@ -423,6 +423,14 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - **Group tab:** while the dinner is on, the Estimated total gets Scan the bill. After the scan, it shows the exact amounts, the bill's total, and "See who owes what" (closes the full view, opens Money).
 - **Demo moments:** Everyone's there (5 PM), The bill (7:30 PM), Settle up (7:40 PM, bill in, the others start paying), Squared up (7:50 PM, everyone paid). Jumping sets the money to match.
 - Tokens: `scan/*` colors and sizes, `scan-find-ms`, `scan-read-ms`. Icons: scan-line, receipt. `TripSheet` gets a fixed `footer`.
+- **Checked:**
+  - iPhone simulator: the whole story, frame by frame for the scan.
+  - Android emulator: Now, Group first, scan, bill in, Money.
+  - Installed on Bogdan's iPhone.
+- **Storybook mirrors it**, with the same numbers. New stories:
+  - `widget-up-next--mid-now`, `screens-trip--group-dinner-on`, `screens-trip--group-bill-in`;
+  - `pop-ups--scan-the-bill` (with Replay), `pop-ups--money-dinner-on`, `pop-ups--money-bill-in`, `pop-ups--money-squared-up`.
+  - In Storybook the others pay 6 s apart (30 s in the app), and "See who owes what" doesn't navigate.
 
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
