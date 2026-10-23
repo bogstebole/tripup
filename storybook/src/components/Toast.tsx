@@ -11,12 +11,12 @@ export interface ToastProps {
 
 /**
  * A short note: a flat pill in the brand blue (not glass, so it doesn't read as a button), with a check, one line
- * and Undo. It comes up from past the bottom edge and goes back down the way it came; CSS transitions, so a new
+ * and Undo (or just the line, e.g. "Link copied"). It comes up from past the bottom edge and goes back down the way it came; CSS transitions, so a new
  * one while it's up just retargets.
  */
 export function Toast({ label, shown, actionLabel, onAction }: ToastProps) {
   return (
-    <div className="tu-toast" data-shown={shown || undefined} role="status" aria-live="polite" aria-hidden={!shown}>
+    <div className={actionLabel ? 'tu-toast' : 'tu-toast tu-toast--plain'} data-shown={shown || undefined} role="status" aria-live="polite" aria-hidden={!shown}>
       <Check className="tu-toast__icon" strokeWidth={2} absoluteStrokeWidth aria-hidden />
       <span className="text-label-md">{label}</span>
       {actionLabel && (

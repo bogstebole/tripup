@@ -1,6 +1,8 @@
 /* Pin tail */
 .tu-tail { display: inline-flex; flex-direction: column; align-items: center; }
 .tu-tail__shape { width: var(--d-pin-tail-width); height: var(--d-pin-tail-height); overflow: visible; filter: var(--filter-surface); }
+.tu-tail__fill { fill: var(--c-pin-tail); }
+.tu-tail__edge { fill: none; stroke: var(--c-pin-tail-edge); stroke-width: calc(var(--d-surface-edge-width) * 2); }
 .tu-tail__dash { width: var(--d-pin-dash-width); height: var(--d-pin-dash-height); border-radius: var(--radius-control); background: var(--c-pin-dash); }
 
 /* Edge arrow */

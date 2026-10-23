@@ -14,6 +14,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Bars: Story = {
   name: 'Top bar and action bar',
+  parameters: { docs: { description: { story: 'Top: back, the trip and its dates, the people, and the day filter, over a white that fades out down the map. Bottom: three 56 px glass buttons, each opening its pop-up (see Pop-ups): Itinerary (map pin, soft), Money (soft, with the whole group as a little pile of stickers) and Add (primary). md above them, 2xl below (the home indicator\'s inset on the phone when there is one). Behind them, white strongest at the bottom fades to clear at the top; no blur. Both fades ease in and out (a smoothstep), so their ends never show as a line.' } } },
   render: function Render() {
     const [days, setDays] = useState<number[]>([]);
     return (

@@ -11,7 +11,7 @@ const preview: Preview = {
   parameters: {
     layout: 'centered',
     controls: { expanded: true },
-    options: { storySort: { order: ['Introduction', 'Foundations', 'Components', 'Widget', 'Screens'] } },
+    options: { storySort: { order: ['Introduction', 'Foundations', 'Components', 'Widget', 'Screens', 'Pop-ups'] } },
   },
   globalTypes: {
     theme: { description: 'Color mode', toolbar: { title: 'Theme', icon: 'mirror', items: ['light', 'dark'], dynamicTitle: true } },

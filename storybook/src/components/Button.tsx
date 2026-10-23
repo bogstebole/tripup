@@ -24,3 +24,22 @@ export function Button({ variant = 'soft', size = 'md', icon: Icon, label, class
     </button>
   );
 }
+
+export interface TextButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
+  /** `primary` by default: these are the one action of their block (Pay, Copy link). */
+  variant?: ButtonVariant;
+  /** The visible label; also the accessible name. */
+  label: string;
+  /** An optional Lucide icon before the label, 16 px. */
+  icon?: LucideIcon;
+}
+
+/** A glass pill with a label, for actions a bare icon can't say: Pay, Copy link. Same glass and press as Button, 44 tall. */
+export function TextButton({ variant = 'primary', label, icon: Icon, className, ...rest }: TextButtonProps) {
+  return (
+    <button type="button" className={['tu-btn', `tu-btn--${variant}`, 'tu-btn--text', className].filter(Boolean).join(' ')} {...rest}>
+      {Icon && <Icon className="tu-btn__icon" strokeWidth={2} absoluteStrokeWidth aria-hidden />}
+      <span className="text-label-md weight-semibold">{label}</span>
+    </button>
+  );
+}

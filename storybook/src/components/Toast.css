@@ -25,6 +25,8 @@
   pointer-events: auto;
   transition-duration: var(--enter-ms);
 }
+/* Without an action, the line keeps a little room before the pill's end */
+.tu-toast--plain { padding-right: calc(var(--space-xs) + var(--space-2xs)); }
 .tu-toast__icon { width: var(--size-icon-sm); height: var(--size-icon-sm); flex: none; }
 .tu-toast__action { height: 100%; padding: 0 var(--space-md); color: inherit; border-radius: var(--radius-pill); }
 .tu-toast__action:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: calc(var(--space-3xs) * -1); }

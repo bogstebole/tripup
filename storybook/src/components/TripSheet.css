@@ -1,0 +1,57 @@
+/* The pop-up: the full view's surface. Page, header fade and header share one cell; the page scrolls up under the
+   header. Its parent gives it its place (the full view's) and lines it up at the bottom, so a compact one sits low. */
+.tu-trip-sheet {
+  --header: calc(var(--space-md) + max(calc(var(--text-heading-md--line-height) + var(--space-2xs) + var(--text-body-sm--line-height)), var(--d-button-sm)));
+  position: relative;
+  display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  height: 100%;
+  padding: 0 var(--space-xs);
+  overflow: hidden;
+  pointer-events: auto;
+}
+/* Add has only a few rows, so it's shorter */
+.tu-trip-sheet--compact { max-height: var(--d-sheet-compact-height); }
+
+.tu-trip-sheet__scroll {
+  grid-area: 1 / 1;
+  position: relative;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  /* Starts under the header; room at the end for the last row to scroll clear of the bottom fade */
+  padding-top: calc(var(--header) + var(--space-md));
+  padding-bottom: calc(var(--d-sheet-fade) + var(--space-xs));
+  /* Content scrolling past the bottom edge fades out over the last few px instead of being cut off */
+  mask-image: linear-gradient(to bottom, black calc(100% - var(--d-sheet-fade)), transparent);
+}
+.tu-trip-sheet__scroll::-webkit-scrollbar { display: none; }
+
+/* The surface's white behind the header, solid to the header's bottom, then an eased fade (opacity follows the scroll) */
+.tu-trip-sheet__top-fade { grid-area: 1 / 1; align-self: start; z-index: 1; height: calc(var(--header) + var(--d-sheet-top-fade)); pointer-events: none; }
+
+.tu-trip-sheet__head { grid-area: 1 / 1; align-self: start; z-index: 2; display: flex; align-items: flex-start; padding-top: var(--space-xs); }
+.tu-trip-sheet__titles { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: var(--space-2xs); padding: var(--space-xs) var(--space-md) 0 var(--space-xs); color: var(--color-text-default); }
+.tu-trip-sheet__titles h2 { margin: 0; }
+.tu-trip-sheet__subtitle { color: var(--color-text-muted); }
+
+/* Blocks of the page, top to bottom */
+.tu-stagger { display: flex; flex-direction: column; }
+
+.tu-sheet-section { display: flex; flex-direction: column; gap: var(--space-3xs); padding: 0 var(--space-xs) var(--space-xs); color: var(--color-text-default); }
+.tu-sheet-section h3 { margin: 0; }
+.tu-sheet-section__sub { color: var(--color-text-muted); }
+
+.tu-sheet-row { display: flex; align-items: center; gap: var(--space-sm); width: 100%; padding: var(--space-sm) var(--space-xs); color: var(--color-text-default); text-align: left; }
+.tu-sheet-row--tap { border-radius: var(--radius-card); transition: transform var(--press-ms) var(--ease-out); }
+.tu-sheet-row--tap:active { transform: scale(var(--press-scale)); }
+.tu-sheet-row--tap:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: calc(var(--space-3xs) * -1); }
+.tu-sheet-row__text { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: var(--space-3xs); }
+.tu-sheet-row__title { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.tu-sheet-row__sub { color: var(--color-text-muted); }
+.tu-sheet-row__sub--brand { color: var(--color-text-brand); }
+.tu-sheet-row__sub--success { color: var(--color-text-success); }
+
+.tu-hairline { height: var(--d-surface-edge-width); margin: 0 var(--space-xs); background: var(--color-border-default); }
+.tu-slot { display: grid; place-items: center; flex: none; }

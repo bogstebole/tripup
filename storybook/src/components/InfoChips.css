@@ -3,6 +3,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex: none;
   height: var(--d-chip-height);
   padding: var(--space-2xs) var(--space-xs);
   background: var(--c-chip-bg);
@@ -11,5 +12,9 @@
   overflow: hidden;
 }
 .tu-chips__chip--grow { flex: 1 1 0; min-width: 0; }
+/* Who's here: the faces overlap, then the word after a small gap */
+.tu-chips__chip--faces { gap: var(--space-2xs); }
+.tu-chips__faces { display: inline-flex; align-items: center; flex: none; }
+.tu-chips__faces > * + * { margin-left: calc(var(--d-chip-face-overlap) * -1); }
 .tu-chips__chip:first-child { border-top-left-radius: var(--d-chip-radius); border-bottom-left-radius: var(--d-chip-radius); }
 .tu-chips__chip:last-child { border-top-right-radius: var(--d-chip-radius); border-bottom-right-radius: var(--d-chip-radius); }

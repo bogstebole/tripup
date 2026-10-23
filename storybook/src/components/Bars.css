@@ -1,5 +1,6 @@
 @import './Button.css';
 
+/* The background is an eased fade from the bar's color to clear (see easedFade.ts), so its end never shows as a line */
 .tu-topbar {
   position: relative;
   isolation: isolate;
@@ -7,14 +8,13 @@
   flex-direction: column;
   gap: var(--space-md);
   padding: var(--space-xl) 0 var(--space-2xl);
-  background: linear-gradient(to bottom, var(--c-top-bar-bg) calc(var(--d-top-bar-fade-start) * 100%), transparent);
 }
 .tu-topbar__row { display: flex; align-items: center; gap: var(--space-md); padding: 0 var(--space-md); }
 .tu-topbar__title { flex: 1 1 0; min-width: 0; }
 .tu-topbar__dates { color: var(--color-text-muted); }
 
-/* The same treatment as the top bar, upside down: a see-through white, strongest at the bottom, that fades out
-   a little above the buttons */
+/* The same treatment as the top bar, upside down: white, strongest at the bottom, fading to clear at the top; no blur.
+   On the phone the bottom padding is the home indicator's inset when there is one. */
 .tu-actionbar {
   position: relative;
   isolation: isolate;
@@ -22,9 +22,12 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-xs);
-  padding: var(--space-2xl) var(--space-md) var(--space-2xl);
-  background: linear-gradient(to top, var(--c-action-bar-bg) calc(var(--d-action-bar-fade-start) * 100%), transparent);
+  padding: var(--space-md) var(--space-md) var(--space-2xl);
 }
+
+/* The group's pile on the money button: each sticker where it was placed, the later ones on top */
+.tu-crew { position: relative; flex: none; }
+.tu-crew__face { position: absolute; }
 
 .tu-recenter__dot {
   width: var(--d-me-dot);

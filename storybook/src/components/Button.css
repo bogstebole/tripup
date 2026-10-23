@@ -14,3 +14,5 @@
 .tu-btn__icon { width: var(--d-button-icon); height: var(--d-button-icon); }
 .tu-btn:active { transform: scale(var(--press-scale)); }
 .tu-btn:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: var(--space-3xs); }
+/* With a label: a pill as tall as the top bar's buttons */
+.tu-btn--text { display: inline-flex; align-items: center; gap: var(--space-xs); height: var(--d-button-md); padding: 0 var(--space-md); white-space: nowrap; }

@@ -1,0 +1,43 @@
+.tu-pages__strong { color: var(--color-text-default); }
+.tu-pages__muted { color: var(--color-text-muted); }
+.tu-pages__success { color: var(--color-text-success); }
+.tu-pages__note { padding: var(--space-md) var(--space-xs) 0; color: var(--color-text-muted); }
+.tu-pages__check { width: var(--size-icon-sm); height: var(--size-icon-sm); flex: none; color: var(--color-icon-success); }
+.tu-pages__lead { width: var(--size-icon-md); height: var(--size-icon-md); flex: none; color: var(--color-icon-brand); }
+
+/* Itinerary: a heading per day ("Thu 14 · Day 3 · Today"), then where we've been and what's planned */
+.tu-day { display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-xl) var(--space-xs) var(--space-2xs); }
+.tu-day--first { padding-top: var(--space-none); }
+.tu-day h3 { margin: 0; }
+.tu-day__empty { padding: var(--space-xs); color: var(--color-text-subtle); }
+/* A small brand pill next to a heading */
+.tu-tag { padding: var(--space-3xs) var(--space-xs); border-radius: var(--radius-pill); background: var(--color-bg-brand-subtle); color: var(--color-text-brand); }
+
+/* Money: what I owe, in the one grey block (it's the thing to act on) */
+.tu-owe { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-md); border-radius: var(--radius-sheet); background: var(--color-bg-muted); }
+.tu-owe__text { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: var(--space-3xs); color: var(--color-text-default); }
+.tu-owe__done { width: var(--size-icon-md); height: var(--size-icon-md); flex: none; color: var(--color-icon-success); }
+/* Who pays whom: their two faces with an arrow between */
+.tu-pay { display: inline-flex; align-items: center; gap: var(--space-3xs); flex: none; }
+.tu-pay__arrow { width: var(--size-icon-sm); height: var(--size-icon-sm); flex: none; color: var(--color-icon-muted); }
+.tu-amount { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-3xs); flex: none; }
+
+/* Add: a step replaces the page; the old one fades out over the new one, both from the top */
+.tu-add-steps { display: grid; }
+.tu-add-steps__step { grid-area: 1 / 1; min-width: 0; }
+.tu-back {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: var(--space-3xs);
+  padding: var(--space-2xs) var(--space-xs);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-brand);
+  transition: transform var(--press-ms) var(--ease-out);
+}
+.tu-back:active { transform: scale(var(--press-scale)); }
+.tu-back:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: calc(var(--space-3xs) * -1); }
+.tu-back__icon { width: var(--size-icon-sm); height: var(--size-icon-sm); }
+/* The invite link in a muted pill, with Copy at its end */
+.tu-link { display: flex; align-items: center; gap: var(--space-sm); margin: 0 var(--space-xs); padding: var(--space-xs) var(--space-xs) var(--space-xs) var(--space-md); border-radius: var(--radius-pill); background: var(--color-bg-muted); }
+.tu-link__text { flex: 1 1 0; min-width: 0; color: var(--color-text-default); }

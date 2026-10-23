@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
-import { EVENT, MENU, PEOPLE, TRIP_DAYS } from '../data';
+import { EVENT, MENU, PEOPLE, TRIP_DAYS, upNextChips } from '../data';
 import { AddButton } from './AddButton';
 import { Toast } from './Toast';
 import { ToggleChips } from './ToggleChips';
@@ -43,10 +43,13 @@ export const Rating: Story = {
 
 export const Chips: Story = {
   name: 'InfoChips',
-  parameters: { docs: { description: { story: 'Joined facts about a plan: who is going, price level, time. Only the outer corners are rounded; the middle chip takes the spare width.' } } },
+  parameters: { docs: { description: { story: 'Joined facts about a plan, as on the Up next card. Only the outer corners are rounded. The first chip says how many are coming; once people arrive, it becomes every arrived face, overlapped (chip/face-overlap), then "here". The second is the price range. The two share the width equally until four or more faces need the room; then the price shrinks to its text.' } } },
   render: () => (
-    <div style={{ width: 201, display: 'flex' }}>
-      <InfoChips items={[{ text: '+3', sticker: 'person-05', tilt: -6.22 }, { text: EVENT.price, grow: true }, { text: EVENT.when }]} />
+    // As wide as on the card: its width less the padding, the gap and the open button
+    <div style={{ width: 'calc(var(--d-widget-mid-width) - var(--space-xs) * 2 - var(--space-md) - var(--d-button-sm))', display: 'grid', gap: 'var(--space-md)' }}>
+      {[[], ['person-01'], ['person-01', 'person-05', 'person-02', 'person-04']].map(here => (
+        <div key={here.length} style={{ display: 'flex' }}><InfoChips items={upNextChips(here)} /></div>
+      ))}
     </div>
   ),
 };
@@ -122,7 +125,7 @@ export const Note: Story = {
 
 export const Pile: Story = {
   name: 'FacePile',
-  parameters: { docs: { description: { story: 'People as a little pile: up to two stickers, then "+N". On the map, people closer than a sticker\'s width merge into one pile, so a group walking together never turns into a heap. Whoever has arrived leaves the map and shows on the place\'s pin instead (a chip-size pile on the mini pin\'s corner, "1 here" on the card). Locations are shared live and passively, from 90 minutes before the event.' } } },
+  parameters: { docs: { description: { story: 'People as a little pile: up to two stickers, then "+N". On the map, people closer than a sticker\'s width merge into one pile, so a group walking together never turns into a heap. Whoever has arrived leaves the map and shows on the place\'s pin instead: a chip-size pile across the mini pin\'s corner, and their faces with "here" in the card\'s first chip. Locations are shared live and passively, from 90 minutes before the event.' } } },
   render: () => (
     <div style={{ display: 'flex', gap: 'var(--space-xl)', alignItems: 'center' }}>
       <FacePile faces={['person-05']} label="Nic" />

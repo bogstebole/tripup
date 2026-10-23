@@ -30,16 +30,6 @@
 
 .tu-upnext__card:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: var(--space-3xs); }
 
-/* Who's already there, on the card's top-right corner: across it on the mini pin, just inside it on the card
-   (clear of the top bar's fade above). Gone at the edge. */
+/* Who's already there, across the mini pin's top-right corner (on the card they're in the first chip) */
 .tu-upnext__here { position: absolute; top: 0; right: 0; pointer-events: none; }
-.tu-upnext__here-pile {
-  display: block;
-  transform: translate(calc(-100% - var(--space-xs)), var(--space-xs));
-  transition: transform var(--enter-ms) var(--ease-out), opacity var(--fade-ms) var(--ease-out);
-}
-.tu-upnext__here[data-state='mini'] .tu-upnext__here-pile { transform: translate(50%, -50%); }
-.tu-upnext__here[data-state='edge'] .tu-upnext__here-pile { opacity: 0; }
-@media (prefers-reduced-motion: reduce) {
-  .tu-upnext__here-pile { transition: opacity var(--fade-ms) var(--ease-out); }
-}
+.tu-upnext__here-pile { display: block; transform: translate(50%, -50%); }

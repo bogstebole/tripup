@@ -4,6 +4,8 @@ import './KnowSection.css';
 
 export interface KnowRowProps {
   children: ReactNode;
+  /** A muted line under the text, e.g. what a choice does. */
+  subtitle?: string;
   onClick?: () => void;
   /** Shown on the left of the text, e.g. a dish sticker. */
   leading?: ReactNode;
@@ -12,11 +14,14 @@ export interface KnowRowProps {
 }
 
 /** A tappable row inside a section: soft glass row, brand text, arrow. */
-export function KnowRow({ children, onClick, leading, trailing }: KnowRowProps) {
+export function KnowRow({ children, subtitle, onClick, leading, trailing }: KnowRowProps) {
   return (
     <button type="button" className="tu-know-row" onClick={onClick}>
       {leading}
-      <span className="tu-know-row__text text-label-md">{children}</span>
+      <span className="tu-know-row__text text-label-md">
+        {children}
+        {subtitle && <span className="tu-know-row__sub">{subtitle}</span>}
+      </span>
       {trailing}
       <ArrowRight className="tu-know-row__arrow" strokeWidth={2} absoluteStrokeWidth aria-hidden />
     </button>

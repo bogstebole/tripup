@@ -21,8 +21,9 @@ export interface UpNextEvent {
   eta: string;
   sticker: string;
   fan: { sticker: string; height: number; tilt: number }[];
+  /** Who's coming or who's here, then the price range (see `upNextChips` in data.ts). */
   chips: InfoChip[];
-  /** Stickers of whoever is already at the place. */
+  /** Stickers of whoever is already at the place: in the card's first chip, and across the mini pin's corner. */
   here?: string[];
 }
 
@@ -47,13 +48,15 @@ const ease = m['ease-out'] as [number, number, number, number];
  * so every change reads as the same object growing or shrinking, never a swap.
  * Card ↔ mini: the plan's sticker and the name are shared (layoutId) and travel between their two places;
  * the fan opens out from the sticker, the label and rating follow the name, the chips rise in last.
- * Whoever is already there sits on the top-right corner: across it on the mini pin, just inside it on the card.
+ * Whoever is already there is in the card's first chip; on the mini pin they sit across its top-right corner instead,
+ * fading in once the card has mostly shrunk and out quickly as it grows. Gone at the edge.
  */
 export function UpNextWidget({ event, state, edgeAngle = 90, onOpen, onTap }: UpNextWidgetProps) {
   const reduce = useReducedMotion();
   const group = useId();
   const spring = reduce ? { duration: 0 } : { type: 'spring' as const, duration: morph.duration, bounce: morph.bounce };
   const fade = { duration: reduce ? 0 : m['fade-ms'] / 1000, ease };
+  const fadeOut = { duration: m['fade-ms'] / 1000, ease };
   const blur = reduce ? 'none' : `blur(${m['enter-blur']}px)`;
   // Parts that arrive after the shared ones: fade, sharpen and grow into place, the i-th one a stagger later
   const rise: Variants = {
@@ -121,8 +124,15 @@ export function UpNextWidget({ event, state, edgeAngle = 90, onOpen, onTap }: Up
         </AnimatePresence>
       </motion.div>
       {!!event.here?.length && (
-        <motion.span layout="position" transition={spring} className="tu-upnext__here" data-state={state} aria-hidden>
-          <span className="tu-upnext__here-pile"><FacePile faces={event.here} size="chip" /></span>
+        <motion.span layout="position" transition={spring} className="tu-upnext__here" aria-hidden>
+          <motion.span
+            className="tu-upnext__here-pile"
+            initial={false}
+            animate={{ opacity: state === 'mini' ? 1 : 0 }}
+            transition={state === 'mini' ? { duration: reduce ? m['fade-ms'] / 1000 : m['enter-ms'] / 1000, ease, delay: reduce ? 0 : morph.duration / 2 } : fadeOut}
+          >
+            <FacePile faces={event.here} size="chip" />
+          </motion.span>
         </motion.span>
       )}
       {state !== 'edge' && (

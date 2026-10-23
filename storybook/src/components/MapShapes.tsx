@@ -3,23 +3,21 @@
 import { useId } from 'react';
 import './MapShapes.css';
 
-/** The rounded tail under a widget plus the blue dash that marks the exact spot on the map. */
+const TAIL = 'M20.8721 20.5675L30.5049 7.35669C32.4324 4.71336 30.5443 1 27.2729 1H8.00714C4.73573 1 2.84768 4.71336 4.77511 7.35669L14.408 20.5675C16.0057 22.7586 19.2744 22.7586 20.8721 20.5675Z';
+
+/** The blue tail under a widget, with a thin white edge just inside (so the blue reads on blue water and dark map
+ *  alike), plus the blue dash that marks the exact spot on the map. */
 export function PinTail({ gap = 'xs' }: { gap?: 'xs' | '2xs' }) {
   const id = useId();
   return (
     <span className="tu-tail" style={{ gap: `var(--space-${gap})` }} aria-hidden>
       <svg className="tu-tail__shape" viewBox="0 0 35.28 24">
         <defs>
-          <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" style={{ stopColor: 'var(--c-surface-top)' }} />
-            <stop offset="1" style={{ stopColor: 'var(--c-surface-bottom)' }} />
-          </linearGradient>
+          <clipPath id={id}><path d={TAIL} /></clipPath>
         </defs>
-        <path
-          d="M20.8721 20.5675L30.5049 7.35669C32.4324 4.71336 30.5443 1 27.2729 1H8.00714C4.73573 1 2.84768 4.71336 4.77511 7.35669L14.408 20.5675C16.0057 22.7586 19.2744 22.7586 20.8721 20.5675Z"
-          fill={`url(#${id})`}
-          style={{ stroke: 'var(--c-surface-edge)', strokeWidth: 'var(--d-surface-edge-width)' }}
-        />
+        <path d={TAIL} className="tu-tail__fill" />
+        {/* A stroke twice the edge width, clipped to the shape: only its inner half shows */}
+        <path d={TAIL} clipPath={`url(#${id})`} className="tu-tail__edge" />
       </svg>
       <span className="tu-tail__dash" />
     </span>

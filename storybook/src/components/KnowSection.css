@@ -27,5 +27,6 @@
   transition: transform var(--press-ms) var(--ease-out);
 }
 .tu-know-row:active { transform: scale(var(--press-scale)); }
-.tu-know-row__text { flex: 1 1 0; min-width: 0; }
+.tu-know-row__text { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
+.tu-know-row__sub { color: var(--color-text-muted); }
 .tu-know-row__arrow { width: var(--size-icon-sm); height: var(--size-icon-sm); flex: none; color: var(--color-icon-brand); }

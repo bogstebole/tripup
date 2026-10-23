@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
-import { UP_NEXT } from '../data';
+import { UP_NEXT, upNextChips } from '../data';
 import { EdgeArrow, MeEdge, MeMarker, PinTail } from './MapShapes';
 import { RecenterButton } from './Bars';
 import { UpNextWidget, type WidgetState } from './UpNextWidget';
@@ -23,7 +23,7 @@ const meta = {
           '| **mini** | The map starts moving (pan or zoom), or any later plan | Grows back to mid |',
           '| **edge** | The place leaves the screen; the pin slides along the edge and the arrow points at it | Pans the map to the place |',
           '',
-          'Motion: size, position and corner radius follow one spring (spring-morph: 0.45 s, bounce 0.12), and the card grows out of the tail (anchored at its bottom centre). Card ↔ mini is one object: the plan\'s sticker is the same picture in both states and travels from the mini\'s slot into the middle of the fan, growing; the name slides between its two places and crossfades between the two styles. Everything else hangs on those two: the other fan stickers open out from the shared one, the label and rating follow the name, the eta leaves with the mini name, and the chips rise in last (from morph-enter-scale 0.9). Whoever is already at the place sits on the top-right corner and stays there through the morph: across the corner on the mini pin, just inside it on the card (clear of the top bar\'s fade). Fading parts blur while half there (enter-blur 4 px). While the map is being dragged, the pin follows the finger frame by frame. Haptics on the phone: light on buttons, medium when a pin gets focus. Reduced motion: instant state changes, crossfade only.',
+          'Motion: size, position and corner radius follow one spring (spring-morph: 0.45 s, bounce 0.12), and the card grows out of the tail (anchored at its bottom centre). Card ↔ mini is one object: the plan\'s sticker is the same picture in both states and travels from the mini\'s slot into the middle of the fan, growing; the name slides between its two places and crossfades between the two styles. Everything else hangs on those two: the other fan stickers open out from the shared one, the label and rating follow the name, the eta leaves with the mini name, and the chips rise in last (from morph-enter-scale 0.9). Who\'s coming is the card\'s first chip ("4 coming"); once people arrive it becomes their faces and "here", next to the price range. On the mini pin the same faces sit across its top-right corner instead, fading in once the card has mostly shrunk (enter-ms) and out quickly as it grows (fade-ms); the card itself has no corner pile. The tail is blue with a thin white edge just inside, so it reads on pale streets, blue water and the dark map alike. Fading parts blur while half there (enter-blur 4 px). While the map is being dragged, the pin follows the finger frame by frame. Haptics on the phone: light on buttons, medium when a pin gets focus. Reduced motion: instant state changes, crossfade only.',
         ].join('\n'),
       },
     },
@@ -33,8 +33,18 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Mid: Story = { args: { state: 'mid' } };
-export const Mini: Story = { args: { state: 'mini' } };
+export const Mid: Story = { args: { state: 'mid' }, parameters: { docs: { description: { story: 'Maya is already there: her face and "here", then the price range, in two equal chips.' } } } };
+export const MidNobodyThere: Story = {
+  name: 'Mid · nobody there yet',
+  args: { state: 'mid', event: { ...UP_NEXT, chips: upNextChips([]), here: [] } },
+  parameters: { docs: { description: { story: 'Before anyone arrives, the first chip counts who\'s going: "4 coming" (Ren isn\'t).' } } },
+};
+export const MidFourThere: Story = {
+  name: 'Mid · four there',
+  args: { state: 'mid', event: { ...UP_NEXT, chips: upNextChips(['person-01', 'person-05', 'person-02', 'person-04']), here: ['person-01', 'person-05', 'person-02', 'person-04'] } },
+  parameters: { docs: { description: { story: 'Four or more faces need the room, so the price chip shrinks to its text.' } } },
+};
+export const Mini: Story = { args: { state: 'mini' }, parameters: { docs: { description: { story: 'Whoever is already there sits across the mini pin\'s top-right corner.' } } } };
 export const Edge: Story = { args: { state: 'edge', edgeAngle: 90 } };
 
 export const Morph: Story = {
@@ -58,7 +68,7 @@ export const Morph: Story = {
 
 export const Shapes: Story = {
   name: 'Map marks',
-  parameters: { docs: { description: { story: 'Pin tail (under a widget), edge arrow (points at an off-screen pin), my location with the heading cone, my location off-screen (edge capsule), and the recenter button that appears when I am off-screen.' } } },
+  parameters: { docs: { description: { story: 'Pin tail (under a widget: blue, a thin white edge just inside, and the dash on the exact spot), edge arrow (points at an off-screen pin), my location with the heading cone, my location off-screen (edge capsule), and the recenter button that appears when I am off-screen.' } } },
   render: () => (
     <div style={{ display: 'flex', gap: 'var(--space-2xl)', alignItems: 'center' }}>
       <PinTail />

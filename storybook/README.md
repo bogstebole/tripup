@@ -7,4 +7,4 @@ npm install --legacy-peer-deps   # npm 10.8 trips over a peer-deps bug without i
 npm run storybook                # http://localhost:6006 (regenerates the tokens first)
 ```
 
-Sections: Introduction (rules and the Figma → token replacements), Foundations (colors, type, space, shadows, motion), Components (Button, Basics), Widget (Up next states and morph, map marks), Screens (bars, full view tabs).
+Sections: Introduction (rules and the Figma → token replacements), Foundations (colors, type, space, shadows, motion), Components (Button, Basics), Widget (Up next states and morph, map marks), Screens (bars, full view tabs), Pop-ups (the footer's itinerary, money and add).

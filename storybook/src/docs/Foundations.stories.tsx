@@ -40,6 +40,39 @@ export const ComponentColors: Story = {
   ),
 };
 
+// What a few component sizes are for, where the name doesn't say
+const DIMENSION_NOTES: Record<string, string> = {
+  'chip/face-overlap': 'How far the faces overlap in the Up next card\'s "here" chip',
+  'pin/tail-width': 'The blue pin tail under a widget',
+  'sheet/inset': 'The full view and pop-ups, from the screen\'s edges',
+  'sheet/compact-height': 'Add\'s shorter pop-up (it only has a few rows)',
+  'sheet/top-fade': 'How far the page fades under a sheet\'s header',
+  'action-bar/fade-start': 'Where the footer\'s white starts fading (0 = at the bottom)',
+};
+const unitless = (k: string) => /(fade-start|scale|tilt)$/.test(k);
+// A size token is a number or a reference like "{space.xl}"; read the px it points at
+const px = (v: string | number) => {
+  if (typeof v === 'number') return v;
+  const [, group, key] = /^\{(\w+)\.(.+)\}$/.exec(v) ?? [];
+  return (tokens as unknown as Record<string, Record<string, number>>)[group]?.[key];
+};
+
+export const ComponentDimensions: Story = {
+  name: 'Component dimensions',
+  render: () => (
+    <Table
+      head={['Token', 'Points at', 'Value', '', 'Used for']}
+      rows={Object.entries(tokens.component.dimension).map(([k, v]) => [
+        <code>d/{k}</code>,
+        <span style={label}>{typeof v === 'string' ? v : ''}</span>,
+        unitless(k) ? px(v) : `${px(v)} px`,
+        unitless(k) ? '' : <span style={{ display: 'inline-block', height: 'var(--space-xs)', width: `min(var(--d-${kebab(k)}), var(--space-5xl) * 2)`, background: 'var(--color-bg-brand)', borderRadius: 'var(--radius-sm)' }} />,
+        <span style={label}>{DIMENSION_NOTES[k] ?? ''}</span>,
+      ])}
+    />
+  ),
+};
+
 export const Typography: Story = {
   render: () => (
     <Table
@@ -95,7 +128,9 @@ export const Motion: Story = {
         ['enter-blur', `${tokens.motion['enter-blur']} px`, 'Blur on a part while it is half faded in or out (tab pages, widget parts)'],
         ['morph-enter-scale', `${tokens.motion['morph-enter-scale']}`, 'Scale a widget part grows from as it arrives (fan stickers, chips)'],
         ['press-scale / press-ms', `${tokens.motion['press-scale']} / ${tokens.motion['press-ms']} ms`, 'Every button press'],
-        ['fade-ms', `${tokens.motion['fade-ms']} ms, ease-out`, 'Content crossfades'],
+        ['fade-ms', `${tokens.motion['fade-ms']} ms, ease-out`, 'Content crossfades; a pop-up going back down'],
+        ['enter-ms / stagger-ms', `${tokens.motion['enter-ms']} ms / ${tokens.motion['stagger-ms']} ms`, 'A pop-up rising from the bottom; blocks arriving one after another (up to stagger-max ' + tokens.motion['stagger-max'] + ')'],
+        ['toast-ms', `${tokens.motion['toast-ms']} ms`, 'How long a note stays up ("Link copied")'],
         ['ease-out', tokens.motion['ease-out'].join(', '), 'Entering, fades'],
         ['ease-in-out', tokens.motion['ease-in-out'].join(', '), 'Moving on screen'],
         ['settle-ms', `${tokens.motion['settle-ms']} ms`, 'How long the map must be still before the bottom actions come back'],

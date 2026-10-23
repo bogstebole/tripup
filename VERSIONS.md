@@ -394,6 +394,11 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - The same build is installed on Bogdan's iPhone 15.
 - **Android icon:** the same light icon, as an adaptive icon (`mipmap-anydpi-v26`). The launcher's mask cuts it to shape over the icon's own grey (#F4F4F5). The full icon is also kept for older launchers. The APK is rebuilt (`releases/TripUp-android.apk`); checked in the emulator's app drawer.
 - From now on, every bigger change gets its own branch and goes into `main` once it's checked.
+- **Storybook mirrors 1.21:**
+  - the three-button footer with the group pile, the blue tail, and the face chips ("4 coming", faces + "here");
+  - new Pop-ups stories (Itinerary, Money with Pay, Add with ideas and invite) on `TripSheet`, with the same numbers as the app.
+  - Not mirrored: pull-down to close, and the springs (Storybook uses ease-out tweens).
+  - New stories: `pop-ups--itinerary`, `pop-ups--money`, `pop-ups--add`, `widget-up-next--mid-nobody-there`, `widget-up-next--mid-four-there`, `components-button--text`, `foundations--component-dimensions`.
 
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html

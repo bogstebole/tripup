@@ -1,7 +1,10 @@
-import { ArrowLeft, Calendar, Euro, MapPin, Plus } from 'lucide-react';
+import { ArrowLeft, MapPin, Plus } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { CREW_PILE } from '../data';
 import { Button } from './Button';
 import { PeopleButton } from './PeopleButton';
+import { Sticker } from './Sticker';
+import { easedFade } from './easedFade';
 import './Bars.css';
 
 export interface TopBarProps {
@@ -18,7 +21,7 @@ export interface TopBarProps {
 /** Trip header over the map: back, trip name and dates, people, and the day filter. Fades the map out behind it. */
 export function TopBar({ title, dates, faces, more, onBack, onPeople, filter }: TopBarProps) {
   return (
-    <header className="tu-topbar">
+    <header className="tu-topbar" style={{ background: easedFade('var(--c-top-bar-bg)', { from: 'calc(var(--d-top-bar-fade-start) * 100%)' }) }}>
       <div className="tu-topbar__row">
         <Button icon={ArrowLeft} label="Back to trips" size="md" onClick={onBack} />
         <div className="tu-topbar__title">
@@ -33,21 +36,34 @@ export function TopBar({ title, dates, faces, more, onBack, onPeople, filter }: 
 }
 
 export interface ActionBarProps {
-  onCalendar?: () => void;
-  onPlaces?: () => void;
+  onItinerary?: () => void;
   onMoney?: () => void;
   onAdd?: () => void;
 }
 
-/** The trip's four actions at the bottom: plan, places, money, and add (the one primary). Fades the map out behind it. In the app it slides down while the map is being moved and comes back once it settles. */
-export function ActionBar({ onCalendar, onPlaces, onMoney, onAdd }: ActionBarProps) {
+/**
+ * The trip's three actions at the bottom: the itinerary, the group's money (the whole group as one little pile), and
+ * add (the one primary). Each opens its pop-up. A white fade, strongest at the bottom, lifts them off the map; no blur.
+ * In the app it slides down while the map is being moved and comes back once it settles.
+ */
+export function ActionBar({ onItinerary, onMoney, onAdd }: ActionBarProps) {
   return (
-    <nav className="tu-actionbar" aria-label="Trip actions">
-      <Button icon={Calendar} label="Plan" size="lg" onClick={onCalendar} />
-      <Button icon={MapPin} label="Places" size="lg" onClick={onPlaces} />
-      <Button icon={Euro} label="Money" size="lg" onClick={onMoney} />
+    <nav className="tu-actionbar" aria-label="Trip actions" style={{ background: easedFade('var(--c-action-bar-bg)', { from: 'calc(var(--d-action-bar-fade-start) * 100%)', to: 'top' }) }}>
+      <Button icon={MapPin} label="Itinerary" size="lg" onClick={onItinerary} />
+      <CrewButton onClick={onMoney} />
       <Button icon={Plus} label="Add to the trip" size="lg" variant="primary" onClick={onAdd} />
     </nav>
+  );
+}
+
+/** The money button: everyone on the trip, piled up as they were placed in Figma, on a soft glass circle. */
+export function CrewButton({ onClick }: { onClick?: () => void }) {
+  return (
+    <button type="button" aria-label="Money: who paid and who owes" className="tu-btn tu-btn--soft tu-btn--lg" onClick={onClick}>
+      <span className="tu-crew" style={{ width: CREW_PILE.width, height: CREW_PILE.height }} aria-hidden>
+        {CREW_PILE.stickers.map(s => <Sticker key={s.sticker} name={s.sticker} size={s.height} tilt={s.tilt} className="tu-crew__face" style={{ left: s.left, top: s.top }} />)}
+      </span>
+    </button>
   );
 }
 
