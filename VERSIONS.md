@@ -338,7 +338,7 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 | Scenario | Before | After |
 | --- | --- | --- |
 | Map: pan and zoom | 18.0 / 19.4; 178 of 240 late | 4.7 / 7.8; 3 of 239 |
-| Up next: open and close the full view | 22.4 / 28.4; 187 of 191 | 3.0 / 4.7; 2 of 248 (measured on the first of the two commits) |
+| Up next: open and close the full view | 22.4 / 28.4; 187 of 191 | 3.1 / 5.1; 2 of 247 |
 | Full view: switch tabs | 20.4 / 23.7; 223 of 225 | 2.2 / 3.7; 4 of 313 |
 | Full view: scroll the Menu | 25.5 / 26.3; 530 of 530 | 3.9 / 4.3; 0 of 622 |
 | Full view: Overview photos and scroll | 17.8 / 19.9; 398 of 540 | 4.2 / 4.5; 2 of 628 |
