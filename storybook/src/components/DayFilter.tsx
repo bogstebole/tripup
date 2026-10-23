@@ -33,7 +33,13 @@ export function DayFilter({ days, selected, onChange }: DayFilterProps) {
 /** One toggle in the day filter. */
 export function DayChip({ label, on, onClick }: { label: string; on: boolean; onClick?: () => void }) {
   return (
-    <button type="button" aria-pressed={on} className={`tu-day text-label-md ${on ? 'tu-btn--primary' : 'tu-day--off'}`} onClick={onClick}>
+    <button
+      type="button"
+      aria-pressed={on}
+      className={`tu-day text-label-md ${on ? 'tu-btn--primary' : 'tu-day--off'}`}
+      // A chip half off the edge slides fully into view (nothing moves if it already is)
+      onClick={e => { onClick?.(); e.currentTarget.scrollIntoView({ inline: 'nearest', block: 'nearest', behavior: 'smooth' }); }}
+    >
       {label}
     </button>
   );

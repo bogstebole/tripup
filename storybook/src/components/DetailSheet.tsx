@@ -32,6 +32,8 @@ export interface DetailSheetProps {
   /** Service options and facts, as on the place's Google Maps card. */
   services?: string[];
   details?: PlaceDetail[];
+  /** "Today, 5 PM". */
+  whenLong?: string;
   people: Person[];
   /** Sticker of each person, by id; shows who picked a dish. */
   faces: Record<string, string>;
@@ -176,7 +178,7 @@ export function DetailSheet(p: DetailSheetProps) {
               <>
                 <Block i={0} className="tu-sheet__head">
                   <h2 className="tu-sheet__title text-heading-lg">Who's coming</h2>
-                  <p className="text-body-sm tu-sheet__muted">{going} of {p.people.length} going · 5 PM today</p>
+                  <p className="text-body-sm tu-sheet__muted">{going} of {p.people.length} going{p.whenLong ? ` · ${p.whenLong}` : ''}</p>
                 </Block>
                 <Block i={1}>
                   {p.people.map(x => (

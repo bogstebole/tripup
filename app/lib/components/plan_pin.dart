@@ -56,7 +56,7 @@ class UpNextMid extends StatelessWidget {
             ])),
           ),
           p(MidPart.chips, Row(spacing: TokSpace.md, children: [
-            Expanded(child: InfoChips(items: plan.chips)),
+            Expanded(child: InfoChips(items: [...plan.chips, InfoChip(plan.whenShort)])),
             TuButton(icon: TuIcons.forward, label: 'Open ${plan.name}', kind: GlassKind.primary, size: TuButtonSize.sm, onTap: onOpen),
           ])),
         ]),

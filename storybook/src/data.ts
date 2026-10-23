@@ -36,6 +36,35 @@ export const MENU: Dish[] = [
   { id: 'ice-cream', name: 'Lime sorbet', price: '€6', sticker: 'ice-cream', pickedBy: ['ari', 'maya', 'nic'] },
 ];
 
+// ---------- Time: the demo's "now", the same as the app's
+
+/** Where the demo starts: Thursday 14 May 2026, 15:56, an hour before dinner. */
+export const TRIP_NOW = new Date(2026, 4, 14, 15, 56);
+const daysBetween = (from: Date, to: Date) => Math.round((new Date(to.getFullYear(), to.getMonth(), to.getDate()).getTime() - new Date(from.getFullYear(), from.getMonth(), from.getDate()).getTime()) / 86400000);
+
+/** How soon, the way a person would say it: minutes for the next hour and a half, then hours the same day, then "Tomorrow", then days. */
+export const timeUntil = (start: Date, now = TRIP_NOW) => {
+  const mins = Math.floor((start.getTime() - now.getTime()) / 60000);
+  if (mins <= 0) return 'Now';
+  const days = daysBetween(now, start);
+  if (days === 0) {
+    if (mins < 90) return `In ${mins} ${mins === 1 ? 'min' : 'mins'}`;
+    const hrs = Math.round(mins / 60);
+    return `In ${hrs} ${hrs === 1 ? 'hr' : 'hrs'}`;
+  }
+  return days === 1 ? 'Tomorrow' : `In ${days} days`;
+};
+/** "5 PM", "10:30 AM". */
+export const clockTime = (t: Date) => `${t.getHours() % 12 || 12}${t.getMinutes() ? `:${String(t.getMinutes()).padStart(2, '0')}` : ''} ${t.getHours() < 12 ? 'AM' : 'PM'}`;
+/** "Today", "Tomorrow", or "Sat 16". */
+export const dayName = (t: Date, now = TRIP_NOW) => {
+  const d = daysBetween(now, t);
+  return d === 0 ? 'Today' : d === 1 ? 'Tomorrow' : `${t.toLocaleDateString('en-GB', { weekday: 'short' })} ${t.getDate()}`;
+};
+
+/** Dinner, the Up next plan. */
+const DINNER = new Date(2026, 4, 14, 17, 0);
+
 export type PlaceDetail = { kind: 'address' | 'hours' | 'price' | 'booking' | 'order' | 'website' | 'phone'; text: string; status?: string; sub?: string };
 
 export const EVENT = {
@@ -44,8 +73,9 @@ export const EVENT = {
   rating: '4.2 (173)',
   cuisine: 'French',
   price: '€€',
-  when: '5 PM • Today',
-  eta: 'In 64 mins',
+  when: `${clockTime(DINNER)} • ${dayName(DINNER)}`,
+  whenLong: `${dayName(DINNER)}, ${clockTime(DINNER)}`,
+  eta: timeUntil(DINNER),
   sticker: 'wings',
   photos: ['brasserie-2', 'brasserie-3', 'brasserie-1', 'brasserie-4', 'brasserie-5'],   // 4 and 5 are from the restaurant's own menu
   // From the place's Google Maps card

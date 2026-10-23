@@ -83,10 +83,11 @@ class Plan {
   const Plan({
     required this.id,
     required this.name,
-    required this.eta,
     required this.sticker,
     required this.at,
     required this.day,
+    required this.hour,
+    this.minute = 0,
     this.rating = '',
     this.cuisine = '',
     this.fan = const [],
@@ -98,11 +99,22 @@ class Plan {
     this.services = const [],
     this.details = const [],
   });
-  final String id, name, eta, sticker, rating, cuisine, about;
+  final String id, name, sticker, rating, cuisine, about;
   final LatLng at;
 
-  /// Day of the month it happens on (see [tripDays]).
-  final int day;
+  /// Day of the month it happens on (see [tripDays]), and the time it starts.
+  final int day, hour, minute;
+
+  DateTime get start => DateTime(tripYear, tripMonth, day, hour, minute);
+
+  /// How soon, from now: "In 64 mins", "In 2 hrs", "Tomorrow", "In 3 days".
+  String get eta => timeUntil(start, tripNow());
+
+  /// "5 PM • Today", for the card's chips.
+  String get whenShort => '${clockTime(start)} • ${dayName(start, tripNow())}';
+
+  /// "Today, 5 PM", for running text.
+  String get whenLong => '${dayName(start, tripNow())}, ${clockTime(start)}';
   final List<FanSticker> fan;
   final List<InfoChip> chips;
   final List<String> photos, tips;
@@ -130,14 +142,14 @@ const plans = [
   Plan(
     id: 'brasserie',
     name: "La Brasserie de L'Entrecôte - Alvalade",
-    eta: 'In 64 mins',
     sticker: 'wings',
     at: LatLng(38.754444, -9.140476),   // Av. da Igreja 12B, Alvalade
     day: today,
+    hour: 17,
     rating: '4.2 (173)',
     cuisine: 'French',
     fan: [FanSticker('pho', 44.79, 0), FanSticker('sushi', 78.53, -7.99), FanSticker('wings', 95, 0), FanSticker('ice-cream', 65.47, 8.59)],
-    chips: [InfoChip('+3', sticker: 'person-05', tilt: -6.22), InfoChip('€€', grow: true), InfoChip('5 PM • Today')],
+    chips: [InfoChip('+3', sticker: 'person-05', tilt: -6.22), InfoChip('€€', grow: true)],   // the time chip follows, from [Plan.whenShort]
     photos: ['brasserie-2', 'brasserie-3', 'brasserie-1', 'brasserie-4', 'brasserie-5'],   // 4 and 5 are from the restaurant's own menu
     // From the place's Google Maps card
     services: ['Dine-in', 'Takeaway', 'Delivery'],
@@ -164,12 +176,12 @@ const plans = [
       Dish('Lime sorbet', '€6', 'ice-cream', ['ari', 'maya', 'nic']),
     ],
   ),
-  Plan(id: 'croissants', name: 'Sam Croissants', eta: 'In 2 hrs', sticker: 'nata', at: LatLng(38.6975, -9.2032), day: today),
-  Plan(id: 'tram', name: 'Tram 28 ride', eta: 'Tomorrow', sticker: 'tram', at: LatLng(38.7114, -9.1296), day: 15),
-  Plan(id: 'sail', name: 'Sail on the Tagus', eta: 'Sat · 6 PM', sticker: 'caravel', at: LatLng(38.7700, -9.0935), day: 16),   // Doca dos Olivais
-  Plan(id: 'fado', name: 'Fado at Tasca do Chico', eta: 'Sun · 9 PM', sticker: 'guitar', at: LatLng(38.7123, -9.1450), day: 17),
-  Plan(id: 'oceanario', name: 'Oceanário', eta: 'Mon · 11 AM', sticker: 'festival-sardine', at: LatLng(38.7635, -9.0937), day: 18),
-  Plan(id: 'tiles', name: 'Tile Museum', eta: 'Tue · 10 AM', sticker: 'azulejo', at: LatLng(38.7247, -9.1136), day: 19),
+  Plan(id: 'croissants', name: 'Sam Croissants', sticker: 'nata', at: LatLng(38.6975, -9.2032), day: today, hour: 18),
+  Plan(id: 'tram', name: 'Tram 28 ride', sticker: 'tram', at: LatLng(38.7114, -9.1296), day: 15, hour: 10),
+  Plan(id: 'sail', name: 'Sail on the Tagus', sticker: 'caravel', at: LatLng(38.7700, -9.0935), day: 16, hour: 18),   // Doca dos Olivais
+  Plan(id: 'fado', name: 'Fado at Tasca do Chico', sticker: 'guitar', at: LatLng(38.7123, -9.1450), day: 17, hour: 21),
+  Plan(id: 'oceanario', name: 'Oceanário', sticker: 'festival-sardine', at: LatLng(38.7635, -9.0937), day: 18, hour: 11),
+  Plan(id: 'tiles', name: 'Tile Museum', sticker: 'azulejo', at: LatLng(38.7247, -9.1136), day: 19, hour: 10),
 ];
 
 /// Places already visited: stickers on the map, the trip's history.
@@ -206,5 +218,47 @@ const tripDates = '12 May - 21 May';
 const tripYear = 2026, tripMonth = 5;
 const tripDays = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
 const today = 14;
+
+// ---------- Time: the demo's "now", running on from when the app opened
+
+/// Where the demo starts: Thursday 14 May, 15:56, an hour before dinner.
+final tripNowAtLaunch = DateTime(tripYear, tripMonth, today, 15, 56);
+final _launch = DateTime.now();
+
+/// Now, in the trip: the demo's start plus however long the app has been open.
+DateTime tripNow() => tripNowAtLaunch.add(DateTime.now().difference(_launch));
+
+int _daysBetween(DateTime from, DateTime to) => DateTime(to.year, to.month, to.day).difference(DateTime(from.year, from.month, from.day)).inDays;
+
+/// How soon, the way a person would say it: minutes for the next hour and a half, then hours the same day,
+/// then "Tomorrow", then days.
+String timeUntil(DateTime start, DateTime now) {
+  final mins = start.difference(now).inMinutes;
+  if (mins <= 0) return 'Now';
+  final days = _daysBetween(now, start);
+  if (days == 0) {
+    if (mins < 90) return 'In $mins ${mins == 1 ? 'min' : 'mins'}';
+    final hrs = (mins / 60).round();
+    return 'In $hrs ${hrs == 1 ? 'hr' : 'hrs'}';
+  }
+  if (days == 1) return 'Tomorrow';
+  return 'In $days days';
+}
+
+/// "5 PM", "10:30 AM".
+String clockTime(DateTime t) {
+  final h = t.hour % 12 == 0 ? 12 : t.hour % 12;
+  return '$h${t.minute == 0 ? '' : ':${t.minute.toString().padLeft(2, '0')}'} ${t.hour < 12 ? 'AM' : 'PM'}';
+}
+
+/// "Mon", "Tue", …
+String weekdayShort(DateTime t) => const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][t.weekday - 1];
+
+/// "Today", "Tomorrow", or "Sat 16".
+String dayName(DateTime t, DateTime now) => switch (_daysBetween(now, t)) {
+      0 => 'Today',
+      1 => 'Tomorrow',
+      _ => '${weekdayShort(t)} ${t.day}',
+    };
 const topFaces = ['person-04', 'person-01'];
 const moreFaces = 3;

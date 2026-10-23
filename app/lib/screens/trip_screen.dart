@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
@@ -35,6 +36,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   late final _open = AnimationController.unbounded(vsync: this);   // 0 = card on the map, 1 = full view
   late final _drag = AnimationController.unbounded(vsync: this);   // how far the full view is pulled down
   late final _fly = AnimationController(vsync: this);
+  Timer? _tick;
   Theme? _theme;
   TileProviders? _tiles;
   bool _upNextMid = true;
@@ -54,6 +56,12 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     super.initState();
     _loadMap();
     _map.mapEventStream.listen(_onMapEvent);
+    // On the next minute, then every minute, so "In 64 mins" counts down
+    _tick = Timer(Duration(seconds: 60 - tripNow().second), () {
+      if (!mounted) return;
+      setState(() {});
+      _tick = Timer.periodic(const Duration(minutes: 1), (_) => setState(() {}));
+    });
     _open.addListener(() {
       // Hand back to the pin's card as soon as the overlay is within a pixel of it; the spring's
       // last sub-pixel crawl would otherwise leave the real card hidden for no visible reason
@@ -166,7 +174,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   }
 
   /// "Tue 12": the weekday and the day of the month.
-  static String _dayLabel(int day) => '${const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][DateTime(tripYear, tripMonth, day).weekday - 1]} $day';
+  static String _dayLabel(int day) => '${weekdayShort(DateTime(tripYear, tripMonth, day))} $day';
 
   void _tapPlan(Plan p, Size size) {
     if (p.id == _upNext.id) {
@@ -208,6 +216,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
 
   @override
   void dispose() {
+    _tick?.cancel();
     _open.dispose();
     _drag.dispose();
     _fly.dispose();

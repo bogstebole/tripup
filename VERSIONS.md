@@ -260,6 +260,11 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - **People:** a pile shows at most two dishes, the priciest ones (usually the mains), and one more sticker counts the rest ("+2", "+3"), in the count bubble's colours.
 - **Estimated total** is now a footer fixed at the bottom of People while the list scrolls above it, on one line: "Estimated total" (Label/LG) on the left, the amount (Heading/LG) on the right. The line explaining it is gone.
 
+### Final UI, iteration 1.10: times from a running clock, not typed in
+- Every plan has a real start (day and time), and the labels come from it against the demo's "now", which starts at Thursday 14 May, 15:56 and runs on while the app is open (it ticks every minute, so "In 64 mins" counts down).
+- How soon, on the pins: minutes for the next hour and a half ("In 64 mins"), then hours the same day ("In 2 hrs"), "Tomorrow", then days ("In 2 days" … "In 5 days"); "Now" once it starts. The Up next card's time chip ("5 PM • Today") and the People subtitle ("Today, 5 PM") come from the same start.
+- Day filter: tapping a chip that's half off the edge slides it fully into view.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

@@ -53,7 +53,13 @@ class DayChip extends StatelessWidget {
     return Semantics(
       selected: on,
       child: Pressable(
-        onTap: onTap,
+        onTap: () {
+          onTap();
+          // A chip half off the edge slides fully into view (nothing moves if it already is)
+          for (final policy in [ScrollPositionAlignmentPolicy.keepVisibleAtEnd, ScrollPositionAlignmentPolicy.keepVisibleAtStart]) {
+            Scrollable.ensureVisible(context, alignmentPolicy: policy, duration: TokMotion.enter, curve: TokMotion.easeOut);
+          }
+        },
         semanticLabel: label,
         child: AnimatedSwitcher(
           duration: TokMotion.fade,

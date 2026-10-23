@@ -240,7 +240,7 @@ class _DetailSheetState extends State<DetailSheet> {
           padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.xs, TokSpace.xs, 0),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x2xs, children: [
             Text("Who's coming", style: TokText.headingLg.copyWith(color: t.textDefault)),
-            Text('${people.where((x) => x.going).length} of ${people.length} going · 5 PM today', style: TokText.bodySm.copyWith(color: t.textMuted)),
+            Text('${people.where((x) => x.going).length} of ${people.length} going · ${widget.plan.whenLong}', style: TokText.bodySm.copyWith(color: t.textMuted)),
           ]),
         ),
         Column(children: [
