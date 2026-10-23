@@ -3,7 +3,7 @@ import { AnimatePresence, motion, useReducedMotion, type Variants } from 'motion
 import { useState, type CSSProperties, type ReactNode } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import realMenu from '../../../app/assets/data/brasserie-menu.json';
-import { type Person, type PlaceDetail } from '../data';
+import { euros, eurosIn, type Person, type PlaceDetail } from '../data';
 import { AddButton } from './AddButton';
 import { Button } from './Button';
 import { DishSticker } from './DishSticker';
@@ -75,6 +75,9 @@ export function DetailSheet(p: DetailSheetProps) {
   const dishes = SECTIONS.flatMap(s => s.items);
   const pickers = new Set([...dishes.flatMap(i => (i.pickedBy ?? []).filter(id => id !== 'ari')), ...(added.size ? ['ari'] : [])]);
   const picksOf = (id: string) => dishes.filter(d => (id === 'ari' ? added.has(d.name) : d.pickedBy?.includes(id)));
+  // Roughly what each person's picks come to, and all of them together
+  const costOf = (id: string) => picksOf(id).reduce((sum, d) => sum + (eurosIn(d.price) ?? 0), 0);
+  const total = p.people.reduce((sum, x) => sum + costOf(x.id), 0);
   const going = p.people.filter(x => x.status !== 'Not going').length;
 
   return (
@@ -189,8 +192,18 @@ export function DetailSheet(p: DetailSheetProps) {
                         if (picks.length) return <span className="tu-sheet__picks" aria-label={`${x.name} picked ${picks.map(d => d.name).join(', ')}`}>{picks.map((d, i) => <DishSticker key={d.name} photo={d.photo!} size="pick" tilt={i % 2 ? -tilt : tilt} />)}</span>;
                         return x.status !== 'Not going' ? <span className="text-body-sm tu-sheet__subtle">No picks yet</span> : null;
                       })()}
+                      {costOf(x.id) > 0 && <span className="text-label-md weight-semibold tu-sheet__cost">≈ {euros(costOf(x.id))}</span>}
                     </div>
                   ))}
+                {total > 0 && (
+                    <div className="tu-sheet__row tu-sheet__total">
+                      <div className="tu-sheet__row-text">
+                        <p className="text-label-md">Estimated total</p>
+                        <p className="text-body-sm tu-sheet__muted">From what everyone has picked so far</p>
+                      </div>
+                      <span className="text-heading-sm tu-sheet__cost">≈ {euros(total)}</span>
+                    </div>
+                  )}
                 </Block>
               </>
             )}

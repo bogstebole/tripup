@@ -48,6 +48,14 @@ class MenuItem {
   final List<String> pickedBy;
 }
 
+/// The first price on a menu line, in euros ("1 scoop €3.40 · 2 scoops €5.10" counts as €3.40).
+double? eurosIn(String price) {
+  final m = RegExp(r'€\s?(\d+(?:[.,]\d+)?)').firstMatch(price);
+  return m == null ? null : double.parse(m.group(1)!.replaceAll(',', '.'));
+}
+
+String euros(double v) => '€${v.toStringAsFixed(2)}';
+
 class MenuSection {
   const MenuSection(this.title, this.items, {this.note});
   final String title;

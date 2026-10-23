@@ -252,6 +252,10 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - **Photos are a Material 3 multi-browse carousel:** a large photo first, then a medium and a small one. Each photo is a mask that grows or shrinks as it moves between those places (the picture inside isn't squashed), and scrolling snaps to whole photos. Small and medium keep the design's peek widths (36 and 62); large takes the rest. In the app it's Flutter's own `CarouselView.weighted`; Storybook has a `PhotoCarousel` that follows the same places.
 - Five photos instead of three: two more of the restaurant's entrecôte, from its own menu (`brasserie-4`, `brasserie-5`).
 
+### Final UI, iteration 1.8: what each person's picks cost, see-through header
+- **People:** next to each person's pile of picks, roughly what they come to (≈ €36.20 for my entrecôte with salmon and crème brûlée), and at the bottom an estimated total from what everyone has picked so far (≈ €122.50). It follows what I add or remove in Menu. A line with two prices ("1 scoop €3.40 · 2 scoops €5.10") counts the first.
+- **Header:** the white over the blurred map is see-through now (70%, new token `top-bar/bg`), so the bar is lighter while the blur keeps it readable.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

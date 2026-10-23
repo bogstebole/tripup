@@ -79,6 +79,7 @@ class TokColors {
     'c/me/ring': Color(0xFF93C5FD),
     'c/me/cone': Color(0xFF60A5FA),
     'c/sheet/scrim': Color(0x33FFFFFF),
+    'c/top-bar/bg': Color(0xB3FFFFFF),
     'c/attribution/fg': Color(0xFF71717A),
   });
   static const dark = TokColors._({
@@ -145,6 +146,7 @@ class TokColors {
     'c/me/ring': Color(0xFF93C5FD),
     'c/me/cone': Color(0xFF60A5FA),
     'c/sheet/scrim': Color(0x3318181B),
+    'c/top-bar/bg': Color(0xB318181B),
     'c/attribution/fg': Color(0xFFA1A1AA),
   });
   Color get bgCanvas => _m['bg/canvas']!;
@@ -210,6 +212,7 @@ class TokColors {
   Color get cMeRing => _m['c/me/ring']!;
   Color get cMeCone => _m['c/me/cone']!;
   Color get cSheetScrim => _m['c/sheet/scrim']!;
+  Color get cTopBarBg => _m['c/top-bar/bg']!;
   Color get cAttributionFg => _m['c/attribution/fg']!;
 }
 

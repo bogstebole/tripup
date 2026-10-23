@@ -229,6 +229,9 @@ class _DetailSheetState extends State<DetailSheet> {
     return _withMenu((sections, mine) {
       final dishes = [for (final s in sections) ...s.items];
       List<MenuItem> picksOf(String id) => [for (final d in dishes) if (id == myId ? mine.contains(d.name) : d.pickedBy.contains(id)) d];
+      // Roughly what each person's picks come to, and all of them together
+      final cost = {for (final x in people) x.id: picksOf(x.id).fold(0.0, (sum, d) => sum + (eurosIn(d.price) ?? 0))};
+      final total = cost.values.fold(0.0, (a, b) => a + b);
       return _scroll(StaggerIn(spacing: TokSpace.md, children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.xs, TokSpace.xs, 0),
@@ -240,7 +243,22 @@ class _DetailSheetState extends State<DetailSheet> {
         Column(children: [
           for (var i = 0; i < people.length; i++) ...[
             if (i > 0) const _Hairline(),
-            _PersonRow(person: people[i], picks: picksOf(people[i].id)),
+            _PersonRow(person: people[i], picks: picksOf(people[i].id), cost: cost[people[i].id]!),
+          ],
+          if (total > 0) ...[
+            const _Hairline(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs, vertical: TokSpace.sm),
+              child: Row(spacing: TokSpace.sm, children: [
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text('Estimated total', style: TokText.labelMd.copyWith(color: t.textDefault)),
+                    Text('From what everyone has picked so far', style: TokText.bodySm.copyWith(color: t.textMuted)),
+                  ]),
+                ),
+                Text('≈ ${euros(total)}', style: TokText.headingSm.copyWith(color: t.textDefault)),
+              ]),
+            ),
           ],
         ]),
       ]));
@@ -423,9 +441,12 @@ class _MenuRow extends StatelessWidget {
 }
 
 class _PersonRow extends StatelessWidget {
-  const _PersonRow({required this.person, required this.picks});
+  const _PersonRow({required this.person, required this.picks, required this.cost});
   final Person person;
   final List<MenuItem> picks;
+
+  /// Roughly what their picks come to.
+  final double cost;
 
   @override
   Widget build(BuildContext context) {
@@ -449,7 +470,9 @@ class _PersonRow extends StatelessWidget {
               for (var i = 0; i < shown.length; i++)
                 DishSticker(shown[i].photo!, size: TokDim.dishPickSize, edge: TokDim.dishPickEdge, radius: TokRadius.sm, tilt: i.isEven ? TokDim.menuPhotoTilt : -TokDim.menuPhotoTilt),
             ]),
-          )
+          ),
+        if (cost > 0)
+          Text('≈ ${euros(cost)}', style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textDefault))
         else if (person.going)
           Text('No picks yet', style: TokText.bodySm.copyWith(color: t.textSubtle)),
       ]),

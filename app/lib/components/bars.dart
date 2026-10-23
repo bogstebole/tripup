@@ -37,7 +37,8 @@ class TopBar extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [t.bgDefault, t.bgDefault.withValues(alpha: 0)],
+          // See-through white: the blurred map still shows through it
+          colors: [t.cTopBarBg, t.cTopBarBg.withValues(alpha: 0)],
           stops: const [TokDim.topBarFadeStart, 1],
         ),
       ),

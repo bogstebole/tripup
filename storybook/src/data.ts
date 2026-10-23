@@ -4,6 +4,13 @@ export const stickerUrl = (name: string) => `/assets/stickers/${name}.png`;
 export const photoUrl = (name: string) => `/assets/photos/${name}.png`;
 export const dishUrl = (name: string) => `/assets/photos/menu/${name}.jpg`;
 
+/** The first price on a menu line, in euros ("1 scoop €3.40 · 2 scoops €5.10" counts as €3.40). */
+export const eurosIn = (price: string) => {
+  const m = /€\s?(\d+(?:[.,]\d+)?)/.exec(price);
+  return m ? parseFloat(m[1].replace(',', '.')) : undefined;
+};
+export const euros = (v: number) => `€${v.toFixed(2)}`;
+
 export type Person = { id: string; name: string; sticker: string; status: string };
 export const PEOPLE: Person[] = [
   { id: 'ari', name: 'You', sticker: 'person-04', status: 'On the way · 12 min' },

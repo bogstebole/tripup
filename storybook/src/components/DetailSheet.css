@@ -90,3 +90,6 @@
 .tu-facts__service { display: inline-flex; align-items: center; gap: var(--space-2xs); }
 .tu-facts__check { width: var(--size-icon-sm); height: var(--size-icon-sm); color: var(--color-icon-success); }
 .tu-facts__status { color: var(--color-text-success); }
+
+/* People: roughly what each person's picks come to, and everyone's together */
+.tu-sheet__cost { flex: none; color: var(--color-text-default); }

@@ -7,7 +7,7 @@
   flex-direction: column;
   gap: var(--space-md);
   padding: var(--space-xl) 0 var(--space-2xl);
-  background: linear-gradient(to bottom, var(--color-bg-default) calc(var(--d-top-bar-fade-start) * 100%), transparent);
+  background: linear-gradient(to bottom, var(--c-top-bar-bg) calc(var(--d-top-bar-fade-start) * 100%), transparent);
 }
 /* The map blurs more toward the top under the white fade, both running past the day filter */
 .tu-topbar::before {
