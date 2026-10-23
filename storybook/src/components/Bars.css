@@ -23,7 +23,27 @@
 .tu-topbar__title { flex: 1 1 0; min-width: 0; }
 .tu-topbar__dates { color: var(--color-text-muted); }
 
-.tu-actionbar { display: flex; align-items: center; justify-content: center; gap: var(--space-xs); padding: 0 var(--space-md) var(--space-2xl); }
+/* The same treatment as the top bar, upside down: a light blur of the map, strongest at the bottom,
+   under a see-through white that fades out a little above the buttons */
+.tu-actionbar {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  padding: var(--space-2xl) var(--space-md) var(--space-2xl);
+  background: linear-gradient(to top, var(--c-action-bar-bg) calc(var(--d-action-bar-fade-start) * 100%), transparent);
+}
+.tu-actionbar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  backdrop-filter: blur(var(--d-action-bar-blur));
+  -webkit-backdrop-filter: blur(var(--d-action-bar-blur));
+  mask-image: linear-gradient(to top, black calc(var(--d-action-bar-fade-start) * 100%), transparent);
+}
 
 .tu-recenter__dot {
   width: var(--d-me-dot);

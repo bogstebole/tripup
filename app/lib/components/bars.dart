@@ -63,7 +63,7 @@ class TopBar extends StatelessWidget {
   }
 }
 
-/// The trip's four actions: plan, places, money, and add (the one primary).
+/// The trip's four actions: plan, places, money, and add (the one primary). Blurs and fades the map out behind it.
 class ActionBar extends StatelessWidget {
   const ActionBar({super.key, this.onCalendar, this.onPlaces, this.onMoney, this.onAdd});
   final VoidCallback? onCalendar, onPlaces, onMoney, onAdd;
@@ -72,16 +72,30 @@ class ActionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.tok;
     final bottom = MediaQuery.paddingOf(context).bottom;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(TokSpace.md, 0, TokSpace.md, bottom > 0 ? bottom : TokSpace.x2xl),
+    // The same treatment as the top bar, upside down: a light blur of the map, strongest at the bottom,
+    // under a see-through white that fades out a little above the buttons
+    return Stack(children: [
+      const Positioned.fill(child: ProgressiveBlur(sigma: TokDim.actionBarBlur, solidUntil: TokDim.actionBarFadeStart, fromBottom: true)),
+      Container(
+      padding: EdgeInsets.fromLTRB(TokSpace.md, TokSpace.x2xl, TokSpace.md, bottom > 0 ? bottom : TokSpace.x2xl),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.bottomCenter,
+          end: Alignment.topCenter,
+          colors: [t.cActionBarBg, t.cActionBarBg.withValues(alpha: 0)],
+          stops: const [TokDim.actionBarFadeStart, 1],
+        ),
+      ),
       child: Row(mainAxisAlignment: MainAxisAlignment.center, spacing: TokSpace.xs, children: [
         TuButton(icon: TuIcons.calendar, label: 'Plan', size: TuButtonSize.lg, onTap: onCalendar),
         TuButton(icon: TuIcons.places, label: 'Places', size: TuButtonSize.lg, onTap: onPlaces),
         TuButton(icon: TuIcons.money, label: 'Money', size: TuButtonSize.lg, onTap: onMoney),
         TuButton(icon: TuIcons.add, label: 'Add to the trip', size: TuButtonSize.lg, kind: GlassKind.primary, onTap: onAdd),
       ]),
-    );
+      ),
+    ]);
   }
 }
 

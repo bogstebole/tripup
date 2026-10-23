@@ -64,6 +64,7 @@
   --c-me-cone: #60a5fa;
   --c-sheet-scrim: rgb(255 255 255 / 0.2);
   --c-top-bar-bg: rgb(255 255 255 / 0.7);
+  --c-action-bar-bg: rgb(255 255 255 / 0.7);
   --c-attribution-fg: #71717a;
   --space-none: 0px;
   --space-3xs: 2px;
@@ -203,6 +204,8 @@
   --d-me-cone: 24px;
   --d-top-bar-fade-start: 0.5;
   --d-top-bar-blur: 12px;
+  --d-action-bar-blur: 8px;
+  --d-action-bar-fade-start: 0.5;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
@@ -281,6 +284,7 @@
   --c-me-cone: #60a5fa;
   --c-sheet-scrim: rgb(24 24 27 / 0.2);
   --c-top-bar-bg: rgb(24 24 27 / 0.7);
+  --c-action-bar-bg: rgb(24 24 27 / 0.7);
   --c-attribution-fg: #a1a1aa;
 }
 .text-display { font-family: var(--font-display); font-size: var(--text-display); line-height: var(--text-display--line-height); font-weight: var(--text-display--font-weight); letter-spacing: 0; }

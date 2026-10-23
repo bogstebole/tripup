@@ -80,6 +80,7 @@ class TokColors {
     'c/me/cone': Color(0xFF60A5FA),
     'c/sheet/scrim': Color(0x33FFFFFF),
     'c/top-bar/bg': Color(0xB3FFFFFF),
+    'c/action-bar/bg': Color(0xB3FFFFFF),
     'c/attribution/fg': Color(0xFF71717A),
   });
   static const dark = TokColors._({
@@ -147,6 +148,7 @@ class TokColors {
     'c/me/cone': Color(0xFF60A5FA),
     'c/sheet/scrim': Color(0x3318181B),
     'c/top-bar/bg': Color(0xB318181B),
+    'c/action-bar/bg': Color(0xB318181B),
     'c/attribution/fg': Color(0xFFA1A1AA),
   });
   Color get bgCanvas => _m['bg/canvas']!;
@@ -213,6 +215,7 @@ class TokColors {
   Color get cMeCone => _m['c/me/cone']!;
   Color get cSheetScrim => _m['c/sheet/scrim']!;
   Color get cTopBarBg => _m['c/top-bar/bg']!;
+  Color get cActionBarBg => _m['c/action-bar/bg']!;
   Color get cAttributionFg => _m['c/attribution/fg']!;
 }
 
@@ -310,6 +313,8 @@ abstract final class TokDim {
   static const double meCone = 24;
   static const double topBarFadeStart = 0.5;
   static const double topBarBlur = 12;
+  static const double actionBarBlur = 8;
+  static const double actionBarFadeStart = 0.5;
 }
 
 abstract final class TokFont {

@@ -280,6 +280,11 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - **Storybook:** a block no longer remounts and replays its entrance on every re-render (tapping Add did that). It uses full transform strings, so Motion runs on the compositor.
 - New tokens: `tab/slide`, `motion.page-enter-delay-ms`.
 
+### Final UI, iteration 1.13: blur and fade under the bottom controls
+- The action bar gets the top bar's treatment, upside down: a light progressive blur of the map (8, strongest at the bottom), under a 70% white that fades out 32 px above the buttons. The progressive blur component now works from either edge.
+- The map's credit moved out of the map onto the bar's layer, so the blur never softens it (the OSM credit stays readable).
+- New tokens: `action-bar/bg`, `action-bar/blur`, `action-bar/fade-start`.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

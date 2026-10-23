@@ -39,7 +39,7 @@ export interface ActionBarProps {
   onAdd?: () => void;
 }
 
-/** The trip's four actions at the bottom: plan, places, money, and add (the one primary). */
+/** The trip's four actions at the bottom: plan, places, money, and add (the one primary). Blurs and fades the map out behind it. */
 export function ActionBar({ onCalendar, onPlaces, onMoney, onAdd }: ActionBarProps) {
   return (
     <nav className="tu-actionbar" aria-label="Trip actions">

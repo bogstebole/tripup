@@ -258,13 +258,6 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
                 onMidHeight: (h) => _upNextHeight = h,
                 shows: _shows,
               ),
-              Align(
-                alignment: Alignment.bottomLeft,
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(TokSpace.xs, 0, 0, math.max(pad.bottom, TokSpace.x2xl) + TokDim.buttonLg + TokSpace.xs),
-                  child: Text('© OpenFreeMap © OpenMapTiles © OpenStreetMap', style: TokText.bodySm.copyWith(color: t.cAttributionFg)),
-                ),
-              ),
             ],
           ),
         ),
@@ -281,6 +274,12 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           ),
         ),
         const Positioned(left: 0, right: 0, bottom: 0, child: ActionBar()),
+        // The map's credit sits on top of the bar's blur, so it always stays sharp
+        Positioned(
+          left: TokSpace.xs,
+          bottom: math.max(pad.bottom, TokSpace.x2xl) + TokDim.buttonLg + TokSpace.xs,
+          child: IgnorePointer(child: Text('© OpenFreeMap © OpenMapTiles © OpenStreetMap', style: TokText.bodySm.copyWith(color: t.cAttributionFg))),
+        ),
         Positioned(
           right: TokSpace.md,
           bottom: math.max(pad.bottom, TokSpace.x2xl) + TokDim.buttonLg + TokSpace.xl,
