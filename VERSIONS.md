@@ -365,6 +365,11 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - The map's labels now show sharp through the white behind the title, the day chips and the buttons.
 - Tokens `top-bar/blur` and `action-bar/blur` are removed; Storybook's bars drop their `backdrop-filter` too.
 
+### TestFlight build 1.0.0 (1): app icon, iPhone only
+- **App icon:** the location button from Figma ("ikonica", node 73-5468), centred on the app's canvas grey with a soft shadow below. Before, it was Flutter's placeholder. The dark variant and the raw Figma export are kept in `Assets/app-icon/`.
+- **For the App Store:** the app runs on iPhone only, in portrait. It declares that it uses no non-exempt encryption, so App Store Connect doesn't ask on every build.
+- **The archive** (1.0.0, build 1) is built from main at 539889d plus these changes. Uploading it and the public TestFlight link need Bogdan's Apple account.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 
