@@ -182,12 +182,9 @@ class RatingLine extends StatelessWidget {
 }
 
 class InfoChip {
-  const InfoChip(this.text, {this.sticker, this.faces = const [], this.tilt = 0, this.grow = false});
+  const InfoChip(this.text, {this.sticker, this.tilt = 0, this.grow = false});
   final String text;
   final String? sticker;
-
-  /// People's stickers, piled (for "2 here"); shown instead of [sticker].
-  final List<String> faces;
   final double tilt;
   final bool grow;
 }
@@ -214,9 +211,7 @@ class InfoChips extends StatelessWidget {
               borderRadius: BorderRadius.horizontal(left: i == 0 ? r : Radius.zero, right: i == items.length - 1 ? r : Radius.zero),
             ),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
-              if (c.faces.isNotEmpty)
-                Overlapped(overlap: TokDim.avatarOverlap, children: [for (final f in c.faces.take(2)) Sticker(f, size: StickerSize.chip)])
-              else if (c.sticker != null)
+              if (c.sticker != null)
                 Sticker(c.sticker!, size: StickerSize.chip, tilt: c.tilt),
               Text(c.text, maxLines: 1, overflow: TextOverflow.clip, style: TokText.bodySm.copyWith(fontWeight: TokWeight.semibold, color: t.cChipFg)),
             ]),

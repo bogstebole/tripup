@@ -315,6 +315,13 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - The full view has 16 px more room between its header (the tabs) and the page title.
 - Not installed on the phone yet: the performance session is profiling on it.
 
+### Final UI, iteration 1.18: price range, who's here on the corner, a softer header, my dot breathes
+- The card's chips are who's coming (+3) and the real price range (€20–40, from the Google Maps details) instead of €€. "1 here" left the chips: whoever has arrived sits on the pin's top-right corner, across it on the mini pin and just inside it on the card, and stays on that corner through the morph.
+- The bottom actions wait until the map has been still for 800 ms before coming back (was 260 ms).
+- The top bar's edge over the map no longer shows a line: its blur now eases off to nothing (falls with the square of the distance, the faintest bands dropped) and its white fades along a smoothstep instead of a straight ramp. The bottom bar and the full view's header use the same fade. We tried hanging the fade 24 px lower; it blurred the top of the card (and the face on its corner), so it went.
+- My location breathes: only the blue scales (to 75% and back, 1.2 s each way, an ease-in-out sine); the white rim stays still. It holds still with reduced motion and pauses while the full view covers the map or I'm off-screen.
+- Storybook: the same chips, corner badge and breathing dot; new tokens settle-ms, pulse-ms, ease-breathe and me/pulse-scale in Foundations → Motion. InfoChip's `faces` is gone (nothing used it any more).
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

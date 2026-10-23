@@ -4,6 +4,7 @@ import { AnimatePresence, LayoutGroup, motion, useReducedMotion, type Variants }
 import tokens from '../../../design-system/tokens.json';
 import { Button } from './Button';
 import { InfoChips, type InfoChip } from './InfoChips';
+import { FacePile } from './FacePile';
 import { EdgeArrow, PinTail } from './MapShapes';
 import { RatingLine } from './RatingLine';
 import { Sticker } from './Sticker';
@@ -21,6 +22,8 @@ export interface UpNextEvent {
   sticker: string;
   fan: { sticker: string; height: number; tilt: number }[];
   chips: InfoChip[];
+  /** Stickers of whoever is already at the place. */
+  here?: string[];
 }
 
 export interface UpNextWidgetProps {
@@ -44,6 +47,7 @@ const ease = m['ease-out'] as [number, number, number, number];
  * so every change reads as the same object growing or shrinking, never a swap.
  * Card ↔ mini: the plan's sticker and the name are shared (layoutId) and travel between their two places;
  * the fan opens out from the sticker, the label and rating follow the name, the chips rise in last.
+ * Whoever is already there sits on the top-right corner: across it on the mini pin, just inside it on the card.
  */
 export function UpNextWidget({ event, state, edgeAngle = 90, onOpen, onTap }: UpNextWidgetProps) {
   const reduce = useReducedMotion();
@@ -116,6 +120,11 @@ export function UpNextWidget({ event, state, edgeAngle = 90, onOpen, onTap }: Up
           )}
         </AnimatePresence>
       </motion.div>
+      {!!event.here?.length && (
+        <motion.span layout="position" transition={spring} className="tu-upnext__here" data-state={state} aria-hidden>
+          <span className="tu-upnext__here-pile"><FacePile faces={event.here} size="chip" /></span>
+        </motion.span>
+      )}
       {state !== 'edge' && (
         <motion.span layout transition={spring}>
           <PinTail gap={state === 'mid' ? 'xs' : '2xs'} />

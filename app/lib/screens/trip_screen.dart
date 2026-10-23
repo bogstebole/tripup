@@ -98,11 +98,12 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     }
     final off = !_safe(MediaQuery.sizeOf(context)).contains(e.camera.latLngToScreenOffset(me));
     if (off != _meOff) setState(() => _meOff = off);
-    // The actions step out of the way while the person moves the map, and come back once it has settled
+    // The actions step out of the way while the person moves the map, and come back once it has been still a moment
+    // (a short pause between two drags shouldn't bring them back)
     if (byUser) {
       if (!_moving) setState(() => _moving = true);
       _settle?.cancel();
-      _settle = Timer(TokMotion.enter, () {
+      _settle = Timer(TokMotion.settle, () {
         if (mounted) setState(() => _moving = false);
       });
     }
@@ -266,7 +267,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
               _VisitedLayer(shows: _shows),
               // Where everyone is right now; they only show for today
               PeopleLayer(shown: _shows(today)),
-              _MeLayer(safe: safe),
+              _MeLayer(safe: safe, breathe: !_sheet),
               _PlansLayer(
                 safe: safe,
                 upNextMid: _upNextMid,
@@ -397,7 +398,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
                                 maxWidth: _from!.width,
                                 minHeight: 0,
                                 maxHeight: double.infinity,
-                                child: UpNextMid(plan: _upNext, here: _here),
+                                child: UpNextMid(plan: _upNext),
                               ),
                             ),
                           ),
@@ -489,8 +490,11 @@ class _Filtered extends StatelessWidget {
 
 /// My location: the dot with a heading cone, or the edge mark when I'm off-screen.
 class _MeLayer extends StatelessWidget {
-  const _MeLayer({required this.safe});
+  const _MeLayer({required this.safe, required this.breathe});
   final Rect safe;
+
+  /// Off while the full view covers the map, so the dot isn't animating unseen.
+  final bool breathe;
 
   @override
   Widget build(BuildContext context) {
@@ -507,7 +511,12 @@ class _MeLayer extends StatelessWidget {
         Positioned(
           left: p.dx - TokDim.meCone,
           top: p.dy - TokDim.meCone,
-          child: AnimatedOpacity(opacity: inside ? 1 : 0, duration: TokMotion.fade, curve: TokMotion.easeOut, child: const MeMarker(heading: meHeadingDegrees * math.pi / 180)),
+          child: AnimatedOpacity(
+            opacity: inside ? 1 : 0,
+            duration: TokMotion.fade,
+            curve: TokMotion.easeOut,
+            child: TickerMode(enabled: inside && breathe, child: const MeMarker(heading: meHeadingDegrees * math.pi / 180)),
+          ),
         ),
         Positioned(
           left: markCenter.dx - edge.width / 2,

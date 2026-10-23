@@ -25,12 +25,9 @@ typedef PartWrap<P> = Widget Function(P part, int index, Widget child);
 
 /// The Up next card's content (mid state). Also drawn by the full-view morph as its starting picture.
 class UpNextMid extends StatelessWidget {
-  const UpNextMid({super.key, required this.plan, this.onOpen, this.part, this.here = const []});
+  const UpNextMid({super.key, required this.plan, this.onOpen, this.part});
   final Plan plan;
   final VoidCallback? onOpen;
-
-  /// Stickers of whoever is already at the place.
-  final List<String> here;
 
   /// Lets the pin move each part on its own while it morphs. Nothing by default.
   final PartWrap<MidPart>? part;
@@ -59,13 +56,8 @@ class UpNextMid extends StatelessWidget {
             ])),
           ),
           p(MidPart.chips, Row(spacing: TokSpace.md, children: [
-            // Equal-width chips: the first says who's coming, or once people arrive, who's already there
-            Expanded(
-              child: InfoChips(items: [
-                if (here.isNotEmpty) InfoChip('${here.length} here', faces: here, grow: true) else ...plan.chips.take(1),
-                ...plan.chips.skip(1),
-              ]),
-            ),
+            // Equal-width chips: who's coming and the price range. Who's already there sits on the corner (see PlanPin).
+            Expanded(child: InfoChips(items: plan.chips)),
             TuButton(icon: TuIcons.forward, label: 'Open ${plan.name}', kind: GlassKind.primary, size: TuButtonSize.sm, onTap: onOpen),
           ])),
         ]),
@@ -341,7 +333,7 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
                                   width: midSize.width,
                                   child: IgnorePointer(
                                     ignoring: m < 0.5 || eC > 0.5,
-                                    child: UpNextMid(plan: widget.plan, onOpen: widget.onOpen, here: widget.here, part: (p, i, c) => _midPart(p, i, c, m)),
+                                    child: UpNextMid(plan: widget.plan, onOpen: widget.onOpen, part: (p, i, c) => _midPart(p, i, c, m)),
                                   ),
                                 ),
                               if (m < 0.999)
@@ -364,15 +356,19 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
           ),
         ),
       ),
-      // Who's already there, on the mini pin's corner (on the card they're in the first chip)
-      if (widget.here.isNotEmpty && m < 0.5 && onMapOp > 0)
+      // Who's already there, on the pin's top-right corner. On the mini pin it sits across the corner; as the pin
+      // grows into the card it settles just inside it, clear of whatever is above the card (the top bar's fade).
+      if (widget.here.isNotEmpty && onMapOp > 0)
         Positioned(
           left: center.dx + size.width / 2,
           top: center.dy - size.height / 2,
           child: IgnorePointer(
-            child: FractionalTranslation(
-              translation: const Offset(-0.5, -0.5),
-              child: Opacity(opacity: (1 - smoothstep(0, 0.5, m)) * onMapOp * hide, child: FacePile(faces: widget.here, size: StickerSize.chip)),
+            child: Transform.translate(
+              offset: Offset(-TokSpace.xs, TokSpace.xs) * m.clamp(0.0, 1.0),
+              child: FractionalTranslation(
+                translation: Offset.lerp(const Offset(-0.5, -0.5), const Offset(-1, 0), m.clamp(0.0, 1.0))!,
+                child: Opacity(opacity: onMapOp * hide, child: FacePile(faces: widget.here, size: StickerSize.chip)),
+              ),
             ),
           ),
         ),

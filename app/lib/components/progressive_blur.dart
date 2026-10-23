@@ -1,10 +1,12 @@
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/widgets.dart';
 
 /// A backdrop blur that is strongest at the top (or the bottom, with [fromBottom]) and fades out toward the
-/// other edge: full [sigma] for [solidUntil] of the height, then less in each band. A masked blur doesn't
-/// render on iOS, so it's built from bands, all reading one shared backdrop.
+/// other edge: full [sigma] for [solidUntil] of the height, then less in each band, easing off to nothing so
+/// its far edge never shows as a line. A masked blur doesn't render on iOS, so it's built from bands, all
+/// reading one shared backdrop.
 class ProgressiveBlur extends StatelessWidget {
   const ProgressiveBlur({super.key, required this.sigma, this.solidUntil = 0, this.fromBottom = false});
   final double sigma;
@@ -13,6 +15,9 @@ class ProgressiveBlur extends StatelessWidget {
 
   /// Enough steps that no edge between them shows under a fade.
   static const _bands = 8;
+
+  /// Below this a band's blur can't be seen.
+  static const _least = 0.25;
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(builder: (context, box) {
@@ -28,8 +33,26 @@ class ProgressiveBlur extends StatelessWidget {
         return BackdropGroup(
           child: Stack(children: [
             if (start > 0) band(0, start, sigma),
-            for (var j = 0; j < _bands; j++) band(start + (h - start) * j / _bands, start + (h - start) * (j + 1) / _bands, sigma * (1 - (j + 1) / (_bands + 1))),
+            for (var j = 0; j < _bands; j++)
+              // Falls off as the square of the distance left, so the last steps are too small to see; bands that
+              // would barely blur are left out
+              if (sigma * math.pow(1 - (j + 0.5) / _bands, 2) case final s when s >= _least)
+                band(start + (h - start) * j / _bands, start + (h - start) * (j + 1) / _bands, s),
           ]),
         );
       });
+}
+
+/// A fade from [color] to clear: solid until [from] of the way, then easing in and out (a smoothstep), so
+/// neither where it starts nor where it ends shows as a line the way a straight fade does. [up] runs it
+/// from the bottom.
+LinearGradient easedFade(Color color, {double from = 0, bool up = false}) {
+  const steps = 8;
+  double ease(double x) => x * x * (3 - 2 * x);
+  return LinearGradient(
+    begin: up ? Alignment.bottomCenter : Alignment.topCenter,
+    end: up ? Alignment.topCenter : Alignment.bottomCenter,
+    colors: [for (var i = 0; i <= steps; i++) color.withValues(alpha: color.a * (1 - ease(i / steps)))],
+    stops: [for (var i = 0; i <= steps; i++) from + (1 - from) * i / steps],
+  );
 }

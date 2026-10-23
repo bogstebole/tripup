@@ -174,8 +174,8 @@ const plans = [
     rating: '4.2 (173)',
     cuisine: 'French',
     fan: [FanSticker('pho', 44.79, 0), FanSticker('sushi', 78.53, -7.99), FanSticker('wings', 95, 0), FanSticker('ice-cream', 65.47, 8.59)],
-    // Equal widths; the first one turns into who's already there once people arrive. The time sits by "Up next".
-    chips: [InfoChip('+3', sticker: 'person-05', tilt: -6.22, grow: true), InfoChip('€€', grow: true)],
+    // Equal widths: who's coming, and the price range from the details below. The time sits by "Up next".
+    chips: [InfoChip('+3', sticker: 'person-05', tilt: -6.22, grow: true), InfoChip('€20–40', grow: true)],
     photos: ['brasserie-2', 'brasserie-3', 'brasserie-1', 'brasserie-4', 'brasserie-5'],   // 4 and 5 are from the restaurant's own menu
     // From the place's Google Maps card
     services: ['Dine-in', 'Takeaway', 'Delivery'],

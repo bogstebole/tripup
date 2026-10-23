@@ -164,16 +164,7 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
                         opacity: v,
                         child: Stack(fit: StackFit.expand, children: [
                           ProgressiveBlur(sigma: TokDim.sheetTopBlur, solidUntil: solid),
-                          DecoratedBox(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [t.cSurfaceTop, t.cSurfaceTop, t.cSurfaceTop.withValues(alpha: 0)],
-                                stops: [0, solid, 1],
-                              ),
-                            ),
-                          ),
+                          DecoratedBox(decoration: BoxDecoration(gradient: easedFade(t.cSurfaceTop, from: solid))),
                         ]),
                       ),
               ),

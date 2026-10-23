@@ -73,7 +73,7 @@ export const EVENT = {
   name: "La Brasserie de L'Entrecôte - Alvalade",
   rating: '4.2 (173)',
   cuisine: 'French',
-  price: '€€',
+  price: '€20–40',   // the range from the price detail below
   when: `${clockTime(DINNER)} • ${dayName(DINNER)}`,
   whenLong: `${dayName(DINNER)}, ${clockTime(DINNER)}`,
   eta: timeUntil(DINNER),
@@ -116,6 +116,8 @@ export const UP_NEXT = {
   eta: EVENT.eta,
   sticker: EVENT.sticker,
   fan: DISH_FAN,
-  // Equal-width chips; Maya is already there, so the first shows who's here. The time sits by "Up next".
-  chips: [{ text: '1 here', faces: ['person-01'], grow: true }, { text: EVENT.price, grow: true }],
+  // Equal-width chips: who's coming and the price range. The time sits by "Up next".
+  chips: [{ text: '+3', sticker: 'person-05', tilt: -6.22, grow: true }, { text: EVENT.price, grow: true }],
+  // Maya is already there: her face sits on the pin's corner
+  here: ['person-01'],
 };

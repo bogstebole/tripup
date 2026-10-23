@@ -9,13 +9,22 @@
 /* My location */
 .tu-me { position: relative; display: inline-grid; place-items: center; width: var(--d-me-dot); height: var(--d-me-dot); }
 .tu-me__dot {
+  display: grid;
   width: var(--d-me-dot);
   height: var(--d-me-dot);
+  padding: var(--d-surface-edge-width);
+  border-radius: var(--radius-pill);
+  background: var(--c-me-dot-edge);
+  box-shadow: var(--shadow-me-dot);
+}
+.tu-me__blue {
   border-radius: var(--radius-pill);
   background: var(--c-me-dot);
-  border: var(--d-surface-edge-width) solid var(--c-me-dot-edge);
-  box-shadow: var(--inset-button-primary), var(--shadow-me-dot);
+  box-shadow: var(--inset-button-primary);
+  animation: tu-breathe var(--pulse-ms) var(--ease-breathe) infinite alternate;
 }
+@keyframes tu-breathe { to { transform: scale(var(--d-me-pulse-scale)); } }
+@media (prefers-reduced-motion: reduce) { .tu-me__blue { animation: none; } }
 /* The cone fans out from the dot's centre toward its heading */
 .tu-me__cone {
   position: absolute;

@@ -31,17 +31,10 @@ class TopBar extends StatelessWidget {
     // The map blurs more toward the top under a white fade, both running past the day filter, so the bar reads over any map
     return Stack(children: [
       const Positioned.fill(child: ProgressiveBlur(sigma: TokDim.topBarBlur, solidUntil: TokDim.topBarFadeStart)),
+      // See-through white: the blurred map still shows through it
+      Positioned.fill(child: DecoratedBox(decoration: BoxDecoration(gradient: easedFade(t.cTopBarBg, from: TokDim.topBarFadeStart)))),
       Container(
       padding: EdgeInsets.fromLTRB(0, top + TokSpace.xl, 0, TokSpace.x2xl),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          // See-through white: the blurred map still shows through it
-          colors: [t.cTopBarBg, t.cTopBarBg.withValues(alpha: 0)],
-          stops: const [TokDim.topBarFadeStart, 1],
-        ),
-      ),
       child: Column(mainAxisSize: MainAxisSize.min, spacing: TokSpace.md, children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: TokSpace.md),
@@ -80,14 +73,7 @@ class ActionBar extends StatelessWidget {
       const Positioned.fill(child: ProgressiveBlur(sigma: TokDim.actionBarBlur, solidUntil: TokDim.actionBarFadeStart, fromBottom: true)),
       Container(
       padding: EdgeInsets.fromLTRB(TokSpace.md, TokSpace.x2xl, TokSpace.md, bottom > 0 ? bottom : TokSpace.x2xl),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.bottomCenter,
-          end: Alignment.topCenter,
-          colors: [t.cActionBarBg, t.cActionBarBg.withValues(alpha: 0)],
-          stops: const [TokDim.actionBarFadeStart, 1],
-        ),
-      ),
+      decoration: BoxDecoration(gradient: easedFade(t.cActionBarBg, from: TokDim.actionBarFadeStart, up: true)),
       child: Row(mainAxisAlignment: MainAxisAlignment.center, spacing: TokSpace.xs, children: [
         TuButton(icon: TuIcons.calendar, label: 'Plan', size: TuButtonSize.lg, onTap: onCalendar),
         TuButton(icon: TuIcons.places, label: 'Places', size: TuButtonSize.lg, onTap: onPlaces),

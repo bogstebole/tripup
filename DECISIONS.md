@@ -52,7 +52,8 @@ What we decided, and why, in the order it happened. Each item: **the decision**,
   - Next to each person, a little pile of what they picked: at most two dishes, the rest counted as "+N".
   - Then roughly what their picks cost, and the estimated total fixed at the bottom.
 - **The top and bottom bars sit on see-through white over a progressive blur of the map,** so they read over any map without a hard white slab. The bottom one is less see-through (85% white against the top's 70%), because the buttons sit right on it.
-- **The bottom actions slide away while the map moves** and come back once it settles: exploring gets the whole map, and the actions are back the moment you stop.
+- **The bottom actions slide away while the map moves** and come back once the map has been still for 0.8 s: exploring gets the whole map, and a short pause between two drags doesn't bring them back (at 0.26 s they kept popping back too soon).
+- **The bars' edges over the map have no line.** The blur eases off to nothing and the white fades along a smoothstep, not a straight ramp, which always leaves a visible edge where it ends. We didn't stretch the fade further down the map: it blurred the top of the card.
 - **Motion follows Emil Kowalski's rules** for every transition:
   - ease-out, under 300 ms per element, the exit quicker than the entry;
   - a short stagger, blur to mask crossfades;
@@ -73,7 +74,9 @@ What we decided, and why, in the order it happened. Each item: **the decision**,
 - **On the map, people near each other merge into one pile of faces with "+N",** so a group walking together or a table of friends doesn't turn into a heap.
 - **Once people arrive, their faces leave the map and attach to the place.**
   - On the mini pin, a small pile sits on its corner.
-  - On the card, the first chip turns into the faces and "1 here".
-- **The card's time moved up next to "Up next"** ("Up next · 5 PM"), and the two chips left are the same width. With three chips, "2 here" squeezed the time.
+  - On the card, it settles just inside the same corner: the pile stays on the corner through the morph, so it reads as the same badge. It sits inside rather than across the corner because the card's top often lies under the top bar's fade.
+  - We first had "1 here" as a chip on the card; it didn't work there, so it moved to the corner.
+- **The card's time moved up next to "Up next"** ("Up next · 5 PM"). The two chips are the same width: who's coming (+3) and the real price range (€20–40, from the Google Maps details), which says more than "€€".
+- **My dot breathes, like a live location.** Only the blue scales; the white rim stays still (as in Apple Maps). It stops with reduced motion and whenever it can't be seen, since a constant animation keeps the screen redrawing.
 - **"Arrived" only after a couple of minutes inside a circle around the place.** City GPS drifts 20–50 m; without that wait, statuses would flicker.
 - **In the prototype it's simulated:** people move along routes on the demo clock.
