@@ -214,6 +214,15 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - **Icons:** Lucide drawn as SVG from the same lucide-react package as Storybook, with a true 2 px stroke at 16 px (token `icon/stroke`). `design-system/build-icons.mjs` writes them for Flutter.
 - Checked frame by frame on the simulator at 6× slow motion; installed on Bogdan's iPhone.
 
+### Final UI, iteration 1.2: real menu, 14 px text, tabs that replace the page
+- **Real data** from the Google Maps link: 4.2 (173 reviews), Av. da Igreja 12B, Alvalade (the pin is now at the real address, and the demo map opens around it). The whole menu (118 items in 15 sections: starters, mains, menu exécutif, sandwiches, extras, desserts, wines by glass and bottle, sparkling, beers, soft drinks, coffee, cocktails, spirits) comes from the restaurant's own English menu (brasserieentrecote.pt, same in every restaurant; Alvalade has no separate one). One file for both Storybook and the app: `app/assets/data/brasserie-menu.json`.
+- **Tabs replace everything above them.** Overview keeps photos, name, rating and "Know before you go". Menu: title, how many have picked, then the full menu as a plain list (name, note, price, who picked it, small **Add** button that turns into "Added"). People: plain list with each person's status. The grey block stays only on Overview, for what has to stand out.
+- **Tab switch:** the old page fades out with a light blur; the new one's blocks arrive one by one (40 ms apart, capped at 8), each fading in, sharpening from a 4 px blur and settling 8 px up. Content under the tab bar fades out instead of being cut off.
+- **Text:** every 12 px style (Label/SM, Caption) is now 14 px (Label/MD, Body/SM) in the app and in Storybook. The mini pin is 140 wide to fit it. The Figma screens still use the 12 px styles.
+- **Backdrop** behind the full view: blur 12 instead of 20.
+- New tokens: `button/pill-height`, `tab/enter-shift`, `motion.stagger-ms`, `stagger-max`, `enter-ms`, `enter-blur`. New components: `AddButton`, `StaggerIn` (Flutter).
+- Checked on the simulator (tab switch frame by frame at 6× slow motion) and installed on Bogdan's iPhone.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

@@ -45,7 +45,7 @@ export const Variants: Story = {
 export const Sizes: Story = {
   render: () => (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, auto)', gap: 'var(--space-xl)', alignItems: 'center', justifyItems: 'center' }}>
-      {(['sm', 'md', 'lg'] as const).map(s => <span key={s} className="text-label-sm" style={{ color: 'var(--color-text-muted)' }}>{s}</span>)}
+      {(['sm', 'md', 'lg'] as const).map(s => <span key={s} className="text-label-md" style={{ color: 'var(--color-text-muted)' }}>{s}</span>)}
       {(['sm', 'md', 'lg'] as const).map(s => <Button key={'s' + s} icon={X} label="Close" size={s} />)}
       {(['sm', 'md', 'lg'] as const).map(s => <Button key={'p' + s} icon={ArrowRight} label="Open" size={s} variant="primary" />)}
     </div>

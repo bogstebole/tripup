@@ -241,6 +241,7 @@ abstract final class TokDim {
   static const double buttonMd = 44;
   static const double buttonLg = 56;
   static const double buttonIcon = 16;
+  static const double buttonPillHeight = 32;
   static const double iconStroke = 2;
   static const double surfaceRadius = 24;
   static const double surfaceEdgeWidth = 1;
@@ -264,7 +265,7 @@ abstract final class TokDim {
   static const double pinDashWidth = 7;
   static const double pinDashHeight = 3;
   static const double widgetMidWidth = 275;
-  static const double widgetMiniWidth = 120;
+  static const double widgetMiniWidth = 140;
   static const double widgetEdgeSize = 30;
   static const double widgetEdgeArrow = 11;
   static const double widgetEdgeInset = 8;
@@ -273,7 +274,8 @@ abstract final class TokDim {
   static const double photosPeekStart = 36;
   static const double photosPeekEnd = 62;
   static const double sheetInset = 16;
-  static const double sheetBackdropBlur = 20;
+  static const double sheetBackdropBlur = 12;
+  static const double tabEnterShift = 8;
   static const double meDot = 16;
   static const double meRing = 5;
   static const double meEdgeWidth = 8;
@@ -337,6 +339,10 @@ abstract final class TokMotion {
   static const springCollapse = TokSpring(0.38, 0);
   static const springSnap = TokSpring(0.35, 0);
   static const double crossfadeBlur = 2;
+  static const double enterBlur = 4;
+  static const stagger = Duration(milliseconds: 40);
+  static const int staggerMax = 8;
+  static const enter = Duration(milliseconds: 260);
   static const double pressScale = 0.97;
   static const press = Duration(milliseconds: 120);
   static const fade = Duration(milliseconds: 160);

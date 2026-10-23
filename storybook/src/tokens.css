@@ -142,6 +142,7 @@
   --d-button-md: 44px;
   --d-button-lg: 56px;
   --d-button-icon: 16px;
+  --d-button-pill-height: 32px;
   --d-icon-stroke: 2px;
   --d-surface-radius: 24px;
   --d-surface-edge-width: 1px;
@@ -165,7 +166,7 @@
   --d-pin-dash-width: 7px;
   --d-pin-dash-height: 3px;
   --d-widget-mid-width: 275px;
-  --d-widget-mini-width: 120px;
+  --d-widget-mini-width: 140px;
   --d-widget-edge-size: 30px;
   --d-widget-edge-arrow: 11px;
   --d-widget-edge-inset: 8px;
@@ -174,7 +175,8 @@
   --d-photos-peek-start: 36px;
   --d-photos-peek-end: 62px;
   --d-sheet-inset: 16px;
-  --d-sheet-backdrop-blur: 20px;
+  --d-sheet-backdrop-blur: 12px;
+  --d-tab-enter-shift: 8px;
   --d-me-dot: 16px;
   --d-me-ring: 5px;
   --d-me-edge-width: 8px;
@@ -187,6 +189,9 @@
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   --crossfade-blur: 2px;
+  --enter-blur: 4px;
+  --stagger-ms: 40ms;
+  --enter-ms: 260ms;
   --press-scale: 0.97;
   --press-ms: 120ms;
   --fade-ms: 160ms;

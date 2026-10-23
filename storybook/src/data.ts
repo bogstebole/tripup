@@ -31,7 +31,7 @@ export const MENU: Dish[] = [
 export const EVENT = {
   label: 'Up next',
   name: "La Brasserie de L'Entrecôte - Alvalade",
-  rating: '4.4 (1,431)',
+  rating: '4.2 (173)',
   cuisine: 'French',
   price: '€€',
   when: '5 PM • Today',

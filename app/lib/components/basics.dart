@@ -134,7 +134,7 @@ class RatingLine extends StatelessWidget {
           LucideIcon(TuIcons.star, size: TokSize.iconSm, color: t.iconBrand, filled: true),
           Text(rating, style: muted),
         ]),
-        Text('-', style: TokText.labelSm.copyWith(color: t.textMuted)),
+        Text('-', style: TokText.labelMd.copyWith(color: t.textMuted)),
         Text(kind, style: muted),
       ],
     );
@@ -206,8 +206,8 @@ class KnowRow extends StatelessWidget {
             ?leading,
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                Text(title, style: TokText.labelSm.copyWith(color: t.textBrand)),
-                if (subtitle != null) Text(subtitle!, style: TokText.labelSm.copyWith(color: t.textMuted)),
+                Text(title, style: TokText.labelMd.copyWith(color: t.textBrand)),
+                if (subtitle != null) Text(subtitle!, style: TokText.labelMd.copyWith(color: t.textMuted)),
               ]),
             ),
             ?trailing,
@@ -238,7 +238,7 @@ class KnowSection extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: TokSpace.sm),
           child: Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
             Expanded(child: Text(title, style: TokText.headingSm.copyWith(color: t.textBrand))),
-            if (meta != null) Text(meta!, style: TokText.labelSm.copyWith(color: t.textMuted)),
+            if (meta != null) Text(meta!, style: TokText.labelMd.copyWith(color: t.textMuted)),
           ]),
         ),
         ...children,

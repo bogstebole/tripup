@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
 import { EVENT, MENU, PEOPLE } from '../data';
+import { AddButton } from './AddButton';
 import { InfoChips } from './InfoChips';
 import { KnowRow, KnowSection } from './KnowSection';
 import { PeopleButton } from './PeopleButton';
@@ -69,4 +70,13 @@ export const Know: Story = {
       </KnowSection>
     </div>
   ),
+};
+
+export const Add: Story = {
+  name: 'AddButton',
+  parameters: { docs: { description: { story: 'Small pill on a menu row: "Add" in soft glass, "Added" in primary glass (blue-700). One tap toggles it; on the phone it also ticks a light haptic.' } } },
+  render: function Render() {
+    const [added, setAdded] = useState(false);
+    return <div style={{ display: 'flex', gap: 'var(--space-md)' }}><AddButton added={added} itemName="Crème brûlée" onToggle={() => setAdded(a => !a)} /><AddButton added itemName="Fries" /></div>;
+  },
 };

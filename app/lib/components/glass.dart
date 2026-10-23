@@ -84,6 +84,7 @@ abstract final class TuIcons {
   static const add = Lucide.plus;
   static const close = Lucide.x;
   static const star = Lucide.star;
+  static const check = Lucide.check;
 }
 
 /// A Lucide icon with a 2 px stroke at any size (like lucide-react's `absoluteStrokeWidth` in Storybook).
@@ -100,5 +101,40 @@ class LucideIcon extends StatelessWidget {
     final svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${filled ? '#000' : 'none'}" stroke="#000" '
         'stroke-width="$stroke" stroke-linecap="round" stroke-linejoin="round">$body</svg>';
     return SvgPicture.string(svg, width: size, height: size, colorFilter: ColorFilter.mode(color, BlendMode.srcIn));
+  }
+}
+
+/// Small pill on a menu row: "Add" in soft glass, "Added" in primary glass. One tap toggles it.
+class AddButton extends StatelessWidget {
+  const AddButton({super.key, required this.added, required this.onTap, required this.itemName});
+  final bool added;
+  final VoidCallback onTap;
+  final String itemName;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tok;
+    final fg = added ? t.cButtonPrimaryFg : t.cButtonSoftFg;
+    return Pressable(
+      onTap: onTap,
+      semanticLabel: added ? 'Remove $itemName from your picks' : 'Add $itemName to your picks',
+      child: AnimatedSwitcher(
+        duration: TokMotion.fade,
+        switchInCurve: TokMotion.easeOut,
+        switchOutCurve: TokMotion.easeOut,
+        transitionBuilder: (child, a) => FadeTransition(opacity: a, child: ScaleTransition(scale: Tween(begin: TokMotion.pressScale, end: 1.0).animate(a), child: child)),
+        child: Glass(
+          key: ValueKey(added),
+          kind: added ? GlassKind.primary : GlassKind.soft,
+          height: TokDim.buttonPillHeight,
+          radius: BorderRadius.circular(TokRadius.pill),
+          padding: const EdgeInsets.symmetric(horizontal: TokSpace.sm),
+          child: Row(mainAxisSize: MainAxisSize.min, spacing: TokSpace.x2xs, children: [
+            LucideIcon(added ? TuIcons.check : TuIcons.add, size: TokSize.iconSm, color: fg),
+            Text(added ? 'Added' : 'Add', style: TokText.labelMd.copyWith(color: fg)),
+          ]),
+        ),
+      ),
+    );
   }
 }

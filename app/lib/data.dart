@@ -1,4 +1,8 @@
-// Demo content for the Lisbon trip (same as storybook/src/data.ts).
+// Demo content for the Lisbon trip (same as storybook/src/data.ts). The restaurant's rating, place and menu are real
+// (Google Maps and the restaurant's own English menu, in assets/data/brasserie-menu.json).
+import 'dart:convert';
+
+import 'package:flutter/services.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'components/basics.dart';
@@ -31,6 +35,36 @@ class FanSticker {
   final double height, tilt;
 }
 
+class MenuItem {
+  const MenuItem(this.name, this.price, {this.note, this.pickedBy = const []});
+  final String name, price;
+  final String? note;
+  final List<String> pickedBy;
+}
+
+class MenuSection {
+  const MenuSection(this.title, this.items, {this.note});
+  final String title;
+  final String? note;
+  final List<MenuItem> items;
+}
+
+/// The restaurant's whole menu (real, from its English menu). Loaded once.
+final Future<List<MenuSection>> brasserieMenu = rootBundle.loadString('assets/data/brasserie-menu.json').then((raw) {
+  final json = jsonDecode(raw) as Map<String, dynamic>;
+  return [
+    for (final s in json['sections'] as List)
+      MenuSection(
+        s['title'] as String,
+        note: s['note'] as String?,
+        [
+          for (final i in s['items'] as List)
+            MenuItem(i['name'] as String, i['price'] as String, note: i['note'] as String?, pickedBy: [for (final id in (i['pickedBy'] as List? ?? const [])) id as String]),
+        ],
+      ),
+  ];
+});
+
 class Plan {
   const Plan({
     required this.id,
@@ -62,8 +96,8 @@ const plans = [
     name: "La Brasserie de L'Entrecôte - Alvalade",
     eta: 'In 64 mins',
     sticker: 'wings',
-    at: LatLng(38.7131, -9.1578),
-    rating: '4.4 (1,431)',
+    at: LatLng(38.754444, -9.140476),   // Av. da Igreja 12B, Alvalade
+    rating: '4.2 (173)',
     cuisine: 'French',
     fan: [FanSticker('pho', 44.79, 0), FanSticker('sushi', 78.53, -7.99), FanSticker('wings', 95, 0), FanSticker('ice-cream', 65.47, 8.59)],
     chips: [InfoChip('+3', sticker: 'person-05', tilt: -6.22), InfoChip('€€', grow: true), InfoChip('5 PM • Today')],
@@ -95,20 +129,20 @@ class Visited {
 }
 
 const visited = [
-  Visited('galo', LatLng(38.7196, -9.1712), 6),
-  Visited('belem', LatLng(38.7262, -9.1478), -6),
-  Visited('nata', LatLng(38.7142, -9.1745), -8),
-  Visited('caravel', LatLng(38.7084, -9.1586), -4),
-  Visited('azulejo', LatLng(38.7046, -9.1468), -5),
-  Visited('guitar', LatLng(38.7102, -9.1262), -10),
-  Visited('sardine-tin', LatLng(38.7098, -9.1386), 4),
+  Visited('azulejo', LatLng(38.7560, -9.1462), -5),      // Igreja de São João de Brito
+  Visited('galo', LatLng(38.7600, -9.1500), 6),          // Jardim do Campo Grande
+  Visited('caravel', LatLng(38.7612, -9.1608), -4),      // Estádio José Alvalade
+  Visited('guitar', LatLng(38.7465, -9.1390), -10),      // Teatro Maria Matos
+  Visited('nata', LatLng(38.7395, -9.1458), -8),         // Pastelaria Versailles
+  Visited('sardine-tin', LatLng(38.7340, -9.1350), 4),   // Mercado de Arroios
+  Visited('belem', LatLng(38.6916, -9.2160), -6),
   Visited('padrao', LatLng(38.6936, -9.2057), 5),
 ];
 
-const me = LatLng(38.7108, -9.1668);
+const me = LatLng(38.7478, -9.1475);
 
 /// Where the map opens: Up next and me both in view.
-const startCenter = LatLng(38.7160, -9.1590);
+const startCenter = LatLng(38.7591, -9.1405);
 const startZoom = 14.1;
 const meHeadingDegrees = -40.0;
 

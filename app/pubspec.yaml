@@ -62,6 +62,7 @@ flutter:
     - assets/stickers/
     - assets/photos/
     - assets/map/
+    - assets/data/
   fonts:
     - family: Geist
       fonts:

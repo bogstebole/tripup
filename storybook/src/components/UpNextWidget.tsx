@@ -66,7 +66,7 @@ export function UpNextWidget({ event, state, edgeAngle = 90, onOpen, onTap }: Up
           {state === 'mid' && (
             <motion.div key="mid" className="tu-upnext__mid" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={fade}>
               <div className="tu-upnext__head">
-                <p className="tu-upnext__label text-label-sm weight-bold tu-ellipsis">{event.label}</p>
+                <p className="tu-upnext__label text-label-md weight-bold tu-ellipsis">{event.label}</p>
                 <p className="tu-upnext__name text-heading-sm tu-ellipsis">{event.name}</p>
                 <RatingLine rating={event.rating} kind={event.cuisine} />
               </div>
@@ -83,8 +83,8 @@ export function UpNextWidget({ event, state, edgeAngle = 90, onOpen, onTap }: Up
             <motion.div key="mini" className="tu-upnext__mini" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={fade}>
               <Sticker name={event.sticker} size="mini" />
               <span className="tu-upnext__mini-text">
-                <span className="tu-upnext__mini-name text-label-sm weight-semibold tu-ellipsis">{event.name}</span>
-                <span className="tu-upnext__mini-eta text-label-sm tu-ellipsis">{event.eta}</span>
+                <span className="tu-upnext__mini-name text-label-md weight-semibold tu-ellipsis">{event.name}</span>
+                <span className="tu-upnext__mini-eta text-label-md tu-ellipsis">{event.eta}</span>
               </span>
             </motion.div>
           )}

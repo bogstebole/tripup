@@ -31,7 +31,7 @@ class UpNextMid extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: TokSpace.md),
             child: Column(mainAxisSize: MainAxisSize.min, spacing: TokSpace.x2xs, children: [
-              SizedBox(width: double.infinity, child: Text('Up next', textAlign: TextAlign.center, maxLines: 1, style: TokText.labelSm.copyWith(fontWeight: TokWeight.bold, color: t.textBrand))),
+              SizedBox(width: double.infinity, child: Text('Up next', textAlign: TextAlign.center, maxLines: 1, style: TokText.labelMd.copyWith(fontWeight: TokWeight.bold, color: t.textBrand))),
               SizedBox(width: double.infinity, child: Text(plan.name, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingSm.copyWith(color: t.textDefault))),
               RatingLine(rating: plan.rating, kind: plan.cuisine),
             ]),
@@ -66,8 +66,8 @@ class _MiniContent extends StatelessWidget {
           Sticker(plan.sticker, size: StickerSize.mini),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-              Text(plan.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.labelSm.copyWith(fontWeight: TokWeight.semibold, color: t.textBrand)),
-              Text(plan.eta, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.labelSm.copyWith(color: t.textMuted)),
+              Text(plan.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textBrand)),
+              Text(plan.eta, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.labelMd.copyWith(color: t.textMuted)),
             ]),
           ),
         ]),

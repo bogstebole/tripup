@@ -1,0 +1,604 @@
+{
+ "source": "La Brasserie de L'Entrecôte, English menu (brasserieentrecote.pt/ementas/EN_EmentaDigital-Amoreiras-24.pdf, same menu in every restaurant). Prices with VAT.",
+ "sections": [
+  {
+   "title": "Starters",
+   "items": [
+    {
+     "name": "Individual couvert",
+     "price": "€2.80",
+     "note": "Basket with wheat baguette, cereal baguette and butter"
+    },
+    {
+     "name": "Assorted pâtés",
+     "price": "€4.40"
+    },
+    {
+     "name": "Grand plat des fromages",
+     "price": "€11.90",
+     "note": "Comté, Reblochon de Savoie and Boursin with jam and walnut"
+    },
+    {
+     "name": "Vegetable soup",
+     "price": "€3.90"
+    }
+   ]
+  },
+  {
+   "title": "Main courses",
+   "items": [
+    {
+     "name": "Sirloin entrecôte with lettuce and rocket salad",
+     "price": "€23.90",
+     "note": "Grilled or with Brasserie sauce and French fries; salad with vinaigrette and walnuts",
+     "pickedBy": [
+      "maya",
+      "leo"
+     ]
+    },
+    {
+     "name": "Sirloin entrecôte with marinated salmon",
+     "price": "€29.80",
+     "note": "Grilled or with Brasserie sauce and French fries; salmon with green salad and cherry tomatoes",
+     "pickedBy": [
+      "ari"
+     ]
+    },
+    {
+     "name": "Sirloin entrecôte with shrimp cocktail",
+     "price": "€29.80",
+     "note": "Grilled or with Brasserie sauce and French fries"
+    },
+    {
+     "name": "Seitan steak with lettuce and rocket salad",
+     "price": "€22.00",
+     "note": "Brasserie sauce and French fries; salad with vinaigrette and walnuts",
+     "pickedBy": [
+      "nic"
+     ]
+    },
+    {
+     "name": "Seitan steak with marinated salmon",
+     "price": "€27.40",
+     "note": "Brasserie sauce and French fries; salmon with green salad and cherry tomatoes"
+    },
+    {
+     "name": "Seitan steak with shrimp cocktail",
+     "price": "€27.40",
+     "note": "Brasserie sauce and French fries"
+    }
+   ]
+  },
+  {
+   "title": "Menu exécutif",
+   "note": "Monday to Friday except holidays, lunch until 3:30 pm. Drinks not included.",
+   "items": [
+    {
+     "name": "Couvert, lettuce and rocket salad, entrecôte or seitan",
+     "price": "€15.90",
+     "note": "Served on the plate with fries"
+    },
+    {
+     "name": "Couvert, marinated salmon salad, entrecôte or seitan",
+     "price": "€18.90",
+     "note": "Served on the plate with fries"
+    },
+    {
+     "name": "Couvert, shrimp cocktail, entrecôte or seitan",
+     "price": "€18.90",
+     "note": "Served on the plate with fries"
+    }
+   ]
+  },
+  {
+   "title": "Sandwiches",
+   "items": [
+    {
+     "name": "Entrecôte sandwich",
+     "price": "€10.90",
+     "note": "Baguette with entrecôte, rocket, Brasserie sauce and fries"
+    },
+    {
+     "name": "Sandwich saumon",
+     "price": "€10.90",
+     "note": "Grain bread with smoked salmon, lettuce, rocket and cream cheese"
+    }
+   ]
+  },
+  {
+   "title": "Extras",
+   "items": [
+    {
+     "name": "Lettuce and rocket salad",
+     "price": "€6.40",
+     "note": "Vinaigrette dressing and walnuts"
+    },
+    {
+     "name": "Marinated salmon",
+     "price": "€10.20",
+     "note": "Green salad and cherry tomatoes"
+    },
+    {
+     "name": "Shrimp cocktail",
+     "price": "€10.20"
+    },
+    {
+     "name": "Fries",
+     "price": "€3.60",
+     "pickedBy": [
+      "leo"
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Desserts",
+   "items": [
+    {
+     "name": "Liégeois coffee",
+     "price": "€6.50"
+    },
+    {
+     "name": "Chocolate fondant with ice cream",
+     "price": "€6.50",
+     "pickedBy": [
+      "maya"
+     ]
+    },
+    {
+     "name": "Mille-feuille",
+     "price": "€7.00",
+     "note": "White chocolate, raspberry jam and lavender"
+    },
+    {
+     "name": "Strawberry purée with ice cream",
+     "price": "€6.40",
+     "note": "Dusted with cinnamon"
+    },
+    {
+     "name": "Crème brûlée",
+     "price": "€6.40",
+     "pickedBy": [
+      "ari",
+      "nic"
+     ]
+    },
+    {
+     "name": "Red berries in Cointreau syrup",
+     "price": "€8.40",
+     "note": "Crumble and ice cream"
+    },
+    {
+     "name": "Sorberoska",
+     "price": "€7.50",
+     "note": "Lemon sorbet with vodka"
+    },
+    {
+     "name": "Lemon sorbet",
+     "price": "1 scoop €3.40 · 2 scoops €5.10"
+    },
+    {
+     "name": "Ice cream",
+     "price": "1 scoop €3.40 · 2 scoops €5.10",
+     "note": "Strawberry, apple or vanilla"
+    }
+   ]
+  },
+  {
+   "title": "White and rosé wines",
+   "note": "Fresh and fruity",
+   "items": [
+    {
+     "name": "Flor do Côa, Reserva, Douro",
+     "price": "Bottle €16.90"
+    },
+    {
+     "name": "Casa Cadaval, Rosé, Tejo",
+     "price": "Bottle €17.80"
+    },
+    {
+     "name": "Arinto, Lisboa · Quinta de Chocapalha",
+     "price": "Glass €4.55 · Bottle €18.20"
+    },
+    {
+     "name": "Quinta Ponte Pedrinha, Dão",
+     "price": "Bottle €22.00"
+    },
+    {
+     "name": "Monólogo Chardonay, Minho",
+     "price": "Bottle €23.50"
+    },
+    {
+     "name": "Lacrau, Moscatel Galego, Douro",
+     "price": "Glass €6.25 · Bottle €24.90"
+    },
+    {
+     "name": "Soalheiro, Granit, Minho",
+     "price": "Bottle €28.50"
+    },
+    {
+     "name": "Vallado 3 Melros, Douro",
+     "price": "Bottle €31.80"
+    },
+    {
+     "name": "Dona Maria Amantis, Reserva, Alentejo",
+     "price": "Bottle €38.00"
+    }
+   ]
+  },
+  {
+   "title": "Red wines",
+   "note": "Gourmand and elegant",
+   "items": [
+    {
+     "name": "Album, Alentejo · Vinhos Lua Cheia",
+     "price": "Bottle €17.50"
+    },
+    {
+     "name": "Arvad, Algarve",
+     "price": "Bottle €21.00"
+    },
+    {
+     "name": "Encantado, Alentejo · Monte da Ravasqueira",
+     "price": "Glass €5.75 · Bottle €23.00"
+    },
+    {
+     "name": "Poças, Douro",
+     "price": "Bottle €24.80"
+    },
+    {
+     "name": "Barca do Inferno, Reserva, Lisboa",
+     "price": "Bottle €29.60"
+    },
+    {
+     "name": "Art Terra, Amphora, Alentejo",
+     "price": "Bottle €34.50"
+    },
+    {
+     "name": "Andreza, Reserva, Douro",
+     "price": "Glass €8.95 · Bottle €35.80"
+    },
+    {
+     "name": "Pegos Claros, Reserva, Setúbal",
+     "price": "Bottle €36.70"
+    },
+    {
+     "name": "Rovisco Garcia, Reserva, Alentejo",
+     "price": "Bottle €41.00"
+    }
+   ]
+  },
+  {
+   "title": "Full-bodied reds",
+   "note": "Full-bodied and complex",
+   "items": [
+    {
+     "name": "Lua Cheia, Douro",
+     "price": "Bottle €17.50"
+    },
+    {
+     "name": "Herdade da Pimenta, Alentejo",
+     "price": "Bottle €20.00"
+    },
+    {
+     "name": "Vinha da Urze, Douro",
+     "price": "Glass €5.65 · Bottle €22.50"
+    },
+    {
+     "name": "MOB, Lote nº3, Dão",
+     "price": "Bottle €26.30"
+    },
+    {
+     "name": "Encostas do Gavião, Douro",
+     "price": "Bottle €27.20"
+    },
+    {
+     "name": "Sanguinhal, Touriga Nacional & Petit Verdot, Lisboa",
+     "price": "Bottle €28.30"
+    },
+    {
+     "name": "Herdade do Rocim, Alicante Bouschet, Alentejo",
+     "price": "Glass €7.70 · Bottle €30.70"
+    },
+    {
+     "name": "Duorum, Douro",
+     "price": "Bottle €32.00"
+    },
+    {
+     "name": "Esporão, Reserva, Alentejo",
+     "price": "Bottle €37.60"
+    },
+    {
+     "name": "Manoella, Douro · Wine & Soul",
+     "price": "Glass €9.65 · Bottle €38.60"
+    },
+    {
+     "name": "Dona Maria, Touriga Nacional & Petit Verdot, Alentejo",
+     "price": "Bottle €44.50"
+    },
+    {
+     "name": "Quinta do Couquinho, Reserva, Douro",
+     "price": "Bottle €61.20"
+    },
+    {
+     "name": "Vinha dos Amores, Dão",
+     "price": "Bottle €63.30"
+    },
+    {
+     "name": "Vinha do Jeremias, Alentejo",
+     "price": "Bottle €66.30"
+    },
+    {
+     "name": "Pintas, Douro · Wine & Soul",
+     "price": "Bottle €169.00"
+    }
+   ]
+  },
+  {
+   "title": "Sparkling and champagne",
+   "items": [
+    {
+     "name": "Pierre Gimonnet Gastronome Vintage, Brut",
+     "price": "Bottle €75.00"
+    },
+    {
+     "name": "Moët & Chandon",
+     "price": "Bottle €70.00"
+    },
+    {
+     "name": "Filipa Pato, 3B, Blanc de Blancs",
+     "price": "Flute €6.20 · Bottle €24.95"
+    },
+    {
+     "name": "Filipa Pato, 3B, Rosé",
+     "price": "Bottle €24.95"
+    },
+    {
+     "name": "Kir royal",
+     "price": "Flute €5.50",
+     "note": "Sparkling wine with cassis"
+    },
+    {
+     "name": "Sparkling sangria with red fruits",
+     "price": "Jar €25.70"
+    }
+   ]
+  },
+  {
+   "title": "Beers",
+   "items": [
+    {
+     "name": "Beer flute",
+     "price": "€2.20"
+    },
+    {
+     "name": "Beer glass 30cl",
+     "price": "€2.70"
+    },
+    {
+     "name": "Sagres, white or dark, bottle",
+     "price": "€2.90"
+    },
+    {
+     "name": "Sagres 0.0%, bottle",
+     "price": "€3.00"
+    },
+    {
+     "name": "Sagres Bohemia, bottle",
+     "price": "€3.10"
+    },
+    {
+     "name": "Heineken",
+     "price": "€3.50"
+    }
+   ]
+  },
+  {
+   "title": "Water and soft drinks",
+   "items": [
+    {
+     "name": "Luso water 25cl",
+     "price": "€2.00"
+    },
+    {
+     "name": "Luso water 50cl",
+     "price": "€2.80"
+    },
+    {
+     "name": "Castello, Pedras sparkling or tonic water",
+     "price": "€2.45"
+    },
+    {
+     "name": "Fever Tree Premium tonic",
+     "price": "€4.50"
+    },
+    {
+     "name": "Pepsi, Pepsi Zero Sugar or 7Up",
+     "price": "€2.90"
+    },
+    {
+     "name": "Sumol or Lipton Ice Tea",
+     "price": "€2.90",
+     "note": "Sumol orange or pineapple, ice tea lemon or peach"
+    },
+    {
+     "name": "Ginger ale",
+     "price": "€2.85"
+    },
+    {
+     "name": "Lemonade",
+     "price": "€3.65"
+    },
+    {
+     "name": "Natural orange juice",
+     "price": "€4.25"
+    }
+   ]
+  },
+  {
+   "title": "Coffee and tea",
+   "items": [
+    {
+     "name": "Espresso or decaf",
+     "price": "€1.85"
+    },
+    {
+     "name": "“Carioca” (small coffee)",
+     "price": "€1.70"
+    },
+    {
+     "name": "Double coffee",
+     "price": "€2.80"
+    },
+    {
+     "name": "Coffee with milk or cappuccino",
+     "price": "€2.55"
+    },
+    {
+     "name": "Lemon tea",
+     "price": "€1.75"
+    },
+    {
+     "name": "Tea",
+     "price": "€2.20"
+    }
+   ]
+  },
+  {
+   "title": "Cocktails",
+   "items": [
+    {
+     "name": "Martini",
+     "price": "€4.00",
+     "note": "Rosso, bianco or dry"
+    },
+    {
+     "name": "Porto tonic",
+     "price": "€5.60"
+    },
+    {
+     "name": "Ricard, vodka or rum, with a mixer",
+     "price": "€5.55"
+    },
+    {
+     "name": "Caipirinha, caipiroska, caipirão, caipiblack or morangoska",
+     "price": "€7.50"
+    },
+    {
+     "name": "Aperol spritz",
+     "price": "€11.00"
+    },
+    {
+     "name": "Bombay Sapphire",
+     "price": "€9.00",
+     "note": "Fever Tree Premium, lemon, mint and juniper"
+    },
+    {
+     "name": "Beefeater",
+     "price": "€9.50",
+     "note": "Fever Tree Premium, raspberry, basil and pink pepper"
+    },
+    {
+     "name": "Bulldog",
+     "price": "€11.50",
+     "note": "Fever Tree Premium, lime and juniper"
+    },
+    {
+     "name": "Hendrick's",
+     "price": "€11.50",
+     "note": "Fever Tree Premium, cucumber"
+    },
+    {
+     "name": "Gin Mare",
+     "price": "€12.00",
+     "note": "Fever Tree Premium, orange and rosemary"
+    }
+   ]
+  },
+  {
+   "title": "Liqueurs and spirits",
+   "items": [
+    {
+     "name": "Ginja de Óbidos",
+     "price": "€6.10"
+    },
+    {
+     "name": "Cointreau",
+     "price": "€6.50"
+    },
+    {
+     "name": "Licor Beirão",
+     "price": "€4.35"
+    },
+    {
+     "name": "Amarguinha",
+     "price": "€4.35"
+    },
+    {
+     "name": "Limoncello",
+     "price": "€8.90"
+    },
+    {
+     "name": "Burmester, dry white or tawny",
+     "price": "€4.75"
+    },
+    {
+     "name": "Quinta de La Rosa, LBV",
+     "price": "€8.75"
+    },
+    {
+     "name": "Horácio Simões, Moscatel de Setúbal DOC",
+     "price": "€5.40"
+    },
+    {
+     "name": "Famous Grouse",
+     "price": "€5.50"
+    },
+    {
+     "name": "Johnnie Walker Red Label",
+     "price": "€5.55"
+    },
+    {
+     "name": "Jameson",
+     "price": "€6.65"
+    },
+    {
+     "name": "Bushmill's",
+     "price": "€6.65"
+    },
+    {
+     "name": "Johnnie Walker Black Label, 12 years",
+     "price": "€7.80"
+    },
+    {
+     "name": "Cardhu, 12 years",
+     "price": "€10.65"
+    },
+    {
+     "name": "The Balvenie, 12 years",
+     "price": "€10.65"
+    },
+    {
+     "name": "Bacardi Superior",
+     "price": "€5.55"
+    },
+    {
+     "name": "Absolut",
+     "price": "€5.55"
+    },
+    {
+     "name": "CR & F Reserva",
+     "price": "€6.85"
+    },
+    {
+     "name": "Adega Velha",
+     "price": "€12.10"
+    },
+    {
+     "name": "Courvoisier V.S.O.P",
+     "price": "€12.10"
+    }
+   ]
+  }
+ ]
+}

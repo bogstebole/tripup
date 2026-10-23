@@ -200,7 +200,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
                 alignment: Alignment.bottomLeft,
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(TokSpace.xs, 0, 0, math.max(pad.bottom, TokSpace.x2xl) + TokDim.buttonLg + TokSpace.xs),
-                  child: Text('© OpenFreeMap © OpenMapTiles © OpenStreetMap', style: TokText.caption.copyWith(color: t.cAttributionFg)),
+                  child: Text('© OpenFreeMap © OpenMapTiles © OpenStreetMap', style: TokText.bodySm.copyWith(color: t.cAttributionFg)),
                 ),
               ),
             ],

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
-import { EVENT, MENU, PEOPLE, TRIP } from '../data';
+import { EVENT, PEOPLE, TRIP } from '../data';
 import { ActionBar, TopBar } from './Bars';
 import { DetailSheet, type DetailTab } from './DetailSheet';
 
@@ -25,7 +25,7 @@ function Sheet({ start }: { start: DetailTab }) {
   const [tab, setTab] = useState<DetailTab>(start);
   return (
     <div style={{ ...phone, padding: 'var(--d-sheet-inset)', paddingTop: 'calc(var(--space-xl) + var(--d-button-md))' }}>
-      <DetailSheet {...EVENT} cuisine={EVENT.cuisine} menu={MENU} people={PEOPLE} faces={faces} tab={tab} onTabChange={setTab} />
+      <DetailSheet {...EVENT} people={PEOPLE} faces={faces} tab={tab} onTabChange={setTab} />
     </div>
   );
 }

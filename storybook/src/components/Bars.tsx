@@ -20,7 +20,7 @@ export function TopBar({ title, dates, faces, more, onBack, onPeople }: TopBarPr
         <Button icon={ArrowLeft} label="Back to trips" size="md" onClick={onBack} />
         <div className="tu-topbar__title">
           <p className="text-heading-sm tu-ellipsis">{title}</p>
-          <p className="text-label-sm tu-topbar__dates">{dates}</p>
+          <p className="text-label-md tu-topbar__dates">{dates}</p>
         </div>
         <PeopleButton faces={faces} more={more} onClick={onPeople} />
       </div>

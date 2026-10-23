@@ -36,7 +36,7 @@ class TopBar extends StatelessWidget {
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
             Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingSm.copyWith(color: t.textDefault)),
-            Text(dates, style: TokText.labelSm.copyWith(color: t.textMuted)),
+            Text(dates, style: TokText.labelMd.copyWith(color: t.textMuted)),
           ]),
         ),
         PeopleButton(faces: faces, more: more, onTap: onPeople),

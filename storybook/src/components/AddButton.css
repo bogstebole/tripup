@@ -1,0 +1,13 @@
+.tu-add {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  height: var(--d-button-pill-height);
+  padding: 0 var(--space-sm);
+  border-radius: var(--radius-pill);
+  flex: none;
+  transition: transform var(--press-ms) var(--ease-out), background-color var(--fade-ms) var(--ease-out), color var(--fade-ms) var(--ease-out);
+}
+.tu-add:active { transform: scale(var(--press-scale)); }
+.tu-add:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: var(--space-3xs); }
+.tu-add__icon { width: var(--size-icon-sm); height: var(--size-icon-sm); }
