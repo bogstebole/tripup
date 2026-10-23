@@ -30,7 +30,7 @@ class TopBar extends StatelessWidget {
     final top = MediaQuery.paddingOf(context).top;
     // The map blurs more toward the top under a white fade, both running past the day filter, so the bar reads over any map
     return Stack(children: [
-      const Positioned.fill(child: ProgressiveBlur(sigma: TokDim.topBarBlur, solidUntil: TokDim.topBarFadeStart)),
+      const Positioned.fill(child: ProgressiveBlur(sigma: TokDim.topBarBlur, solidUntil: TokDim.topBarFadeStart, shared: true)),
       Container(
       padding: EdgeInsets.fromLTRB(0, top + TokSpace.xl, 0, TokSpace.x2xl),
       decoration: BoxDecoration(
@@ -77,7 +77,7 @@ class ActionBar extends StatelessWidget {
     // The same treatment as the top bar, upside down: a light blur of the map, strongest at the bottom,
     // under a see-through white that fades out a little above the buttons
     return Stack(children: [
-      const Positioned.fill(child: ProgressiveBlur(sigma: TokDim.actionBarBlur, solidUntil: TokDim.actionBarFadeStart, fromBottom: true)),
+      const Positioned.fill(child: ProgressiveBlur(sigma: TokDim.actionBarBlur, solidUntil: TokDim.actionBarFadeStart, fromBottom: true, shared: true)),
       Container(
       padding: EdgeInsets.fromLTRB(TokSpace.md, TokSpace.x2xl, TokSpace.md, bottom > 0 ? bottom : TokSpace.x2xl),
       decoration: BoxDecoration(

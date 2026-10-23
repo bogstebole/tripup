@@ -4,6 +4,8 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/physics.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -44,6 +46,14 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   bool _sheet = false;
   Rect? _from;
 
+  /// What's behind the full view, as last drawn, shown instead of drawing (and blurring) it again every frame while
+  /// none of it moves: [_under] is the map and the bars, from the first frame of opening (if the map is at rest);
+  /// [_still] adds the backdrop's blur, once the full view rests open.
+  final _under = _Held(), _still = _Held();
+
+  /// Time since the map last moved.
+  final _mapQuiet = Stopwatch()..start();
+
   /// Days picked in the filter; empty means All.
   Set<int> _days = const {};
   bool _shows(int day) => _days.isEmpty || _days.contains(day);
@@ -59,14 +69,15 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     // On the next minute, then every minute, so "In 64 mins" counts down
     _tick = Timer(Duration(seconds: 60 - tripNow().second), () {
       if (!mounted) return;
-      setState(() {});
-      _tick = Timer.periodic(const Duration(minutes: 1), (_) => setState(() {}));
+      _sceneChanged();
+      _tick = Timer.periodic(const Duration(minutes: 1), (_) => _sceneChanged());
     });
     _open.addListener(() {
       // Hand back to the pin's card as soon as the overlay is within a pixel of it; the spring's
       // last sub-pixel crawl would otherwise leave the real card hidden for no visible reason
       if (_sheet && _closing && _open.value <= 0.002) {
         _open.stop();
+        _release(_under);
         setState(() => _sheet = _closing = false);
       }
     });
@@ -78,6 +89,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     final source = (style['sources'] as Map<String, dynamic>)['openmaptiles'] as Map<String, dynamic>;
     final tileJson = jsonDecode((await http.get(Uri.parse(source['url'] as String))).body) as Map<String, dynamic>;
     if (!mounted) return;
+    _sceneChanged();
     setState(() {
       _theme = ThemeReader().read(style);
       _tiles = TileProviders({
@@ -87,6 +99,10 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   }
 
   void _onMapEvent(MapEvent e) {
+    if (e is MapEventWithMove) {
+      _mapQuiet.reset();
+      if (_under.image != null) _sceneChanged();   // never expected while the full view is up, but stay true to the map
+    }
     // The card steps back to a mini pin as soon as the person moves the map
     final byUser = e.source != MapEventSource.mapController && e.source != MapEventSource.nonRotatedSizeChange;
     if (byUser && _upNextMid && (e is MapEventMoveStart || e is MapEventDoubleTapZoomStart || e is MapEventScrollWheelZoom || e is MapEventFlingAnimationStart)) {
@@ -201,21 +217,74 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     _drag.value = 0;
     _closing = false;
     setState(() => _sheet = true);
-    _reduce ? _open.value = 1 : springTo(_open, 1, TokMotion.springExpand);
+    _holdUnder();
+    if (_reduce) {
+      _open.value = 1;
+      _holdStill();
+    } else {
+      springTo(_open, 1, TokMotion.springExpand).whenCompleteOrCancel(_holdStill);
+    }
   }
 
   void _closeSheet({double velocity = 0}) {
     _closing = true;
+    _release(_still);
     if (_reduce) {
       _open.value = 0;
+      _release(_under);
       setState(() => _sheet = _closing = false);
       return;
     }
     springTo(_open, 0, TokMotion.springCollapse, velocity: velocity);   // the system's answer: quicker than opening, no bounce
   }
 
+  /// The map and bars stay put while the full view is up (it covers them), so from the first frame of opening they can
+  /// be a picture; only if the map isn't still gliding.
+  void _holdUnder() => _hold(_under, () => _sheet && !_fly.isAnimating && _mapQuiet.elapsedMilliseconds > 100);
+
+  /// Once the full view rests open, the backdrop's blur stops changing too.
+  void _holdStill() => _hold(_still, () => _sheet && !_closing && !_open.isAnimating);
+
+  /// Pictures [held] right after this frame is drawn, if [when] still holds then.
+  void _hold(_Held held, bool Function() when) {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || held.image != null || !when()) return;
+      final box = held.key.currentContext?.findRenderObject();
+      if (box is! RenderRepaintBoundary) return;
+      setState(() => held.image = box.toImageSync(pixelRatio: MediaQuery.devicePixelRatioOf(context)));
+    });
+    SchedulerBinding.instance.ensureVisualUpdate();
+  }
+
+  /// Back to drawing [held] live.
+  void _release(_Held held) {
+    final image = held.image;
+    if (image == null) return;
+    setState(() => held.image = null);
+    SchedulerBinding.instance.addPostFrameCallback((_) => image.dispose());
+  }
+
+  /// Something behind the full view changed: draw it live for a frame, then picture it again if it still may be.
+  void _sceneChanged() {
+    if (!mounted) return;
+    setState(() {});
+    if (_under.image == null && _still.image == null) return;
+    _release(_under);
+    _release(_still);
+    _holdUnder();
+    _holdStill();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_under.image != null || _still.image != null) WidgetsBinding.instance.addPostFrameCallback((_) => _sceneChanged());   // new size or density
+  }
+
   @override
   void dispose() {
+    _under.image?.dispose();
+    _still.image?.dispose();
     _tick?.cancel();
     _open.dispose();
     _drag.dispose();
@@ -230,9 +299,10 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     final size = MediaQuery.sizeOf(context);
     final pad = MediaQuery.paddingOf(context);
     final safe = _safe(size);
-    return ColoredBox(
+    final under = ColoredBox(
       color: t.bgCanvas,
-      child: Stack(children: [
+      // The top and bottom bars blur parts of the map that don't overlap, so they share one read of it
+      child: BackdropGroup(child: Stack(children: [
         Positioned.fill(
           child: FlutterMap(
             mapController: _map,
@@ -298,14 +368,39 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
             ),
           ),
         ),
-        if (_sheet) Positioned.fill(child: _expanded(context, size, pad)),
-      ]),
+      ])),
+    );
+    final scene = Stack(children: [
+      Positioned.fill(child: _under.build(context, under)),
+      if (_sheet) Positioned.fill(child: _backdrop(context)),
+    ]);
+    return Stack(children: [
+      Positioned.fill(child: _still.build(context, scene)),
+      if (_sheet) ...[
+        // A tap outside the full view closes it
+        Positioned.fill(child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: () => _closeSheet())),
+        Positioned.fill(child: _expanded(context, size, pad)),
+      ],
+    ]);
+  }
+
+  /// Behind the full view: the map and bars blur away as it opens.
+  Widget _backdrop(BuildContext context) {
+    final t = context.tok;
+    return AnimatedBuilder(
+      animation: _open,
+      builder: (context, _) {
+        final p = _open.value.clamp(0.0, 1.0);
+        return BackdropFilter(
+          filter: ui.ImageFilter.blur(sigmaX: TokDim.sheetBackdropBlur * p, sigmaY: TokDim.sheetBackdropBlur * p),
+          child: ColoredBox(color: t.cSheetScrim.withValues(alpha: t.cSheetScrim.a * p)),
+        );
+      },
     );
   }
 
-  /// The card growing into the full view: one surface whose rect, content and backdrop all follow [_open].
+  /// The card growing into the full view: one surface whose rect and content follow [_open] (the backdrop is in [_backdrop]).
   Widget _expanded(BuildContext context, Size size, EdgeInsets pad) {
-    final t = context.tok;
     final to = Rect.fromLTRB(
       TokDim.sheetInset,
       pad.top + TokSpace.xs + TokDim.buttonMd + TokSpace.x3xs,
@@ -327,16 +422,6 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
         final seam = TokMotion.crossfadeBlur * 4 * midOp * sheetOp;
         final sx = rect.width / to.width;
         return Stack(children: [
-          // Backdrop: the map and bars blur away behind the full view
-          Positioned.fill(
-            child: GestureDetector(
-              onTap: () => _closeSheet(),
-              child: BackdropFilter(
-                filter: ui.ImageFilter.blur(sigmaX: TokDim.sheetBackdropBlur * p, sigmaY: TokDim.sheetBackdropBlur * p),
-                child: ColoredBox(color: t.cSheetScrim.withValues(alpha: t.cSheetScrim.a * p)),
-              ),
-            ),
-          ),
           Positioned.fromRect(
             rect: rect,
             child: Transform.translate(
@@ -415,6 +500,19 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       },
     );
   }
+}
+
+/// A part of the screen that can stand in as a picture of itself, drawn once, while nothing in it changes.
+class _Held {
+  final key = GlobalKey();
+  ui.Image? image;
+
+  /// [live] as it is, or (offstage, keeping its state) under the picture of it.
+  Widget build(BuildContext context, Widget live) => Stack(children: [
+        Positioned.fill(child: Offstage(offstage: image != null, child: RepaintBoundary(key: key, child: live))),
+        // One image pixel per screen pixel, so it's the very same picture
+        if (image != null) Positioned.fill(child: RawImage(image: image, scale: MediaQuery.devicePixelRatioOf(context), fit: BoxFit.none, alignment: Alignment.topLeft)),
+      ]);
 }
 
 /// Past places: stickers on the map, the trip's history.

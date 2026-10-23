@@ -28,7 +28,7 @@ class _TailPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final path = _tailPath(size);
-    paintPathShadows(canvas, path, TokShadow.surface);
+    paintPathShadows(canvas, path, TokShadow.surface, shape: ('tail', size));
     canvas.drawPath(path, Paint()..shader = LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [top, bottom]).createShader(Offset.zero & size));
     canvas.drawPath(path, Paint()
       ..style = PaintingStyle.stroke
@@ -99,7 +99,7 @@ class _ArrowPainter extends CustomPainter {
       ..lineTo(7.91233, 9.47125)
       ..cubicTo(8.71117, 10.5668, 10.3455, 10.5668, 11.1444, 9.47125)
       ..close();
-    paintPathShadows(canvas, path, TokShadow.slightlyRaised);
+    paintPathShadows(canvas, path, TokShadow.slightlyRaised, shape: ('arrow', size), scale: s);
     canvas.drawPath(path, Paint()..shader = LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [from, to]).createShader(const Rect.fromLTWH(3, 0.5, 13, 10)));
     canvas.restore();
   }
