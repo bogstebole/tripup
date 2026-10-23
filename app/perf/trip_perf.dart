@@ -30,6 +30,8 @@ final scenarios = <String, Scenario>{
   'sheet_open_close': sheetOpenClose,
   'tabs': tabs,
   'menu_scroll': menuScroll,
+  'overview_scroll': overviewScroll,
+  'group_scroll': groupScroll,
   'day_filter': dayFilter,
 };
 
@@ -41,13 +43,19 @@ Future<void> runAll(Map<String, Scenario> plan, {void Function(String key)? befo
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
   final results = <String, dynamic>{};
   final p = Player(results);
+  final file = File('${Directory.systemTemp.path}/perf.json');
   for (final MapEntry(:key, :value) in plan.entries) {
     before?.call(key);
     p.prefix = key;
-    await value(p);
+    try {
+      // A scenario that can't find what to tap (or hangs) is recorded and skipped, not the end of the run
+      await value(p).timeout(const Duration(minutes: 2));
+    } catch (e) {
+      results['$key error'] = '$e';
+      debugPrint('PERF $key failed: $e');
+    }
+    await file.writeAsString(const JsonEncoder.withIndent('  ').convert(results));   // so far, in case the run stops
   }
-  final file = File('${Directory.systemTemp.path}/perf.json');
-  await file.writeAsString(const JsonEncoder.withIndent('  ').convert(results));
   debugPrint('PERF DONE ${file.path}');
   await Future<void>.delayed(const Duration(seconds: 1));
   exit(0);
@@ -109,19 +117,45 @@ Future<void> menuScroll(Player p) async {
   await p.openSheet();
   await p.tap(Player.tab('Menu'), within: Player.tabs);
   await p.wait(1200);
-  Future<void> scroll() async {
-    for (var i = 0; i < 4; i++) {
-      await p.drag(Offset(s.width / 2, s.height * .75), Offset(0, -s.height * .35), ms: 220, fling: true);
-      await p.wait(1200);
+  await _flings(p, s);   // warm-up: every dish photo decoded once
+  await p.measure('', () => _flings(p, s));
+}
+
+/// Up and down through a page of the full view, flinging the way a thumb does.
+Future<void> _flings(Player p, Size s, {int times = 4}) async {
+  for (var i = 0; i < times; i++) {
+    await p.drag(Offset(s.width / 2, s.height * .75), Offset(0, -s.height * .35), ms: 220, fling: true);
+    await p.wait(1200);
+  }
+  for (var i = 0; i < times; i++) {
+    await p.drag(Offset(s.width / 2, s.height * .35), Offset(0, s.height * .35), ms: 220, fling: true);
+    await p.wait(1200);
+  }
+}
+
+Future<void> overviewScroll(Player p) async {
+  final s = await p.start();
+  await p.openSheet();
+  Future<void> run() async {
+    // The photos first: two swipes to the next ones and two back, then the page itself
+    for (final dx in [-.6, -.6, .6, .6]) {
+      await p.drag(Offset(s.width * (dx < 0 ? .8 : .2), s.height * .36), Offset(s.width * dx, 0), ms: 200, fling: true);
+      await p.wait(900);
     }
-    for (var i = 0; i < 4; i++) {
-      await p.drag(Offset(s.width / 2, s.height * .35), Offset(0, s.height * .35), ms: 220, fling: true);
-      await p.wait(1200);
-    }
+    await _flings(p, s, times: 2);
   }
 
-  await scroll();   // warm-up: every dish photo decoded once
-  await p.measure('', scroll);
+  await run();   // warm-up: every photo decoded once
+  await p.measure('', run);
+}
+
+Future<void> groupScroll(Player p) async {
+  final s = await p.start();
+  await p.openSheet();
+  await p.tap(Player.tab('Group'), within: Player.tabs);
+  await p.wait(1200);
+  await _flings(p, s, times: 2);   // warm-up
+  await p.measure('', () => _flings(p, s, times: 2));
 }
 
 Future<void> dayFilter(Player p) async {

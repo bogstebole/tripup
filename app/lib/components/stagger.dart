@@ -70,9 +70,10 @@ class _StaggerInState extends State<StaggerIn> with SingleTickerProviderStateMix
               builder: (context, child) {
                 final t = anim.value, blur = TokMotion.enterBlur * (1 - t);
                 final moved = Transform.translate(offset: widget.from * (1 - t), child: child);
+                // The filter stays in the tree, only switched off once sharp: taking it out would rebuild the block
                 return Opacity(
                   opacity: t,
-                  child: blur < 0.05 ? moved : ImageFiltered(imageFilter: ui.ImageFilter.blur(sigmaX: blur, sigmaY: blur), child: moved),
+                  child: ImageFiltered(enabled: blur >= 0.05, imageFilter: ui.ImageFilter.blur(sigmaX: blur, sigmaY: blur), child: moved),
                 );
               },
             );
@@ -93,7 +94,7 @@ Widget fadeBlurOut(Animation<double> anim, Widget child, {Offset to = Offset.zer
         final moved = Transform.translate(offset: to * (1 - v), child: child);
         return Opacity(
           opacity: v,
-          child: blur < 0.05 ? moved : ImageFiltered(imageFilter: ui.ImageFilter.blur(sigmaX: blur, sigmaY: blur), child: moved),
+          child: ImageFiltered(enabled: blur >= 0.05, imageFilter: ui.ImageFilter.blur(sigmaX: blur, sigmaY: blur), child: moved),
         );
       },
     );

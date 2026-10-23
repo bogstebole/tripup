@@ -54,6 +54,10 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   /// Time since the map last moved.
   final _mapQuiet = Stopwatch()..start();
 
+  /// Fingers on the screen, and a wait for them (and any animation) to finish before re-picturing the scene.
+  int _touches = 0;
+  Timer? _settle;
+
   /// Days picked in the filter; empty means All.
   Set<int> _days = const {};
   bool _shows(int day) => _days.isEmpty || _days.contains(day);
@@ -101,7 +105,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   void _onMapEvent(MapEvent e) {
     if (e is MapEventWithMove) {
       _mapQuiet.reset();
-      if (_under.image != null) _sceneChanged();   // never expected while the full view is up, but stay true to the map
+      if (_under.image != null) _sceneChanged(now: true);   // never expected while the full view is up, but stay true to the map
     }
     // The card steps back to a mini pin as soon as the person moves the map
     final byUser = e.source != MapEventSource.mapController && e.source != MapEventSource.nonRotatedSizeChange;
@@ -265,10 +269,17 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   }
 
   /// Something behind the full view changed: draw it live for a frame, then picture it again if it still may be.
-  void _sceneChanged() {
+  /// Unless it's [now], that waits until nothing moves and no finger is down (a pin's "In 64 mins" turning 63 under the
+  /// blur), so the extra work can't land in the middle of a scroll.
+  void _sceneChanged({bool now = false}) {
     if (!mounted) return;
     setState(() {});
     if (_under.image == null && _still.image == null) return;
+    _settle?.cancel();
+    if (!now && (_touches > 0 || SchedulerBinding.instance.transientCallbackCount > 0)) {
+      _settle = Timer(const Duration(milliseconds: 300), _sceneChanged);
+      return;
+    }
     _release(_under);
     _release(_still);
     _holdUnder();
@@ -278,13 +289,14 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_under.image != null || _still.image != null) WidgetsBinding.instance.addPostFrameCallback((_) => _sceneChanged());   // new size or density
+    if (_under.image != null || _still.image != null) WidgetsBinding.instance.addPostFrameCallback((_) => _sceneChanged(now: true));   // new size or density
   }
 
   @override
   void dispose() {
     _under.image?.dispose();
     _still.image?.dispose();
+    _settle?.cancel();
     _tick?.cancel();
     _open.dispose();
     _drag.dispose();
@@ -374,14 +386,19 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       Positioned.fill(child: _under.build(context, under)),
       if (_sheet) Positioned.fill(child: _backdrop(context)),
     ]);
-    return Stack(children: [
-      Positioned.fill(child: _still.build(context, scene)),
-      if (_sheet) ...[
-        // A tap outside the full view closes it
-        Positioned.fill(child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: () => _closeSheet())),
-        Positioned.fill(child: _expanded(context, size, pad)),
-      ],
-    ]);
+    return Listener(
+      onPointerDown: (_) => _touches++,
+      onPointerUp: (_) => _touches--,
+      onPointerCancel: (_) => _touches--,
+      child: Stack(children: [
+        Positioned.fill(child: _still.build(context, scene)),
+        if (_sheet) ...[
+          // A tap outside the full view closes it
+          Positioned.fill(child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: () => _closeSheet())),
+          Positioned.fill(child: _expanded(context, size, pad)),
+        ],
+      ]),
+    );
   }
 
   /// Behind the full view: the map and bars blur away as it opens.
