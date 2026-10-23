@@ -384,6 +384,11 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
   - New Lucide icons: copy, user-plus, map-pin-plus, chevron-left, circle-check.
 - Android: checked on the emulator before these changes (card, full view, tabs, Add with toast, Group, day filter, panning). The widgets were missing there only because the emulator still had the build from before the 0 × 0 fix.
 
+### TestFlight build 1.0.0 (1): app icon, iPhone only
+- **App icon:** the location button from Figma ("ikonica", node 73-5468), centred on the app's canvas grey with a soft shadow below. Before, it was Flutter's placeholder. The dark variant and the raw Figma export are kept in `Assets/app-icon/`.
+- **For the App Store:** the app runs on iPhone only, in portrait. It declares that it uses no non-exempt encryption, so App Store Connect doesn't ask on every build.
+- **The archive** (1.0.0, build 1) is built from main at 539889d plus these changes. Uploading it and the public TestFlight link need Bogdan's Apple account.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 
