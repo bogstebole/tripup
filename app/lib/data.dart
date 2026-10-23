@@ -137,6 +137,9 @@ class Plan {
 
   /// "Today, 5 PM", for running text.
   String get whenLong => '${dayName(start, tripNow())}, ${clockTime(start)}';
+
+  /// "5 PM" if it's today, else "Tomorrow, 10 AM": next to "Up next".
+  String get startsAt => dayName(start, tripNow()) == 'Today' ? clockTime(start) : whenLong;
   final List<FanSticker> fan;
   final List<InfoChip> chips;
   final List<String> photos, tips;
@@ -171,7 +174,8 @@ const plans = [
     rating: '4.2 (173)',
     cuisine: 'French',
     fan: [FanSticker('pho', 44.79, 0), FanSticker('sushi', 78.53, -7.99), FanSticker('wings', 95, 0), FanSticker('ice-cream', 65.47, 8.59)],
-    chips: [InfoChip('+3', sticker: 'person-05', tilt: -6.22), InfoChip('€€', grow: true)],   // the time chip follows, from [Plan.whenShort]
+    // Equal widths; the first one turns into who's already there once people arrive. The time sits by "Up next".
+    chips: [InfoChip('+3', sticker: 'person-05', tilt: -6.22, grow: true), InfoChip('€€', grow: true)],
     photos: ['brasserie-2', 'brasserie-3', 'brasserie-1', 'brasserie-4', 'brasserie-5'],   // 4 and 5 are from the restaurant's own menu
     // From the place's Google Maps card
     services: ['Dine-in', 'Takeaway', 'Delivery'],

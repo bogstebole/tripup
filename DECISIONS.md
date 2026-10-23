@@ -72,6 +72,7 @@ What we decided, and why, in the order it happened. Each item: **the decision**,
 - **On the map, people near each other merge into one pile of faces with "+N",** so a group walking together or a table of friends doesn't turn into a heap.
 - **Once people arrive, their faces leave the map and attach to the place.**
   - On the mini pin, a small pile sits on its corner.
-  - On the card, the first chip turns into the faces and "1 here". The time chip drops "Today" then (someone being there already says it), so the row still fits.
+  - On the card, the first chip turns into the faces and "1 here".
+- **The card's time moved up next to "Up next"** ("Up next · 5 PM"), and the two chips left are the same width. With three chips, "2 here" squeezed the time.
 - **"Arrived" only after a couple of minutes inside a circle around the place.** City GPS drifts 20–50 m; without that wait, statuses would flicker.
 - **In the prototype it's simulated:** people move along routes on the demo clock.

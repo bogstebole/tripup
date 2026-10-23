@@ -306,6 +306,10 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - **`DECISIONS.md`:** a new log of what was decided and why, for the presentation.
 - New components: `PeopleLayer`, `FacePile` (Flutter and Storybook), and faces on `InfoChip`.
 
+### Final UI, iteration 1.16: the time moves up to "Up next"
+- The Up next card's time left the chip row and sits by the label: "Up next · 5 PM" (or "Up next · Tomorrow, 10 AM"). The two chips left, who's coming / who's here and the price level, are the same width, so "2 here" no longer squeezes anything.
+- Not installed on the phone yet: the performance session is profiling on it.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

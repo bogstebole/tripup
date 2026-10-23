@@ -47,7 +47,7 @@ class UpNextMid extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: TokSpace.md),
             child: Column(mainAxisSize: MainAxisSize.min, spacing: TokSpace.x2xs, children: [
-              p(MidPart.label, SizedBox(width: double.infinity, child: Text('Up next', textAlign: TextAlign.center, maxLines: 1, style: TokText.labelMd.copyWith(fontWeight: TokWeight.bold, color: t.textBrand)))),
+              p(MidPart.label, SizedBox(width: double.infinity, child: Text('Up next · ${plan.startsAt}', textAlign: TextAlign.center, maxLines: 1, style: TokText.labelMd.copyWith(fontWeight: TokWeight.bold, color: t.textBrand)))),
               p(MidPart.name, SizedBox(width: double.infinity, child: Text(plan.name, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingSm.copyWith(color: t.textDefault)))),
               p(MidPart.rating, RatingLine(rating: plan.rating, kind: plan.cuisine)),
             ]),
@@ -59,13 +59,11 @@ class UpNextMid extends StatelessWidget {
             ])),
           ),
           p(MidPart.chips, Row(spacing: TokSpace.md, children: [
-            // The first chip says who's coming; once people arrive, it shows who's already there, and the time
-            // drops "Today" (someone being there already says it), so the row still fits
+            // Equal-width chips: the first says who's coming, or once people arrive, who's already there
             Expanded(
               child: InfoChips(items: [
-                if (here.isNotEmpty) InfoChip('${here.length} here', faces: here) else ...plan.chips.take(1),
+                if (here.isNotEmpty) InfoChip('${here.length} here', faces: here, grow: true) else ...plan.chips.take(1),
                 ...plan.chips.skip(1),
-                InfoChip(here.isEmpty ? plan.whenShort : clockTime(plan.start)),
               ]),
             ),
             TuButton(icon: TuIcons.forward, label: 'Open ${plan.name}', kind: GlassKind.primary, size: TuButtonSize.sm, onTap: onOpen),

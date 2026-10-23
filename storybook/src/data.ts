@@ -109,13 +109,13 @@ export const TRIP_DAYS = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21].map(day => ({
 
 /** The Up next widget's content, as on the Figma screens. */
 export const UP_NEXT = {
-  label: EVENT.label,
+  label: `${EVENT.label} · ${clockTime(DINNER)}`,
   name: EVENT.name,
   rating: EVENT.rating,
   cuisine: EVENT.cuisine,
   eta: EVENT.eta,
   sticker: EVENT.sticker,
   fan: DISH_FAN,
-  // Maya is already there: the first chip shows who's here, and the time drops "Today" so the row fits
-  chips: [{ text: '1 here', faces: ['person-01'] }, { text: EVENT.price, grow: true }, { text: clockTime(DINNER) }],
+  // Equal-width chips; Maya is already there, so the first shows who's here. The time sits by "Up next".
+  chips: [{ text: '1 here', faces: ['person-01'], grow: true }, { text: EVENT.price, grow: true }],
 };
