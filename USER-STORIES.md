@@ -22,8 +22,8 @@ The eleven steps from the brief (`process/research/tripup-competitive-research-v
 
 ## Open decisions
 
-- **Moving through the story in the demo.** The demo clock starts at 15:56, before dinner. The poll comes before that and the bill after it. Either the steps follow from what the person taps (the poll closes and the evening jumps ahead to the bill), or there's a small demo control to jump between moments.
-- **Ren at dinner:** the brief needs it for step 08. In the app, Ren is "Not going".
+- ~~Moving through the story in the demo~~: decided. A Demo button jumps the clock between the story's moments; the moments themselves follow from the situation (see the proposal below).
+- **Ren at dinner:** the brief needs it for step 08. In the app, Ren is "Not going". The proposal brings Ren.
 
 ## Proposal: the dinner, from arriving to squared up (steps 02, 08–11)
 
