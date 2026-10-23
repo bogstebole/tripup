@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
-import { EVENT, MENU, PEOPLE } from '../data';
+import { EVENT, MENU, PEOPLE, TRIP_DAYS } from '../data';
 import { AddButton } from './AddButton';
+import { DayFilter } from './DayFilter';
 import { InfoChips } from './InfoChips';
 import { KnowRow, KnowSection } from './KnowSection';
 import { PeopleButton } from './PeopleButton';
@@ -74,9 +75,18 @@ export const Know: Story = {
 
 export const Add: Story = {
   name: 'AddButton',
-  parameters: { docs: { description: { story: 'Small pill on a menu row: "Add" in soft glass, "Added" in primary glass (blue-700). One tap toggles it; on the phone it also ticks a light haptic.' } } },
+  parameters: { docs: { description: { story: 'Small round button on a menu row, icon only: a plus in soft glass, a check in primary glass (blue-700) once added. The circle is 32 px; the touch target around it is 44 px. One tap toggles it; on the phone it also ticks a light haptic.' } } },
   render: function Render() {
     const [added, setAdded] = useState(false);
     return <div style={{ display: 'flex', gap: 'var(--space-md)' }}><AddButton added={added} itemName="Crème brûlée" onToggle={() => setAdded(a => !a)} /><AddButton added itemName="Fries" /></div>;
+  },
+};
+
+export const Days: Story = {
+  name: 'DayFilter',
+  parameters: { docs: { description: { story: 'Under the top bar: All, then each day of the trip ("Tue 12"). Toggles: flat (muted fill, no shadow) when off, primary glass when on, so only the picked days stand out. Days combine; with none picked, All is on. On the map, other days\' pins and places fade out and the map frames what is left; All brings back the opening view. Scrolls sideways.' } } },
+  render: function Render() {
+    const [days, setDays] = useState<number[]>([]);
+    return <div style={{ width: 393 }}><DayFilter days={TRIP_DAYS} selected={days} onChange={setDays} /></div>;
   },
 };

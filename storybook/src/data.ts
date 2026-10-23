@@ -2,6 +2,7 @@
 
 export const stickerUrl = (name: string) => `/assets/stickers/${name}.png`;
 export const photoUrl = (name: string) => `/assets/photos/${name}.png`;
+export const dishUrl = (name: string) => `/assets/photos/menu/${name}.jpg`;
 
 export type Person = { id: string; name: string; sticker: string; status: string };
 export const PEOPLE: Person[] = [
@@ -48,6 +49,12 @@ export const EVENT = {
 };
 
 export const TRIP = { title: 'Schmedeswurtherwesterdeich', dates: '12 May - 21 May' };
+
+/** The trip's days (May 2026) for the day filter; today, in the demo, is the 14th. */
+export const TRIP_DAYS = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21].map(day => ({
+  day,
+  label: `${new Date(2026, 4, day).toLocaleDateString('en-GB', { weekday: 'short' })} ${day}`,
+}));
 
 /** The Up next widget's content, as on the Figma screens. */
 export const UP_NEXT = {

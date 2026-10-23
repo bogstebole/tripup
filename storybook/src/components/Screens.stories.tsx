@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
-import { EVENT, PEOPLE, TRIP } from '../data';
+import { EVENT, PEOPLE, TRIP, TRIP_DAYS } from '../data';
 import { ActionBar, TopBar } from './Bars';
+import { DayFilter } from './DayFilter';
 import { DetailSheet, type DetailTab } from './DetailSheet';
 
 const faces = Object.fromEntries(PEOPLE.map(p => [p.id, p.sticker]));
@@ -13,12 +14,15 @@ type Story = StoryObj<typeof meta>;
 
 export const Bars: Story = {
   name: 'Top bar and action bar',
-  render: () => (
-    <div style={{ ...phone, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-      <TopBar title={TRIP.title} dates={TRIP.dates} faces={['person-04', 'person-01']} more={3} />
-      <ActionBar />
-    </div>
-  ),
+  render: function Render() {
+    const [days, setDays] = useState<number[]>([]);
+    return (
+      <div style={{ ...phone, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <TopBar title={TRIP.title} dates={TRIP.dates} faces={['person-04', 'person-01']} more={3} filter={<DayFilter days={TRIP_DAYS} selected={days} onChange={setDays} />} />
+        <ActionBar />
+      </div>
+    );
+  },
 };
 
 function Sheet({ start }: { start: DetailTab }) {

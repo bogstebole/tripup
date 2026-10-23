@@ -1,4 +1,5 @@
 import { ArrowLeft, Calendar, Euro, MapPin, Plus } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { Button } from './Button';
 import { PeopleButton } from './PeopleButton';
 import './Bars.css';
@@ -10,10 +11,12 @@ export interface TopBarProps {
   more: number;
   onBack?: () => void;
   onPeople?: () => void;
+  /** Day filter, right under the title row (inside the bar's fade, so it reads over the map). */
+  filter?: ReactNode;
 }
 
-/** Trip header over the map: back, trip name and dates, people. Fades the map out behind it. */
-export function TopBar({ title, dates, faces, more, onBack, onPeople }: TopBarProps) {
+/** Trip header over the map: back, trip name and dates, people, and the day filter. Fades the map out behind it. */
+export function TopBar({ title, dates, faces, more, onBack, onPeople, filter }: TopBarProps) {
   return (
     <header className="tu-topbar">
       <div className="tu-topbar__row">
@@ -24,6 +27,7 @@ export function TopBar({ title, dates, faces, more, onBack, onPeople }: TopBarPr
         </div>
         <PeopleButton faces={faces} more={more} onClick={onPeople} />
       </div>
+      {filter}
     </header>
   );
 }

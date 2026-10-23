@@ -223,6 +223,13 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - New tokens: `button/pill-height`, `tab/enter-shift`, `motion.stagger-ms`, `stagger-max`, `enter-ms`, `enter-blur`. New components: `AddButton`, `StaggerIn` (Flutter).
 - Checked on the simulator (tab switch frame by frame at 6× slow motion) and installed on Bogdan's iPhone.
 
+### Final UI, iteration 1.3: card ↔ mini as one object, day filter, dish photos
+- **Card ↔ mini pin** rebuilt as one object instead of two crossfading layouts. The card grows out of the pin's tail. The plan's sticker is the same picture in both states, so it travels from the mini's slot into the middle of the fan, growing. The name slides between its two places and crossfades between the two styles. The other fan stickers open out from the shared one, the label and rating follow the name, the eta leaves with the mini name, and the chips rise in last. Parts blur while half faded. Checked frame by frame on the simulator at 20× slow motion, both ways, and tapping the mini still grows it back. Storybook mirrors it with shared `layoutId`s.
+- **Day filter** right under the top bar: All, then every day of the trip ("Tue 12" … "Thu 21"), scrolling sideways. Toggles: flat (muted fill, no shadow) when off, primary glass when on, so only the picked days stand out. Days combine; with none picked, All is on. On the map, other days' pins and places fade and shrink away, and the map frames what is left; past days show the places visited that day. All brings back the opening view with the Up next card. Four more plans fill the later days (sail from Parque das Nações, fado at Tasca do Chico, Oceanário, Tile Museum).
+- **Menu:** a photo next to every dish (28). The entrecôte ones are the restaurant's own (from its menu); the rest are illustrative photos from Wikimedia Commons, credited in `app/assets/photos/menu/CREDITS.md` and in the menu's footer. Drinks have none. The Add button is now just an icon: a plus in soft glass, a check in primary glass once added (32 px circle, 44 px touch target).
+- **Tab switcher:** the selected tab's heavier weight made the row wider after the pill had measured it, so the pill ran past the track and its shadow was cut. Each tab now reserves the heavier width, and the pill's shadow may spill past the track.
+- New tokens: `motion.morph-enter-scale`, `day-chip/off-bg`, `day-chip/off-fg`, `day-chip/height`, `day-chip/padding-x`, `day-chip/gap`, `menu/photo`, `menu/photo-radius`. New components: `DayFilter` and `DayChip` (Flutter and Storybook).
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

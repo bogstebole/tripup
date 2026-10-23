@@ -14,15 +14,28 @@ import 'basics.dart';
 import 'glass.dart';
 import 'map_shapes.dart';
 
+/// The parts of the Up next card that move on their own while it morphs to and from the mini pin.
+enum MidPart { label, name, rating, fan, chips }
+
+/// The mini pin's parts.
+enum MiniPart { sticker, name, eta }
+
+/// Wraps one part of a layout (the [index]th of its kind) without changing the layout.
+typedef PartWrap<P> = Widget Function(P part, int index, Widget child);
+
 /// The Up next card's content (mid state). Also drawn by the full-view morph as its starting picture.
 class UpNextMid extends StatelessWidget {
-  const UpNextMid({super.key, required this.plan, this.onOpen});
+  const UpNextMid({super.key, required this.plan, this.onOpen, this.part});
   final Plan plan;
   final VoidCallback? onOpen;
+
+  /// Lets the pin move each part on its own while it morphs. Nothing by default.
+  final PartWrap<MidPart>? part;
 
   @override
   Widget build(BuildContext context) {
     final t = context.tok;
+    Widget p(MidPart k, Widget child, [int i = 0]) => part?.call(k, i, child) ?? child;
     return SizedBox(
       width: TokDim.widgetMidWidth,
       child: Padding(
@@ -31,19 +44,21 @@ class UpNextMid extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: TokSpace.md),
             child: Column(mainAxisSize: MainAxisSize.min, spacing: TokSpace.x2xs, children: [
-              SizedBox(width: double.infinity, child: Text('Up next', textAlign: TextAlign.center, maxLines: 1, style: TokText.labelMd.copyWith(fontWeight: TokWeight.bold, color: t.textBrand))),
-              SizedBox(width: double.infinity, child: Text(plan.name, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingSm.copyWith(color: t.textDefault))),
-              RatingLine(rating: plan.rating, kind: plan.cuisine),
+              p(MidPart.label, SizedBox(width: double.infinity, child: Text('Up next', textAlign: TextAlign.center, maxLines: 1, style: TokText.labelMd.copyWith(fontWeight: TokWeight.bold, color: t.textBrand)))),
+              p(MidPart.name, SizedBox(width: double.infinity, child: Text(plan.name, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingSm.copyWith(color: t.textDefault)))),
+              p(MidPart.rating, RatingLine(rating: plan.rating, kind: plan.cuisine)),
             ]),
           ),
           SizedBox(
             width: double.infinity,
-            child: Center(child: Overlapped(overlap: TokDim.stickerOverlap, children: [for (final f in plan.fan) Sticker(f.sticker, height: f.height, tilt: f.tilt)])),
+            child: Center(child: Overlapped(overlap: TokDim.stickerOverlap, children: [
+              for (final (i, f) in plan.fan.indexed) p(MidPart.fan, Sticker(f.sticker, height: f.height, tilt: f.tilt), i),
+            ])),
           ),
-          Row(spacing: TokSpace.md, children: [
+          p(MidPart.chips, Row(spacing: TokSpace.md, children: [
             Expanded(child: InfoChips(items: plan.chips)),
             TuButton(icon: TuIcons.forward, label: 'Open ${plan.name}', kind: GlassKind.primary, size: TuButtonSize.sm, onTap: onOpen),
-          ]),
+          ])),
         ]),
       ),
     );
@@ -52,22 +67,24 @@ class UpNextMid extends StatelessWidget {
 
 /// The mini state's content: sticker, name, when.
 class _MiniContent extends StatelessWidget {
-  const _MiniContent({required this.plan});
+  const _MiniContent({required this.plan, this.part});
   final Plan plan;
+  final PartWrap<MiniPart>? part;
 
   @override
   Widget build(BuildContext context) {
     final t = context.tok;
+    Widget p(MiniPart k, Widget child) => part?.call(k, 0, child) ?? child;
     return SizedBox(
       width: TokDim.widgetMiniWidth,
       child: Padding(
         padding: const EdgeInsets.all(TokSpace.xs),
         child: Row(spacing: TokSpace.x2xs, children: [
-          Sticker(plan.sticker, size: StickerSize.mini),
+          p(MiniPart.sticker, Sticker(plan.sticker, size: StickerSize.mini)),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-              Text(plan.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textBrand)),
-              Text(plan.eta, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.labelMd.copyWith(color: t.textMuted)),
+              p(MiniPart.name, Text(plan.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textBrand))),
+              p(MiniPart.eta, Text(plan.eta, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.labelMd.copyWith(color: t.textMuted))),
             ]),
           ),
         ]),
@@ -114,6 +131,10 @@ class PlanPin extends StatefulWidget {
   /// The card's full height plus its tail, once measured (the screen uses it to make room above the place).
   final ValueChanged<double>? onMidHeight;
 
+  /// How far a mini pin reaches above its place (card, gap and tail): room to leave when fitting the map around pins.
+  static double get miniReach =>
+      math.max(TokDim.stickerMini, TokText.labelMd.fontSize! * TokText.labelMd.height! * 2) + TokSpace.xs * 2 + TokSpace.x2xs + PinTail.heightFor(TokSpace.x2xs);
+
   @override
   State<PlanPin> createState() => _PlanPinState();
 }
@@ -122,6 +143,8 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
   late final _mid = AnimationController.unbounded(vsync: this);
   late final _edge = AnimationController.unbounded(vsync: this);
   Size? _midSize, _miniSize;
+  final _probe = _Probe();
+  _Geo? _geo;
   bool _atEdge = false;
 
   bool get _reduce => MediaQuery.maybeDisableAnimationsOf(context) ?? false;
@@ -175,17 +198,22 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final measured = _midSize != null && _miniSize != null;
     return Stack(clipBehavior: Clip.none, children: [
-      // Lay out both contents once, unseen, to learn their natural sizes
-      if (!measured)
+      // Lay out both contents once, unseen, to learn their sizes and where each part sits
+      if (_geo == null)
         Offstage(
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            _SizeReporter(onSize: (s) => _setSize(mid: s), child: UpNextMid(plan: widget.plan)),
-            _SizeReporter(onSize: (s) => _setSize(mini: s), child: _MiniContent(plan: widget.plan)),
+            _SizeReporter(
+              onSize: (s) => _setSize(mid: s),
+              child: KeyedSubtree(key: _probe.midRoot, child: UpNextMid(plan: widget.plan, part: (p, i, c) => KeyedSubtree(key: _probe.midKey(p, i), child: c))),
+            ),
+            _SizeReporter(
+              onSize: (s) => _setSize(mini: s),
+              child: KeyedSubtree(key: _probe.miniRoot, child: _MiniContent(plan: widget.plan, part: (p, i, c) => KeyedSubtree(key: _probe.miniKey(p), child: c))),
+            ),
           ]),
         ),
-      if (measured)
+      if (_geo != null)
         AnimatedBuilder(
           animation: Listenable.merge([_mid, _edge]),
           builder: (context, _) => _pin(context),
@@ -194,9 +222,11 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
   }
 
   void _setSize({Size? mid, Size? mini}) {
-    if (mid != null && _midSize != mid) _midSize = mid;
-    if (mini != null && _miniSize != mini) _miniSize = mini;
-    if (_midSize != null && _miniSize != null) {
+    if (mid != null) _midSize = mid;
+    if (mini != null) _miniSize = mini;
+    if (_midSize != null && _miniSize != null && _geo == null) {
+      final shared = widget.plan.fan.indexWhere((f) => f.sticker == widget.plan.sticker);
+      _geo = _probe.read(_midSize!, _miniSize!, sharedFan: shared < 0 ? null : shared);
       SchedulerBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         widget.onMidHeight?.call(_midSize!.height + TokSpace.xs + PinTail.heightFor(TokSpace.xs));
@@ -210,7 +240,8 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
     final m = _mid.value, e = _edge.value.clamp(0.0, 1.2);
     final eC = e.clamp(0.0, 1.0);
     const edgeSize = Size.square(TokDim.widgetEdgeSize);
-    final onMap = Size.lerp(_miniSize, _midSize, m)!;
+    final midSize = _midSize!, miniSize = _miniSize!;
+    final onMap = Size.lerp(miniSize, midSize, m)!;
     final size = Size.lerp(onMap, edgeSize, e)!;
     final radius = lerpDouble(TokDim.surfaceRadius, edgeSize.shortestSide / 2, eC);
 
@@ -229,14 +260,10 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
     final angle = math.atan2(toPlace.dy, toPlace.dx);
     final center = Offset.lerp(mapCenter, edgeCenter, eC)!;
 
-    // Overlapping crossfades, never a frame with neither state showing; a light blur hides the overlap
+    // Map ↔ edge: overlapping crossfades, never a frame with neither state showing; a light blur hides the overlap
     final onMapOp = 1 - smoothstep(0.15, 0.65, eC);
     final edgeOp = smoothstep(0.35, 0.85, eC);
-    final midOp = smoothstep(0.35, 0.85, m) * onMapOp;
-    final miniOp = (1 - smoothstep(0.15, 0.65, m)) * onMapOp;
-    final seam = TokMotion.crossfadeBlur * 4 * math.max(smoothstep(0.35, 0.85, m) * (1 - smoothstep(0.15, 0.65, m)), onMapOp * edgeOp);
-    // The card's content shrinks with the surface instead of being cut off by it (it's gone before it gets small)
-    final midScale = math.min(1.0, size.width / _midSize!.width);
+    final seam = TokMotion.crossfadeBlur * 4 * onMapOp * edgeOp;
     final arrowDist = edgeSize.width / 2 + TokSpace.x3xs + TokDim.widgetEdgeArrow / 2;
     final hide = widget.hidden ? 0.0 : 1.0;
 
@@ -283,17 +310,36 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(radius),
                     child: _Seam(sigma: seam, child: Stack(clipBehavior: Clip.hardEdge, children: [
-                      if (midOp > 0)
+                      // On the map, both layouts sit on the card's bottom centre (where it grows out of the tail),
+                      // and their parts travel between the two: see _midPart and _miniPart
+                      if (onMapOp > 0)
                         Positioned(
-                          top: 0,
-                          left: (size.width - _midSize!.width) / 2,
-                          child: Opacity(opacity: midOp, child: Transform.scale(scale: midScale, alignment: Alignment.topCenter, child: UpNextMid(plan: widget.plan, onOpen: widget.onOpen))),
-                        ),
-                      if (miniOp > 0)
-                        Positioned(
-                          top: (size.height - _miniSize!.height) / 2,
-                          left: (size.width - _miniSize!.width) / 2,
-                          child: Opacity(opacity: miniOp, child: _MiniContent(plan: widget.plan)),
+                          left: (size.width - onMap.width) / 2,
+                          top: (size.height - onMap.height) / 2,
+                          width: onMap.width,
+                          height: onMap.height,
+                          child: Opacity(
+                            opacity: onMapOp,
+                            child: Stack(clipBehavior: Clip.none, children: [
+                              if (m > 0.001)
+                                Positioned(
+                                  left: (onMap.width - midSize.width) / 2,
+                                  top: onMap.height - midSize.height,
+                                  width: midSize.width,
+                                  child: IgnorePointer(
+                                    ignoring: m < 0.5 || eC > 0.5,
+                                    child: UpNextMid(plan: widget.plan, onOpen: widget.onOpen, part: (p, i, c) => _midPart(p, i, c, m)),
+                                  ),
+                                ),
+                              if (m < 0.999)
+                                Positioned(
+                                  left: (onMap.width - miniSize.width) / 2,
+                                  top: onMap.height - miniSize.height,
+                                  width: miniSize.width,
+                                  child: IgnorePointer(child: _MiniContent(plan: widget.plan, part: (p, i, c) => _miniPart(p, c, m))),
+                                ),
+                            ]),
+                          ),
                         ),
                       if (edgeOp > 0)
                         Positioned.fill(child: Opacity(opacity: edgeOp, child: Center(child: Sticker(widget.plan.sticker, size: StickerSize.edge)))),
@@ -307,6 +353,112 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
       ),
     ]);
   }
+
+  // Card ↔ mini pin, as one object. m is how far the pin is toward the card (0 mini, 1 card; a spring, so it overshoots a little).
+  // · The plan's sticker is the same picture in both: it travels from the mini's slot into the middle of the fan, growing.
+  // · The name slides between its two places, scaling with its type size, and crossfades between the two styles.
+  // · Everything else hangs on those two: the label and rating ride with the name, the fan opens out from the sticker,
+  //   the eta leaves with the mini name. The chips are the card's own and rise in at its bottom last.
+  // Parts that fade also blur while they're half there, so a crossfade reads as one thing changing.
+
+  Widget _midPart(MidPart p, int i, Widget child, double m) {
+    final g = _geo!;
+    final own = g.mid[(p, i)];
+    if (own == null) return Opacity(opacity: smoothstep(0.5, 1, m), child: child);
+    final u = 1 - m;
+    switch (p) {
+      case MidPart.label || MidPart.name || MidPart.rating:
+        final from = g.mini[MiniPart.name], to = g.mid[(MidPart.name, 0)];
+        final shift = from == null || to == null ? Offset.zero : (from.center - to.center) * u;
+        final scale = from == null || to == null ? 1.0 : lerpDouble(1, from.height / to.height, u);
+        final op = p == MidPart.name ? smoothstep(0.25, 0.65, m) : smoothstep(0.45, 0.9, m);
+        return _move(child, rect: own, pivot: (to ?? own).center, shift: shift, scale: scale, opacity: op);
+      case MidPart.fan:
+        final si = g.sharedFan, from = g.mini[MiniPart.sticker];
+        final hub = si == null ? null : g.mid[(MidPart.fan, si)];
+        if (hub == null || from == null) {
+          return _move(child, rect: own, pivot: own.center, scale: lerpDouble(TokMotion.morphEnterScale, 1, m.clamp(0.0, 1.0)), opacity: smoothstep(0.35, 0.8, m));
+        }
+        final hubShift = (from.center - hub.center) * u;
+        final hubScale = lerpDouble(1, from.height / hub.height, u);
+        // The shared sticker: swaps with the mini's copy halfway, where both are the same size in the same place
+        if (i == si) return _move(child, rect: own, pivot: own.center, shift: hubShift, scale: hubScale, opacity: m >= 0.5 ? 1 : 0, blur: false);
+        // The others open out from behind it
+        final k = smoothstep(0.15, 1, m);
+        final at = hub.center + hubShift + (own.center - hub.center) * hubScale * k;
+        return _move(child, rect: own, pivot: own.center, shift: at - own.center, scale: hubScale * lerpDouble(TokMotion.morphEnterScale, 1, k), opacity: smoothstep(0.2, 0.7, m));
+      case MidPart.chips:
+        final k = smoothstep(0.55, 1, m);
+        return _move(child, rect: own, pivot: own.bottomCenter, scale: lerpDouble(TokMotion.morphEnterScale, 1, k), opacity: k);
+    }
+  }
+
+  Widget _miniPart(MiniPart p, Widget child, double m) {
+    final g = _geo!;
+    final own = g.mini[p];
+    if (own == null) return Opacity(opacity: 1 - smoothstep(0, 0.5, m), child: child);
+    switch (p) {
+      case MiniPart.sticker:
+        final hub = g.sharedFan == null ? null : g.mid[(MidPart.fan, g.sharedFan!)];
+        if (hub == null) return _move(child, rect: own, pivot: own.center, opacity: 1 - smoothstep(0.1, 0.5, m));
+        return _move(child, rect: own, pivot: own.center, shift: (hub.center - own.center) * m, scale: lerpDouble(1, hub.height / own.height, m), opacity: m < 0.5 ? 1 : 0, blur: false);
+      case MiniPart.name || MiniPart.eta:
+        final from = g.mini[MiniPart.name]!, to = g.mid[(MidPart.name, 0)];
+        final shift = to == null ? Offset.zero : (to.center - from.center) * m;
+        final scale = to == null ? 1.0 : lerpDouble(1, to.height / from.height, m);
+        final op = p == MiniPart.name ? 1 - smoothstep(0.25, 0.65, m) : 1 - smoothstep(0.05, 0.4, m);
+        return _move(child, rect: own, pivot: from.center, shift: shift, scale: scale, opacity: op);
+    }
+  }
+}
+
+/// Moves a part by [shift] and scales it by [scale] about [pivot], then fades it (blurring while it's half there).
+/// [rect] is where the layout put the part; [rect] and [pivot] are in the pin's own frame. Layout is left as it was.
+Widget _move(Widget child, {required Rect rect, required Offset pivot, Offset shift = Offset.zero, double scale = 1, double opacity = 1, bool blur = true}) {
+  if (opacity <= 0.001) return Opacity(opacity: 0, child: child);
+  var w = child;
+  final sigma = blur ? TokMotion.enterBlur * (1 - opacity) : 0.0;
+  if (sigma > 0.05) w = ImageFiltered(imageFilter: ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma), child: w);
+  if (shift != Offset.zero || scale != 1) {
+    final local = pivot - rect.topLeft;
+    final t = shift + local * (1 - scale);
+    w = Transform(transform: Matrix4.diagonal3Values(scale, scale, 1)..setTranslationRaw(t.dx, t.dy, 0), child: w);
+  }
+  return opacity >= 0.999 ? w : Opacity(opacity: opacity, child: w);
+}
+
+/// Finds where each part of the two layouts sits, from the unseen pass.
+class _Probe {
+  final midRoot = GlobalKey(), miniRoot = GlobalKey();
+  final _mid = <(MidPart, int), GlobalKey>{};
+  final _mini = <MiniPart, GlobalKey>{};
+
+  GlobalKey midKey(MidPart p, int i) => _mid.putIfAbsent((p, i), GlobalKey.new);
+  GlobalKey miniKey(MiniPart p) => _mini.putIfAbsent(p, GlobalKey.new);
+
+  /// Rects in the pin's own frame: origin at each layout's bottom centre, where the card meets the tail.
+  _Geo read(Size mid, Size mini, {int? sharedFan}) {
+    Rect? rectOf(GlobalKey k, GlobalKey root, Size s) {
+      final box = k.currentContext?.findRenderObject(), base = root.currentContext?.findRenderObject();
+      if (box is! RenderBox || base is! RenderBox || !box.hasSize) return null;
+      return (box.localToGlobal(Offset.zero, ancestor: base) & box.size).shift(Offset(-s.width / 2, -s.height));
+    }
+
+    return _Geo(
+      mid: {for (final e in _mid.entries) e.key: ?rectOf(e.value, midRoot, mid)},
+      mini: {for (final e in _mini.entries) e.key: ?rectOf(e.value, miniRoot, mini)},
+      sharedFan: sharedFan,
+    );
+  }
+}
+
+class _Geo {
+  const _Geo({required this.mid, required this.mini, this.sharedFan});
+  final Map<(MidPart, int), Rect> mid;
+  final Map<MiniPart, Rect> mini;
+
+  /// Which fan sticker is the mini's sticker (the one that travels), if any.
+  final int? sharedFan;
 }
 
 double lerpDouble(double a, double b, double t) => a + (b - a) * t;

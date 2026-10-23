@@ -129,7 +129,7 @@ class _DetailSheetState extends State<DetailSheet> {
             for (final s in sections) _MenuSectionView(section: s, added: _added, onToggle: (name) => setState(() => _added.contains(name) ? _added.remove(name) : _added.add(name))),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
-              child: Text('Prices with VAT. From the restaurant\'s own menu.', style: TokText.bodySm.copyWith(color: t.textSubtle)),
+              child: Text('Prices with VAT. From the restaurant\'s own menu. Entrecôte photos are the restaurant\'s; other dish photos are illustrative, from Wikimedia Commons.', style: TokText.bodySm.copyWith(color: t.textSubtle)),
             ),
           ]),
         );
@@ -198,6 +198,18 @@ class _MenuRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs, vertical: TokSpace.sm),
       child: Row(spacing: TokSpace.sm, children: [
+        if (item.photo != null)
+          ClipRRect(
+            borderRadius: BorderRadius.circular(TokDim.menuPhotoRadius),
+            child: Image.asset(
+              'assets/photos/menu/${item.photo}.jpg',
+              width: TokDim.menuPhoto,
+              height: TokDim.menuPhoto,
+              fit: BoxFit.cover,
+              cacheWidth: (TokDim.menuPhoto * MediaQuery.devicePixelRatioOf(context)).round(),
+              excludeFromSemantics: true,
+            ),
+          ),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x3xs, children: [
             Text(item.name, style: TokText.labelMd.copyWith(color: t.textDefault)),

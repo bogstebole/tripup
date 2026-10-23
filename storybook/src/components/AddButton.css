@@ -1,13 +1,23 @@
+/* A full touch target around a small circle */
 .tu-add {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2xs);
-  height: var(--d-button-pill-height);
-  padding: 0 var(--space-sm);
-  border-radius: var(--radius-pill);
+  display: grid;
+  place-items: center;
+  width: var(--size-touch-target);
+  height: var(--size-touch-target);
   flex: none;
-  transition: transform var(--press-ms) var(--ease-out), background-color var(--fade-ms) var(--ease-out), color var(--fade-ms) var(--ease-out);
+  border-radius: var(--radius-pill);
+  transition: transform var(--press-ms) var(--ease-out);
 }
 .tu-add:active { transform: scale(var(--press-scale)); }
-.tu-add:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: var(--space-3xs); }
-.tu-add__icon { width: var(--size-icon-sm); height: var(--size-icon-sm); }
+.tu-add:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: calc(var(--space-3xs) * -1); }
+.tu-add__circle {
+  display: grid;
+  place-items: center;
+  width: var(--d-button-pill-height);
+  height: var(--d-button-pill-height);
+  border-radius: var(--radius-pill);
+  transition: background-color var(--fade-ms) var(--ease-out), color var(--fade-ms) var(--ease-out), box-shadow var(--fade-ms) var(--ease-out);
+}
+.tu-add__icon { width: var(--size-icon-sm); height: var(--size-icon-sm); animation: tu-add-icon var(--fade-ms) var(--ease-out); }
+@keyframes tu-add-icon { from { opacity: 0; transform: scale(var(--press-scale)); } }
+@media (prefers-reduced-motion: reduce) { .tu-add__icon { animation: none; } }

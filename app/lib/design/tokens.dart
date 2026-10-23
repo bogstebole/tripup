@@ -66,6 +66,8 @@ class TokColors {
     'c/segment/off-fg': Color(0xFF71717A),
     'c/chip/bg': Color(0xFFE4E4E7),
     'c/chip/fg': Color(0xFF2563EB),
+    'c/day-chip/off-bg': Color(0xFFE4E4E7),
+    'c/day-chip/off-fg': Color(0xFF09090B),
     'c/count-bubble/bg': Color(0x1A000000),
     'c/count-bubble/fg': Color(0xFF09090B),
     'c/pin/dash': Color(0xFF2563EB),
@@ -129,6 +131,8 @@ class TokColors {
     'c/segment/off-fg': Color(0xFFA1A1AA),
     'c/chip/bg': Color(0xFF27272A),
     'c/chip/fg': Color(0xFF60A5FA),
+    'c/day-chip/off-bg': Color(0xFF27272A),
+    'c/day-chip/off-fg': Color(0xFFFAFAFA),
     'c/count-bubble/bg': Color(0x1A000000),
     'c/count-bubble/fg': Color(0xFFFAFAFA),
     'c/pin/dash': Color(0xFF2563EB),
@@ -191,6 +195,8 @@ class TokColors {
   Color get cSegmentOffFg => _m['c/segment/off-fg']!;
   Color get cChipBg => _m['c/chip/bg']!;
   Color get cChipFg => _m['c/chip/fg']!;
+  Color get cDayChipOffBg => _m['c/day-chip/off-bg']!;
+  Color get cDayChipOffFg => _m['c/day-chip/off-fg']!;
   Color get cCountBubbleBg => _m['c/count-bubble/bg']!;
   Color get cCountBubbleFg => _m['c/count-bubble/fg']!;
   Color get cPinDash => _m['c/pin/dash']!;
@@ -248,6 +254,9 @@ abstract final class TokDim {
   static const double chipHeight = 40;
   static const double chipGap = 2;
   static const double chipRadius = 16;
+  static const double dayChipHeight = 32;
+  static const double dayChipPaddingX = 12;
+  static const double dayChipGap = 8;
   static const double segmentHeight = 36;
   static const double segmentTrackPadding = 2;
   static const double segmentGap = 4;
@@ -273,6 +282,8 @@ abstract final class TokDim {
   static const double photosHeight = 142;
   static const double photosPeekStart = 36;
   static const double photosPeekEnd = 62;
+  static const double menuPhoto = 64;
+  static const double menuPhotoRadius = 12;
   static const double sheetInset = 16;
   static const double sheetBackdropBlur = 12;
   static const double tabEnterShift = 8;
@@ -340,6 +351,7 @@ abstract final class TokMotion {
   static const springSnap = TokSpring(0.35, 0);
   static const double crossfadeBlur = 2;
   static const double enterBlur = 4;
+  static const double morphEnterScale = 0.9;
   static const stagger = Duration(milliseconds: 40);
   static const int staggerMax = 8;
   static const enter = Duration(milliseconds: 260);

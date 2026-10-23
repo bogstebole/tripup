@@ -13,6 +13,7 @@ import 'package:vector_tile_renderer/vector_tile_renderer.dart' show Theme, Them
 
 import '../components/bars.dart';
 import '../components/basics.dart';
+import '../components/day_filter.dart';
 import '../components/detail_sheet.dart';
 import '../components/map_shapes.dart';
 import '../components/plan_pin.dart';
@@ -40,6 +41,10 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   bool _meOff = false;
   bool _sheet = false;
   Rect? _from;
+
+  /// Days picked in the filter; empty means All.
+  Set<int> _days = const {};
+  bool _shows(int day) => _days.isEmpty || _days.contains(day);
 
   Plan get _upNext => plans.first;
   bool get _reduce => MediaQuery.maybeDisableAnimationsOf(context) ?? false;
@@ -88,7 +93,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     final pad = MediaQuery.paddingOf(context);
     return Rect.fromLTRB(
       TokDim.widgetEdgeInset,
-      pad.top + TopBar.contentHeight + TokDim.widgetEdgeInset,
+      pad.top + TopBar.contentHeightWithFilter + TokDim.widgetEdgeInset,
       size.width - TokDim.widgetEdgeInset,
       size.height - math.max(pad.bottom, TokSpace.x2xl) - TokDim.buttonLg - TokDim.widgetEdgeInset,
     );
@@ -115,6 +120,53 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     _fly.addListener(step);
     _fly.animateWith(SpringSimulation(springOf(TokMotion.springSnap), 0, 1, 0)).whenCompleteOrCancel(() => _fly.removeListener(step));
   }
+
+  /// Moves and zooms the map to [center] and [zoom], on the snap spring.
+  void _flyCamera(LatLng center, double zoom) {
+    final from = _map.camera;
+    if (_reduce) {
+      _map.move(center, zoom);
+      return;
+    }
+    _fly
+      ..stop()
+      ..value = 0;
+    void step() {
+      final t = _fly.value;
+      _map.move(
+        LatLng(from.center.latitude + (center.latitude - from.center.latitude) * t, from.center.longitude + (center.longitude - from.center.longitude) * t),
+        from.zoom + (zoom - from.zoom) * t,
+      );
+    }
+    _fly.addListener(step);
+    _fly.animateWith(SpringSimulation(springOf(TokMotion.springSnap), 0, 1, 0)).whenCompleteOrCancel(() => _fly.removeListener(step));
+  }
+
+  /// The filter changed: other days' pins and places fade out, and the map frames what's left.
+  /// All brings back the opening view, with the Up next card.
+  void _setDays(Set<int> days, Size size) {
+    setState(() {
+      _days = days;
+      _upNextMid = days.isEmpty;
+    });
+    if (days.isEmpty) {
+      _flyCamera(startCenter, startZoom);
+      return;
+    }
+    final points = [for (final p in plans) if (days.contains(p.day)) p.at, for (final v in visited) if (days.contains(v.day)) v.at];
+    if (points.isEmpty) return;
+    final safe = _safe(size);
+    const half = TokDim.widgetMiniWidth / 2;
+    final fit = CameraFit.coordinates(
+      coordinates: points,
+      padding: EdgeInsets.fromLTRB(safe.left + half, safe.top + PlanPin.miniReach, size.width - safe.right + half, size.height - safe.bottom + TokDim.stickerMap / 2),
+      maxZoom: startZoom,
+    ).fit(_map.camera);
+    _flyCamera(fit.center, fit.zoom);
+  }
+
+  /// "Tue 12": the weekday and the day of the month.
+  static String _dayLabel(int day) => '${const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][DateTime(tripYear, tripMonth, day).weekday - 1]} $day';
 
   void _tapPlan(Plan p, Size size) {
     if (p.id == _upNext.id) {
@@ -185,7 +237,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
             ),
             children: [
               if (_theme != null && _tiles != null) VectorTileLayer(theme: _theme!, tileProviders: _tiles!),
-              const _VisitedLayer(),
+              _VisitedLayer(shows: _shows),
               _MeLayer(safe: safe),
               _PlansLayer(
                 safe: safe,
@@ -195,6 +247,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
                 onOpen: _openSheet,
                 onTap: (p) => _tapPlan(p, size),
                 onMidHeight: (h) => _upNextHeight = h,
+                shows: _shows,
               ),
               Align(
                 alignment: Alignment.bottomLeft,
@@ -206,7 +259,18 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
             ],
           ),
         ),
-        const Positioned(left: 0, right: 0, top: 0, child: TopBar(title: tripTitle, dates: tripDates, faces: topFaces, more: moreFaces)),
+        Positioned(
+          left: 0,
+          right: 0,
+          top: 0,
+          child: TopBar(
+            title: tripTitle,
+            dates: tripDates,
+            faces: topFaces,
+            more: moreFaces,
+            filter: DayFilter(days: tripDays, selected: _days, labelOf: _dayLabel, onChanged: (d) => _setDays(d, size)),
+          ),
+        ),
         const Positioned(left: 0, right: 0, bottom: 0, child: ActionBar()),
         Positioned(
           right: TokSpace.md,
@@ -347,7 +411,8 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
 
 /// Past places: stickers on the map, the trip's history.
 class _VisitedLayer extends StatelessWidget {
-  const _VisitedLayer();
+  const _VisitedLayer({required this.shows});
+  final bool Function(int day) shows;
 
   @override
   Widget build(BuildContext context) => MarkerLayer(markers: [
@@ -356,9 +421,28 @@ class _VisitedLayer extends StatelessWidget {
             point: v.at,
             width: TokDim.stickerMap * 2,
             height: TokDim.stickerMap,
-            child: IgnorePointer(child: Center(child: Sticker(v.sticker, size: StickerSize.map, tilt: v.tilt))),
+            child: IgnorePointer(child: Center(child: _Filtered(shown: shows(v.day), child: Sticker(v.sticker, size: StickerSize.map, tilt: v.tilt)))),
           ),
       ]);
+}
+
+/// Fades and shrinks a mark away when the day filter leaves it out, and back when it's in again.
+class _Filtered extends StatelessWidget {
+  const _Filtered({required this.shown, required this.child, this.alignment = Alignment.center});
+  final bool shown;
+  final Alignment alignment;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => IgnorePointer(
+        ignoring: !shown,
+        child: AnimatedOpacity(
+          opacity: shown ? 1 : 0,
+          duration: TokMotion.enter,
+          curve: TokMotion.easeOut,
+          child: AnimatedScale(scale: shown ? 1 : TokMotion.morphEnterScale, alignment: alignment, duration: TokMotion.enter, curve: TokMotion.easeOut, child: child),
+        ),
+      );
 }
 
 /// My location: the dot with a heading cone, or the edge mark when I'm off-screen.
@@ -397,8 +481,9 @@ class _MeLayer extends StatelessWidget {
 
 /// Every planned stop as a pin; the first (Up next) can grow into the card.
 class _PlansLayer extends StatelessWidget {
-  const _PlansLayer({required this.safe, required this.upNextMid, required this.cardKey, required this.sheetOpen, required this.onOpen, required this.onTap, required this.onMidHeight});
+  const _PlansLayer({required this.safe, required this.upNextMid, required this.cardKey, required this.sheetOpen, required this.onOpen, required this.onTap, required this.onMidHeight, required this.shows});
   final Rect safe;
+  final bool Function(int day) shows;
   final bool upNextMid, sheetOpen;
   final GlobalKey cardKey;
   final VoidCallback onOpen;
@@ -408,21 +493,27 @@ class _PlansLayer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cam = MapCamera.of(context);
+    final size = cam.nonRotatedSize;
     // Later plans first so Up next draws on top
     return Stack(children: [
       for (final p in plans.reversed)
         Positioned.fill(
-          child: PlanPin(
-            key: ValueKey(p.id),
-            plan: p,
-            anchor: cam.latLngToScreenOffset(p.at),
-            safe: safe,
-            wantMid: p == plans.first && upNextMid,
-            cardKey: p == plans.first ? cardKey : null,
-            hidden: p == plans.first && sheetOpen,
-            onOpen: onOpen,
-            onTap: () => onTap(p),
-            onMidHeight: p == plans.first ? onMidHeight : null,
+          child: _Filtered(
+            shown: shows(p.day),
+            // Shrinks toward the place itself
+            alignment: Alignment(cam.latLngToScreenOffset(p.at).dx / size.width * 2 - 1, cam.latLngToScreenOffset(p.at).dy / size.height * 2 - 1),
+            child: PlanPin(
+              key: ValueKey(p.id),
+              plan: p,
+              anchor: cam.latLngToScreenOffset(p.at),
+              safe: safe,
+              wantMid: p == plans.first && upNextMid,
+              cardKey: p == plans.first ? cardKey : null,
+              hidden: p == plans.first && sheetOpen,
+              onOpen: onOpen,
+              onTap: () => onTap(p),
+              onMidHeight: p == plans.first ? onMidHeight : null,
+            ),
           ),
         ),
     ]);

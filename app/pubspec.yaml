@@ -61,6 +61,7 @@ flutter:
   assets:
     - assets/stickers/
     - assets/photos/
+    - assets/photos/menu/
     - assets/map/
     - assets/data/
   fonts:

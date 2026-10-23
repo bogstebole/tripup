@@ -1,10 +1,13 @@
 @import './Button.css';
 
 .tu-topbar {
-  padding: var(--space-xl) var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-xl) 0;
   background: linear-gradient(to bottom, var(--color-bg-default) calc(var(--d-top-bar-fade-start) * 100%), transparent);
 }
-.tu-topbar__row { display: flex; align-items: center; gap: var(--space-md); }
+.tu-topbar__row { display: flex; align-items: center; gap: var(--space-md); padding: 0 var(--space-md); }
 .tu-topbar__title { flex: 1 1 0; min-width: 0; }
 .tu-topbar__dates { color: var(--color-text-muted); }
 

@@ -18,4 +18,6 @@
 }
 .tu-tabs__tab--on { color: var(--c-segment-on-fg); }
 .tu-tabs__pill { position: absolute; inset: 0; }
-.tu-tabs__label { position: relative; }
+.tu-tabs__label { position: relative; display: inline-flex; flex-direction: column; align-items: center; }
+/* Room for the heavier selected weight, so picking a tab never shifts the others under the pill */
+.tu-tabs__label::after { content: attr(data-label); font-weight: var(--font-weight-medium); visibility: hidden; height: 0; overflow: hidden; }

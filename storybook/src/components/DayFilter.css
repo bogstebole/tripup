@@ -1,0 +1,23 @@
+/* Scrolls sideways; the block padding keeps the selected chip's shadow from being cut by the scroller */
+.tu-days {
+  display: flex;
+  gap: var(--d-day-chip-gap);
+  overflow-x: auto;
+  padding: var(--space-xs) var(--space-md);
+  margin: calc(var(--space-xs) * -1) 0;
+  scrollbar-width: none;
+}
+.tu-days::-webkit-scrollbar { display: none; }
+
+.tu-day {
+  flex: none;
+  height: var(--d-day-chip-height);
+  padding: 0 var(--d-day-chip-padding-x);
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+  transition: transform var(--press-ms) var(--ease-out), background-color var(--fade-ms) var(--ease-out), color var(--fade-ms) var(--ease-out), box-shadow var(--fade-ms) var(--ease-out);
+}
+.tu-day:active { transform: scale(var(--press-scale)); }
+/* Off: flat, no glass and no shadow */
+.tu-day--off { background: var(--c-day-chip-off-bg); color: var(--c-day-chip-off-fg); box-shadow: none; }
+.tu-day:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: var(--space-3xs); }

@@ -3,7 +3,7 @@ import { AnimatePresence, motion, useReducedMotion, type Variants } from 'motion
 import { useState, type ReactNode } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import realMenu from '../../../app/assets/data/brasserie-menu.json';
-import { photoUrl, type Person } from '../data';
+import { dishUrl, photoUrl, type Person } from '../data';
 import { AddButton } from './AddButton';
 import { Button } from './Button';
 import { KnowRow, KnowSection } from './KnowSection';
@@ -16,7 +16,7 @@ import './DetailSheet.css';
 export const DETAIL_TABS = ['Overview', 'Menu', 'People'] as const;
 export type DetailTab = (typeof DETAIL_TABS)[number];
 
-type MenuItem = { name: string; price: string; note?: string; pickedBy?: string[] };
+type MenuItem = { name: string; price: string; note?: string; photo?: string; pickedBy?: string[] };
 type MenuSection = { title: string; note?: string; items: MenuItem[] };
 const SECTIONS = (realMenu as { sections: MenuSection[] }).sections;
 
@@ -108,6 +108,7 @@ export function DetailSheet(p: DetailSheetProps) {
                       const others = (item.pickedBy ?? []).filter(id => id !== 'ari');
                       return (
                         <div key={item.name} className="tu-sheet__row">
+                          {item.photo && <img src={dishUrl(item.photo)} alt="" className="tu-sheet__dish" loading="lazy" />}
                           <div className="tu-sheet__row-text">
                             <p className="text-label-md">{item.name}</p>
                             {item.note && <p className="text-body-sm tu-sheet__muted">{item.note}</p>}
@@ -120,7 +121,7 @@ export function DetailSheet(p: DetailSheetProps) {
                     })}
                   </Block>
                 ))}
-                <Block i={SECTIONS.length + 1}><p className="text-body-sm tu-sheet__subtle tu-sheet__pad">Prices with VAT. From the restaurant's own menu.</p></Block>
+                <Block i={SECTIONS.length + 1}><p className="text-body-sm tu-sheet__subtle tu-sheet__pad">Prices with VAT. From the restaurant's own menu. Entrecôte photos are the restaurant's; other dish photos are illustrative, from Wikimedia Commons.</p></Block>
               </>
             )}
             {tab === 'People' && (

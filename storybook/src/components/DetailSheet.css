@@ -41,6 +41,7 @@
 .tu-sheet__row { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm) var(--space-xs); }
 .tu-sheet__row + .tu-sheet__row { border-top: var(--d-surface-edge-width) solid var(--color-border-default); }
 .tu-sheet__row-text { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: var(--space-3xs); color: var(--color-text-default); }
+.tu-sheet__dish { width: var(--d-menu-photo); height: var(--d-menu-photo); object-fit: cover; border-radius: var(--d-menu-photo-radius); flex: none; }
 .tu-sheet__faces { display: flex; align-items: center; flex: none; }
 .tu-sheet__faces > * + * { margin-left: calc(var(--d-avatar-overlap) * -1); }
 .tu-sheet__face { display: grid; place-items: center; width: var(--d-sticker-row); height: var(--d-sticker-row); flex: none; }

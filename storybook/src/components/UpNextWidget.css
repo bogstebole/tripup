@@ -15,6 +15,7 @@
 .tu-upnext__name { width: 100%; text-align: center; color: var(--color-text-default); }
 .tu-upnext__fan { display: flex; align-items: center; justify-content: center; width: 100%; }
 .tu-upnext__fan > * + * { margin-left: calc(var(--d-sticker-overlap) * -1); }
+.tu-upnext__fan-item { display: inline-flex; flex: none; }
 .tu-upnext__actions { display: flex; align-items: center; gap: var(--space-md); width: 100%; }
 
 /* Mini */

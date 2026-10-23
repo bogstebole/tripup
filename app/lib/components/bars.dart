@@ -8,21 +8,27 @@ import 'map_shapes.dart';
 
 /// Trip header over the map: back, trip name and dates, people. Fades the map out behind it.
 class TopBar extends StatelessWidget {
-  const TopBar({super.key, required this.title, required this.dates, required this.faces, required this.more, this.onBack, this.onPeople});
+  const TopBar({super.key, required this.title, required this.dates, required this.faces, required this.more, this.onBack, this.onPeople, this.filter});
   final String title, dates;
   final List<String> faces;
   final int more;
   final VoidCallback? onBack, onPeople;
 
+  /// Day filter, right under the title row (inside the bar's fade, so it reads over the map).
+  final Widget? filter;
+
   /// Height of the bar's content area below the status bar (used to keep pins out from under it).
   static const double contentHeight = TokSpace.xl + TokDim.buttonMd;
+
+  /// The same with the day filter under it.
+  static const double contentHeightWithFilter = contentHeight + TokSpace.md + TokDim.dayChipHeight;
 
   @override
   Widget build(BuildContext context) {
     final t = context.tok;
     final top = MediaQuery.paddingOf(context).top;
     return Container(
-      padding: EdgeInsets.fromLTRB(TokSpace.md, top + TokSpace.xl, TokSpace.md, TokSpace.xl),
+      padding: EdgeInsets.fromLTRB(0, top + TokSpace.xl, 0, TokSpace.xl),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -31,15 +37,21 @@ class TopBar extends StatelessWidget {
           stops: const [TokDim.topBarFadeStart, 1],
         ),
       ),
-      child: Row(spacing: TokSpace.md, children: [
-        TuButton(icon: TuIcons.back, label: 'Back to trips', onTap: onBack),
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-            Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingSm.copyWith(color: t.textDefault)),
-            Text(dates, style: TokText.labelMd.copyWith(color: t.textMuted)),
+      child: Column(mainAxisSize: MainAxisSize.min, spacing: TokSpace.md, children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: TokSpace.md),
+          child: Row(spacing: TokSpace.md, children: [
+            TuButton(icon: TuIcons.back, label: 'Back to trips', onTap: onBack),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingSm.copyWith(color: t.textDefault)),
+                Text(dates, style: TokText.labelMd.copyWith(color: t.textMuted)),
+              ]),
+            ),
+            PeopleButton(faces: faces, more: more, onTap: onPeople),
           ]),
         ),
-        PeopleButton(faces: faces, more: more, onTap: onPeople),
+        ?filter,
       ]),
     );
   }

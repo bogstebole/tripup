@@ -7,20 +7,24 @@
     {
      "name": "Individual couvert",
      "price": "€2.80",
+     "photo": "couvert",
      "note": "Basket with wheat baguette, cereal baguette and butter"
     },
     {
      "name": "Assorted pâtés",
-     "price": "€4.40"
+     "price": "€4.40",
+     "photo": "pates"
     },
     {
      "name": "Grand plat des fromages",
      "price": "€11.90",
+     "photo": "cheese",
      "note": "Comté, Reblochon de Savoie and Boursin with jam and walnut"
     },
     {
      "name": "Vegetable soup",
-     "price": "€3.90"
+     "price": "€3.90",
+     "photo": "soup"
     }
    ]
   },
@@ -30,6 +34,7 @@
     {
      "name": "Sirloin entrecôte with lettuce and rocket salad",
      "price": "€23.90",
+     "photo": "entrecote",
      "note": "Grilled or with Brasserie sauce and French fries; salad with vinaigrette and walnuts",
      "pickedBy": [
       "maya",
@@ -39,6 +44,7 @@
     {
      "name": "Sirloin entrecôte with marinated salmon",
      "price": "€29.80",
+     "photo": "entrecote",
      "note": "Grilled or with Brasserie sauce and French fries; salmon with green salad and cherry tomatoes",
      "pickedBy": [
       "ari"
@@ -47,11 +53,13 @@
     {
      "name": "Sirloin entrecôte with shrimp cocktail",
      "price": "€29.80",
+     "photo": "entrecote",
      "note": "Grilled or with Brasserie sauce and French fries"
     },
     {
      "name": "Seitan steak with lettuce and rocket salad",
      "price": "€22.00",
+     "photo": "seitan",
      "note": "Brasserie sauce and French fries; salad with vinaigrette and walnuts",
      "pickedBy": [
       "nic"
@@ -60,11 +68,13 @@
     {
      "name": "Seitan steak with marinated salmon",
      "price": "€27.40",
+     "photo": "seitan",
      "note": "Brasserie sauce and French fries; salmon with green salad and cherry tomatoes"
     },
     {
      "name": "Seitan steak with shrimp cocktail",
      "price": "€27.40",
+     "photo": "seitan",
      "note": "Brasserie sauce and French fries"
     }
    ]
@@ -76,16 +86,19 @@
     {
      "name": "Couvert, lettuce and rocket salad, entrecôte or seitan",
      "price": "€15.90",
+     "photo": "entrecote-plate",
      "note": "Served on the plate with fries"
     },
     {
      "name": "Couvert, marinated salmon salad, entrecôte or seitan",
      "price": "€18.90",
+     "photo": "entrecote-plate",
      "note": "Served on the plate with fries"
     },
     {
      "name": "Couvert, shrimp cocktail, entrecôte or seitan",
      "price": "€18.90",
+     "photo": "entrecote-plate",
      "note": "Served on the plate with fries"
     }
    ]
@@ -96,11 +109,13 @@
     {
      "name": "Entrecôte sandwich",
      "price": "€10.90",
+     "photo": "sandwich-entrecote",
      "note": "Baguette with entrecôte, rocket, Brasserie sauce and fries"
     },
     {
      "name": "Sandwich saumon",
      "price": "€10.90",
+     "photo": "sandwich-salmon",
      "note": "Grain bread with smoked salmon, lettuce, rocket and cream cheese"
     }
    ]
@@ -111,20 +126,24 @@
     {
      "name": "Lettuce and rocket salad",
      "price": "€6.40",
+     "photo": "salad",
      "note": "Vinaigrette dressing and walnuts"
     },
     {
      "name": "Marinated salmon",
      "price": "€10.20",
+     "photo": "salmon",
      "note": "Green salad and cherry tomatoes"
     },
     {
      "name": "Shrimp cocktail",
-     "price": "€10.20"
+     "price": "€10.20",
+     "photo": "shrimp-cocktail"
     },
     {
      "name": "Fries",
      "price": "€3.60",
+     "photo": "fries",
      "pickedBy": [
       "leo"
      ]
@@ -136,11 +155,13 @@
    "items": [
     {
      "name": "Liégeois coffee",
-     "price": "€6.50"
+     "price": "€6.50",
+     "photo": "liegeois"
     },
     {
      "name": "Chocolate fondant with ice cream",
      "price": "€6.50",
+     "photo": "fondant",
      "pickedBy": [
       "maya"
      ]
@@ -148,16 +169,19 @@
     {
      "name": "Mille-feuille",
      "price": "€7.00",
+     "photo": "millefeuille",
      "note": "White chocolate, raspberry jam and lavender"
     },
     {
      "name": "Strawberry purée with ice cream",
      "price": "€6.40",
+     "photo": "strawberry",
      "note": "Dusted with cinnamon"
     },
     {
      "name": "Crème brûlée",
      "price": "€6.40",
+     "photo": "creme-brulee",
      "pickedBy": [
       "ari",
       "nic"
@@ -166,20 +190,24 @@
     {
      "name": "Red berries in Cointreau syrup",
      "price": "€8.40",
+     "photo": "red-berries",
      "note": "Crumble and ice cream"
     },
     {
      "name": "Sorberoska",
      "price": "€7.50",
+     "photo": "sorbet",
      "note": "Lemon sorbet with vodka"
     },
     {
      "name": "Lemon sorbet",
-     "price": "1 scoop €3.40 · 2 scoops €5.10"
+     "price": "1 scoop €3.40 · 2 scoops €5.10",
+     "photo": "sorbet"
     },
     {
      "name": "Ice cream",
      "price": "1 scoop €3.40 · 2 scoops €5.10",
+     "photo": "ice-cream",
      "note": "Strawberry, apple or vanilla"
     }
    ]

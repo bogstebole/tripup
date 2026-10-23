@@ -67,7 +67,8 @@ class _SegmentedTabsState extends State<SegmentedTabs> with TickerProviderStateM
       key: _track,
       padding: const EdgeInsets.all(TokDim.segmentTrackPadding),
       decoration: BoxDecoration(color: t.cSegmentTrack, borderRadius: BorderRadius.circular(TokRadius.pill)),
-      child: Stack(children: [
+      // The pill's shadow may spill past the track
+      child: Stack(clipBehavior: Clip.none, children: [
         if (_placed)
           AnimatedBuilder(
             animation: Listenable.merge([_left, _width]),
@@ -96,15 +97,19 @@ class _SegmentedTabsState extends State<SegmentedTabs> with TickerProviderStateM
                   height: TokDim.segmentHeight,
                   padding: const EdgeInsets.symmetric(horizontal: TokSpace.sm),
                   alignment: Alignment.center,
-                  child: AnimatedDefaultTextStyle(
-                    duration: TokMotion.fade,
-                    curve: TokMotion.easeOut,
-                    style: TokText.bodySm.copyWith(
-                      fontWeight: i == widget.index ? TokWeight.medium : TokWeight.regular,
-                      color: i == widget.index ? t.cSegmentOnFg : t.cSegmentOffFg,
+                  child: Stack(alignment: Alignment.center, children: [
+                    // Room for the heavier selected weight, so picking a tab never shifts the others under the pill
+                    ExcludeSemantics(child: Opacity(opacity: 0, child: Text(widget.tabs[i], style: TokText.bodySm.copyWith(fontWeight: TokWeight.medium)))),
+                    AnimatedDefaultTextStyle(
+                      duration: TokMotion.fade,
+                      curve: TokMotion.easeOut,
+                      style: TokText.bodySm.copyWith(
+                        fontWeight: i == widget.index ? TokWeight.medium : TokWeight.regular,
+                        color: i == widget.index ? t.cSegmentOnFg : t.cSegmentOffFg,
+                      ),
+                      child: Text(widget.tabs[i]),
                     ),
-                    child: Text(widget.tabs[i]),
-                  ),
+                  ]),
                 ),
               ),
             ),

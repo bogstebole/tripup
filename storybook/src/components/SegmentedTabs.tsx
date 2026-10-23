@@ -28,7 +28,7 @@ export function SegmentedTabs({ tabs, value, onChange }: SegmentedTabsProps) {
                 transition={reduce ? { duration: 0 } : { type: 'spring', duration, bounce }}
               />
             )}
-            <span className="tu-tabs__label">{tab}</span>
+            <span className="tu-tabs__label" data-label={tab}>{tab}</span>
           </button>
         );
       })}
