@@ -346,7 +346,9 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 | Map: tap day filters | 18.7 / 21.8; 225 of 247 | 6.3 / 13.4; 9 of 273 |
 
 - **Checked:** screenshots of the old and new builds on the simulator match pixel for pixel; the cached shadows are within 3/255.
+- **With 1.18's breathing dot** (main + these fixes): the map redraws about 60 times a second even at rest, and each redraw runs the bars' blurs again. On a cool phone that's 4.8 ms a frame with none late; plain 1.18 is 18.9 ms with every frame late. On a warm phone, after a few minutes, it climbs back to about 20 ms; with the bars' blur off it's 3.6 ms. The day filter shows the same thing.
 - **Still open:**
+  - The breathing dot keeps the bars' blur running. Options that keep it: hold the bars' blur as a picture while only the dot moves (no visual change), or breathe at 30 fps (half the work, hard to tell apart).
   - Opening Menu builds all 118 rows in one frame: about 50 ms of UI work, so one visible hitch at the start of the switch.
   - The page being left is rebuilt from scratch on every tab change, so it vanishes at once instead of fading, blurring and sliding out as 1.12 describes. Fixing it changes the motion, so it waits for a decision.
 
