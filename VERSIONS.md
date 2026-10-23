@@ -256,6 +256,10 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - **People:** next to each person's pile of picks, roughly what they come to (≈ €36.20 for my entrecôte with salmon and crème brûlée), and at the bottom an estimated total from what everyone has picked so far (≈ €122.50). It follows what I add or remove in Menu. A line with two prices ("1 scoop €3.40 · 2 scoops €5.10") counts the first.
 - **Header:** the white over the blurred map is see-through now (70%, new token `top-bar/bg`), so the bar is lighter while the blur keeps it readable.
 
+### Final UI, iteration 1.9: "+N" on a pile of picks, total fixed at the bottom
+- **People:** a pile shows at most two dishes, the priciest ones (usually the mains), and one more sticker counts the rest ("+2", "+3"), in the count bubble's colours.
+- **Estimated total** is now a footer fixed at the bottom of People while the list scrolls above it: "Estimated total" on one line, the amount under it, larger (Heading/LG). The line explaining it is gone.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

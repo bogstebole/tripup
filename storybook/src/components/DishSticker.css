@@ -14,3 +14,4 @@
   border-radius: calc(var(--radius-sm) + var(--d-dish-pick-edge));
 }
 .tu-dish-sticker--pick img { border-radius: var(--radius-sm); }
+.tu-dish-more__count { display: grid; place-items: center; width: 100%; height: 100%; border-radius: var(--radius-sm); background: var(--c-count-bubble-bg); color: var(--c-count-bubble-fg); }

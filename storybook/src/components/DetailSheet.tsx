@@ -6,7 +6,7 @@ import realMenu from '../../../app/assets/data/brasserie-menu.json';
 import { euros, eurosIn, type Person, type PlaceDetail } from '../data';
 import { AddButton } from './AddButton';
 import { Button } from './Button';
-import { DishSticker } from './DishSticker';
+import { DishMore, DishSticker } from './DishSticker';
 import { KnowRow, KnowSection } from './KnowSection';
 import { PhotoCarousel } from './PhotoCarousel';
 import { RatingLine } from './RatingLine';
@@ -188,22 +188,21 @@ export function DetailSheet(p: DetailSheetProps) {
                       </div>
                       {/* What they'll have, as a little pile of stickers: at a glance, who has already picked */}
                       {(() => {
-                        const picks = picksOf(x.id).filter(d => d.photo);
-                        if (picks.length) return <span className="tu-sheet__picks" aria-label={`${x.name} picked ${picks.map(d => d.name).join(', ')}`}>{picks.map((d, i) => <DishSticker key={d.name} photo={d.photo!} size="pick" tilt={i % 2 ? -tilt : tilt} />)}</span>;
+                        const picks = picksOf(x.id);
+                        // Two in the pile, the priciest (the mains, usually); the rest are counted on one more sticker
+                        const shown = picks.filter(d => d.photo).sort((a, b) => (eurosIn(b.price) ?? 0) - (eurosIn(a.price) ?? 0)).slice(0, 2);
+                        const more = picks.length - shown.length;
+                        if (picks.length) return (
+                          <span className="tu-sheet__picks" aria-label={`${x.name} picked ${picks.map(d => d.name).join(', ')}`}>
+                            {shown.map((d, i) => <DishSticker key={d.name} photo={d.photo!} size="pick" tilt={i % 2 ? -tilt : tilt} />)}
+                            {more > 0 && <DishMore count={more} tilt={shown.length % 2 ? -tilt : tilt} />}
+                          </span>
+                        );
                         return x.status !== 'Not going' ? <span className="text-body-sm tu-sheet__subtle">No picks yet</span> : null;
                       })()}
                       {costOf(x.id) > 0 && <span className="text-label-md weight-semibold tu-sheet__cost">≈ {euros(costOf(x.id))}</span>}
                     </div>
                   ))}
-                {total > 0 && (
-                    <div className="tu-sheet__row tu-sheet__total">
-                      <div className="tu-sheet__row-text">
-                        <p className="text-label-md">Estimated total</p>
-                        <p className="text-body-sm tu-sheet__muted">From what everyone has picked so far</p>
-                      </div>
-                      <span className="text-heading-sm tu-sheet__cost">≈ {euros(total)}</span>
-                    </div>
-                  )}
                 </Block>
               </>
             )}
@@ -212,6 +211,13 @@ export function DetailSheet(p: DetailSheetProps) {
         {/* Content scrolling up passes under a blur and the surface's white instead of being cut at the edge */}
         <div className="tu-sheet__top-fade" aria-hidden style={{ '--under': under } as CSSProperties} />
       </div>
+      {/* People: the total stays put at the bottom while the list scrolls above it */}
+      {tab === 'People' && total > 0 && (
+        <div className="tu-sheet__footer">
+          <p className="text-label-md tu-sheet__muted">Estimated total</p>
+          <p className="text-heading-lg tu-sheet__cost">≈ {euros(total)}</p>
+        </div>
+      )}
     </article>
   );
 }

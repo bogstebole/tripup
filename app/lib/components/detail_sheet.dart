@@ -141,20 +141,23 @@ class _DetailSheetState extends State<DetailSheet> {
     return false;
   }
 
-  Widget _scroll(Widget child) => SingleChildScrollView(
-        physics: _SheetPhysics(pull: _pull, parent: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics())),
-        // Starts under the header; room at the end for the last block to scroll clear of the bottom fade
-        padding: EdgeInsets.only(top: _headerHeight + TokSpace.xs, bottom: TokDim.sheetFade + TokSpace.xs),
-        child: child,
+  Widget _scroll(Widget child) => _fadeBottom(
+        context,
+        SingleChildScrollView(
+          physics: _SheetPhysics(pull: _pull, parent: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics())),
+          // Starts under the header; room at the end for the last block to scroll clear of the bottom fade
+          padding: EdgeInsets.only(top: _headerHeight + TokSpace.xs, bottom: TokDim.sheetFade + TokSpace.xs),
+          child: child,
+        ),
       );
 
-  Widget _page(BuildContext context) => _fadeBottom(context, switch (_tab) {
+  Widget _page(BuildContext context) => switch (_tab) {
         0 => _overview(context),
         1 => _menu(context),
         _ => _people(context),
-      });
+      };
 
-  /// Content scrolling past the sheet's bottom edge fades out over the last few pixels instead of being cut off.
+  /// Content scrolling past the bottom of its area fades out over the last few pixels instead of being cut off.
   Widget _fadeBottom(BuildContext context, Widget child) {
     final solid = context.tok.textDefault;   // only its alpha matters for the mask
     return ShaderMask(
@@ -232,7 +235,7 @@ class _DetailSheetState extends State<DetailSheet> {
       // Roughly what each person's picks come to, and all of them together
       final cost = {for (final x in people) x.id: picksOf(x.id).fold(0.0, (sum, d) => sum + (eurosIn(d.price) ?? 0))};
       final total = cost.values.fold(0.0, (a, b) => a + b);
-      return _scroll(StaggerIn(spacing: TokSpace.md, children: [
+      final list = _scroll(StaggerIn(spacing: TokSpace.md, children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.xs, TokSpace.xs, 0),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x2xs, children: [
@@ -245,23 +248,20 @@ class _DetailSheetState extends State<DetailSheet> {
             if (i > 0) const _Hairline(),
             _PersonRow(person: people[i], picks: picksOf(people[i].id), cost: cost[people[i].id]!),
           ],
-          if (total > 0) ...[
-            const _Hairline(),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs, vertical: TokSpace.sm),
-              child: Row(spacing: TokSpace.sm, children: [
-                Expanded(
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text('Estimated total', style: TokText.labelMd.copyWith(color: t.textDefault)),
-                    Text('From what everyone has picked so far', style: TokText.bodySm.copyWith(color: t.textMuted)),
-                  ]),
-                ),
-                Text('≈ ${euros(total)}', style: TokText.headingSm.copyWith(color: t.textDefault)),
-              ]),
-            ),
-          ],
         ]),
       ]));
+      if (total <= 0) return list;
+      // The total stays put at the bottom while the list scrolls above it
+      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Expanded(child: list),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.xs, TokSpace.xs, TokSpace.md),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x3xs, children: [
+            Text('Estimated total', style: TokText.labelMd.copyWith(color: t.textMuted)),
+            Text('≈ ${euros(total)}', style: TokText.headingLg.copyWith(color: t.textDefault)),
+          ]),
+        ),
+      ]);
     });
   }
 }
@@ -451,7 +451,10 @@ class _PersonRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tok;
-    final shown = [for (final d in picks) if (d.photo != null) d];
+    // Two in the pile, the priciest (the mains, usually); the rest are counted on one more sticker
+    final byPrice = [for (final d in picks) if (d.photo != null) d]..sort((a, b) => (eurosIn(b.price) ?? 0).compareTo(eurosIn(a.price) ?? 0));
+    final shown = byPrice.take(2).toList();
+    final more = picks.length - shown.length;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs, vertical: TokSpace.sm),
       child: Row(spacing: TokSpace.sm, children: [
@@ -463,12 +466,13 @@ class _PersonRow extends StatelessWidget {
           ]),
         ),
         // What they'll have, as a little pile of stickers: at a glance, who has already picked
-        if (shown.isNotEmpty)
+        if (picks.isNotEmpty)
           Semantics(
             label: '${person.name} picked ${picks.map((d) => d.name).join(', ')}',
             child: Overlapped(overlap: TokDim.avatarOverlap, children: [
               for (var i = 0; i < shown.length; i++)
                 DishSticker(shown[i].photo!, size: TokDim.dishPickSize, edge: TokDim.dishPickEdge, radius: TokRadius.sm, tilt: i.isEven ? TokDim.menuPhotoTilt : -TokDim.menuPhotoTilt),
+              if (more > 0) _MorePicks(more, tilt: shown.length.isEven ? TokDim.menuPhotoTilt : -TokDim.menuPhotoTilt),
             ]),
           ),
         if (cost > 0)
@@ -476,6 +480,31 @@ class _PersonRow extends StatelessWidget {
         else if (person.going)
           Text('No picks yet', style: TokText.bodySm.copyWith(color: t.textSubtle)),
       ]),
+    );
+  }
+}
+
+/// The rest of a person's picks, as one more sticker on the pile: "+2".
+class _MorePicks extends StatelessWidget {
+  const _MorePicks(this.count, {required this.tilt});
+  final int count;
+  final double tilt;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tok;
+    return Transform.rotate(
+      angle: tilt * math.pi / 180,
+      child: Container(
+        width: TokDim.dishPickSize,
+        height: TokDim.dishPickSize,
+        padding: const EdgeInsets.all(TokDim.dishPickEdge),
+        decoration: BoxDecoration(color: t.cDishEdge, borderRadius: BorderRadius.circular(TokRadius.sm + TokDim.dishPickEdge), boxShadow: TokShadow.slightlyRaised),
+        child: DecoratedBox(
+          decoration: BoxDecoration(color: t.cCountBubbleBg, borderRadius: BorderRadius.circular(TokRadius.sm)),
+          child: Center(child: Text('+$count', style: TokText.labelMd.copyWith(fontWeight: TokWeight.bold, color: t.cCountBubbleFg))),
+        ),
+      ),
     );
   }
 }

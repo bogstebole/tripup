@@ -18,3 +18,12 @@ export function DishSticker({ photo, size, tilt = 0 }: DishStickerProps) {
     </span>
   );
 }
+
+/** The rest of a person's picks, as one more sticker on the pile: "+2". */
+export function DishMore({ count, tilt = 0 }: { count: number; tilt?: number }) {
+  return (
+    <span className="tu-dish-sticker tu-dish-sticker--pick tu-dish-more" style={tilt ? { transform: `rotate(${tilt}deg)` } : undefined}>
+      <span className="tu-dish-more__count text-label-md weight-bold">+{count}</span>
+    </span>
+  );
+}
