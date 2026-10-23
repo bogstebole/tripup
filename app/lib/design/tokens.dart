@@ -80,7 +80,7 @@ class TokColors {
     'c/me/cone': Color(0xFF60A5FA),
     'c/sheet/scrim': Color(0x33FFFFFF),
     'c/top-bar/bg': Color(0xB3FFFFFF),
-    'c/action-bar/bg': Color(0xB3FFFFFF),
+    'c/action-bar/bg': Color(0xD9FFFFFF),
     'c/toast/bg': Color(0xFF1D4ED8),
     'c/toast/fg': Color(0xFFFFFFFF),
     'c/attribution/fg': Color(0xFF71717A),
@@ -150,7 +150,7 @@ class TokColors {
     'c/me/cone': Color(0xFF60A5FA),
     'c/sheet/scrim': Color(0x3318181B),
     'c/top-bar/bg': Color(0xB318181B),
-    'c/action-bar/bg': Color(0xB318181B),
+    'c/action-bar/bg': Color(0xD918181B),
     'c/toast/bg': Color(0xFF1D4ED8),
     'c/toast/fg': Color(0xFFFFFFFF),
     'c/attribution/fg': Color(0xFFA1A1AA),
@@ -312,6 +312,7 @@ abstract final class TokDim {
   static const double tabSlide = 24;
   static const double meDot = 16;
   static const double meRing = 5;
+  static const double mePulseScale = 0.75;
   static const double meEdgeWidth = 8;
   static const double meEdgeHeight = 24;
   static const double meGlowWidth = 20;
@@ -383,10 +384,13 @@ abstract final class TokMotion {
   static const enter = Duration(milliseconds: 260);
   static const pageEnterDelay = Duration(milliseconds: 80);
   static const toast = Duration(milliseconds: 3000);
+  static const settle = Duration(milliseconds: 800);
+  static const pulse = Duration(milliseconds: 1200);
   static const double pressScale = 0.97;
   static const press = Duration(milliseconds: 120);
   static const fade = Duration(milliseconds: 160);
   static const easeOut = Cubic(0.23, 1, 0.32, 1);
   static const easeInOut = Cubic(0.77, 0, 0.175, 1);
   static const easeDrawer = Cubic(0.32, 0.72, 0, 1);
+  static const easeBreathe = Cubic(0.37, 0, 0.63, 1);
 }

@@ -19,7 +19,7 @@ After changing `design-system/tokens.json`, run `node ../design-system/build-tok
 ## What's where
 
 - `lib/design/tokens.dart`: generated tokens. `theme.dart`: `context.tok` colors, springs from tokens, inner-shadow painter, press feedback.
-- `lib/components/`: `glass.dart` (button glass, `TuButton`), `basics.dart` (surface, sticker, people pill, rating, chips, rows, sections), `segmented_tabs.dart`, `map_shapes.dart` (pin tail, edge arrow, my location), `bars.dart`, `toggle_chips.dart` (toggles: the days under the top bar, the menu's courses), `plan_pin.dart` (the morphing pin), `detail_sheet.dart`, `stagger.dart`.
+- `lib/components/`: `glass.dart` (button glass, `TuButton`), `basics.dart` (surface, sticker, people pill, rating, chips, rows, sections), `segmented_tabs.dart`, `map_shapes.dart` (pin tail, edge arrow, my location), `bars.dart`, `toggle_chips.dart` (toggles: the days under the top bar, the menu's courses), `plan_pin.dart` (the morphing pin), `people_layer.dart` (the group's live locations, piled when close), `detail_sheet.dart`, `stagger.dart`, `toast.dart`, `progressive_blur.dart`.
 - `lib/screens/trip_screen.dart`: the map (flutter_map + vector tiles in the Google-like style from `assets/map/style-google.json`), pin layers, and the card-to-full-view morph.
 - `lib/data.dart`: demo content. The restaurant's rating, address and whole menu are real: `assets/data/brasserie-menu.json` (shared with Storybook), from the restaurant's own English menu.
 

@@ -211,12 +211,38 @@ class InfoChips extends StatelessWidget {
               borderRadius: BorderRadius.horizontal(left: i == 0 ? r : Radius.zero, right: i == items.length - 1 ? r : Radius.zero),
             ),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
-              if (c.sticker != null) Sticker(c.sticker!, size: StickerSize.chip, tilt: c.tilt),
+              if (c.sticker != null)
+                Sticker(c.sticker!, size: StickerSize.chip, tilt: c.tilt),
               Text(c.text, maxLines: 1, overflow: TextOverflow.clip, style: TokText.bodySm.copyWith(fontWeight: TokWeight.semibold, color: t.cChipFg)),
             ]),
           );
           return c.grow ? Expanded(child: chip) : chip;
         }(),
+    ]);
+  }
+}
+
+/// People as a little pile: up to two of their stickers, then a "+N" bubble for the rest. On the map it's a
+/// group walking together; on a pin, who's already there.
+class FacePile extends StatelessWidget {
+  const FacePile({super.key, required this.faces, this.size = StickerSize.avatar});
+  final List<String> faces;
+  final StickerSize size;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tok;
+    final more = faces.length - 2;
+    return Overlapped(overlap: TokDim.avatarOverlap, children: [
+      for (final f in faces.take(2)) Sticker(f, size: size),
+      if (more > 0)
+        Container(
+          width: TokDim.countBubbleSize,
+          height: TokDim.countBubbleSize,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(color: t.bgDefault, borderRadius: BorderRadius.circular(TokRadius.pill), boxShadow: TokShadow.slightlyRaised),
+          child: Text('+$more', style: TokText.labelMd.copyWith(fontWeight: TokWeight.bold, color: t.textDefault)),
+        ),
     ]);
   }
 }

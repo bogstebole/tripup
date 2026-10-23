@@ -293,11 +293,37 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
   - My face joins the faces of whoever else picked the dish, coming in from Add's side, and leaves the same way.
 - New tokens: `toast/bg`, `toast/fg`, `motion.toast-ms`. New components: `ToggleChips`/`ToggleChip` (replaces `DayFilter`), `Toast`, `ToastSlot`.
 
-### One link to the latest prototype
-- `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
+### Final UI, iteration 1.15: live locations, who's here, a decision log
+- **Live locations, simulated.** Each person who's coming has a route to the restaurant and times to leave and arrive, on the demo clock. In the real app this would be their location, shared passively from 90 minutes before. Positions and statuses are worked out from it, and nobody taps anything:
+  - "Already there";
+  - "On the way · 8 min";
+  - "Leaves in 20 min". Mine comes from how far the blue dot is from the place: the start, minus 5 minutes early, minus the walk.
+- **On the map,** people on their way show as their stickers. Anyone closer than a sticker's width merges into one pile with "+N". Whoever has arrived leaves the map:
+  - on the mini pin, they show as a small pile on its corner;
+  - on the card, as the first chip ("1 here" with their faces). The time chip then shows just "5 PM", so the row fits.
+- **Group's statuses** come from the same simulation and count down.
+- **Names in Group and Menu are 16 px** (Label/LG).
+- **`DECISIONS.md`:** a new log of what was decided and why, for the presentation.
+- New components: `PeopleLayer`, `FacePile` (Flutter and Storybook), and faces on `InfoChip`.
 
-### Final UI, iteration 1.16: smooth frames on the phone (nothing looks or moves differently)
-- **Measured** on Bogdan's iPhone 15, profile build, with `app/perf/trip_perf.dart`: it plays each scenario with scripted touches at the display's pace and records every frame (how to run it is at the top of the file). Before, the GPU side (raster) took 18–25 ms a frame in every scenario, against 16.7 ms at 60 Hz, so most frames came late. The UI side was never the problem (about 1 ms).
+### Final UI, iteration 1.16: the time moves up to "Up next"
+- The Up next card's time left the chip row and sits by the label: "Up next · 5 PM" (or "Up next · Tomorrow, 10 AM"). The two chips left, who's coming / who's here and the price level, are the same width, so "2 here" no longer squeezes anything.
+- Not installed on the phone yet: the performance session is profiling on it.
+
+### Final UI, iteration 1.17: actions out of the way while panning
+- The bottom actions slide down past the edge and fade out as soon as the map is moved (160 ms), and come back up once it has been still for 260 ms (also 260 ms to return), ease-out both ways. Their white is less see-through, 85% instead of 70%.
+- The full view has 16 px more room between its header (the tabs) and the page title.
+- Not installed on the phone yet: the performance session is profiling on it.
+
+### Final UI, iteration 1.18: price range, who's here on the corner, a softer header, my dot breathes
+- The card's chips are who's coming (+3) and the real price range (€20–40, from the Google Maps details) instead of €€. "1 here" left the chips: whoever has arrived sits on the pin's top-right corner, across it on the mini pin and just inside it on the card, and stays on that corner through the morph.
+- The bottom actions wait until the map has been still for 800 ms before coming back (was 260 ms).
+- The top bar's edge over the map no longer shows a line: its blur now eases off to nothing (falls with the square of the distance, the faintest bands dropped) and its white fades along a smoothstep instead of a straight ramp. The bottom bar and the full view's header use the same fade. We tried hanging the fade 24 px lower; it blurred the top of the card (and the face on its corner), so it went.
+- My location breathes: only the blue scales (to 75% and back, 1.2 s each way, an ease-in-out sine); the white rim stays still. It holds still with reduced motion and pauses while the full view covers the map or I'm off-screen.
+- Storybook: the same chips, corner badge and breathing dot; new tokens settle-ms, pulse-ms, ease-breathe and me/pulse-scale in Foundations → Motion. InfoChip's `faces` is gone (nothing used it any more).
+
+### Final UI, iteration 1.19: smooth frames on the phone (nothing looks or moves differently)
+- **Measured** on Bogdan's iPhone 15, profile build (on 1.14, before 1.15–1.18 were merged in), with `app/perf/trip_perf.dart`: it plays each scenario with scripted touches at the display's pace and records every frame (how to run it is at the top of the file). Before, the GPU side (raster) took 18–25 ms a frame in every scenario, against 16.7 ms at 60 Hz, so most frames came late. The UI side was never the problem (about 1 ms).
 - **What cost the frames**, found by switching each suspect off in turn:
   - The inset shadows on every glass button, blurred again three times per button every frame: half of the map's 18 ms, and one Add button per menu row.
   - The bars' progressive blurs: about 5 ms.
@@ -323,6 +349,9 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - **Still open:**
   - Opening Menu builds all 118 rows in one frame: about 50 ms of UI work, so one visible hitch at the start of the switch.
   - The page being left is rebuilt from scratch on every tab change, so it vanishes at once instead of fading, blurring and sliding out as 1.12 describes. Fixing it changes the motion, so it waits for a decision.
+
+### One link to the latest prototype
+- `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 
 ## Tools
 Scripts behind all of the above are in `tools/` (see `tools/README.md`).

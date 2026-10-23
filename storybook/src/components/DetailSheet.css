@@ -21,7 +21,7 @@
   /* Content scrolling past the sheet's bottom edge fades out over the last few px instead of being cut off */
   mask-image: linear-gradient(to bottom, black calc(100% - var(--d-sheet-fade)), transparent);
   /* Starts under the header; room at the end for the last block to scroll clear of the bottom fade */
-  padding-top: calc(var(--header) + var(--space-xs));
+  padding-top: calc(var(--header) + var(--space-xs) + var(--space-md));
   padding-bottom: calc(var(--d-sheet-fade) + var(--space-xs));
 }
 /* The header's backdrop shows as content goes under it (--under, 0–1), so a page at rest isn't faded at the top */

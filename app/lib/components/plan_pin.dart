@@ -44,7 +44,7 @@ class UpNextMid extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: TokSpace.md),
             child: Column(mainAxisSize: MainAxisSize.min, spacing: TokSpace.x2xs, children: [
-              p(MidPart.label, SizedBox(width: double.infinity, child: Text('Up next', textAlign: TextAlign.center, maxLines: 1, style: TokText.labelMd.copyWith(fontWeight: TokWeight.bold, color: t.textBrand)))),
+              p(MidPart.label, SizedBox(width: double.infinity, child: Text('Up next · ${plan.startsAt}', textAlign: TextAlign.center, maxLines: 1, style: TokText.labelMd.copyWith(fontWeight: TokWeight.bold, color: t.textBrand)))),
               p(MidPart.name, SizedBox(width: double.infinity, child: Text(plan.name, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingSm.copyWith(color: t.textDefault)))),
               p(MidPart.rating, RatingLine(rating: plan.rating, kind: plan.cuisine)),
             ]),
@@ -56,7 +56,8 @@ class UpNextMid extends StatelessWidget {
             ])),
           ),
           p(MidPart.chips, Row(spacing: TokSpace.md, children: [
-            Expanded(child: InfoChips(items: [...plan.chips, InfoChip(plan.whenShort)])),
+            // Equal-width chips: who's coming and the price range. Who's already there sits on the corner (see PlanPin).
+            Expanded(child: InfoChips(items: plan.chips)),
             TuButton(icon: TuIcons.forward, label: 'Open ${plan.name}', kind: GlassKind.primary, size: TuButtonSize.sm, onTap: onOpen),
           ])),
         ]),
@@ -108,6 +109,7 @@ class PlanPin extends StatefulWidget {
     this.onTap,
     this.onEdgeChanged,
     this.onMidHeight,
+    this.here = const [],
   });
 
   final Plan plan;
@@ -130,6 +132,9 @@ class PlanPin extends StatefulWidget {
 
   /// The card's full height plus its tail, once measured (the screen uses it to make room above the place).
   final ValueChanged<double>? onMidHeight;
+
+  /// Stickers of whoever is already at the place: on the card's first chip, and on the mini pin's corner.
+  final List<String> here;
 
   /// How far a mini pin reaches above its place (card, gap and tail): room to leave when fitting the map around pins.
   static double get miniReach =>
@@ -351,6 +356,22 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
           ),
         ),
       ),
+      // Who's already there, on the pin's top-right corner. On the mini pin it sits across the corner; as the pin
+      // grows into the card it settles just inside it, clear of whatever is above the card (the top bar's fade).
+      if (widget.here.isNotEmpty && onMapOp > 0)
+        Positioned(
+          left: center.dx + size.width / 2,
+          top: center.dy - size.height / 2,
+          child: IgnorePointer(
+            child: Transform.translate(
+              offset: Offset(-TokSpace.xs, TokSpace.xs) * m.clamp(0.0, 1.0),
+              child: FractionalTranslation(
+                translation: Offset.lerp(const Offset(-0.5, -0.5), const Offset(-1, 0), m.clamp(0.0, 1.0))!,
+                child: Opacity(opacity: onMapOp * hide, child: FacePile(faces: widget.here, size: StickerSize.chip)),
+              ),
+            ),
+          ),
+        ),
     ]);
   }
 

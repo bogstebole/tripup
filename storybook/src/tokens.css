@@ -64,7 +64,7 @@
   --c-me-cone: #60a5fa;
   --c-sheet-scrim: rgb(255 255 255 / 0.2);
   --c-top-bar-bg: rgb(255 255 255 / 0.7);
-  --c-action-bar-bg: rgb(255 255 255 / 0.7);
+  --c-action-bar-bg: rgb(255 255 255 / 0.85);
   --c-toast-bg: #1d4ed8;
   --c-toast-fg: #ffffff;
   --c-attribution-fg: #71717a;
@@ -187,7 +187,7 @@
   --d-menu-photo: 64px;
   --d-menu-photo-radius: 12px;
   --d-menu-photo-edge: 4px;
-  --d-menu-photo-tilt: 3px;
+  --d-menu-photo-tilt: 3;
   --d-dish-pick-size: 32px;
   --d-dish-pick-edge: 2px;
   --d-sheet-inset: 16px;
@@ -199,6 +199,7 @@
   --d-tab-slide: 24px;
   --d-me-dot: 16px;
   --d-me-ring: 5px;
+  --d-me-pulse-scale: 0.75;
   --d-me-edge-width: 8px;
   --d-me-edge-height: 24px;
   --d-me-glow-width: 20px;
@@ -211,6 +212,7 @@
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-breathe: cubic-bezier(0.37, 0, 0.63, 1);
   --crossfade-blur: 2px;
   --enter-blur: 4px;
   --morph-enter-scale: 0.9;
@@ -218,6 +220,8 @@
   --enter-ms: 260ms;
   --page-enter-delay-ms: 80ms;
   --toast-ms: 3000ms;
+  --settle-ms: 800ms;
+  --pulse-ms: 1200ms;
   --press-scale: 0.97;
   --press-ms: 120ms;
   --fade-ms: 160ms;
@@ -287,7 +291,7 @@
   --c-me-cone: #60a5fa;
   --c-sheet-scrim: rgb(24 24 27 / 0.2);
   --c-top-bar-bg: rgb(24 24 27 / 0.7);
-  --c-action-bar-bg: rgb(24 24 27 / 0.7);
+  --c-action-bar-bg: rgb(24 24 27 / 0.85);
   --c-toast-bg: #1d4ed8;
   --c-toast-fg: #ffffff;
   --c-attribution-fg: #a1a1aa;

@@ -26,6 +26,7 @@ typedef Scenario = Future<void> Function(Player p);
 
 /// The scenarios, in the order they run (the first full-view open also decodes the photos).
 final scenarios = <String, Scenario>{
+  'map_idle': mapIdle,
   'map_pan_zoom': mapPanZoom,
   'sheet_open_close': sheetOpenClose,
   'tabs': tabs,
@@ -59,6 +60,12 @@ Future<void> runAll(Map<String, Scenario> plan, {void Function(String key)? befo
   debugPrint('PERF DONE ${file.path}');
   await Future<void>.delayed(const Duration(seconds: 1));
   exit(0);
+}
+
+/// Nothing touched: whatever keeps animating on its own (my location breathing) still draws frames.
+Future<void> mapIdle(Player p) async {
+  await p.start();
+  await p.measure('', () => p.wait(5000));
 }
 
 Future<void> mapPanZoom(Player p) async {

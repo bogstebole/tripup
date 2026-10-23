@@ -108,36 +108,69 @@ class _ArrowPainter extends CustomPainter {
   bool shouldRepaint(_ArrowPainter o) => o.from != from || o.to != to;
 }
 
-/// Glassy blue dot (my location), also used inside the recenter button.
+/// Glassy blue dot (my location), also used inside the recenter button. With [breathe], only the blue
+/// scales; the white rim stays put.
 class MeDot extends StatelessWidget {
-  const MeDot({super.key, this.ring = false});
+  const MeDot({super.key, this.ring = false, this.breathe});
   final bool ring;
+  final Animation<double>? breathe;
 
   @override
   Widget build(BuildContext context) {
     final t = context.tok;
     final r = BorderRadius.circular(TokRadius.pill);
+    final blue = DecoratedBox(
+      decoration: BoxDecoration(color: t.cMeDot, borderRadius: r),
+      child: CustomPaint(painter: InsetShadowPainter(TokInset.buttonPrimary, r)),
+    );
+    // The rim is the white disc showing around the blue
     return Container(
       width: TokDim.meDot,
       height: TokDim.meDot,
+      padding: const EdgeInsets.all(TokDim.surfaceEdgeWidth),
       decoration: BoxDecoration(
-        color: t.cMeDot,
+        color: t.cMeDotEdge,
         borderRadius: r,
-        border: Border.all(color: t.cMeDotEdge, width: TokDim.surfaceEdgeWidth),
         boxShadow: [
           if (ring) BoxShadow(color: t.cMeRing, spreadRadius: TokDim.meRing),
           ...TokShadow.meDot,
         ],
       ),
-      child: CustomPaint(painter: InsetShadowPainter(TokInset.buttonPrimary, r)),
+      child: breathe == null ? blue : ScaleTransition(scale: breathe!, child: blue),
     );
   }
 }
 
 /// My location with a soft cone toward where I'm facing. [heading] in radians, 0 = north.
-class MeMarker extends StatelessWidget {
+/// The blue breathes slowly, as a live location does; it holds still with reduced motion. Mute it with
+/// [TickerMode] while it can't be seen.
+class MeMarker extends StatefulWidget {
   const MeMarker({super.key, required this.heading});
   final double heading;
+
+  @override
+  State<MeMarker> createState() => _MeMarkerState();
+}
+
+class _MeMarkerState extends State<MeMarker> with SingleTickerProviderStateMixin {
+  late final _pulse = AnimationController(vsync: this, duration: TokMotion.pulse);
+  late final _scale = Tween(begin: 1.0, end: TokDim.mePulseScale).animate(CurvedAnimation(parent: _pulse, curve: TokMotion.easeBreathe));
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) {
+      _pulse.value = 0;
+    } else if (!_pulse.isAnimating) {
+      _pulse.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -145,8 +178,9 @@ class MeMarker extends StatelessWidget {
     return SizedBox.square(
       dimension: TokDim.meCone * 2,
       child: Stack(alignment: Alignment.center, children: [
-        Transform.rotate(angle: heading, child: CustomPaint(size: const Size.square(TokDim.meCone * 2), painter: _ConePainter(t.cMeCone))),
-        const MeDot(),
+        Transform.rotate(angle: widget.heading, child: CustomPaint(size: const Size.square(TokDim.meCone * 2), painter: _ConePainter(t.cMeCone))),
+        // Its own layer, so the breathing repaints only the dot
+        RepaintBoundary(child: MeDot(breathe: _scale)),
       ]),
     );
   }

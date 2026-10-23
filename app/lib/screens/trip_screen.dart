@@ -19,6 +19,7 @@ import '../components/basics.dart';
 import '../components/toggle_chips.dart';
 import '../components/detail_sheet.dart';
 import '../components/map_shapes.dart';
+import '../components/people_layer.dart';
 import '../components/plan_pin.dart';
 import '../data.dart';
 import '../design/theme.dart';
@@ -56,11 +57,14 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
 
   /// Fingers on the screen, and a wait for them (and any animation) to finish before re-picturing the scene.
   int _touches = 0;
-  Timer? _settle;
+  Timer? _rescene;
 
   /// Days picked in the filter; empty means All.
   Set<int> _days = const {};
   bool _shows(int day) => _days.isEmpty || _days.contains(day);
+
+  /// Whoever has already got to the Up next place.
+  List<String> get _here => [for (final p in people) if (p.id != myId && isHere(p, tripNow())) p.sticker];
 
   Plan get _upNext => plans.first;
   bool get _reduce => MediaQuery.maybeDisableAnimationsOf(context) ?? false;
@@ -114,7 +118,20 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     }
     final off = !_safe(MediaQuery.sizeOf(context)).contains(e.camera.latLngToScreenOffset(me));
     if (off != _meOff) setState(() => _meOff = off);
+    // The actions step out of the way while the person moves the map, and come back once it has been still a moment
+    // (a short pause between two drags shouldn't bring them back)
+    if (byUser) {
+      if (!_moving) setState(() => _moving = true);
+      _settle?.cancel();
+      _settle = Timer(TokMotion.settle, () {
+        if (mounted) setState(() => _moving = false);
+      });
+    }
   }
+
+  /// Whether the person is moving the map (the actions slide down meanwhile).
+  bool _moving = false;
+  Timer? _settle;
 
   /// Where pins may sit: the map minus the top bar and the action bar.
   Rect _safe(Size size) {
@@ -275,9 +292,9 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     if (!mounted) return;
     setState(() {});
     if (_under.image == null && _still.image == null) return;
-    _settle?.cancel();
+    _rescene?.cancel();
     if (!now && (_touches > 0 || SchedulerBinding.instance.transientCallbackCount > 0)) {
-      _settle = Timer(const Duration(milliseconds: 300), _sceneChanged);
+      _rescene = Timer(const Duration(milliseconds: 300), _sceneChanged);
       return;
     }
     _release(_under);
@@ -296,8 +313,9 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   void dispose() {
     _under.image?.dispose();
     _still.image?.dispose();
-    _settle?.cancel();
+    _rescene?.cancel();
     _tick?.cancel();
+    _settle?.cancel();
     _open.dispose();
     _drag.dispose();
     _fly.dispose();
@@ -329,7 +347,9 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
             children: [
               if (_theme != null && _tiles != null) VectorTileLayer(theme: _theme!, tileProviders: _tiles!),
               _VisitedLayer(shows: _shows),
-              _MeLayer(safe: safe),
+              // Where everyone is right now; they only show for today
+              PeopleLayer(shown: _shows(today)),
+              _MeLayer(safe: safe, breathe: !_sheet),
               _PlansLayer(
                 safe: safe,
                 upNextMid: _upNextMid,
@@ -339,6 +359,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
                 onTap: (p) => _tapPlan(p, size),
                 onMidHeight: (h) => _upNextHeight = h,
                 shows: _shows,
+                here: _here,
               ),
             ],
           ),
@@ -355,7 +376,21 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
             filter: ToggleChips<int>(options: tripDays, selected: _days, labelOf: _dayLabel, onChanged: (d) => _setDays(d, size)),
           ),
         ),
-        const Positioned(left: 0, right: 0, bottom: 0, child: ActionBar()),
+        // Slides down past the edge while the map moves (quick), and back up once it settles (a little slower)
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: IgnorePointer(
+            ignoring: _moving,
+            child: AnimatedSlide(
+              offset: _moving && !_reduce ? const Offset(0, 1) : Offset.zero,
+              duration: _moving ? TokMotion.fade : TokMotion.enter,
+              curve: TokMotion.easeOut,
+              child: AnimatedOpacity(opacity: _moving ? 0 : 1, duration: _moving ? TokMotion.fade : TokMotion.enter, curve: TokMotion.easeOut, child: const ActionBar()),
+            ),
+          ),
+        ),
         // The map's credit sits on top of the bar's blur, so it always stays sharp
         Positioned(
           left: TokSpace.xs,
@@ -570,8 +605,11 @@ class _Filtered extends StatelessWidget {
 
 /// My location: the dot with a heading cone, or the edge mark when I'm off-screen.
 class _MeLayer extends StatelessWidget {
-  const _MeLayer({required this.safe});
+  const _MeLayer({required this.safe, required this.breathe});
   final Rect safe;
+
+  /// Off while the full view covers the map, so the dot isn't animating unseen.
+  final bool breathe;
 
   @override
   Widget build(BuildContext context) {
@@ -588,7 +626,12 @@ class _MeLayer extends StatelessWidget {
         Positioned(
           left: p.dx - TokDim.meCone,
           top: p.dy - TokDim.meCone,
-          child: AnimatedOpacity(opacity: inside ? 1 : 0, duration: TokMotion.fade, curve: TokMotion.easeOut, child: const MeMarker(heading: meHeadingDegrees * math.pi / 180)),
+          child: AnimatedOpacity(
+            opacity: inside ? 1 : 0,
+            duration: TokMotion.fade,
+            curve: TokMotion.easeOut,
+            child: TickerMode(enabled: inside && breathe, child: const MeMarker(heading: meHeadingDegrees * math.pi / 180)),
+          ),
         ),
         Positioned(
           left: markCenter.dx - edge.width / 2,
@@ -604,8 +647,9 @@ class _MeLayer extends StatelessWidget {
 
 /// Every planned stop as a pin; the first (Up next) can grow into the card.
 class _PlansLayer extends StatelessWidget {
-  const _PlansLayer({required this.safe, required this.upNextMid, required this.cardKey, required this.sheetOpen, required this.onOpen, required this.onTap, required this.onMidHeight, required this.shows});
+  const _PlansLayer({required this.safe, required this.upNextMid, required this.cardKey, required this.sheetOpen, required this.onOpen, required this.onTap, required this.onMidHeight, required this.shows, required this.here});
   final Rect safe;
+  final List<String> here;
   final bool Function(int day) shows;
   final bool upNextMid, sheetOpen;
   final GlobalKey cardKey;
@@ -636,6 +680,7 @@ class _PlansLayer extends StatelessWidget {
               onOpen: onOpen,
               onTap: () => onTap(p),
               onMidHeight: p == plans.first ? onMidHeight : null,
+              here: p == plans.first ? here : const [],
             ),
           ),
         ),

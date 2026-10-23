@@ -8,17 +8,32 @@ import 'package:latlong2/latlong.dart';
 import 'components/basics.dart';
 
 class Person {
-  const Person(this.id, this.name, this.sticker, this.status, {this.going = true});
-  final String id, name, sticker, status;
+  const Person(this.id, this.name, this.sticker, {this.going = true, this.route = const [], this.leaves = 0, this.arrives = 0});
+  final String id, name, sticker;
   final bool going;
+
+  /// Their way to the Up next place, the last point being the place. Empty for me: I'm the blue dot, and my times
+  /// come from how far I am (see [timesOf]).
+  final List<LatLng> route;
+
+  /// When they set off and when they get there, in minutes after midnight on the trip's today.
+  final int leaves, arrives;
 }
 
+/// The group, on their way to dinner (17:00). In the real app this comes from their shared locations; here
+/// they walk their routes on the demo clock: Maya is there, Nic is on his way, Leo leaves at 16:16.
 const people = [
-  Person('ari', 'You', 'person-04', 'On the way · 12 min'),
-  Person('maya', 'Maya', 'person-01', 'Already there'),
-  Person('nic', 'Nic', 'person-05', 'On the way · 8 min'),
-  Person('leo', 'Leo', 'person-02', 'Leaves in 20 min'),
-  Person('ren', 'Ren', 'person-03', 'Not going', going: false),
+  Person('ari', 'You', 'person-04'),
+  Person('maya', 'Maya', 'person-01', leaves: 15 * 60 + 28, arrives: 15 * 60 + 46, route: [
+    LatLng(38.7480, -9.1330), LatLng(38.7500, -9.1360), LatLng(38.7530, -9.1385), LatLng(38.754444, -9.140476),
+  ]),
+  Person('nic', 'Nic', 'person-05', leaves: 15 * 60 + 48, arrives: 16 * 60 + 4, route: [
+    LatLng(38.7395, -9.1430), LatLng(38.7440, -9.1440), LatLng(38.7490, -9.1425), LatLng(38.7525, -9.1412), LatLng(38.754444, -9.140476),
+  ]),
+  Person('leo', 'Leo', 'person-02', leaves: 16 * 60 + 16, arrives: 16 * 60 + 36, route: [
+    LatLng(38.7570, -9.1590), LatLng(38.7560, -9.1520), LatLng(38.7552, -9.1460), LatLng(38.754444, -9.140476),
+  ]),
+  Person('ren', 'Ren', 'person-03', going: false),
 ];
 String faceOf(String id) => people.firstWhere((p) => p.id == id).sticker;
 
@@ -122,6 +137,9 @@ class Plan {
 
   /// "Today, 5 PM", for running text.
   String get whenLong => '${dayName(start, tripNow())}, ${clockTime(start)}';
+
+  /// "5 PM" if it's today, else "Tomorrow, 10 AM": next to "Up next".
+  String get startsAt => dayName(start, tripNow()) == 'Today' ? clockTime(start) : whenLong;
   final List<FanSticker> fan;
   final List<InfoChip> chips;
   final List<String> photos, tips;
@@ -156,7 +174,8 @@ const plans = [
     rating: '4.2 (173)',
     cuisine: 'French',
     fan: [FanSticker('pho', 44.79, 0), FanSticker('sushi', 78.53, -7.99), FanSticker('wings', 95, 0), FanSticker('ice-cream', 65.47, 8.59)],
-    chips: [InfoChip('+3', sticker: 'person-05', tilt: -6.22), InfoChip('€€', grow: true)],   // the time chip follows, from [Plan.whenShort]
+    // Equal widths: who's coming, and the price range from the details below. The time sits by "Up next".
+    chips: [InfoChip('+3', sticker: 'person-05', tilt: -6.22, grow: true), InfoChip('€20–40', grow: true)],
     photos: ['brasserie-2', 'brasserie-3', 'brasserie-1', 'brasserie-4', 'brasserie-5'],   // 4 and 5 are from the restaurant's own menu
     // From the place's Google Maps card
     services: ['Dine-in', 'Takeaway', 'Delivery'],
@@ -234,6 +253,56 @@ final _launch = DateTime.now();
 
 /// Now, in the trip: the demo's start plus however long the app has been open.
 DateTime tripNow() => tripNowAtLaunch.add(DateTime.now().difference(_launch));
+
+// ---------- Live: where everyone is (simulated on the demo clock; in the real app, their shared locations)
+
+/// A walk: about 4.8 km/h, along streets about a third longer than a straight line; people aim to be 5 min early.
+const walkingMetresPerMinute = 80.0, streetDetour = 1.3, arriveEarlyMinutes = 5;
+
+/// Locations are shared only from this long before the event.
+const shareBefore = Duration(minutes: 90);
+
+double _minuteOf(DateTime t) => t.hour * 60 + t.minute + t.second / 60;
+
+/// When [p] sets off and arrives. Mine come from how far I am from the place: start, minus being early, minus the walk.
+(double leaves, double arrives) timesOf(Person p) {
+  if (p.route.isNotEmpty || p.id != myId) return (p.leaves.toDouble(), p.arrives.toDouble());
+  final upNext = plans.first;
+  final walk = const Distance().as(LengthUnit.Meter, me, upNext.at) * streetDetour / walkingMetresPerMinute;
+  final arrives = _minuteOf(upNext.start) - arriveEarlyMinutes;
+  return (arrives - walk, arrives);
+}
+
+/// Whether [p] has got to the Up next place.
+bool isHere(Person p, DateTime now) => p.going && _minuteOf(now) >= timesOf(p).$2;
+
+/// "Already there", "On the way · 8 min", "Leaves in 20 min", or "Not going".
+String statusOf(Person p, DateTime now) {
+  if (!p.going) return 'Not going';
+  final (leaves, arrives) = timesOf(p);
+  final m = _minuteOf(now);
+  if (m >= arrives) return 'Already there';
+  if (m >= leaves) return 'On the way · ${(arrives - m).ceil()} min';
+  return 'Leaves in ${(leaves - m).ceil()} min';
+}
+
+/// Where [p] is now along their route, at an even pace between leaving and arriving. Null for me and for anyone
+/// not coming or not sharing yet.
+LatLng? whereIs(Person p, DateTime now) {
+  if (!p.going || p.route.isEmpty || now.isBefore(plans.first.start.subtract(shareBefore))) return null;
+  final f = ((_minuteOf(now) - p.leaves) / (p.arrives - p.leaves)).clamp(0.0, 1.0);
+  const d = Distance();
+  final legs = [for (var i = 1; i < p.route.length; i++) d.as(LengthUnit.Meter, p.route[i - 1], p.route[i])];
+  var left = f * legs.fold(0.0, (a, b) => a + b);
+  for (var i = 0; i < legs.length; i++) {
+    if (left <= legs[i]) {
+      final t = legs[i] == 0 ? 0.0 : left / legs[i], a = p.route[i], b = p.route[i + 1];
+      return LatLng(a.latitude + (b.latitude - a.latitude) * t, a.longitude + (b.longitude - a.longitude) * t);
+    }
+    left -= legs[i];
+  }
+  return p.route.last;
+}
 
 int _daysBetween(DateTime from, DateTime to) => DateTime(to.year, to.month, to.day).difference(DateTime(from.year, from.month, from.day)).inDays;
 

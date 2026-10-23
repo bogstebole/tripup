@@ -165,16 +165,7 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
                         child: Stack(fit: StackFit.expand, children: [
                           // Above [solid] the surface's white is opaque, so only the fading part needs blurring
                           ProgressiveBlur(sigma: TokDim.sheetTopBlur, solidUntil: solid, solidHidden: true),
-                          DecoratedBox(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [t.cSurfaceTop, t.cSurfaceTop, t.cSurfaceTop.withValues(alpha: 0)],
-                                stops: [0, solid, 1],
-                              ),
-                            ),
-                          ),
+                          DecoratedBox(decoration: BoxDecoration(gradient: easedFade(t.cSurfaceTop, from: solid))),
                         ]),
                       ),
               ),
@@ -232,7 +223,7 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
         SingleChildScrollView(
           physics: _SheetPhysics(pull: _pull, parent: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics())),
           // Starts under the header; room at the end for the last block to scroll clear of the bottom fade
-          padding: EdgeInsets.only(top: _headerHeight + TokSpace.xs, bottom: TokDim.sheetFade + TokSpace.xs),
+          padding: EdgeInsets.only(top: _headerHeight + TokSpace.xs + TokSpace.md, bottom: TokDim.sheetFade + TokSpace.xs),
           child: child,
         ),
       );
@@ -537,7 +528,7 @@ class _MenuRow extends StatelessWidget {
               DishSticker(item.photo!, size: TokDim.menuPhoto, edge: TokDim.menuPhotoEdge, radius: TokDim.menuPhotoRadius, tilt: index.isEven ? -TokDim.menuPhotoTilt : TokDim.menuPhotoTilt),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x3xs, children: [
-                Text(item.name, style: TokText.labelMd.copyWith(color: t.textDefault)),
+                Text(item.name, style: TokText.labelLg.copyWith(color: t.textDefault)),
                 if (item.note != null) Text(item.note!, style: TokText.bodySm.copyWith(color: t.textMuted)),
               ]),
             ),
@@ -581,8 +572,9 @@ class _PersonRow extends StatelessWidget {
         SizedBox.square(dimension: TokDim.stickerRow, child: FittedBox(fit: BoxFit.contain, child: Sticker(person.sticker, size: StickerSize.avatar))),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(person.name, style: TokText.labelMd.copyWith(color: t.textDefault)),
-            Text(person.status, style: TokText.bodySm.copyWith(color: person.going ? t.textMuted : t.textSubtle)),
+            Text(person.name, style: TokText.labelLg.copyWith(color: t.textDefault)),
+            // Worked out live from where they are (here, simulated): nobody has to tap anything
+            Text(statusOf(person, tripNow()), style: TokText.bodySm.copyWith(color: person.going ? t.textMuted : t.textSubtle)),
           ]),
         ),
         // What they'll have, as a little pile of stickers: at a glance, who has already picked

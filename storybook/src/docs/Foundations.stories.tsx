@@ -98,6 +98,8 @@ export const Motion: Story = {
         ['fade-ms', `${tokens.motion['fade-ms']} ms, ease-out`, 'Content crossfades'],
         ['ease-out', tokens.motion['ease-out'].join(', '), 'Entering, fades'],
         ['ease-in-out', tokens.motion['ease-in-out'].join(', '), 'Moving on screen'],
+        ['settle-ms', `${tokens.motion['settle-ms']} ms`, 'How long the map must be still before the bottom actions come back'],
+        ['pulse-ms / ease-breathe', `${tokens.motion['pulse-ms']} ms each way / ${tokens.motion['ease-breathe'].join(', ')}`, 'My location breathing (only the blue, down to me/pulse-scale); still with reduced motion'],
       ].map(([a, b, c]) => [<code>{a}</code>, b, c])}
     />
   ),

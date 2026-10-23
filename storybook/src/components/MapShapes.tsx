@@ -42,12 +42,13 @@ export function EdgeArrow({ angle = 90 }: { angle?: number }) {
   );
 }
 
-/** My location: blue dot with a white edge, and a soft cone showing which way I'm facing. */
+/** My location: blue dot with a white edge, and a soft cone showing which way I'm facing. The blue breathes slowly
+ *  (only the blue; the white rim stays put), and holds still with reduced motion. */
 export function MeMarker({ heading = 0 }: { heading?: number }) {
   return (
     <span className="tu-me" aria-label="Your location">
       <span className="tu-me__cone" style={{ transform: `rotate(${heading}deg)` }} />
-      <span className="tu-me__dot" />
+      <span className="tu-me__dot"><span className="tu-me__blue" /></span>
     </span>
   );
 }

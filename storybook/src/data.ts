@@ -11,9 +11,10 @@ export const eurosIn = (price: string) => {
 };
 export const euros = (v: number) => `€${v.toFixed(2)}`;
 
+/** `status` is what the app works out live from shared locations at the demo's start (Thu 15:56); see the app's `statusOf`. */
 export type Person = { id: string; name: string; sticker: string; status: string };
 export const PEOPLE: Person[] = [
-  { id: 'ari', name: 'You', sticker: 'person-04', status: 'On the way · 12 min' },
+  { id: 'ari', name: 'You', sticker: 'person-04', status: 'Leaves in 44 min' },
   { id: 'maya', name: 'Maya', sticker: 'person-01', status: 'Already there' },
   { id: 'nic', name: 'Nic', sticker: 'person-05', status: 'On the way · 8 min' },
   { id: 'leo', name: 'Leo', sticker: 'person-02', status: 'Leaves in 20 min' },
@@ -72,7 +73,7 @@ export const EVENT = {
   name: "La Brasserie de L'Entrecôte - Alvalade",
   rating: '4.2 (173)',
   cuisine: 'French',
-  price: '€€',
+  price: '€20–40',   // the range from the price detail below
   when: `${clockTime(DINNER)} • ${dayName(DINNER)}`,
   whenLong: `${dayName(DINNER)}, ${clockTime(DINNER)}`,
   eta: timeUntil(DINNER),
@@ -108,12 +109,15 @@ export const TRIP_DAYS = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21].map(day => ({
 
 /** The Up next widget's content, as on the Figma screens. */
 export const UP_NEXT = {
-  label: EVENT.label,
+  label: `${EVENT.label} · ${clockTime(DINNER)}`,
   name: EVENT.name,
   rating: EVENT.rating,
   cuisine: EVENT.cuisine,
   eta: EVENT.eta,
   sticker: EVENT.sticker,
   fan: DISH_FAN,
-  chips: [{ text: '+3', sticker: 'person-05', tilt: -6.22 }, { text: EVENT.price, grow: true }, { text: EVENT.when }],
+  // Equal-width chips: who's coming and the price range. The time sits by "Up next".
+  chips: [{ text: '+3', sticker: 'person-05', tilt: -6.22, grow: true }, { text: EVENT.price, grow: true }],
+  // Maya is already there: her face sits on the pin's corner
+  here: ['person-01'],
 };
