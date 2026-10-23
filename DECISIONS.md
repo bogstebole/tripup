@@ -110,6 +110,22 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
   - It's a tool for the demo, not part of the product, so it isn't in Storybook.
 - **The story should play out from the situation, not from special controls** (Bogdan, 23 Oct). When the group gets to the restaurant (a geofence), the dinner turns active and its actions appear; nothing is built for one case like "two people skip the wine".
 
+## The dinner, the bill, squared up (built 24 Oct)
+
+- **The dinner turns "Now" by itself.** Once its time has come (from a quarter of an hour before) and someone is inside its geofence, the card says "Now", with a dot, and "You're here" once I'm in. The mini pin says "Now". Nobody presses anything.
+- **While it's on, the full view opens on Group,** with Overview last. Once you're there, the group and the bill matter more than the place's details.
+- **Scan the bill shows only while the dinner is on,** at the bottom of Group and in Money. Before that there's nothing to scan.
+- **The scan reads the bill against what people picked on the Menu.**
+  - A line goes to whoever picked it, split if several did. A line nobody picked (the couvert, the water) goes to everyone.
+  - Any line can be changed by tapping faces: the same control for every line.
+  - So "Ren and Nic skip the wine" needs nothing special. The three of us picked the wine, so it lands on us.
+  - We didn't build a wine switch or an "exclude" step: it would only fit this one story.
+- **The scan shows how it works:** the frame closes in on the paper, a line reads it, and the lines land on faces. In the prototype it plays a prepared bill made from the real menu (€228.80); there's no real camera or OCR.
+- **Ren comes to dinner** (the brief needs it), and I walk there too: my blue dot follows my route.
+- **The others pay on their own.** After the bill is in, their payments come in a little apart, each a note at the top of the map. No control makes them pay, and the last one to pay sees "Everyone else has paid".
+- **Each payment has a Why:** what that person had, what they paid, and why it goes to one person in one payment. Answers the research's "I don't trust a number I can't trace".
+- **Squared up is a moment for everyone:** a note on the map, and Money's top block turns green with the total of the payments.
+
 ## Sharing with testers (decided 23 Oct)
 
 - **iPhone: TestFlight.** It's the easiest install for people with iPhones, and we have a paid Apple developer account.

@@ -47,7 +47,7 @@ class UpNextMid extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: TokSpace.md),
             child: Column(mainAxisSize: MainAxisSize.min, spacing: TokSpace.x2xs, children: [
-              p(MidPart.label, SizedBox(width: double.infinity, child: Text('Up next · ${plan.startsAt}', textAlign: TextAlign.center, maxLines: 1, style: TokText.labelMd.copyWith(fontWeight: TokWeight.bold, color: t.textBrand)))),
+              p(MidPart.label, SizedBox(width: double.infinity, child: _NowLabel(plan: plan))),
               p(MidPart.name, SizedBox(width: double.infinity, child: Text(plan.name, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingSm.copyWith(color: t.textDefault)))),
               p(MidPart.rating, RatingLine(rating: plan.rating, kind: plan.cuisine)),
             ]),
@@ -75,6 +75,25 @@ class UpNextMid extends StatelessWidget {
   }
 }
 
+/// The card's top line: "Up next · 5 PM" until the dinner is on, then "Now", with a dot, and "You're here" once
+/// I'm inside its geofence.
+class _NowLabel extends StatelessWidget {
+  const _NowLabel({required this.plan});
+  final Plan plan;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tok;
+    final now = tripNow();
+    final style = TokText.labelMd.copyWith(fontWeight: TokWeight.bold, color: t.textBrand);
+    if (!isActive(plan, now)) return Text('Up next · ${plan.startsAt}', textAlign: TextAlign.center, maxLines: 1, style: style);
+    return Row(mainAxisAlignment: MainAxisAlignment.center, spacing: TokSpace.x2xs, children: [
+      Container(width: TokSpace.xs, height: TokSpace.xs, decoration: BoxDecoration(color: t.bgBrand, shape: BoxShape.circle)),
+      Text(isHere(personById(myId), now) ? "Now · You're here" : 'Now · ${clockTime(plan.start)}', maxLines: 1, style: style),
+    ]);
+  }
+}
+
 /// The mini state's content: sticker, name, when.
 class _MiniContent extends StatelessWidget {
   const _MiniContent({required this.plan, this.part});
@@ -94,7 +113,7 @@ class _MiniContent extends StatelessWidget {
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
               p(MiniPart.name, Text(plan.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textBrand))),
-              p(MiniPart.eta, Text(plan.eta, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.labelMd.copyWith(color: t.textMuted))),
+              p(MiniPart.eta, Text(isActive(plan, tripNow()) ? 'Now' : plan.eta, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.labelMd.copyWith(color: t.textMuted))),
             ]),
           ),
         ]),

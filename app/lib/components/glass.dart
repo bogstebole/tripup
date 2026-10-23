@@ -120,6 +120,8 @@ abstract final class TuIcons {
   static const invite = Lucide.userPlus;
   static const plan = Lucide.mapPinPlus;
   static const backSmall = Lucide.chevronLeft;
+  static const scan = Lucide.scanLine;
+  static const bill = Lucide.receipt;
   static const hours = Lucide.clock;
   static const price = Lucide.banknote;
   static const delivery = Lucide.truck;

@@ -23,9 +23,12 @@ class Person {
 }
 
 /// The group, on their way to dinner (17:00). In the real app this comes from their shared locations; here
-/// they walk their routes on the demo clock: Maya is there, Nic is on his way, Leo leaves at 16:16.
+/// they walk their routes on the demo clock: Maya is there, Nic is on his way, Leo leaves at 16:16, and Ren (who
+/// joined today) and I leave at 16:30.
 const people = [
-  Person('ari', 'You', 'person-04'),
+  Person('ari', 'You', 'person-04', leaves: 16 * 60 + 30, arrives: 16 * 60 + 52, route: [
+    me, LatLng(38.7500, -9.1462), LatLng(38.7528, -9.1430), LatLng(38.754444, -9.140476),
+  ]),
   Person('maya', 'Maya', 'person-01', leaves: 15 * 60 + 28, arrives: 15 * 60 + 46, route: [
     LatLng(38.7480, -9.1330), LatLng(38.7500, -9.1360), LatLng(38.7530, -9.1385), LatLng(38.754444, -9.140476),
   ]),
@@ -35,7 +38,9 @@ const people = [
   Person('leo', 'Leo', 'person-02', leaves: 16 * 60 + 16, arrives: 16 * 60 + 36, route: [
     LatLng(38.7570, -9.1590), LatLng(38.7560, -9.1520), LatLng(38.7552, -9.1460), LatLng(38.754444, -9.140476),
   ]),
-  Person('ren', 'Ren', 'person-03', going: false, joined: today),   // joined mid-trip, today
+  Person('ren', 'Ren', 'person-03', joined: today, leaves: 16 * 60 + 30, arrives: 16 * 60 + 48, route: [   // joined mid-trip, today
+    LatLng(38.7590, -9.1330), LatLng(38.7570, -9.1370), LatLng(38.7555, -9.1395), LatLng(38.754444, -9.140476),
+  ]),
 ];
 String faceOf(String id) => people.firstWhere((p) => p.id == id).sticker;
 
@@ -109,7 +114,7 @@ List<MenuSection>? loadedMenu;
 /// The restaurant's whole menu (real, from its English menu). Loaded once.
 final Future<List<MenuSection>> brasserieMenu = rootBundle.loadString('assets/data/brasserie-menu.json').then((raw) {
   final json = jsonDecode(raw) as Map<String, dynamic>;
-  return loadedMenu = [
+  final menu = loadedMenu = [
     for (final s in json['sections'] as List)
       MenuSection(
         s['title'] as String,
@@ -121,6 +126,8 @@ final Future<List<MenuSection>> brasserieMenu = rootBundle.loadString('assets/da
         ],
       ),
   ];
+  myPicks.value ??= {for (final s in menu) for (final i in s.items) if (i.pickedBy.contains(myId)) i.name};
+  return menu;
 });
 
 class Plan {
@@ -282,11 +289,14 @@ DateTime tripNow() => (demoMoment.value?.at ?? tripNowAtLaunch).add(DateTime.now
 /// A moment in the brief's scenario: when it happens, which steps it shows (see USER-STORIES.md), and whether the
 /// app has it yet. [opens] names a pop-up to open there ('money').
 class StoryMoment {
-  const StoryMoment(this.title, this.steps, {this.at, this.opens, this.built = true});
+  const StoryMoment(this.title, this.steps, {this.at, this.opens, this.built = true, this.bill = false, this.paid = false});
   final String title, steps;
   final DateTime? at;
   final String? opens;
   final bool built;
+
+  /// Whether the dinner's bill is in by then (as scanned, paid by me), and whether everyone has paid.
+  final bool bill, paid;
 }
 
 final storyMoments = [
@@ -296,19 +306,31 @@ final storyMoments = [
   StoryMoment('The poll closes', '07', at: DateTime(tripYear, tripMonth, today, 15, 0), built: false),
   StoryMoment('On the way', '02', at: DateTime(tripYear, tripMonth, today, 15, 30)),
   StoryMoment('Before dinner', '02, 07', at: tripNowAtLaunch),
-  StoryMoment("Everyone's there", '02', at: DateTime(tripYear, tripMonth, today, 16, 50)),
-  StoryMoment('The bill', '08', at: DateTime(tripYear, tripMonth, today, 19, 30), built: false),
-  StoryMoment('Settle up', '09–10', at: tripNowAtLaunch, opens: 'money'),
-  StoryMoment('Squared up', '11', at: DateTime(tripYear, tripMonth, today, 20, 30), built: false),
+  StoryMoment("Everyone's there", '02', at: DateTime(tripYear, tripMonth, today, 17, 0)),
+  StoryMoment('The bill', '08', at: DateTime(tripYear, tripMonth, today, 19, 30)),
+  StoryMoment('Settle up', '09–10', at: DateTime(tripYear, tripMonth, today, 19, 40), opens: 'money', bill: true),
+  StoryMoment('Squared up', '11', at: DateTime(tripYear, tripMonth, today, 19, 50), opens: 'money', bill: true, paid: true),
 ];
 
 /// The moment the demo last jumped to (null: it runs on from the start).
 final demoMoment = ValueNotifier<StoryMoment?>(null);
 
-/// Jumps the demo's clock to [m] and runs on from there.
+/// Jumps the demo's clock to [m] and runs on from there, with the money as it stands then: no bill before it's
+/// scanned; at Settle up the bill is in and the others start paying; at Squared up everyone has paid.
 void jumpTo(StoryMoment m) {
   _launch = DateTime.now();
   demoMoment.value = m;
+  if (!m.bill) {
+    dinnerBill.value = null;
+    madePayments.value = const [];
+    duePayments.clear();
+    return;
+  }
+  addBill(scannedBill(tripNow()));
+  if (m.paid) {
+    settleUp.forEach(recordPayment);
+    duePayments.clear();
+  }
 }
 
 // ---------- Live: where everyone is (simulated on the demo clock; in the real app, their shared locations)
@@ -400,16 +422,17 @@ String dayName(DateTime t, DateTime now) => switch (_daysBetween(now, t)) {
 // Tonight's dinner isn't on the bill yet; until it is, it's an estimate from what everyone picked.
 
 class Expense {
-  const Expense(this.title, this.amount, this.paidBy, this.split, this.day);
+  const Expense(this.title, this.amount, this.paidBy, this.split, this.day, {this.shares});
   final String title;
   final double amount;
 
-  /// Person ids: who paid, and who shares it (equally).
+  /// Person ids: who paid, and who shares it (equally, unless [shares] says who had what).
   final String paidBy;
   final List<String> split;
   final int day;
+  final Map<String, double>? shares;
 
-  double shareOf(String id) => split.contains(id) ? amount / split.length : 0;
+  double shareOf(String id) => shares?[id] ?? (split.contains(id) && shares == null ? amount / split.length : 0);
 }
 
 const expenses = [
@@ -418,10 +441,13 @@ const expenses = [
   Expense('Airbnb, Alfama flat', 600, 'maya', ['ari', 'maya', 'nic', 'leo'], 12),
 ];
 
-double get spentSoFar => expenses.fold(0.0, (sum, e) => sum + e.amount);
+/// Every expense so far, newest first: tonight's dinner once its bill is in, then the earlier ones.
+List<Expense> get tripExpenses => [if (dinnerBill.value case final b?) b.expense, ...expenses];
+
+double get spentSoFar => tripExpenses.fold(0.0, (sum, e) => sum + e.amount);
 
 /// What [id] has paid, minus their share: above zero they get money back, below they owe.
-double balanceOf(String id) => expenses.fold(0.0, (sum, e) => sum + (e.paidBy == id ? e.amount : 0) - e.shareOf(id));
+double balanceOf(String id) => tripExpenses.fold(0.0, (sum, e) => sum + (e.paidBy == id ? e.amount : 0) - e.shareOf(id));
 
 /// One person paying another to settle up.
 typedef Payment = ({String from, String to, double amount});
@@ -442,7 +468,7 @@ List<Payment> get settleUp {
 }
 
 /// How many payments it would take one expense at a time: everyone in a split pays whoever paid it.
-int get paymentsOneByOne => expenses.fold(0, (sum, e) => sum + e.split.where((id) => id != e.paidBy).length);
+int get paymentsOneByOne => tripExpenses.fold(0, (sum, e) => sum + e.split.where((id) => id != e.paidBy && e.shareOf(id) > 0).length);
 
 /// Tonight's dinner, roughly, from what everyone has picked on the menu (null until the menu has loaded).
 double? get dinnerEstimate => loadedMenu == null
@@ -474,3 +500,140 @@ final addedPlans = ValueNotifier<List<Plan>>(const []);
 
 /// Every plan, in the order they happen.
 List<Plan> get tripPlans => [...plans, ...addedPlans.value]..sort((a, b) => a.start.compareTo(b.start));
+
+// ── Tonight: the dinner turning active, its bill, and settling up ────────────────────────────────────────────────────
+
+/// Where I am now: walking my route on the demo clock, or where I started before I share it.
+LatLng myPosition(DateTime now) => whereIs(personById(myId), now) ?? me;
+
+/// How long a plan lasts after its start, for when it counts as over.
+const planLasts = Duration(hours: 3);
+
+/// The dinner is on: its time has come (from a quarter of an hour before) and someone is there (inside the
+/// geofence). Nobody presses anything for it; it's where people are and the time.
+bool isActive(Plan p, DateTime now) =>
+    p == plans.first && !now.isBefore(p.start.subtract(const Duration(minutes: 15))) && now.isBefore(p.start.add(planLasts)) && people.any((x) => isHere(x, now));
+
+/// The dishes I'll have, from the Menu: my picks from before, then whatever I add or remove there (null until the
+/// menu has loaded).
+final myPicks = ValueNotifier<Set<String>?>(null);
+
+/// Who picked [item] on the Menu, me included as I am now.
+List<String> pickersOf(MenuItem item) => [
+      for (final id in item.pickedBy) if (id != myId) id,
+      if (myPicks.value?.contains(item.name) ?? item.pickedBy.contains(myId)) myId,
+    ];
+
+/// One line of a printed bill: how it reads on the paper, how many, at what price, and which menu item it is.
+class BillLine {
+  const BillLine(this.printed, this.qty, this.unit, {this.item});
+  final String printed;
+  final int qty;
+  final double unit;
+  final String? item;
+
+  double get total => qty * unit;
+}
+
+/// Tonight's bill at La Brasserie, line by line, at the menu's prices: what everyone picked, plus the couvert and
+/// the water, which nobody picked.
+const brasserieBill = [
+  BillLine('COUVERT INDIVIDUAL', 5, 2.80, item: 'Individual couvert'),
+  BillLine('ENTRECOTE SALADA', 3, 23.90, item: 'Sirloin entrecôte with lettuce and rocket salad'),
+  BillLine('ENTRECOTE SALMAO', 1, 29.80, item: 'Sirloin entrecôte with marinated salmon'),
+  BillLine('SEITAN SALADA', 1, 22.00, item: 'Seitan steak with lettuce and rocket salad'),
+  BillLine('BATATA FRITA', 1, 3.60, item: 'Fries'),
+  BillLine('FONDANT CHOCOLATE', 1, 6.50, item: 'Chocolate fondant with ice cream'),
+  BillLine('CREME BRULEE', 2, 6.40, item: 'Crème brûlée'),
+  BillLine('SOALHEIRO GRANIT', 2, 28.50, item: 'Soalheiro, Granit, Minho'),
+  BillLine('SUMOL', 2, 2.90, item: 'Sumol or Lipton Ice Tea'),
+  BillLine('AGUA LUSO 50CL', 2, 2.80, item: 'Luso water 50cl'),
+];
+
+MenuItem? menuItemNamed(String? name) => name == null ? null : [for (final s in loadedMenu ?? const <MenuSection>[]) ...s.items].where((i) => i.name == name).firstOrNull;
+
+/// Who had a line: whoever picked it on the Menu, split between them. A line nobody picked starts with everyone at
+/// the table; any line can be changed by hand. Wine nobody else picked stays with the ones who did, so two people
+/// skipping it needs nothing special.
+List<String> whoHad(BillLine line, List<String> table) {
+  final item = menuItemNamed(line.item);
+  final picked = item == null ? const <String>[] : [for (final id in pickersOf(item)) if (table.contains(id)) id];
+  return picked.isEmpty ? table : picked;
+}
+
+/// A scanned bill: its lines, who had each, and who paid.
+class Bill {
+  const Bill(this.lines, this.who, this.paidBy, this.at);
+  final List<BillLine> lines;
+  final List<List<String>> who;
+  final String paidBy;
+  final DateTime at;
+
+  double get total => lines.fold(0.0, (sum, l) => sum + l.total);
+
+  /// What each person had, to the cent.
+  Map<String, double> get shares {
+    final out = <String, double>{};
+    for (final (i, l) in lines.indexed) {
+      for (final id in who[i]) {
+        out[id] = (out[id] ?? 0) + l.total / who[i].length;
+      }
+    }
+    return {for (final e in out.entries) e.key: (e.value * 100).round() / 100};
+  }
+
+  Expense get expense => Expense("Dinner, La Brasserie de L'Entrecôte", total, paidBy, [for (final e in shares.entries) if (e.value > 0) e.key], today, shares: shares);
+}
+
+/// Everyone who's coming, at the table.
+List<String> get dinnerTable => [for (final p in people) if (p.going) p.id];
+
+/// The bill as it comes off the scan, before anyone changes a line.
+Bill scannedBill(DateTime at) => Bill(brasserieBill, [for (final l in brasserieBill) whoHad(l, dinnerTable)], myId, at);
+
+/// Tonight's bill, once someone has scanned it and added it to the trip's money.
+final dinnerBill = ValueNotifier<Bill?>(null);
+
+/// A payment someone has made, and when.
+typedef MadePayment = ({String from, String to, double amount, DateTime at});
+final madePayments = ValueNotifier<List<MadePayment>>(const []);
+
+bool isPaid(Payment p) => madePayments.value.any((m) => m.from == p.from && m.to == p.to);
+
+/// What [id] still gets back (+) or owes (−), after the payments made so far.
+double balanceLeft(String id) => madePayments.value.fold(balanceOf(id), (b, m) => b + (m.from == id ? m.amount : 0) - (m.to == id ? m.amount : 0));
+
+/// Everyone has paid what the fewest payments asked of them.
+bool get squaredUp => settleUp.isNotEmpty && settleUp.every(isPaid);
+
+/// The others' payments, as they'd come in from their own phones: each a little after the last (demo clock).
+final duePayments = <({Payment pay, DateTime at})>[];
+const paymentGap = Duration(seconds: 30);
+
+/// Adds the bill to the trip's money. The others start paying what they owe on their own.
+void addBill(Bill b) {
+  dinnerBill.value = b;
+  madePayments.value = const [];
+  duePayments
+    ..clear()
+    ..addAll([for (final (i, p) in settleUp.where((p) => p.from != myId).indexed) (pay: p, at: tripNow().add(paymentGap * (i + 1)))]);
+}
+
+/// Records a payment (mine from Pay, or one of the others' coming in).
+void recordPayment(Payment p) {
+  if (isPaid(p)) return;
+  madePayments.value = [...madePayments.value, (from: p.from, to: p.to, amount: p.amount, at: tripNow())];
+}
+
+/// The others' payments that are due by now, in order; each one is recorded as it's returned.
+List<Payment> takeDuePayments(DateTime now) {
+  final due = [for (final d in duePayments) if (!d.at.isAfter(now)) d.pay];
+  duePayments.removeWhere((d) => !d.at.isAfter(now));
+  due.forEach(recordPayment);
+  return due;
+}
+
+/// A short note for everyone on the trip, shown at the top of the map ("Leo paid Maya €185.92").
+final tripNotice = ValueNotifier<String?>(null);
+
+String payLine(Payment p) => '${p.from == myId ? 'You' : personById(p.from).name} paid ${p.to == myId ? 'you' : personById(p.to).name} ${euros(p.amount)}';

@@ -15,12 +15,14 @@ import 'package:vector_map_tiles/vector_map_tiles.dart';
 import 'package:vector_tile_renderer/vector_tile_renderer.dart' show Theme, ThemeReader;
 
 import '../components/bars.dart';
+import '../components/bill_scan.dart';
 import '../components/basics.dart';
 import '../components/toggle_chips.dart';
 import '../components/detail_sheet.dart';
 import '../components/map_shapes.dart';
 import '../components/people_layer.dart';
 import '../components/plan_pin.dart';
+import '../components/toast.dart';
 import '../components/trip_pages.dart';
 import '../components/trip_sheet.dart';
 import '../data.dart';
@@ -48,6 +50,18 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   bool _popClosing = false;
   final _popToast = ValueNotifier<String?>(null);
   final _todayKey = GlobalKey();
+
+  /// The camera is up, scanning the dinner's bill.
+  bool _scanning = false;
+
+  /// Run once the full view has finished closing (Settle up goes on to Money).
+  VoidCallback? _afterSheet;
+
+  /// The note at the top of the map, and whether it's showing.
+  String? _notice;
+  bool _noticeShown = false;
+  Timer? _noticeTimer, _payTick;
+  bool _wasSquare = false;
 
   /// Whether the full view or a pop-up covers the map.
   bool get _covered => _sheet || _popup != null;
@@ -115,8 +129,52 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
         _open.stop();
         _release(_under);
         setState(() => _sheet = _closing = false);
+        final then = _afterSheet;
+        _afterSheet = null;
+        then?.call();
       }
     });
+    tripNotice.addListener(_showNotice);
+    madePayments.addListener(_paymentsChanged);
+    // The others' payments come in on their own, a little apart (see addBill)
+    _payTick = Timer.periodic(const Duration(seconds: 1), (_) {
+      for (final p in takeDuePayments(tripNow())) {
+        tripNotice.value = payLine(p);
+      }
+    });
+  }
+
+  void _showNotice() {
+    final text = tripNotice.value;
+    if (text == null || !mounted) return;
+    HapticFeedback.lightImpact();
+    setState(() {
+      _notice = text;
+      _noticeShown = true;
+    });
+    _noticeTimer?.cancel();
+    _noticeTimer = Timer(TokMotion.toast, () {
+      if (mounted) setState(() => _noticeShown = false);
+      tripNotice.value = null;
+    });
+  }
+
+  /// When the last payment lands, everyone hears the trip is squared up.
+  void _paymentsChanged() {
+    final square = squaredUp;
+    if (square && !_wasSquare) {
+      Timer(TokMotion.toast ~/ 2, () => tripNotice.value = 'Lisbon is squared up · everyone has paid');
+    }
+    _wasSquare = square;
+    _sceneChanged();
+  }
+
+  void _scan() => setState(() => _scanning = true);
+
+  /// From the full view's Group: close it, then show who owes what.
+  void _settleUp() {
+    _afterSheet = () => _openPopup(_Popup.money);
+    _closeSheet();
   }
 
   /// Google-like style on free OpenStreetMap vector tiles (OpenFreeMap, no key). Built by tools/google_style.py.
@@ -144,7 +202,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     if (byUser && _upNextMid && (e is MapEventMoveStart || e is MapEventDoubleTapZoomStart || e is MapEventScrollWheelZoom || e is MapEventFlingAnimationStart)) {
       setState(() => _upNextMid = false);
     }
-    final off = !_area(MediaQuery.sizeOf(context)).contains(e.camera.latLngToScreenOffset(me));
+    final off = !_area(MediaQuery.sizeOf(context)).contains(e.camera.latLngToScreenOffset(myPosition(tripNow())));
     if (off != _meOff) setState(() => _meOff = off);
     // The actions step out of the way while the person moves the map, and come back once it has been still a moment
     // (a short pause between two drags shouldn't bring them back)
@@ -333,7 +391,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           _closePopup();
           _flyTo(at);
         }) as Widget),
-      _Popup.money => ('Money', MoneyPage.subtitle, MoneyPage(toast: _popToast)),
+      _Popup.money => ('Money', MoneyPage.subtitle, MoneyPage(toast: _popToast, onScan: _scan)),
       _Popup.add => ('Add to the trip', AddPage.subtitle, AddPage(toast: _popToast)),
       _Popup.story => ('Story', StoryPage.subtitle, StoryPage(onPick: _jump)),
     };
@@ -452,6 +510,10 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     _popDrag.dispose();
     _popToast.dispose();
     addedPlans.removeListener(_sceneChanged);
+    tripNotice.removeListener(_showNotice);
+    madePayments.removeListener(_paymentsChanged);
+    _noticeTimer?.cancel();
+    _payTick?.cancel();
     demoMoment.removeListener(_sceneChanged);
     _fly.dispose();
     _map.dispose();
@@ -545,7 +607,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
                 scale: _meOff ? 1 : TokMotion.pressScale,
                 duration: TokMotion.fade,
                 curve: TokMotion.easeOut,
-                child: RecenterButton(onTap: () => _flyTo(me)),
+                child: RecenterButton(onTap: () => _flyTo(myPosition(tripNow()))),
               ),
             ),
           ),
@@ -571,6 +633,43 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           Positioned.fill(child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: () => _closePopup())),
           _popupSheet(context, size, pad),
         ],
+        // The camera, over everything, fading in like any modal
+        if (_scanning)
+          Positioned.fill(
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: 1),
+              duration: TokMotion.enter,
+              curve: TokMotion.easeOut,
+              builder: (context, v, child) => Opacity(opacity: v, child: child),
+              child: BillScan(
+                onClose: () => setState(() => _scanning = false),
+                onAdd: (bill) {
+                  addBill(bill);
+                  setState(() => _scanning = false);
+                  tripNotice.value = 'Dinner added · ${euros(bill.total)}, split by who had what';
+                },
+              ),
+            ),
+          ),
+        // A note for everyone, sliding down from the top and back up the way it came
+        Positioned(
+          left: TokSpace.md,
+          right: TokSpace.md,
+          top: pad.top + TokSpace.xs,
+          child: IgnorePointer(
+            child: AnimatedSlide(
+              offset: _noticeShown || _reduce ? Offset.zero : const Offset(0, -1.5),
+              duration: _noticeShown ? TokMotion.enter : TokMotion.fade,
+              curve: TokMotion.easeOut,
+              child: AnimatedOpacity(
+                opacity: _noticeShown ? 1 : 0,
+                duration: _noticeShown ? TokMotion.enter : TokMotion.fade,
+                curve: TokMotion.easeOut,
+                child: Center(child: _notice == null ? const SizedBox.shrink() : Toast(label: _notice!)),
+              ),
+            ),
+          ),
+        ),
       ]),
     );
   }
@@ -664,6 +763,8 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
                                 child: DetailSheet(
                                   plan: _upNext,
                                   onClose: () => _closeSheet(),
+                                  onScan: _scan,
+                                  onSettle: _settleUp,
                                   onHeaderDragUpdate: (d) => _drag.value = math.max(0, _drag.value + d.delta.dy),
                                   onHeaderDragEnd: (d) {
                                     final vy = d.velocity.pixelsPerSecond.dy;
@@ -753,7 +854,7 @@ class _MeLayer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cam = MapCamera.of(context);
-    final p = cam.latLngToScreenOffset(me);
+    final p = cam.latLngToScreenOffset(myPosition(tripNow()));   // I walk to dinner too
     final inside = area.contains(p);
     final c = area.clamp(p, 0);
     final angle = math.atan2(p.dy - c.dy, p.dx - c.dx);

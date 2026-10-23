@@ -24,7 +24,11 @@ class TripSheet extends StatefulWidget {
     this.onHeaderDragEnd,
     this.toast,
     this.focus,
+    this.footer,
   });
+
+  /// Stays put at the bottom while the page scrolls above it (the bill's totals and its button).
+  final Widget? footer;
 
   final String title, subtitle;
 
@@ -104,7 +108,8 @@ class _TripSheetState extends State<TripSheet> with SingleTickerProviderStateMix
         borderRadius: BorderRadius.circular(TokDim.surfaceRadius),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
-          child: NotificationListener<ScrollNotification>(
+          child: Column(children: [
+            Expanded(child: NotificationListener<ScrollNotification>(
             onNotification: (n) {
               if (n.depth == 0 && (n is ScrollUpdateNotification || n is ScrollEndNotification)) {
                 _under.value = (n.metrics.pixels / TokDim.sheetTopFade).clamp(0.0, 1.0);
@@ -175,7 +180,9 @@ class _TripSheetState extends State<TripSheet> with SingleTickerProviderStateMix
                 ),
               ),
             ]),
-          ),
+          )),
+            ?widget.footer,
+          ]),
         ),
       ),
     );

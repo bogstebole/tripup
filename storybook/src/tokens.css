@@ -58,6 +58,11 @@
   --c-pin-dash: #2563eb;
   --c-pin-tail: #2563eb;
   --c-pin-tail-edge: #ffffff;
+  --c-scan-bg: #000000;
+  --c-scan-fg: #ffffff;
+  --c-scan-paper: #ffffff;
+  --c-scan-ink: #27272a;
+  --c-scan-line: #2563eb;
   --c-edge-arrow-from: #3b82f6;
   --c-edge-arrow-to: #1d4ed8;
   --c-me-dot: #1d4ed8;
@@ -159,6 +164,11 @@
   --d-chip-gap: 2px;
   --d-chip-radius: 16px;
   --d-chip-face-overlap: 10px;
+  --d-scan-paper-width: 296px;
+  --d-scan-corner: 24px;
+  --d-scan-stroke: 3px;
+  --d-scan-photo-opacity: 0.4;
+  --d-scan-off-opacity: 0.3;
   --d-toggle-chip-height: 32px;
   --d-toggle-chip-padding-x: 12px;
   --d-toggle-chip-gap: 8px;
@@ -224,6 +234,8 @@
   --toast-ms: 3000ms;
   --settle-ms: 800ms;
   --pulse-ms: 1200ms;
+  --scan-find-ms: 600ms;
+  --scan-read-ms: 900ms;
   --press-scale: 0.97;
   --press-ms: 120ms;
   --fade-ms: 160ms;
@@ -287,6 +299,11 @@
   --c-pin-dash: #2563eb;
   --c-pin-tail: #2563eb;
   --c-pin-tail-edge: #ffffff;
+  --c-scan-bg: #000000;
+  --c-scan-fg: #ffffff;
+  --c-scan-paper: #ffffff;
+  --c-scan-ink: #27272a;
+  --c-scan-line: #2563eb;
   --c-edge-arrow-from: #3b82f6;
   --c-edge-arrow-to: #1d4ed8;
   --c-me-dot: #1d4ed8;

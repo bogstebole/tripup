@@ -75,53 +75,84 @@ class ItineraryPage extends StatelessWidget {
 /// The group's money: what I owe (and paying it), what's been spent, the fewest payments that square everyone up,
 /// each person's balance, and the expenses. Tonight's dinner joins once the bill comes; until then it's an estimate.
 class MoneyPage extends StatefulWidget {
-  const MoneyPage({super.key, this.toast});
+  const MoneyPage({super.key, this.toast, this.onScan});
   final ValueNotifier<String?>? toast;
 
-  static String get subtitle => '${euros(spentSoFar)} spent so far · ${expenses.length} expenses';
+  /// Scan tonight's bill (offered only while the dinner is on and before it's in).
+  final VoidCallback? onScan;
+
+  static String get subtitle => '${euros(spentSoFar)} spent so far · ${tripExpenses.length} expenses';
 
   @override
   State<MoneyPage> createState() => _MoneyPageState();
 }
 
 class _MoneyPageState extends State<MoneyPage> {
-  /// Whether I've paid my part (in the prototype, only mine can be paid from here).
-  bool _paid = false;
+  /// The payment whose "why" is open, if any.
+  Payment? _why;
+
+  ValueNotifier<String?>? get toast => widget.toast;
+  VoidCallback? get onScan => widget.onScan;
 
   String _name(String id) => personById(id).name;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => AnimatedBuilder(
+        animation: Listenable.merge([dinnerBill, madePayments]),
+        builder: (context, _) => _page(context),
+      );
+
+  Widget _page(BuildContext context) {
     final t = context.tok;
     final pays = settleUp;
     final mine = pays.where((p) => p.from == myId).firstOrNull;
-    double balance(String id) => balanceOf(id) + (_paid && mine != null ? (id == myId ? mine.amount : id == mine.to ? -mine.amount : 0) : 0);
+    final square = squaredUp, minePaid = mine != null && isPaid(mine);
+    final othersPaid = pays.where((p) => p.from != myId).every(isPaid);
     final estimate = dinnerEstimate;
+    final on = isActive(plans.first, tripNow());
+    // The top block: the group squared up; or what I owe, with Pay; or that I'm square
+    final (head, sub, done) = square
+        ? ('Lisbon is squared up', 'Everyone has paid: ${pays.length} payments, ${euros(pays.fold(0.0, (s, p) => s + p.amount))} in all', true)
+        : minePaid
+            ? ("You're square with ${_name(mine.to)}", 'Paid ${euros(mine.amount)}', true)
+            : mine != null
+                ? ('You owe ${_name(mine.to)}', othersPaid && dinnerBill.value != null ? 'Everyone else has paid' : null, false)
+                : ('', null, false);
     return StaggerIn(children: [
-      if (mine != null)
+      if (mine != null || square)
         Container(
           padding: const EdgeInsets.all(TokSpace.md),
-          decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.sheet)),
+          decoration: BoxDecoration(color: square ? t.bgSuccessSubtle : t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.sheet)),
           child: Row(spacing: TokSpace.sm, children: [
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x3xs, children: [
-                Text(_paid ? "You're square with ${_name(mine.to)}" : 'You owe ${_name(mine.to)}', style: TokText.labelLg.copyWith(color: t.textDefault)),
-                Text(_paid ? 'Paid ${euros(mine.amount)}' : euros(mine.amount), style: (_paid ? TokText.bodySm : TokText.headingLg).copyWith(color: _paid ? t.textSuccess : t.textDefault)),
+                Text(head, style: TokText.labelLg.copyWith(color: t.textDefault)),
+                if (!done) Text(euros(mine!.amount), style: TokText.headingLg.copyWith(color: t.textDefault)),
+                if (sub != null) Text(sub, style: TokText.bodySm.copyWith(color: done ? t.textSuccess : t.textMuted)),
               ]),
             ),
-            if (_paid)
+            if (done)
               LucideIcon(TuIcons.done, size: TokSize.iconMd, color: t.iconSuccess)
             else
               TuTextButton(
                 label: 'Pay',
                 onTap: () {
-                  setState(() => _paid = true);
-                  widget.toast?.value = 'Paid ${_name(mine.to)} ${euros(mine.amount)}';
+                  recordPayment(mine!);
+                  toast?.value = payLine(mine);
                 },
               ),
           ]),
         ),
-      if (estimate != null && estimate > 0)
+      // Tonight's dinner: an estimate until it's on, then the way to bring its bill in
+      if (dinnerBill.value == null && on)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.md, TokSpace.xs, 0),
+          child: Row(spacing: TokSpace.sm, children: [
+            Expanded(child: Text('Dinner is on. When the bill comes, scan it: it splits by who had what.', style: TokText.bodySm.copyWith(color: t.textMuted))),
+            TuTextButton(label: 'Scan the bill', icon: TuIcons.scan, onTap: onScan),
+          ]),
+        )
+      else if (dinnerBill.value == null && estimate != null && estimate > 0)
         Padding(
           padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.md, TokSpace.xs, 0),
           child: Text("Tonight's dinner isn't on it yet: about ${euros(estimate)}, from what everyone picked. It splits by who had what.",
@@ -137,16 +168,24 @@ class _MoneyPageState extends State<MoneyPage> {
             _slot(Sticker(personById(p.to).sticker, size: StickerSize.avatar), TokDim.stickerAvatar),
           ]),
           title: p.from == myId ? 'You pay ${_name(p.to)}' : '${_name(p.from)} pays ${_name(p.to)}',
-          subtitle: p == mine && _paid ? 'Paid' : 'Pending',
-          subtitleColor: p == mine && _paid ? t.textSuccess : null,
+          subtitle: '${isPaid(p) ? 'Paid' : 'Pending'} · ${_why == p ? 'Hide why' : 'Why'}',
+          subtitleColor: isPaid(p) ? t.textSuccess : null,
           trailing: Text(euros(p.amount), style: TokText.labelLg.copyWith(color: t.textDefault)),
+          onTap: () => setState(() => _why = _why == p ? null : p),
+        ),
+        // Where the amount comes from: what they had, what they paid, and why it's one payment to this person
+        AnimatedSize(
+          duration: TokMotion.enter,
+          curve: TokMotion.easeOut,
+          alignment: Alignment.topCenter,
+          child: _why == p ? _explain(context, p) : const SizedBox(width: double.infinity),
         ),
       ],
       const SheetSection('Balances'),
       for (final (i, person) in people.indexed) ...[
         if (i > 0) const Hairline(),
         () {
-          final b = balance(person.id);
+          final b = balanceLeft(person.id);
           final joinedLate = person.joined > tripDays.first;
           return SheetRow(
             leading: _slot(Sticker(person.sticker, size: StickerSize.avatar), TokDim.stickerAvatar),
@@ -155,7 +194,7 @@ class _MoneyPageState extends State<MoneyPage> {
                 ? 'Gets back'
                 : b < -0.005
                     ? (person.id == myId ? 'You owe' : 'Owes')
-                    : joinedLate
+                    : joinedLate && balanceOf(person.id).abs() < 0.005
                         ? 'Joined ${dayName(DateTime(tripYear, tripMonth, person.joined), tripNow()).toLowerCase()} · shares costs from then on'
                         : 'Square',
             trailing: b.abs() > 0.005 ? Text(euros(b.abs()), style: TokText.labelLg.copyWith(color: b > 0 ? t.textSuccess : t.textDefault)) : null,
@@ -163,20 +202,48 @@ class _MoneyPageState extends State<MoneyPage> {
         }(),
       ],
       const SheetSection('Expenses', subtitle: 'Newest first'),
-      for (final (i, e) in expenses.indexed) ...[
+      for (final (i, e) in tripExpenses.indexed) ...[
         if (i > 0) const Hairline(),
         SheetRow(
           leading: _slot(Sticker(personById(e.paidBy).sticker, size: StickerSize.avatar), TokDim.stickerAvatar),
           title: e.title,
-          subtitle: '${e.paidBy == myId ? 'You' : _name(e.paidBy)} paid · ${dayName(DateTime(tripYear, tripMonth, e.day), tripNow())} · ${e.split.length} people',
+          subtitle: '${e.paidBy == myId ? 'You' : _name(e.paidBy)} paid · ${dayName(DateTime(tripYear, tripMonth, e.day), tripNow())} · ${e.split.length} people${e.shares != null ? ', by who had what' : ''}',
           trailing: Column(crossAxisAlignment: CrossAxisAlignment.end, spacing: TokSpace.x3xs, children: [
             Text(euros(e.amount), style: TokText.labelLg.copyWith(color: t.textDefault)),
-            if (e.split.contains(myId)) Text('yours ${euros(e.shareOf(myId))}', style: TokText.bodySm.copyWith(color: t.textMuted)),
+            if (e.shareOf(myId) > 0) Text('yours ${euros(e.shareOf(myId))}', style: TokText.bodySm.copyWith(color: t.textMuted)),
           ]),
         ),
       ],
     ]);
   }
+}
+
+/// Why a payment is what it is: [p.from]'s share of each expense, what they paid, and why it all goes to [p.to].
+Widget _explain(BuildContext context, Payment p) {
+  final t = context.tok;
+  String who(String id, {bool start = false}) => id == myId ? (start ? 'You' : 'you') : personById(id).name;
+  final had = [for (final e in tripExpenses) if (e.shareOf(p.from) > 0) (e.title, e.shareOf(p.from))];
+  final share = had.fold(0.0, (s, h) => s + h.$2), paid = tripExpenses.where((e) => e.paidBy == p.from).fold(0.0, (s, e) => s + e.amount);
+  final oneByOne = tripExpenses.where((e) => e.shareOf(p.from) > 0 && e.paidBy != p.from).length;
+  final style = TokText.bodySm.copyWith(color: t.textMuted);
+  return Padding(
+    padding: const EdgeInsets.fromLTRB(TokSpace.xs, 0, TokSpace.xs, TokSpace.sm),
+    child: Container(
+      padding: const EdgeInsets.all(TokSpace.sm),
+      decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.card)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: TokSpace.x3xs, children: [
+        for (final (title, amount) in had)
+          Row(children: [Expanded(child: Text(title, style: style)), Text(euros(amount), style: style)]),
+        if (paid > 0) Row(children: [Expanded(child: Text('Paid for the group', style: style)), Text('−${euros(paid)}', style: style)]),
+        const SizedBox(height: TokSpace.x2xs),
+        Text(
+          '${who(p.from, start: true)} had ${euros(share)} of it all${paid > 0 ? ' and paid ${euros(paid)}' : ''}, so ${p.from == myId ? 'you owe' : 'owes'} ${euros(p.amount)}. '
+          '${who(p.to, start: true)} paid the most for everyone, so it goes to ${who(p.to)} in one payment instead of $oneByOne.',
+          style: TokText.bodySm.copyWith(color: t.textDefault),
+        ),
+      ]),
+    ),
+  );
 }
 
 /// Adding to the trip: a plan (a place to go, put in a free slot on everyone's itinerary and map) or someone new

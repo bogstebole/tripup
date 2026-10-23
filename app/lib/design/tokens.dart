@@ -74,6 +74,11 @@ class TokColors {
     'c/pin/dash': Color(0xFF2563EB),
     'c/pin/tail': Color(0xFF2563EB),
     'c/pin/tail-edge': Color(0xFFFFFFFF),
+    'c/scan/bg': Color(0xFF000000),
+    'c/scan/fg': Color(0xFFFFFFFF),
+    'c/scan/paper': Color(0xFFFFFFFF),
+    'c/scan/ink': Color(0xFF27272A),
+    'c/scan/line': Color(0xFF2563EB),
     'c/edge-arrow/from': Color(0xFF3B82F6),
     'c/edge-arrow/to': Color(0xFF1D4ED8),
     'c/me/dot': Color(0xFF1D4ED8),
@@ -146,6 +151,11 @@ class TokColors {
     'c/pin/dash': Color(0xFF2563EB),
     'c/pin/tail': Color(0xFF2563EB),
     'c/pin/tail-edge': Color(0xFFFFFFFF),
+    'c/scan/bg': Color(0xFF000000),
+    'c/scan/fg': Color(0xFFFFFFFF),
+    'c/scan/paper': Color(0xFFFFFFFF),
+    'c/scan/ink': Color(0xFF27272A),
+    'c/scan/line': Color(0xFF2563EB),
     'c/edge-arrow/from': Color(0xFF3B82F6),
     'c/edge-arrow/to': Color(0xFF1D4ED8),
     'c/me/dot': Color(0xFF1D4ED8),
@@ -217,6 +227,11 @@ class TokColors {
   Color get cPinDash => _m['c/pin/dash']!;
   Color get cPinTail => _m['c/pin/tail']!;
   Color get cPinTailEdge => _m['c/pin/tail-edge']!;
+  Color get cScanBg => _m['c/scan/bg']!;
+  Color get cScanFg => _m['c/scan/fg']!;
+  Color get cScanPaper => _m['c/scan/paper']!;
+  Color get cScanInk => _m['c/scan/ink']!;
+  Color get cScanLine => _m['c/scan/line']!;
   Color get cEdgeArrowFrom => _m['c/edge-arrow/from']!;
   Color get cEdgeArrowTo => _m['c/edge-arrow/to']!;
   Color get cMeDot => _m['c/me/dot']!;
@@ -276,6 +291,11 @@ abstract final class TokDim {
   static const double chipGap = 2;
   static const double chipRadius = 16;
   static const double chipFaceOverlap = 10;
+  static const double scanPaperWidth = 296;
+  static const double scanCorner = 24;
+  static const double scanStroke = 3;
+  static const double scanPhotoOpacity = 0.4;
+  static const double scanOffOpacity = 0.3;
   static const double toggleChipHeight = 32;
   static const double toggleChipPaddingX = 12;
   static const double toggleChipGap = 8;
@@ -392,6 +412,8 @@ abstract final class TokMotion {
   static const toast = Duration(milliseconds: 3000);
   static const settle = Duration(milliseconds: 800);
   static const pulse = Duration(milliseconds: 1200);
+  static const scanFind = Duration(milliseconds: 600);
+  static const scanRead = Duration(milliseconds: 900);
   static const double pressScale = 0.97;
   static const press = Duration(milliseconds: 120);
   static const fade = Duration(milliseconds: 160);

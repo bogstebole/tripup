@@ -15,7 +15,18 @@ import 'stagger.dart';
 import 'toast.dart';
 import 'toggle_chips.dart';
 
-const detailTabs = ['Overview', 'Menu', 'Group'];
+/// The full view's pages. While the dinner is on, the group and the bill matter more than the place's details, so
+/// Group comes first and Overview last.
+enum DetailPage {
+  overview('Overview'),
+  menu('Menu'),
+  group('Group');
+
+  const DetailPage(this.label);
+  final String label;
+
+  static List<DetailPage> forPlan(Plan p, DateTime now) => isActive(p, now) ? const [group, menu, overview] : const [overview, menu, group];
+}
 
 /// What the menu can be narrowed to: what anyone has picked, or a course.
 enum MenuFilter {
@@ -34,9 +45,12 @@ enum MenuFilter {
 /// one fades out. Every page scrolls up under the header; pulling the header, or a page past its top, pulls the
 /// sheet down ([onHeaderDragUpdate] / [onHeaderDragEnd]).
 class DetailSheet extends StatefulWidget {
-  const DetailSheet({super.key, required this.plan, this.onClose, this.onHeaderDragUpdate, this.onHeaderDragEnd});
+  const DetailSheet({super.key, required this.plan, this.onClose, this.onHeaderDragUpdate, this.onHeaderDragEnd, this.onScan, this.onSettle});
   final Plan plan;
   final VoidCallback? onClose;
+
+  /// Scan the bill (offered only while the dinner is on), and see who owes what once it's in.
+  final VoidCallback? onScan, onSettle;
   final GestureDragUpdateCallback? onHeaderDragUpdate;
   final GestureDragEndCallback? onHeaderDragEnd;
 
@@ -46,6 +60,9 @@ class DetailSheet extends StatefulWidget {
 
 class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStateMixin {
   int _tab = 0;
+
+  /// The pages in their order for this opening (see [DetailPage.forPlan]).
+  late final _pages = DetailPage.forPlan(widget.plan, tripNow());
 
   /// Which way the last tab change went: 1 to the right, -1 to the left, 0 for the page the sheet opened on.
   int _dir = 0;
@@ -76,6 +93,7 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
   void _toggle(MenuItem item) {
     final adding = !_mine!.contains(item.name);
     setState(() => adding ? _mine!.add(item.name) : _mine!.remove(item.name));
+    myPicks.value = {..._mine!};   // the bill matches against these
     if (adding) {
       setState(() => _toasted = item);
       _toast.forward();
@@ -94,6 +112,7 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
   void _undo() {
     final item = _toasted;
     if (item != null && _mine!.contains(item.name)) setState(() => _mine!.remove(item.name));
+    myPicks.value = {..._mine!};
     _hideToast();
   }
 
@@ -184,7 +203,7 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
                 padding: const EdgeInsets.only(top: TokSpace.xs),
                 child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                   SegmentedTabs(
-                    tabs: detailTabs,
+                    tabs: [for (final p in _pages) p.label],
                     index: _tab,
                     onChanged: (i) {
                       _under.value = 0;   // the new page starts at its top
@@ -228,9 +247,9 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
         ),
       );
 
-  Widget _page(BuildContext context) => switch (_tab) {
-        0 => _overview(context),
-        1 => _menu(context),
+  Widget _page(BuildContext context) => switch (_pages[_tab]) {
+        DetailPage.overview => _overview(context),
+        DetailPage.menu => _menu(context),
         _ => _group(context),
       };
 
@@ -255,7 +274,7 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
         initialData: loadedMenu,
         builder: (context, snap) {
           final sections = snap.data ?? const <MenuSection>[];
-          if (snap.hasData) _mine ??= {for (final s in sections) for (final i in s.items) if (i.pickedBy.contains(myId)) i.name};
+          if (snap.hasData) _mine ??= {...?myPicks.value};
           return build(sections, _mine ?? const {});
         },
       );
@@ -345,39 +364,59 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
   }
 
   // ---------- Group: who's coming, how far away each person is, what they've picked and what it comes to
-  Widget _group(BuildContext context) {
-    final t = context.tok;
-    return _withMenu((sections, mine) {
-      final dishes = [for (final s in sections) ...s.items];
-      List<MenuItem> picksOf(String id) => [for (final d in dishes) if (id == myId ? mine.contains(d.name) : d.pickedBy.contains(id)) d];
-      // Roughly what each person's picks come to, and all of them together
-      final cost = {for (final x in people) x.id: picksOf(x.id).fold(0.0, (sum, d) => sum + (eurosIn(d.price) ?? 0))};
-      final total = cost.values.fold(0.0, (a, b) => a + b);
-      final list = _scroll(_enter(children: [
-        _PageTitle(title: "Who's coming", subtitle: '${people.where((x) => x.going).length} of ${people.length} going · ${widget.plan.whenLong}'),
-        const SizedBox(height: TokSpace.md),
-        for (var i = 0; i < people.length; i++)
-          Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            if (i > 0) const Hairline(),
-            _PersonRow(person: people[i], picks: picksOf(people[i].id), cost: cost[people[i].id]!),
-          ]),
-      ]));
-      if (total <= 0) return list;
-      // The total stays put at the bottom while the list scrolls above it
-      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Expanded(child: list),
-        _enter(children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.xs, TokSpace.xs, TokSpace.md),
-            child: Row(spacing: TokSpace.sm, children: [
-              Expanded(child: Text('Estimated total', style: TokText.labelLg.copyWith(color: t.textDefault))),
-              Text('≈ ${euros(total)}', style: TokText.headingLg.copyWith(color: t.textDefault)),
+  Widget _group(BuildContext context) => ValueListenableBuilder<Bill?>(
+        valueListenable: dinnerBill,
+        builder: (context, bill, _) => _withMenu((sections, mine) {
+          final t = context.tok;
+          final dishes = [for (final s in sections) ...s.items];
+          List<MenuItem> picksOf(String id) => [for (final d in dishes) if (id == myId ? mine.contains(d.name) : d.pickedBy.contains(id)) d];
+          // Roughly what each person's picks come to, until the bill is in; then what they had
+          final shares = bill?.shares;
+          final cost = <String, double>{
+            for (final x in people) x.id: shares != null ? shares[x.id] ?? 0 : picksOf(x.id).fold<double>(0, (sum, d) => sum + (eurosIn(d.price) ?? 0)),
+          };
+          final total = bill?.total ?? cost.values.fold<double>(0, (a, b) => a + b);
+          final on = isActive(widget.plan, tripNow());
+          final list = _scroll(_enter(children: [
+            _PageTitle(title: "Who's coming", subtitle: '${people.where((x) => x.going).length} of ${people.length} going · ${widget.plan.whenLong}'),
+            const SizedBox(height: TokSpace.md),
+            for (var i = 0; i < people.length; i++)
+              Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                if (i > 0) const Hairline(),
+                _PersonRow(person: people[i], picks: picksOf(people[i].id), cost: cost[people[i].id]!, exact: bill != null),
+              ]),
+          ]));
+          if (total <= 0) return list;
+          // The bottom stays put while the list scrolls above it: the estimate, then (while the dinner is on) Scan the
+          // bill; once it's in, the bill's total and who owes what
+          final (title, sub, amount) = bill != null
+              ? ('Bill', "${bill.paidBy == myId ? 'You' : personById(bill.paidBy).name} paid · split by who had what", euros(bill.total))
+              : ('Estimated total', on ? 'The bill splits itself once scanned' : null, '≈ ${euros(total)}');
+          return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Expanded(child: list),
+            _enter(children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.xs, TokSpace.xs, TokSpace.md),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: TokSpace.md, children: [
+                  Row(spacing: TokSpace.sm, children: [
+                    Expanded(
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x3xs, children: [
+                        Text(title, style: TokText.labelLg.copyWith(color: t.textDefault)),
+                        if (sub != null) Text(sub, style: TokText.bodySm.copyWith(color: t.textMuted)),
+                      ]),
+                    ),
+                    Text(amount, style: TokText.headingLg.copyWith(color: t.textDefault)),
+                  ]),
+                  if (bill != null)
+                    Center(child: TuTextButton(label: 'See who owes what', kind: GlassKind.soft, onTap: widget.onSettle))
+                  else if (on)
+                    Center(child: TuTextButton(label: 'Scan the bill', icon: TuIcons.scan, onTap: widget.onScan)),
+                ]),
+              ),
             ]),
-          ),
-        ]),
-      ]);
-    });
-  }
+          ]);
+        }),
+      );
 }
 
 /// A page's title and the line under it, the same size and place as the place's name on Overview.
@@ -552,12 +591,15 @@ class _MenuRow extends StatelessWidget {
 }
 
 class _PersonRow extends StatelessWidget {
-  const _PersonRow({required this.person, required this.picks, required this.cost});
+  const _PersonRow({required this.person, required this.picks, required this.cost, this.exact = false});
   final Person person;
   final List<MenuItem> picks;
 
   /// Roughly what their picks come to.
   final double cost;
+
+  /// From the scanned bill, not estimated from the picks.
+  final bool exact;
 
   @override
   Widget build(BuildContext context) {
@@ -588,7 +630,7 @@ class _PersonRow extends StatelessWidget {
             ]),
           ),
         if (cost > 0)
-          Text('≈ ${euros(cost)}', style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textDefault))
+          Text(exact ? euros(cost) : '≈ ${euros(cost)}', style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textDefault))
         else if (person.going)
           Text('No picks yet', style: TokText.bodySm.copyWith(color: t.textSubtle)),
       ]),

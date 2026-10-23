@@ -408,6 +408,22 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
   - Built so far: On the way (3:30 PM), Before dinner (3:56 PM), Everyone's there (4:50 PM), and Settle up, which opens Money.
   - Not built yet, shown greyed: Your trips, Ren joins, Dinner poll, The poll closes, The bill, Squared up.
 
+### Final UI, iteration 1.23: the dinner, from arriving to squared up (branch `feature/dinner-bill`)
+- **Active dinner:** `isActive` (time window plus someone in the geofence). The card says "Now · You're here", the mini says "Now". The full view's tabs become Group · Menu · Overview (`DetailPage.forPlan`).
+- **People:** Ren comes to dinner (route, picks: entrecôte with salad, Sumol). I walk there too (`myPosition`, the blue dot moves).
+- **Menu picks:** the wine (Soalheiro Granit) for me, Maya and Leo; Sumol for Nic and Ren. My picks are shared app-wide (`myPicks`), so the bill matches what I chose.
+- **Scan the bill** (`lib/components/bill_scan.dart`):
+  - The camera view: the paper bill on the table, a frame closing in and turning blue, a reading line (`scan-find-ms` 600, `scan-read-ms` 900). Then the bill rises with each line on the faces of whoever had it.
+  - Tap a line to change who had it. Per-person totals are at the bottom, "You paid · Change", and "Add to the trip's money".
+  - The bill: €228.80 (couvert ×5, 3 entrecôte with salad, salmon, seitan, fries, fondant, 2 crème brûlée, 2 Soalheiro, 2 Sumol, 2 Luso water). Shares: you €59.12, Maya €53.32, Nic €35.22, Leo €50.42, Ren €30.72.
+- **Money:**
+  - The dinner becomes an expense with shares: total €954.80, 4 payments instead of 13 (Leo → Maya €185.92, Nic → Maya €136.72, Ren → Maya €30.72, You → Maya €11.82).
+  - The others pay 30 s apart, each as a note at the top. Every payment has a Why.
+  - The last payment brings "Lisbon is squared up" for everyone.
+- **Group tab:** while the dinner is on, the Estimated total gets Scan the bill. After the scan, it shows the exact amounts, the bill's total, and "See who owes what" (closes the full view, opens Money).
+- **Demo moments:** Everyone's there (5 PM), The bill (7:30 PM), Settle up (7:40 PM, bill in, the others start paying), Squared up (7:50 PM, everyone paid). Jumping sets the money to match.
+- Tokens: `scan/*` colors and sizes, `scan-find-ms`, `scan-read-ms`. Icons: scan-line, receipt. `TripSheet` gets a fixed `footer`.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

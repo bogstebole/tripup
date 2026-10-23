@@ -40,7 +40,8 @@
      "note": "Grilled or with Brasserie sauce and French fries; salad with vinaigrette and walnuts",
      "pickedBy": [
       "maya",
-      "leo"
+      "leo",
+      "ren"
      ]
     },
     {
@@ -249,7 +250,12 @@
     },
     {
      "name": "Soalheiro, Granit, Minho",
-     "price": "Bottle €28.50"
+     "price": "Bottle €28.50",
+     "pickedBy": [
+      "ari",
+      "maya",
+      "leo"
+     ]
     },
     {
      "name": "Vallado 3 Melros, Douro",
@@ -459,7 +465,11 @@
     {
      "name": "Sumol or Lipton Ice Tea",
      "price": "€2.90",
-     "note": "Sumol orange or pineapple, ice tea lemon or peach"
+     "note": "Sumol orange or pineapple, ice tea lemon or peach",
+     "pickedBy": [
+      "nic",
+      "ren"
+     ]
     },
     {
      "name": "Ginger ale",
