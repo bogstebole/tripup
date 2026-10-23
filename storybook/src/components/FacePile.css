@@ -1,0 +1,12 @@
+.tu-pile { display: inline-flex; align-items: center; }
+.tu-pile > * + * { margin-left: calc(var(--d-avatar-overlap) * -1); }
+.tu-pile__more {
+  display: grid;
+  place-items: center;
+  width: var(--d-count-bubble-size);
+  height: var(--d-count-bubble-size);
+  border-radius: var(--radius-pill);
+  background: var(--color-bg-default);
+  color: var(--color-text-default);
+  box-shadow: var(--shadow-slightly-raised);
+}

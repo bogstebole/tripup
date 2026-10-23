@@ -224,7 +224,7 @@ export function DetailSheet(p: DetailSheetProps) {
                                     <div className="tu-dish__top">
                                       {item.photo && <DishSticker photo={item.photo} size="menu" tilt={i % 2 ? tilt : -tilt} />}
                                       <div className="tu-dish__text">
-                                        <p className="text-label-md">{item.name}</p>
+                                        <p className="text-label-lg">{item.name}</p>
                                         {item.note && <p className="text-body-sm tu-sheet__muted">{item.note}</p>}
                                       </div>
                                     </div>
@@ -273,7 +273,7 @@ export function DetailSheet(p: DetailSheetProps) {
                     <Block key={x.id} i={1 + xi} className="tu-sheet__row">
                       <span className="tu-sheet__face"><Sticker name={x.sticker} size="avatar" /></span>
                       <div className="tu-sheet__row-text">
-                        <p className="text-label-md">{x.name}</p>
+                        <p className="text-label-lg">{x.name}</p>
                         <p className={`text-body-sm ${x.status === 'Not going' ? 'tu-sheet__subtle' : 'tu-sheet__muted'}`}>{x.status}</p>
                       </div>
                       {/* What they'll have, as a little pile of stickers: at a glance, who has already picked */}

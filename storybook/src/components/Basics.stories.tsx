@@ -5,6 +5,7 @@ import { AddButton } from './AddButton';
 import { Toast } from './Toast';
 import { ToggleChips } from './ToggleChips';
 import { DishSticker } from './DishSticker';
+import { FacePile } from './FacePile';
 import { InfoChips } from './InfoChips';
 import { KnowRow, KnowSection } from './KnowSection';
 import { PeopleButton } from './PeopleButton';
@@ -117,4 +118,17 @@ export const Note: Story = {
       </div>
     );
   },
+};
+
+export const Pile: Story = {
+  name: 'FacePile',
+  parameters: { docs: { description: { story: 'People as a little pile: up to two stickers, then "+N". On the map, people closer than a sticker\'s width merge into one pile, so a group walking together never turns into a heap. Whoever has arrived leaves the map and shows on the place\'s pin instead (a chip-size pile on the mini pin\'s corner, "1 here" on the card). Locations are shared live and passively, from 90 minutes before the event.' } } },
+  render: () => (
+    <div style={{ display: 'flex', gap: 'var(--space-xl)', alignItems: 'center' }}>
+      <FacePile faces={['person-05']} label="Nic" />
+      <FacePile faces={['person-05', 'person-02']} label="Nic and Leo" />
+      <FacePile faces={['person-05', 'person-02', 'person-01', 'person-03']} label="Four people" />
+      <FacePile faces={['person-01']} size="chip" label="Maya is here" />
+    </div>
+  ),
 };

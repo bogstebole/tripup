@@ -11,9 +11,10 @@ export const eurosIn = (price: string) => {
 };
 export const euros = (v: number) => `€${v.toFixed(2)}`;
 
+/** `status` is what the app works out live from shared locations at the demo's start (Thu 15:56); see the app's `statusOf`. */
 export type Person = { id: string; name: string; sticker: string; status: string };
 export const PEOPLE: Person[] = [
-  { id: 'ari', name: 'You', sticker: 'person-04', status: 'On the way · 12 min' },
+  { id: 'ari', name: 'You', sticker: 'person-04', status: 'Leaves in 44 min' },
   { id: 'maya', name: 'Maya', sticker: 'person-01', status: 'Already there' },
   { id: 'nic', name: 'Nic', sticker: 'person-05', status: 'On the way · 8 min' },
   { id: 'leo', name: 'Leo', sticker: 'person-02', status: 'Leaves in 20 min' },
@@ -115,5 +116,6 @@ export const UP_NEXT = {
   eta: EVENT.eta,
   sticker: EVENT.sticker,
   fan: DISH_FAN,
-  chips: [{ text: '+3', sticker: 'person-05', tilt: -6.22 }, { text: EVENT.price, grow: true }, { text: EVENT.when }],
+  // Maya is already there: the first chip shows who's here, and the time drops "Today" so the row fits
+  chips: [{ text: '1 here', faces: ['person-01'] }, { text: EVENT.price, grow: true }, { text: clockTime(DINNER) }],
 };

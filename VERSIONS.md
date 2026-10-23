@@ -293,6 +293,19 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
   - My face joins the faces of whoever else picked the dish, coming in from Add's side, and leaves the same way.
 - New tokens: `toast/bg`, `toast/fg`, `motion.toast-ms`. New components: `ToggleChips`/`ToggleChip` (replaces `DayFilter`), `Toast`, `ToastSlot`.
 
+### Final UI, iteration 1.15: live locations, who's here, a decision log
+- **Live locations, simulated.** Each person who's coming has a route to the restaurant and times to leave and arrive, on the demo clock. In the real app this would be their location, shared passively from 90 minutes before. Positions and statuses are worked out from it, and nobody taps anything:
+  - "Already there";
+  - "On the way · 8 min";
+  - "Leaves in 20 min". Mine comes from how far the blue dot is from the place: the start, minus 5 minutes early, minus the walk.
+- **On the map,** people on their way show as their stickers. Anyone closer than a sticker's width merges into one pile with "+N". Whoever has arrived leaves the map:
+  - on the mini pin, they show as a small pile on its corner;
+  - on the card, as the first chip ("1 here" with their faces). The time chip then shows just "5 PM", so the row fits.
+- **Group's statuses** come from the same simulation and count down.
+- **Names in Group and Menu are 16 px** (Label/LG).
+- **`DECISIONS.md`:** a new log of what was decided and why, for the presentation.
+- New components: `PeopleLayer`, `FacePile` (Flutter and Storybook), and faces on `InfoChip`.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

@@ -13,3 +13,5 @@
 .tu-chips__chip--grow { flex: 1 1 0; min-width: 0; }
 .tu-chips__chip:first-child { border-top-left-radius: var(--d-chip-radius); border-bottom-left-radius: var(--d-chip-radius); }
 .tu-chips__chip:last-child { border-top-right-radius: var(--d-chip-radius); border-bottom-right-radius: var(--d-chip-radius); }
+.tu-chips__faces { display: inline-flex; align-items: center; }
+.tu-chips__faces > * + * { margin-left: calc(var(--d-avatar-overlap) * -1); }

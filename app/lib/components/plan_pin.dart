@@ -25,9 +25,12 @@ typedef PartWrap<P> = Widget Function(P part, int index, Widget child);
 
 /// The Up next card's content (mid state). Also drawn by the full-view morph as its starting picture.
 class UpNextMid extends StatelessWidget {
-  const UpNextMid({super.key, required this.plan, this.onOpen, this.part});
+  const UpNextMid({super.key, required this.plan, this.onOpen, this.part, this.here = const []});
   final Plan plan;
   final VoidCallback? onOpen;
+
+  /// Stickers of whoever is already at the place.
+  final List<String> here;
 
   /// Lets the pin move each part on its own while it morphs. Nothing by default.
   final PartWrap<MidPart>? part;
@@ -56,7 +59,15 @@ class UpNextMid extends StatelessWidget {
             ])),
           ),
           p(MidPart.chips, Row(spacing: TokSpace.md, children: [
-            Expanded(child: InfoChips(items: [...plan.chips, InfoChip(plan.whenShort)])),
+            // The first chip says who's coming; once people arrive, it shows who's already there, and the time
+            // drops "Today" (someone being there already says it), so the row still fits
+            Expanded(
+              child: InfoChips(items: [
+                if (here.isNotEmpty) InfoChip('${here.length} here', faces: here) else ...plan.chips.take(1),
+                ...plan.chips.skip(1),
+                InfoChip(here.isEmpty ? plan.whenShort : clockTime(plan.start)),
+              ]),
+            ),
             TuButton(icon: TuIcons.forward, label: 'Open ${plan.name}', kind: GlassKind.primary, size: TuButtonSize.sm, onTap: onOpen),
           ])),
         ]),
@@ -108,6 +119,7 @@ class PlanPin extends StatefulWidget {
     this.onTap,
     this.onEdgeChanged,
     this.onMidHeight,
+    this.here = const [],
   });
 
   final Plan plan;
@@ -130,6 +142,9 @@ class PlanPin extends StatefulWidget {
 
   /// The card's full height plus its tail, once measured (the screen uses it to make room above the place).
   final ValueChanged<double>? onMidHeight;
+
+  /// Stickers of whoever is already at the place: on the card's first chip, and on the mini pin's corner.
+  final List<String> here;
 
   /// How far a mini pin reaches above its place (card, gap and tail): room to leave when fitting the map around pins.
   static double get miniReach =>
@@ -328,7 +343,7 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
                                   width: midSize.width,
                                   child: IgnorePointer(
                                     ignoring: m < 0.5 || eC > 0.5,
-                                    child: UpNextMid(plan: widget.plan, onOpen: widget.onOpen, part: (p, i, c) => _midPart(p, i, c, m)),
+                                    child: UpNextMid(plan: widget.plan, onOpen: widget.onOpen, here: widget.here, part: (p, i, c) => _midPart(p, i, c, m)),
                                   ),
                                 ),
                               if (m < 0.999)
@@ -351,6 +366,18 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
           ),
         ),
       ),
+      // Who's already there, on the mini pin's corner (on the card they're in the first chip)
+      if (widget.here.isNotEmpty && m < 0.5 && onMapOp > 0)
+        Positioned(
+          left: center.dx + size.width / 2,
+          top: center.dy - size.height / 2,
+          child: IgnorePointer(
+            child: FractionalTranslation(
+              translation: const Offset(-0.5, -0.5),
+              child: Opacity(opacity: (1 - smoothstep(0, 0.5, m)) * onMapOp * hide, child: FacePile(faces: widget.here, size: StickerSize.chip)),
+            ),
+          ),
+        ),
     ]);
   }
 

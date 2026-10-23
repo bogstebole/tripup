@@ -17,6 +17,7 @@ import '../components/basics.dart';
 import '../components/toggle_chips.dart';
 import '../components/detail_sheet.dart';
 import '../components/map_shapes.dart';
+import '../components/people_layer.dart';
 import '../components/plan_pin.dart';
 import '../data.dart';
 import '../design/theme.dart';
@@ -47,6 +48,9 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   /// Days picked in the filter; empty means All.
   Set<int> _days = const {};
   bool _shows(int day) => _days.isEmpty || _days.contains(day);
+
+  /// Whoever has already got to the Up next place.
+  List<String> get _here => [for (final p in people) if (p.id != myId && isHere(p, tripNow())) p.sticker];
 
   Plan get _upNext => plans.first;
   bool get _reduce => MediaQuery.maybeDisableAnimationsOf(context) ?? false;
@@ -247,6 +251,8 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
             children: [
               if (_theme != null && _tiles != null) VectorTileLayer(theme: _theme!, tileProviders: _tiles!),
               _VisitedLayer(shows: _shows),
+              // Where everyone is right now; they only show for today
+              PeopleLayer(shown: _shows(today)),
               _MeLayer(safe: safe),
               _PlansLayer(
                 safe: safe,
@@ -257,6 +263,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
                 onTap: (p) => _tapPlan(p, size),
                 onMidHeight: (h) => _upNextHeight = h,
                 shows: _shows,
+                here: _here,
               ),
             ],
           ),
@@ -363,7 +370,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
                                 maxWidth: _from!.width,
                                 minHeight: 0,
                                 maxHeight: double.infinity,
-                                child: UpNextMid(plan: _upNext),
+                                child: UpNextMid(plan: _upNext, here: _here),
                               ),
                             ),
                           ),
@@ -489,8 +496,9 @@ class _MeLayer extends StatelessWidget {
 
 /// Every planned stop as a pin; the first (Up next) can grow into the card.
 class _PlansLayer extends StatelessWidget {
-  const _PlansLayer({required this.safe, required this.upNextMid, required this.cardKey, required this.sheetOpen, required this.onOpen, required this.onTap, required this.onMidHeight, required this.shows});
+  const _PlansLayer({required this.safe, required this.upNextMid, required this.cardKey, required this.sheetOpen, required this.onOpen, required this.onTap, required this.onMidHeight, required this.shows, required this.here});
   final Rect safe;
+  final List<String> here;
   final bool Function(int day) shows;
   final bool upNextMid, sheetOpen;
   final GlobalKey cardKey;
@@ -521,6 +529,7 @@ class _PlansLayer extends StatelessWidget {
               onOpen: onOpen,
               onTap: () => onTap(p),
               onMidHeight: p == plans.first ? onMidHeight : null,
+              here: p == plans.first ? here : const [],
             ),
           ),
         ),
