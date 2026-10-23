@@ -4,13 +4,25 @@ import 'package:flutter/widgets.dart';
 
 import '../design/tokens.dart';
 
-/// Children arrive one after another: each fades in, sharpens from a light blur and settles up from a few
-/// pixels below (Emil: 30–80 ms stagger, ease-out, under 300 ms each). Runs once when it's built.
+/// Children arrive one after another: each fades in, sharpens from a light blur and settles into place from
+/// [from] (Emil: 30–80 ms stagger, ease-out, under 300 ms each). Waits [delay] first, so whatever is leaving
+/// has mostly gone. Runs once when it's built.
 class StaggerIn extends StatefulWidget {
-  const StaggerIn({super.key, required this.children, this.spacing = 0, this.crossAxisAlignment = CrossAxisAlignment.stretch});
+  const StaggerIn({
+    super.key,
+    required this.children,
+    this.spacing = 0,
+    this.crossAxisAlignment = CrossAxisAlignment.stretch,
+    this.from = const Offset(0, TokDim.tabEnterShift),
+    this.delay = Duration.zero,
+  });
   final List<Widget> children;
   final double spacing;
   final CrossAxisAlignment crossAxisAlignment;
+
+  /// Where each child starts, relative to its place.
+  final Offset from;
+  final Duration delay;
 
   @override
   State<StaggerIn> createState() => _StaggerInState();
@@ -21,7 +33,7 @@ class _StaggerInState extends State<StaggerIn> with SingleTickerProviderStateMix
 
   // Past the first few, the rest come in together with the last one, so a long list doesn't drag on
   int get _steps => widget.children.length.clamp(1, TokMotion.staggerMax);
-  Duration get _total => TokMotion.enter + TokMotion.stagger * (_steps - 1);
+  Duration get _total => widget.delay + TokMotion.enter + TokMotion.stagger * (TokMotion.staggerMax - 1);
 
   @override
   void initState() {
@@ -49,7 +61,7 @@ class _StaggerInState extends State<StaggerIn> with SingleTickerProviderStateMix
       children: [
         for (var i = 0; i < widget.children.length; i++)
           () {
-            final start = (TokMotion.stagger * (i < _steps ? i : _steps - 1)).inMicroseconds / total;
+            final start = (widget.delay + TokMotion.stagger * (i < _steps ? i : _steps - 1)).inMicroseconds / total;
             final end = start + TokMotion.enter.inMicroseconds / total;
             final anim = CurvedAnimation(parent: _c, curve: Interval(start, end.clamp(0.0, 1.0), curve: TokMotion.easeOut));
             return AnimatedBuilder(
@@ -57,7 +69,7 @@ class _StaggerInState extends State<StaggerIn> with SingleTickerProviderStateMix
               child: widget.children[i],
               builder: (context, child) {
                 final t = anim.value, blur = TokMotion.enterBlur * (1 - t);
-                final moved = Transform.translate(offset: Offset(0, TokDim.tabEnterShift * (1 - t)), child: child);
+                final moved = Transform.translate(offset: widget.from * (1 - t), child: child);
                 return Opacity(
                   opacity: t,
                   child: blur < 0.05 ? moved : ImageFiltered(imageFilter: ui.ImageFilter.blur(sigmaX: blur, sigmaY: blur), child: moved),
@@ -70,15 +82,18 @@ class _StaggerInState extends State<StaggerIn> with SingleTickerProviderStateMix
   }
 }
 
-/// How the outgoing tab leaves while the new one staggers in: a short fade with a slight blur.
-Widget fadeBlurOut(Animation<double> anim, Widget child) => AnimatedBuilder(
+/// How the outgoing tab leaves while the new one staggers in: a short fade with a blur, moving toward [to].
+Widget fadeBlurOut(Animation<double> anim, Widget child, {Offset to = Offset.zero}) => AnimatedBuilder(
       animation: anim,
       child: child,
       builder: (context, child) {
-        final blur = TokMotion.enterBlur * (1 - anim.value);
+        // The switcher runs this from 1 down to 0; ease the leaving itself out, so it starts quick
+        final v = 1 - TokMotion.easeOut.transform(1 - anim.value.clamp(0.0, 1.0));
+        final blur = TokMotion.enterBlur * (1 - v);
+        final moved = Transform.translate(offset: to * (1 - v), child: child);
         return Opacity(
-          opacity: anim.value,
-          child: blur < 0.05 ? child : ImageFiltered(imageFilter: ui.ImageFilter.blur(sigmaX: blur, sigmaY: blur), child: child),
+          opacity: v,
+          child: blur < 0.05 ? moved : ImageFiltered(imageFilter: ui.ImageFilter.blur(sigmaX: blur, sigmaY: blur), child: moved),
         );
       },
     );

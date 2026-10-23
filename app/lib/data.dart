@@ -63,10 +63,13 @@ class MenuSection {
   final List<MenuItem> items;
 }
 
+/// The menu once [brasserieMenu] has loaded, so a page can show it on its first frame instead of an empty one.
+List<MenuSection>? loadedMenu;
+
 /// The restaurant's whole menu (real, from its English menu). Loaded once.
 final Future<List<MenuSection>> brasserieMenu = rootBundle.loadString('assets/data/brasserie-menu.json').then((raw) {
   final json = jsonDecode(raw) as Map<String, dynamic>;
-  return [
+  return loadedMenu = [
     for (final s in json['sections'] as List)
       MenuSection(
         s['title'] as String,

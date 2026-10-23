@@ -300,6 +300,7 @@ abstract final class TokDim {
   static const double sheetTopFade = 32;
   static const double sheetTopBlur = 8;
   static const double tabEnterShift = 8;
+  static const double tabSlide = 24;
   static const double meDot = 16;
   static const double meRing = 5;
   static const double meEdgeWidth = 8;
@@ -369,6 +370,7 @@ abstract final class TokMotion {
   static const stagger = Duration(milliseconds: 40);
   static const int staggerMax = 8;
   static const enter = Duration(milliseconds: 260);
+  static const pageEnterDelay = Duration(milliseconds: 80);
   static const double pressScale = 0.97;
   static const press = Duration(milliseconds: 120);
   static const fade = Duration(milliseconds: 160);

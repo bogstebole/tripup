@@ -1,6 +1,6 @@
 import { Banknote, Calendar, Check, Clock, Globe, MapPin, Phone, Truck, X, type LucideIcon } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion, type Variants } from 'motion/react';
-import { useState, type CSSProperties, type ReactNode } from 'react';
+import { createContext, useContext, useState, type CSSProperties, type ReactNode } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import realMenu from '../../../app/assets/data/brasserie-menu.json';
 import { euros, eurosIn, type Person, type PlaceDetail } from '../data';
@@ -43,6 +43,17 @@ export interface DetailSheetProps {
 }
 
 const m = tokens.motion;
+const space = tokens.space as Record<string, number>;
+// A component token is a reference like "{space.xl}"; read the size it points at
+const spaceOf = (ref: string) => space[ref.replace(/^\{space\.|\}$/g, '')];
+const slide = spaceOf(tokens.component.dimension['tab/slide'] as string);
+const rise = spaceOf(tokens.component.dimension['tab/enter-shift'] as string);
+
+/** The page's stagger, handed to every block (a component made inside the sheet would remount on each render). */
+const Stagger = createContext<Variants>({});
+function Block({ i, children, className }: { i: number; children: ReactNode; className?: string }) {
+  return <motion.div custom={i} variants={useContext(Stagger)} className={className}>{children}</motion.div>;
+}
 const tilt = tokens.component.dimension['menu/photo-tilt'];
 const FACT_ICON: Record<PlaceDetail['kind'], LucideIcon> = { address: MapPin, hours: Clock, price: Banknote, booking: Calendar, order: Truck, website: Globe, phone: Phone };
 const ease = m['ease-out'] as [number, number, number, number];
@@ -57,22 +68,29 @@ export function DetailSheet(p: DetailSheetProps) {
   const tab = p.tab ?? own;
   // How far the page has scrolled under the top edge, 0–1 over the top fade's height
   const [under, setUnder] = useState(0);
-  const select = (t: DetailTab) => { setOwn(t); setUnder(0); p.onTabChange?.(t); };
+  // Which way the last tab change went: 1 to the right, -1 to the left, 0 for the page the sheet opened on
+  const [dir, setDir] = useState(0);
+  const select = (t: DetailTab) => { setDir(Math.sign(DETAIL_TABS.indexOf(t) - DETAIL_TABS.indexOf(tab))); setOwn(t); setUnder(0); p.onTabChange?.(t); };
   const reduce = useReducedMotion();
   const [added, setAdded] = useState<Set<string>>(() => new Set(SECTIONS.flatMap(s => s.items).filter(i => i.pickedBy?.includes('ari')).map(i => i.name)));
   const toggle = (name: string) => setAdded(a => { const n = new Set(a); n.has(name) ? n.delete(name) : n.add(name); return n; });
 
-  // Stagger: each block waits its turn (capped so a long list doesn't drag), then sharpens into place
+  // The new page comes in from the side the tab is on, once the old one has mostly gone; the first page rises.
+  // Each block waits its turn (capped so a long list doesn't drag), then sharpens into place. Full transform
+  // strings, so Motion runs them on the compositor.
+  const blur = reduce ? 'none' : `blur(${m['enter-blur']}px)`;
+  const from = reduce ? 'none' : dir ? `translate(${dir * slide}px, 0px)` : `translate(0px, ${rise}px)`;
   const block: Variants = {
-    hidden: { opacity: 0, y: reduce ? 0 : tokens.space.xs, filter: reduce ? 'none' : `blur(${m['enter-blur']}px)` },
+    hidden: { opacity: 0, transform: from, filter: blur },
     shown: (i: number) => ({
-      opacity: 1, y: 0, filter: 'blur(0px)',
-      transition: { duration: reduce ? 0 : m['enter-ms'] / 1000, ease, delay: reduce ? 0 : (Math.min(i, m['stagger-max'] - 1) * m['stagger-ms']) / 1000 },
+      opacity: 1, transform: reduce ? 'none' : 'translate(0px, 0px)', filter: 'blur(0px)',
+      transition: { duration: reduce ? 0 : m['enter-ms'] / 1000, ease, delay: reduce ? 0 : ((dir ? m['page-enter-delay-ms'] : 0) + Math.min(i, m['stagger-max'] - 1) * m['stagger-ms']) / 1000 },
     }),
   };
-  const Block = ({ i, children, className }: { i: number; children: ReactNode; className?: string }) => (
-    <motion.div custom={i} variants={block} className={className}>{children}</motion.div>
-  );
+  // The old page leaves toward the side away from the new tab, quicker than the new one arrives
+  const page: Variants = {
+    leave: (d: number) => ({ opacity: 0, transform: reduce || !d ? 'none' : `translate(${-d * slide}px, 0px)`, filter: blur, transition: { duration: reduce ? 0 : m['fade-ms'] / 1000, ease } }),
+  };
 
   const dishes = SECTIONS.flatMap(s => s.items);
   const pickers = new Set([...dishes.flatMap(i => (i.pickedBy ?? []).filter(id => id !== 'ari')), ...(added.size ? ['ari'] : [])]);
@@ -89,14 +107,17 @@ export function DetailSheet(p: DetailSheetProps) {
         <Button icon={X} label="Close" size="sm" onClick={p.onClose} />
       </div>
       <div className="tu-sheet__pages">
-        <AnimatePresence initial={false}>
+        <Stagger.Provider value={block}>
+        <AnimatePresence initial={false} custom={dir}>
           <motion.div
             key={tab}
+            custom={dir}
+            variants={page}
             className="tu-sheet__scroll"
             onScroll={e => setUnder(Math.min(1, e.currentTarget.scrollTop / parseFloat(getComputedStyle(e.currentTarget).getPropertyValue('--d-sheet-top-fade'))))}
             initial="hidden"
             animate="shown"
-            exit={{ opacity: 0, filter: reduce ? 'none' : `blur(${m['enter-blur']}px)`, transition: { duration: reduce ? 0 : m['fade-ms'] / 1000, ease } }}
+            exit="leave"
           >
             {tab === 'Overview' && (
               <>
@@ -138,51 +159,55 @@ export function DetailSheet(p: DetailSheetProps) {
             )}
             {tab === 'Menu' && (
               <>
-                <Block i={0} className="tu-sheet__head">
-                  <h2 className="tu-sheet__title text-heading-lg">Menu</h2>
+                <Block i={0} className="tu-sheet__info">
+                  <h2 className="tu-sheet__name text-heading-md tu-ellipsis">Menu</h2>
                   <p className="text-body-sm tu-sheet__muted">{pickers.size} of {p.people.length} have picked. Add what you'll have, and the bill splits itself.</p>
                 </Block>
-                {SECTIONS.map((s, si) => (
-                  <Block key={s.title} i={si + 1} className="tu-sheet__section">
-                    <div className="tu-sheet__section-head">
-                      <h3 className="tu-sheet__title text-heading-sm">{s.title}</h3>
-                      {s.note && <p className="text-body-sm tu-sheet__muted">{s.note}</p>}
-                    </div>
-                    <div className="tu-sheet__cards">
-                      {s.items.map((item, i) => {
-                        const others = (item.pickedBy ?? []).filter(id => id !== 'ari');
-                        return (
-                          <div key={item.name} className="tu-dish">
-                            <div className="tu-dish__top">
-                              {item.photo && <DishSticker photo={item.photo} size="menu" tilt={i % 2 ? tilt : -tilt} />}
-                              <div className="tu-dish__text">
-                                <p className="text-label-md">{item.name}</p>
-                                {item.note && <p className="text-body-sm tu-sheet__muted">{item.note}</p>}
+                {/* One block per title and per dish, so the list cascades in rather than arriving in lumps */}
+                {SECTIONS.map((s, si) => {
+                  const first = 1 + SECTIONS.slice(0, si).reduce((n, x) => n + 1 + x.items.length, 0);
+                  return (
+                    <div key={s.title} className="tu-sheet__section">
+                      <Block i={first} className="tu-sheet__section-head">
+                        <h3 className="tu-sheet__title text-heading-sm">{s.title}</h3>
+                        {s.note && <p className="text-body-sm tu-sheet__muted">{s.note}</p>}
+                      </Block>
+                      <div className="tu-sheet__cards">
+                        {s.items.map((item, i) => {
+                          const others = (item.pickedBy ?? []).filter(id => id !== 'ari');
+                          return (
+                            <Block key={item.name} i={first + 1 + i} className="tu-dish">
+                              <div className="tu-dish__top">
+                                {item.photo && <DishSticker photo={item.photo} size="menu" tilt={i % 2 ? tilt : -tilt} />}
+                                <div className="tu-dish__text">
+                                  <p className="text-label-md">{item.name}</p>
+                                  {item.note && <p className="text-body-sm tu-sheet__muted">{item.note}</p>}
+                                </div>
                               </div>
-                            </div>
-                            <div className="tu-dish__foot">
-                              <p className="text-label-md weight-semibold tu-dish__price">{item.price}</p>
-                              {others.length > 0 && <span className="tu-sheet__faces">{others.map(id => <Sticker key={id} name={p.faces[id]} size="chip" />)}</span>}
-                              <AddButton added={added.has(item.name)} itemName={item.name} onToggle={() => toggle(item.name)} />
-                            </div>
-                          </div>
-                        );
-                      })}
+                              <div className="tu-dish__foot">
+                                <p className="text-label-md weight-semibold tu-dish__price">{item.price}</p>
+                                {others.length > 0 && <span className="tu-sheet__faces">{others.map(id => <Sticker key={id} name={p.faces[id]} size="chip" />)}</span>}
+                                <AddButton added={added.has(item.name)} itemName={item.name} onToggle={() => toggle(item.name)} />
+                              </div>
+                            </Block>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </Block>
-                ))}
-                <Block i={SECTIONS.length + 1}><p className="text-body-sm tu-sheet__subtle tu-sheet__pad">Prices with VAT. From the restaurant's own menu. Entrecôte photos are the restaurant's; other dish photos are illustrative, from Wikimedia Commons.</p></Block>
+                  );
+                })}
+                <Block i={dishes.length + SECTIONS.length + 1}><p className="text-body-sm tu-sheet__subtle tu-sheet__pad">Prices with VAT. From the restaurant's own menu. Entrecôte photos are the restaurant's; other dish photos are illustrative, from Wikimedia Commons.</p></Block>
               </>
             )}
             {tab === 'Group' && (
               <>
-                <Block i={0} className="tu-sheet__head">
-                  <h2 className="tu-sheet__title text-heading-lg">Who's coming</h2>
+                <Block i={0} className="tu-sheet__info">
+                  <h2 className="tu-sheet__name text-heading-md tu-ellipsis">Who's coming</h2>
                   <p className="text-body-sm tu-sheet__muted">{going} of {p.people.length} going{p.whenLong ? ` · ${p.whenLong}` : ''}</p>
                 </Block>
-                <Block i={1}>
-                  {p.people.map(x => (
-                    <div key={x.id} className="tu-sheet__row">
+                <div>
+                  {p.people.map((x, xi) => (
+                    <Block key={x.id} i={1 + xi} className="tu-sheet__row">
                       <span className="tu-sheet__face"><Sticker name={x.sticker} size="avatar" /></span>
                       <div className="tu-sheet__row-text">
                         <p className="text-label-md">{x.name}</p>
@@ -203,22 +228,23 @@ export function DetailSheet(p: DetailSheetProps) {
                         return x.status !== 'Not going' ? <span className="text-body-sm tu-sheet__subtle">No picks yet</span> : null;
                       })()}
                       {costOf(x.id) > 0 && <span className="text-label-md weight-semibold tu-sheet__cost">≈ {euros(costOf(x.id))}</span>}
-                    </div>
+                    </Block>
                   ))}
-                </Block>
+                </div>
               </>
             )}
           </motion.div>
         </AnimatePresence>
+        </Stagger.Provider>
         {/* Content scrolling up passes under a blur and the surface's white instead of being cut at the edge */}
         <div className="tu-sheet__top-fade" aria-hidden style={{ '--under': under } as CSSProperties} />
       </div>
       {/* Group: the total stays put at the bottom while the list scrolls above it */}
       {tab === 'Group' && total > 0 && (
-        <div className="tu-sheet__footer">
+        <motion.div className="tu-sheet__footer" variants={block} custom={1} initial="hidden" animate="shown">
           <p className="text-label-lg tu-sheet__total-label">Estimated total</p>
           <p className="text-heading-lg tu-sheet__cost">≈ {euros(total)}</p>
-        </div>
+        </motion.div>
       )}
     </article>
   );

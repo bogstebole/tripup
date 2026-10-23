@@ -268,6 +268,18 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 ### Final UI, iteration 1.11: People tab is now Group
 - The full view's third tab is called **Group**: it holds who's coming, what each person picked, roughly what they'll pay and the total, not only a list of people, and it fits plans without a menu too. The page title stays "Who's coming". Storybook's story is now "Full view · Group".
 
+### Final UI, iteration 1.12: tabs that move, titles that line up
+- **Titles:** Menu and Group open with a title the same size and in the same place as the restaurant's name on Overview (Heading/MD), with their line under it.
+- **Tab change, following Emil's rules:**
+  - The old page leaves toward the side away from the new tab: it fades, blurs (4 px) and slides 24 px in 160 ms, ease-out.
+  - 80 ms later the new page comes in from the side its tab is on. It cascades block by block, 40 ms apart and capped at 8, each fading in, sharpening and settling over 260 ms, ease-out.
+  - Exit is quicker than entry, and the direction follows the tab order, so going right moves left.
+  - Menu and Group now stagger per dish and per person, instead of a whole section at once.
+  - With reduced motion, nothing slides; it only fades.
+- **No empty flash:** the Menu and Group pages had one empty frame while the already-loaded menu was handed over; they now draw it on the first frame.
+- **Storybook:** a block no longer remounts and replays its entrance on every re-render (tapping Add did that). It uses full transform strings, so Motion runs on the compositor.
+- New tokens: `tab/slide`, `motion.page-enter-delay-ms`.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

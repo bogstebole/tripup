@@ -32,6 +32,17 @@ class DetailSheet extends StatefulWidget {
 class _DetailSheetState extends State<DetailSheet> {
   int _tab = 0;
 
+  /// Which way the last tab change went: 1 to the right, -1 to the left, 0 for the page the sheet opened on.
+  int _dir = 0;
+
+  /// The new page comes in from the side the tab is on, once the old one has mostly gone; the first page rises.
+  Widget _enter({required List<Widget> children, double spacing = 0}) => StaggerIn(
+        spacing: spacing,
+        from: _dir == 0 ? const Offset(0, TokDim.tabEnterShift) : Offset(_dir * TokDim.tabSlide, 0),
+        delay: _dir == 0 ? Duration.zero : TokMotion.pageEnterDelay,
+        children: children,
+      );
+
   /// The dishes I'll have: my picks from before, then whatever I add or remove here.
   Set<String>? _mine;
 
@@ -64,7 +75,10 @@ class _DetailSheetState extends State<DetailSheet> {
               duration: TokMotion.fade,
               layoutBuilder: (current, previous) => Stack(alignment: Alignment.topCenter, children: [...previous, ?current]),
               // The new page runs its own stagger; only the old one needs the switcher's fade
-              transitionBuilder: (child, anim) => child.key == ValueKey(_tab) ? child : fadeBlurOut(anim, child),
+              // The old page leaves toward the side away from the new tab (with reduced motion, it only fades)
+              transitionBuilder: (child, anim) => child.key == ValueKey(_tab)
+                  ? child
+                  : fadeBlurOut(anim, child, to: (MediaQuery.maybeDisableAnimationsOf(context) ?? false) ? Offset.zero : Offset(-_dir * TokDim.tabSlide, 0)),
               child: KeyedSubtree(key: ValueKey(_tab), child: _page(context)),
             ),
           ),
@@ -115,7 +129,10 @@ class _DetailSheetState extends State<DetailSheet> {
                     index: _tab,
                     onChanged: (i) {
                       _under.value = 0;   // the new page starts at its top
-                      setState(() => _tab = i);
+                      setState(() {
+                        _dir = (i - _tab).sign;
+                        _tab = i;
+                      });
                     },
                   ),
                   TuButton(icon: TuIcons.close, label: 'Close', size: TuButtonSize.sm, onTap: widget.onClose),
@@ -175,6 +192,7 @@ class _DetailSheetState extends State<DetailSheet> {
   /// The menu, with my picks seeded from it the first time it arrives.
   Widget _withMenu(Widget Function(List<MenuSection> sections, Set<String> mine) build) => FutureBuilder<List<MenuSection>>(
         future: brasserieMenu,
+        initialData: loadedMenu,
         builder: (context, snap) {
           final sections = snap.data ?? const <MenuSection>[];
           if (snap.hasData) _mine ??= {for (final s in sections) for (final i in s.items) if (i.pickedBy.contains(myId)) i.name};
@@ -188,7 +206,7 @@ class _DetailSheetState extends State<DetailSheet> {
   Widget _overview(BuildContext context) {
     final t = context.tok;
     final p = widget.plan;
-    return _scroll(StaggerIn(spacing: TokSpace.md, children: [
+    return _scroll(_enter(spacing: TokSpace.md, children: [
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x2xs, children: [
@@ -204,22 +222,30 @@ class _DetailSheetState extends State<DetailSheet> {
     ]));
   }
 
-  // ---------- Menu: the whole real menu as cards, prices, who picked what, and Add
+  // ---------- Menu: the whole real menu, prices, who picked what, and Add
   Widget _menu(BuildContext context) {
     final t = context.tok;
     return _withMenu((sections, mine) {
       final pickers = {for (final s in sections) for (final i in s.items) ...i.pickedBy.where((id) => id != myId), if (mine.isNotEmpty) myId};
-      return _scroll(StaggerIn(spacing: TokSpace.xl, children: [
+      // One block per title and per dish, so the list cascades in rather than arriving in lumps
+      return _scroll(_enter(children: [
+        _PageTitle(title: 'Menu', subtitle: '${pickers.length} of ${people.length} have picked. Add what you\'ll have, and the bill splits itself.'),
+        for (final s in sections) ...[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.xl, TokSpace.xs, 0),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x3xs, children: [
+              Text(s.title, style: TokText.headingSm.copyWith(color: t.textDefault)),
+              if (s.note != null) Text(s.note!, style: TokText.bodySm.copyWith(color: t.textMuted)),
+            ]),
+          ),
+          for (var i = 0; i < s.items.length; i++)
+            Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              if (i > 0) const _Hairline(),
+              _MenuRow(item: s.items[i], index: i, added: mine.contains(s.items[i].name), onToggle: _toggle),
+            ]),
+        ],
         Padding(
-          padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.xs, TokSpace.xs, 0),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x2xs, children: [
-            Text('Menu', style: TokText.headingLg.copyWith(color: t.textDefault)),
-            Text('${pickers.length} of ${people.length} have picked. Add what you\'ll have, and the bill splits itself.', style: TokText.bodySm.copyWith(color: t.textMuted)),
-          ]),
-        ),
-        for (final s in sections) _MenuSectionView(section: s, mine: mine, onToggle: _toggle),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
+          padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.xl, TokSpace.xs, 0),
           child: Text('Prices with VAT. From the restaurant\'s own menu. Entrecôte photos are the restaurant\'s; other dish photos are illustrative, from Wikimedia Commons.', style: TokText.bodySm.copyWith(color: t.textSubtle)),
         ),
       ]));
@@ -235,34 +261,48 @@ class _DetailSheetState extends State<DetailSheet> {
       // Roughly what each person's picks come to, and all of them together
       final cost = {for (final x in people) x.id: picksOf(x.id).fold(0.0, (sum, d) => sum + (eurosIn(d.price) ?? 0))};
       final total = cost.values.fold(0.0, (a, b) => a + b);
-      final list = _scroll(StaggerIn(spacing: TokSpace.md, children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.xs, TokSpace.xs, 0),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x2xs, children: [
-            Text("Who's coming", style: TokText.headingLg.copyWith(color: t.textDefault)),
-            Text('${people.where((x) => x.going).length} of ${people.length} going · ${widget.plan.whenLong}', style: TokText.bodySm.copyWith(color: t.textMuted)),
-          ]),
-        ),
-        Column(children: [
-          for (var i = 0; i < people.length; i++) ...[
+      final list = _scroll(_enter(children: [
+        _PageTitle(title: "Who's coming", subtitle: '${people.where((x) => x.going).length} of ${people.length} going · ${widget.plan.whenLong}'),
+        const SizedBox(height: TokSpace.md),
+        for (var i = 0; i < people.length; i++)
+          Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             if (i > 0) const _Hairline(),
             _PersonRow(person: people[i], picks: picksOf(people[i].id), cost: cost[people[i].id]!),
-          ],
-        ]),
+          ]),
       ]));
       if (total <= 0) return list;
       // The total stays put at the bottom while the list scrolls above it
       return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Expanded(child: list),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.xs, TokSpace.xs, TokSpace.md),
-          child: Row(spacing: TokSpace.sm, children: [
-            Expanded(child: Text('Estimated total', style: TokText.labelLg.copyWith(color: t.textDefault))),
-            Text('≈ ${euros(total)}', style: TokText.headingLg.copyWith(color: t.textDefault)),
-          ]),
-        ),
+        _enter(children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.xs, TokSpace.xs, TokSpace.md),
+            child: Row(spacing: TokSpace.sm, children: [
+              Expanded(child: Text('Estimated total', style: TokText.labelLg.copyWith(color: t.textDefault))),
+              Text('≈ ${euros(total)}', style: TokText.headingLg.copyWith(color: t.textDefault)),
+            ]),
+          ),
+        ]),
       ]);
     });
+  }
+}
+
+/// A page's title and the line under it, the same size and place as the place's name on Overview.
+class _PageTitle extends StatelessWidget {
+  const _PageTitle({required this.title, required this.subtitle});
+  final String title, subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tok;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x2xs, children: [
+        Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingMd.copyWith(color: t.textDefault)),
+        Text(subtitle, style: TokText.bodySm.copyWith(color: t.textMuted)),
+      ]),
+    );
   }
 }
 
@@ -368,31 +408,6 @@ class _FactRow extends StatelessWidget {
           Expanded(child: child),
         ]),
       );
-}
-
-class _MenuSectionView extends StatelessWidget {
-  const _MenuSectionView({required this.section, required this.mine, required this.onToggle});
-  final MenuSection section;
-  final Set<String> mine;
-  final ValueChanged<String> onToggle;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tok;
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x3xs, children: [
-          Text(section.title, style: TokText.headingSm.copyWith(color: t.textDefault)),
-          if (section.note != null) Text(section.note!, style: TokText.bodySm.copyWith(color: t.textMuted)),
-        ]),
-      ),
-      for (var i = 0; i < section.items.length; i++) ...[
-        if (i > 0) const _Hairline(),
-        _MenuRow(item: section.items[i], index: i, added: mine.contains(section.items[i].name), onToggle: onToggle),
-      ],
-    ]);
-  }
 }
 
 /// One dish in a plain list: its photo as a sticker, name and the full description; under them, the price,

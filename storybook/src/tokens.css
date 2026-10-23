@@ -193,6 +193,7 @@
   --d-sheet-top-fade: 32px;
   --d-sheet-top-blur: 8px;
   --d-tab-enter-shift: 8px;
+  --d-tab-slide: 24px;
   --d-me-dot: 16px;
   --d-me-ring: 5px;
   --d-me-edge-width: 8px;
@@ -210,6 +211,7 @@
   --morph-enter-scale: 0.9;
   --stagger-ms: 40ms;
   --enter-ms: 260ms;
+  --page-enter-delay-ms: 80ms;
   --press-scale: 0.97;
   --press-ms: 120ms;
   --fade-ms: 160ms;
