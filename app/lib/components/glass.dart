@@ -85,6 +85,11 @@ abstract final class TuIcons {
   static const close = Lucide.x;
   static const star = Lucide.star;
   static const check = Lucide.check;
+  static const hours = Lucide.clock;
+  static const price = Lucide.banknote;
+  static const delivery = Lucide.truck;
+  static const website = Lucide.globe;
+  static const phone = Lucide.phone;
 }
 
 /// A Lucide icon with a 2 px stroke at any size (like lucide-react's `absoluteStrokeWidth` in Storybook).

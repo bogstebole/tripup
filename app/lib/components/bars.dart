@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/widgets.dart';
 
 import '../design/theme.dart';
@@ -27,8 +29,11 @@ class TopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tok;
     final top = MediaQuery.paddingOf(context).top;
-    return Container(
-      padding: EdgeInsets.fromLTRB(0, top + TokSpace.xl, 0, TokSpace.xl),
+    // The map blurs more toward the top under a white fade, both running past the day filter, so the bar reads over any map
+    return Stack(children: [
+      const Positioned.fill(child: _ProgressiveBlur(sigma: TokDim.topBarBlur)),
+      Container(
+      padding: EdgeInsets.fromLTRB(0, top + TokSpace.xl, 0, TokSpace.x2xl),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -53,8 +58,38 @@ class TopBar extends StatelessWidget {
         ),
         ?filter,
       ]),
-    );
+      ),
+    ]);
   }
+}
+
+/// A backdrop blur that is strongest at the top and fades out toward the bottom. A masked blur doesn't
+/// render on iOS, so it's built from bands that each blur a little less, all reading one shared backdrop.
+class _ProgressiveBlur extends StatelessWidget {
+  const _ProgressiveBlur({required this.sigma});
+  final double sigma;
+
+  /// Enough steps that no edge between them shows under the fade.
+  static const _bands = 8;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(builder: (context, box) {
+        final h = box.maxHeight, start = TokDim.topBarFadeStart * h;
+        Widget band(double top, double bottom, double s) => Positioned(
+              left: 0,
+              right: 0,
+              top: top,
+              height: bottom - top,
+              child: ClipRect(child: BackdropFilter.grouped(filter: ui.ImageFilter.blur(sigmaX: s, sigmaY: s), child: const SizedBox.expand())),
+            );
+        return BackdropGroup(
+          child: Stack(children: [
+            // Full strength down to where the white starts fading, then a little less in each band
+            band(0, start, sigma),
+            for (var j = 0; j < _bands; j++) band(start + (h - start) * j / _bands, start + (h - start) * (j + 1) / _bands, sigma * (1 - (j + 1) / (_bands + 1))),
+          ]),
+        );
+      });
 }
 
 /// The trip's four actions: plan, places, money, and add (the one primary).

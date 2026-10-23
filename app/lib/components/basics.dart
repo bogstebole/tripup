@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
@@ -39,6 +41,44 @@ class Sticker extends StatelessWidget {
   Widget build(BuildContext context) {
     final img = Image.asset('assets/stickers/$name.png', height: height ?? heightOf(size!), fit: BoxFit.contain, filterQuality: FilterQuality.medium);
     return tilt == 0 ? img : Transform.rotate(angle: tilt * 3.141592653589793 / 180, child: img);
+  }
+}
+
+/// A dish photo dressed as one of the app's die-cut stickers: white edge, soft shadow, a slight tilt.
+class DishSticker extends StatelessWidget {
+  const DishSticker(this.photo, {super.key, required this.size, required this.edge, required this.radius, this.tilt = 0});
+
+  /// File name in assets/photos/menu, without .jpg.
+  final String photo;
+  final double size, edge, radius;
+
+  /// Degrees.
+  final double tilt;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tok;
+    final inner = size - edge * 2;
+    return Transform.rotate(
+      angle: tilt * math.pi / 180,
+      child: Container(
+        width: size,
+        height: size,
+        padding: EdgeInsets.all(edge),
+        decoration: BoxDecoration(color: t.cDishEdge, borderRadius: BorderRadius.circular(radius + edge), boxShadow: TokShadow.slightlyRaised),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(radius),
+          child: Image.asset(
+            'assets/photos/menu/$photo.jpg',
+            width: inner,
+            height: inner,
+            fit: BoxFit.cover,
+            cacheWidth: (inner * MediaQuery.devicePixelRatioOf(context)).round(),
+            excludeFromSemantics: true,
+          ),
+        ),
+      ),
+    );
   }
 }
 

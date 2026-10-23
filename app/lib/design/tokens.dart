@@ -66,6 +66,7 @@ class TokColors {
     'c/segment/off-fg': Color(0xFF71717A),
     'c/chip/bg': Color(0xFFE4E4E7),
     'c/chip/fg': Color(0xFF2563EB),
+    'c/dish/edge': Color(0xFFFFFFFF),
     'c/day-chip/off-bg': Color(0xFFE4E4E7),
     'c/day-chip/off-fg': Color(0xFF09090B),
     'c/count-bubble/bg': Color(0x1A000000),
@@ -131,6 +132,7 @@ class TokColors {
     'c/segment/off-fg': Color(0xFFA1A1AA),
     'c/chip/bg': Color(0xFF27272A),
     'c/chip/fg': Color(0xFF60A5FA),
+    'c/dish/edge': Color(0xFFFFFFFF),
     'c/day-chip/off-bg': Color(0xFF27272A),
     'c/day-chip/off-fg': Color(0xFFFAFAFA),
     'c/count-bubble/bg': Color(0x1A000000),
@@ -195,6 +197,7 @@ class TokColors {
   Color get cSegmentOffFg => _m['c/segment/off-fg']!;
   Color get cChipBg => _m['c/chip/bg']!;
   Color get cChipFg => _m['c/chip/fg']!;
+  Color get cDishEdge => _m['c/dish/edge']!;
   Color get cDayChipOffBg => _m['c/day-chip/off-bg']!;
   Color get cDayChipOffFg => _m['c/day-chip/off-fg']!;
   Color get cCountBubbleBg => _m['c/count-bubble/bg']!;
@@ -284,8 +287,13 @@ abstract final class TokDim {
   static const double photosPeekEnd = 62;
   static const double menuPhoto = 64;
   static const double menuPhotoRadius = 12;
+  static const double menuPhotoEdge = 4;
+  static const double menuPhotoTilt = 3;
+  static const double dishPickSize = 32;
+  static const double dishPickEdge = 2;
   static const double sheetInset = 16;
   static const double sheetBackdropBlur = 12;
+  static const double sheetFade = 16;
   static const double tabEnterShift = 8;
   static const double meDot = 16;
   static const double meRing = 5;
@@ -294,7 +302,8 @@ abstract final class TokDim {
   static const double meGlowWidth = 20;
   static const double meGlowHeight = 36;
   static const double meCone = 24;
-  static const double topBarFadeStart = 0.17;
+  static const double topBarFadeStart = 0.5;
+  static const double topBarBlur = 12;
 }
 
 abstract final class TokFont {

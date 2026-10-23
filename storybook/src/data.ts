@@ -29,6 +29,8 @@ export const MENU: Dish[] = [
   { id: 'ice-cream', name: 'Lime sorbet', price: '€6', sticker: 'ice-cream', pickedBy: ['ari', 'maya', 'nic'] },
 ];
 
+export type PlaceDetail = { kind: 'address' | 'hours' | 'price' | 'booking' | 'order' | 'website' | 'phone'; text: string; status?: string; sub?: string };
+
 export const EVENT = {
   label: 'Up next',
   name: "La Brasserie de L'Entrecôte - Alvalade",
@@ -39,6 +41,17 @@ export const EVENT = {
   eta: 'In 64 mins',
   sticker: 'wings',
   photos: ['brasserie-1', 'brasserie-2', 'brasserie-3'],
+  // From the place's Google Maps card
+  services: ['Dine-in', 'Takeaway', 'Delivery'],
+  details: [
+    { kind: 'address', text: 'Av. da Igreja 12B, 1700-238 Lisboa' },
+    { kind: 'hours', text: 'Closes 11 PM', status: 'Open', sub: 'Opens 12 PM tomorrow' },
+    { kind: 'price', text: '€20–40 per person', sub: 'Reported by 57 people' },
+    { kind: 'booking', text: 'Find a table', sub: 'thefork.pt' },
+    { kind: 'order', text: 'Place an order', sub: 'ubereats.com' },
+    { kind: 'website', text: 'brasserieentrecote.pt' },
+    { kind: 'phone', text: '+351 21 090 0179' },
+  ] as PlaceDetail[],
   about:
     'La Brasserie de L’Entrecôte is a unique restaurant in many ways. For 30 years we have specialized in preparing a very special dish: the tender and sliced Entrecote, served with delicious and crispy French fries, complemented with delicious starters, countless deserts and an excellent wine list.',
   tips: [

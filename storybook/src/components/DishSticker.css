@@ -1,0 +1,16 @@
+.tu-dish-sticker { display: inline-block; flex: none; background: var(--c-dish-edge); box-shadow: var(--shadow-slightly-raised); }
+.tu-dish-sticker img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.tu-dish-sticker--menu {
+  width: var(--d-menu-photo);
+  height: var(--d-menu-photo);
+  padding: var(--d-menu-photo-edge);
+  border-radius: calc(var(--d-menu-photo-radius) + var(--d-menu-photo-edge));
+}
+.tu-dish-sticker--menu img { border-radius: var(--d-menu-photo-radius); }
+.tu-dish-sticker--pick {
+  width: var(--d-dish-pick-size);
+  height: var(--d-dish-pick-size);
+  padding: var(--d-dish-pick-edge);
+  border-radius: calc(var(--radius-sm) + var(--d-dish-pick-edge));
+}
+.tu-dish-sticker--pick img { border-radius: var(--radius-sm); }

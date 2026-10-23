@@ -230,6 +230,15 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - **Tab switcher:** the selected tab's heavier weight made the row wider after the pill had measured it, so the pill ran past the track and its shadow was cut. Each tab now reserves the heavier width, and the pill's shadow may spill past the track.
 - New tokens: `motion.morph-enter-scale`, `day-chip/off-bg`, `day-chip/off-fg`, `day-chip/height`, `day-chip/padding-x`, `day-chip/gap`, `menu/photo`, `menu/photo-radius`. New components: `DayFilter` and `DayChip` (Flutter and Storybook).
 
+### Final UI, iteration 1.4: header blur, sheet that scrolls, menu cards, picks, place details
+- **Header:** the white fade now runs past the day filter (it starts fading halfway down instead of near the top, and ends 32 px below the chips), with a progressive blur of the map under it: full strength behind the title, less in each of 8 bands below. A masked blur doesn't render on iOS, so it's bands reading one shared backdrop. Same in Storybook with a masked `backdrop-filter`.
+- **Full view scrolls everywhere.** The photos and title used to be the handle for pulling the sheet down, which also meant you couldn't scroll from them. Now every page scrolls from anywhere and bounces at the bottom, and pulling past the top pulls the sheet. While it's pulled, moving back up lifts the sheet first. The bottom fade is 16 px instead of 24, and the last block can scroll clear of it.
+- **Menu as cards:** the dish photo as a sticker (white 4 px edge, soft shadow, ±3° tilt), then the name and the whole description, which now runs to the edge. The card's footer holds the price, the faces of whoever else picked it, and Add. Add and remove now work on my earlier picks too.
+- **People:** next to each person, a little pile of the dishes they picked ("No picks yet" if none), so you can see at a glance who has chosen. My pile follows what I add in Menu.
+- **Overview → Details**, from the place's Google Maps card: Dine-in, Takeaway, Delivery; address; hours ("Open · Closes 11 PM"); €20–40 per person (57 reports); Find a table (TheFork); Place an order (Uber Eats); website; phone. Plain rows with Lucide icons.
+- New tokens: `top-bar/blur`, `sheet/fade`, `menu/photo-edge`, `menu/photo-tilt`, `dish-pick/size`, `dish-pick/edge`, `dish/edge`; `top-bar/fade-start` 0.17 → 0.5. New components: `DishSticker` (Flutter and Storybook). New icons: clock, banknote, truck, globe, phone.
+- Checked on the simulator: the header, scrolling and pull-to-close on Overview, Menu cards, People piles, and the Details rows.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

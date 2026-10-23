@@ -50,6 +50,7 @@
   --c-segment-off-fg: #71717a;
   --c-chip-bg: #e4e4e7;
   --c-chip-fg: #2563eb;
+  --c-dish-edge: #ffffff;
   --c-day-chip-off-bg: #e4e4e7;
   --c-day-chip-off-fg: #09090b;
   --c-count-bubble-bg: rgb(0 0 0 / 0.1);
@@ -181,8 +182,13 @@
   --d-photos-peek-end: 62px;
   --d-menu-photo: 64px;
   --d-menu-photo-radius: 12px;
+  --d-menu-photo-edge: 4px;
+  --d-menu-photo-tilt: 3px;
+  --d-dish-pick-size: 32px;
+  --d-dish-pick-edge: 2px;
   --d-sheet-inset: 16px;
   --d-sheet-backdrop-blur: 12px;
+  --d-sheet-fade: 16px;
   --d-tab-enter-shift: 8px;
   --d-me-dot: 16px;
   --d-me-ring: 5px;
@@ -191,7 +197,8 @@
   --d-me-glow-width: 20px;
   --d-me-glow-height: 36px;
   --d-me-cone: 24px;
-  --d-top-bar-fade-start: 0.17;
+  --d-top-bar-fade-start: 0.5;
+  --d-top-bar-blur: 12px;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
@@ -255,6 +262,7 @@
   --c-segment-off-fg: #a1a1aa;
   --c-chip-bg: #27272a;
   --c-chip-fg: #60a5fa;
+  --c-dish-edge: #ffffff;
   --c-day-chip-off-bg: #27272a;
   --c-day-chip-off-fg: #fafafa;
   --c-count-bubble-bg: rgb(0 0 0 / 0.1);

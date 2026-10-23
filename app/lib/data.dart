@@ -22,6 +22,9 @@ const people = [
 ];
 String faceOf(String id) => people.firstWhere((p) => p.id == id).sticker;
 
+/// Me, in the people list and in who picked what.
+const myId = 'ari';
+
 class Dish {
   const Dish(this.name, this.price, this.sticker, this.pickedBy);
   final String name, price, sticker;
@@ -84,6 +87,8 @@ class Plan {
     this.about = '',
     this.tips = const [],
     this.menu = const [],
+    this.services = const [],
+    this.details = const [],
   });
   final String id, name, eta, sticker, rating, cuisine, about;
   final LatLng at;
@@ -94,6 +99,22 @@ class Plan {
   final List<InfoChip> chips;
   final List<String> photos, tips;
   final List<Dish> menu;
+
+  /// Service options, as on the place's Google Maps card ("Dine-in", "Takeaway", …).
+  final List<String> services;
+
+  /// The rest of that card: address, hours, price, where to book or order, website, phone.
+  final List<PlaceDetail> details;
+}
+
+enum PlaceDetailKind { address, hours, price, booking, order, website, phone }
+
+/// One line of a place's facts. [status] leads the line in colour ("Open"); [sub] is the smaller line under it.
+class PlaceDetail {
+  const PlaceDetail(this.kind, this.text, {this.status, this.sub});
+  final PlaceDetailKind kind;
+  final String text;
+  final String? status, sub;
 }
 
 /// Planned, in order. The first one is Up next; all of them show as pins so they stand apart from past places.
@@ -110,6 +131,17 @@ const plans = [
     fan: [FanSticker('pho', 44.79, 0), FanSticker('sushi', 78.53, -7.99), FanSticker('wings', 95, 0), FanSticker('ice-cream', 65.47, 8.59)],
     chips: [InfoChip('+3', sticker: 'person-05', tilt: -6.22), InfoChip('€€', grow: true), InfoChip('5 PM • Today')],
     photos: ['brasserie-1', 'brasserie-2', 'brasserie-3'],
+    // From the place's Google Maps card
+    services: ['Dine-in', 'Takeaway', 'Delivery'],
+    details: [
+      PlaceDetail(PlaceDetailKind.address, 'Av. da Igreja 12B, 1700-238 Lisboa'),
+      PlaceDetail(PlaceDetailKind.hours, 'Closes 11 PM', status: 'Open', sub: 'Opens 12 PM tomorrow'),
+      PlaceDetail(PlaceDetailKind.price, '€20–40 per person', sub: 'Reported by 57 people'),
+      PlaceDetail(PlaceDetailKind.booking, 'Find a table', sub: 'thefork.pt'),
+      PlaceDetail(PlaceDetailKind.order, 'Place an order', sub: 'ubereats.com'),
+      PlaceDetail(PlaceDetailKind.website, 'brasserieentrecote.pt'),
+      PlaceDetail(PlaceDetailKind.phone, '+351 21 090 0179'),
+    ],
     about:
         'La Brasserie de L’Entrecôte is a unique restaurant in many ways. For 30 years we have specialized in preparing a very special dish: the tender and sliced Entrecote, served with delicious and crispy French fries, complemented with delicious starters, countless deserts and an excellent wine list.',
     tips: [

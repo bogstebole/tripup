@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { EVENT, MENU, PEOPLE, TRIP_DAYS } from '../data';
 import { AddButton } from './AddButton';
 import { DayFilter } from './DayFilter';
+import { DishSticker } from './DishSticker';
 import { InfoChips } from './InfoChips';
 import { KnowRow, KnowSection } from './KnowSection';
 import { PeopleButton } from './PeopleButton';
@@ -89,4 +90,16 @@ export const Days: Story = {
     const [days, setDays] = useState<number[]>([]);
     return <div style={{ width: 393 }}><DayFilter days={TRIP_DAYS} selected={days} onChange={setDays} /></div>;
   },
+};
+
+export const Dish: Story = {
+  name: 'DishSticker',
+  parameters: { docs: { description: { story: 'A dish photo dressed as one of the app\'s die-cut stickers: white edge, soft shadow, a slight tilt that alternates down a list. `menu` (64 px, 4 px edge) sits on a menu card; `pick` (32 px, 2 px edge) piles up next to a person to show what they\'ll have.' } } },
+  render: () => (
+    <div style={{ display: 'flex', gap: 'var(--space-xl)', alignItems: 'center' }}>
+      <DishSticker photo="entrecote" size="menu" tilt={-3} />
+      <DishSticker photo="creme-brulee" size="menu" tilt={3} />
+      <span style={{ display: 'flex', gap: 'var(--space-3xs)' }}><DishSticker photo="entrecote" size="pick" tilt={3} /><DishSticker photo="fondant" size="pick" tilt={-3} /></span>
+    </div>
+  ),
 };

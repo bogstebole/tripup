@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/widgets.dart';
 
 import '../data.dart';
@@ -11,8 +13,8 @@ import 'stagger.dart';
 const detailTabs = ['Overview', 'Menu', 'People'];
 
 /// The full view of a plan (see Storybook: Screens/Trip → Full view). Each tab replaces everything above the
-/// tabs; the new page staggers in with a light blur while the old one fades out. The top of each page is the
-/// handle for pulling the sheet down ([onHeaderDragUpdate] / [onHeaderDragEnd]).
+/// tabs; the new page staggers in with a light blur while the old one fades out. Every page scrolls; pulling
+/// down once it's at the top pulls the sheet down instead ([onHeaderDragUpdate] / [onHeaderDragEnd]).
 class DetailSheet extends StatefulWidget {
   const DetailSheet({super.key, required this.plan, this.onClose, this.onHeaderDragUpdate, this.onHeaderDragEnd});
   final Plan plan;
@@ -26,7 +28,11 @@ class DetailSheet extends StatefulWidget {
 
 class _DetailSheetState extends State<DetailSheet> {
   int _tab = 0;
-  final _added = <String>{};   // dishes I added, on top of my picks from before
+
+  /// The dishes I'll have: my picks from before, then whatever I add or remove here.
+  Set<String>? _mine;
+
+  late final _pull = _Pull((dy) => widget.onHeaderDragUpdate?.call(DragUpdateDetails(globalPosition: Offset.zero, delta: Offset(0, dy), primaryDelta: dy)));
 
   @override
   Widget build(BuildContext context) {
@@ -34,12 +40,15 @@ class _DetailSheetState extends State<DetailSheet> {
       padding: const EdgeInsets.all(TokSpace.xs),
       child: Column(spacing: TokSpace.md, children: [
         Expanded(
-          child: AnimatedSwitcher(
-            duration: TokMotion.fade,
-            layoutBuilder: (current, previous) => Stack(alignment: Alignment.topCenter, children: [...previous, ?current]),
-            // The new page runs its own stagger; only the old one needs the switcher's fade
-            transitionBuilder: (child, anim) => child.key == ValueKey(_tab) ? child : fadeBlurOut(anim, child),
-            child: KeyedSubtree(key: ValueKey(_tab), child: _page(context)),
+          child: NotificationListener<ScrollNotification>(
+            onNotification: _onScroll,
+            child: AnimatedSwitcher(
+              duration: TokMotion.fade,
+              layoutBuilder: (current, previous) => Stack(alignment: Alignment.topCenter, children: [...previous, ?current]),
+              // The new page runs its own stagger; only the old one needs the switcher's fade
+              transitionBuilder: (child, anim) => child.key == ValueKey(_tab) ? child : fadeBlurOut(anim, child),
+              child: KeyedSubtree(key: ValueKey(_tab), child: _page(context)),
+            ),
           ),
         ),
         Row(crossAxisAlignment: CrossAxisAlignment.end, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
@@ -50,10 +59,22 @@ class _DetailSheetState extends State<DetailSheet> {
     );
   }
 
-  Widget _handle(Widget child) => GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onVerticalDragUpdate: widget.onHeaderDragUpdate,
-        onVerticalDragEnd: widget.onHeaderDragEnd,
+  /// A page pulled past its top pulls the sheet; letting go hands the finger's speed to the sheet.
+  bool _onScroll(ScrollNotification n) {
+    if (n.depth != 0) return false;
+    if (n is OverscrollNotification && n.dragDetails != null && n.overscroll < 0) {
+      _pull.move(-n.overscroll);
+    } else if (n is ScrollEndNotification && _pull.pulled > 0) {
+      _pull.pulled = 0;
+      widget.onHeaderDragEnd?.call(n.dragDetails ?? DragEndDetails(velocity: Velocity.zero));
+    }
+    return false;
+  }
+
+  Widget _scroll(Widget child) => SingleChildScrollView(
+        physics: _SheetPhysics(pull: _pull, parent: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics())),
+        // Room for the last block to scroll clear of the fade
+        padding: const EdgeInsets.only(bottom: TokDim.sheetFade),
         child: child,
       );
 
@@ -72,165 +93,280 @@ class _DetailSheetState extends State<DetailSheet> {
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [solid, solid, solid.withValues(alpha: 0)],
-        stops: [0, 1 - TokSpace.xl / r.height, 1],
+        stops: [0, 1 - TokDim.sheetFade / r.height, 1],
       ).createShader(r),
       child: child,
     );
   }
 
-  // ---------- Overview: Bogdan's design, unchanged
+  /// The menu, with my picks seeded from it the first time it arrives.
+  Widget _withMenu(Widget Function(List<MenuSection> sections, Set<String> mine) build) => FutureBuilder<List<MenuSection>>(
+        future: brasserieMenu,
+        builder: (context, snap) {
+          final sections = snap.data ?? const <MenuSection>[];
+          if (snap.hasData) _mine ??= {for (final s in sections) for (final i in s.items) if (i.pickedBy.contains(myId)) i.name};
+          return build(sections, _mine ?? const {});
+        },
+      );
+
+  void _toggle(String name) => setState(() => _mine!.contains(name) ? _mine!.remove(name) : _mine!.add(name));
+
+  // ---------- Overview: Bogdan's design, then the place's facts from Google Maps
   Widget _overview(BuildContext context) {
     final t = context.tok;
     final p = widget.plan;
-    return SingleChildScrollView(
-      child: StaggerIn(spacing: TokSpace.md, children: [
-        _handle(SizedBox(
-          height: TokDim.photosHeight,
-          child: Row(spacing: TokSpace.xs, children: [
-            for (var i = 0; i < p.photos.length; i++)
-              i == 0
-                  ? SizedBox(width: TokDim.photosPeekStart, child: _Photo(p.photos[i]))
-                  : i == p.photos.length - 1
-                      ? SizedBox(width: TokDim.photosPeekEnd, child: _Photo(p.photos[i]))
-                      : Expanded(child: _Photo(p.photos[i])),
-          ]),
-        )),
-        _handle(Padding(
-          padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x2xs, children: [
-            Text(p.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingMd.copyWith(color: t.textDefault)),
-            RatingLine(rating: p.rating, kind: p.cuisine, center: false),
-          ]),
-        )),
-        Padding(padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs), child: Text(p.about, style: TokText.bodySm.copyWith(color: t.textMuted))),
-        // The one highlighted block: worth knowing before going
-        KnowSection(title: 'Know before you go', children: [for (final tip in p.tips) KnowRow(title: tip)]),
-      ]),
-    );
+    return _scroll(StaggerIn(spacing: TokSpace.md, children: [
+      SizedBox(
+        height: TokDim.photosHeight,
+        child: Row(spacing: TokSpace.xs, children: [
+          for (var i = 0; i < p.photos.length; i++)
+            i == 0
+                ? SizedBox(width: TokDim.photosPeekStart, child: _Photo(p.photos[i]))
+                : i == p.photos.length - 1
+                    ? SizedBox(width: TokDim.photosPeekEnd, child: _Photo(p.photos[i]))
+                    : Expanded(child: _Photo(p.photos[i])),
+        ]),
+      ),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x2xs, children: [
+          Text(p.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingMd.copyWith(color: t.textDefault)),
+          RatingLine(rating: p.rating, kind: p.cuisine, center: false),
+        ]),
+      ),
+      Padding(padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs), child: Text(p.about, style: TokText.bodySm.copyWith(color: t.textMuted))),
+      // The one highlighted block: worth knowing before going
+      KnowSection(title: 'Know before you go', children: [for (final tip in p.tips) KnowRow(title: tip)]),
+      if (p.services.isNotEmpty || p.details.isNotEmpty) _PlaceFacts(plan: p),
+    ]));
   }
 
-  // ---------- Menu: the whole real menu, prices, who picked what, and Add
+  // ---------- Menu: the whole real menu as cards, prices, who picked what, and Add
   Widget _menu(BuildContext context) {
     final t = context.tok;
-    return FutureBuilder<List<MenuSection>>(
-      future: brasserieMenu,
-      builder: (context, snap) {
-        final sections = snap.data ?? const <MenuSection>[];
-        final pickers = {for (final s in sections) for (final i in s.items) ...i.pickedBy};
-        return SingleChildScrollView(
-          child: StaggerIn(spacing: TokSpace.xl, children: [
-            _handle(Padding(
-              padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.xs, TokSpace.xs, 0),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x2xs, children: [
-                Text('Menu', style: TokText.headingLg.copyWith(color: t.textDefault)),
-                Text('${pickers.length} of ${people.length} have picked. Add what you\'ll have, and the bill splits itself.', style: TokText.bodySm.copyWith(color: t.textMuted)),
-              ]),
-            )),
-            for (final s in sections) _MenuSectionView(section: s, added: _added, onToggle: (name) => setState(() => _added.contains(name) ? _added.remove(name) : _added.add(name))),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
-              child: Text('Prices with VAT. From the restaurant\'s own menu. Entrecôte photos are the restaurant\'s; other dish photos are illustrative, from Wikimedia Commons.', style: TokText.bodySm.copyWith(color: t.textSubtle)),
-            ),
+    return _withMenu((sections, mine) {
+      final pickers = {for (final s in sections) for (final i in s.items) ...i.pickedBy.where((id) => id != myId), if (mine.isNotEmpty) myId};
+      return _scroll(StaggerIn(spacing: TokSpace.xl, children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.xs, TokSpace.xs, 0),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x2xs, children: [
+            Text('Menu', style: TokText.headingLg.copyWith(color: t.textDefault)),
+            Text('${pickers.length} of ${people.length} have picked. Add what you\'ll have, and the bill splits itself.', style: TokText.bodySm.copyWith(color: t.textMuted)),
           ]),
-        );
-      },
-    );
+        ),
+        for (final s in sections) _MenuSectionView(section: s, mine: mine, onToggle: _toggle),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
+          child: Text('Prices with VAT. From the restaurant\'s own menu. Entrecôte photos are the restaurant\'s; other dish photos are illustrative, from Wikimedia Commons.', style: TokText.bodySm.copyWith(color: t.textSubtle)),
+        ),
+      ]));
+    });
   }
 
-  // ---------- People: who's coming and how far away each person is
+  // ---------- People: who's coming, how far away each person is, and what they've picked
   Widget _people(BuildContext context) {
     final t = context.tok;
-    return SingleChildScrollView(
-      child: StaggerIn(spacing: TokSpace.md, children: [
-        _handle(Padding(
+    return _withMenu((sections, mine) {
+      final dishes = [for (final s in sections) ...s.items];
+      List<MenuItem> picksOf(String id) => [for (final d in dishes) if (id == myId ? mine.contains(d.name) : d.pickedBy.contains(id)) d];
+      return _scroll(StaggerIn(spacing: TokSpace.md, children: [
+        Padding(
           padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.xs, TokSpace.xs, 0),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x2xs, children: [
             Text("Who's coming", style: TokText.headingLg.copyWith(color: t.textDefault)),
             Text('${people.where((x) => x.going).length} of ${people.length} going · 5 PM today', style: TokText.bodySm.copyWith(color: t.textMuted)),
           ]),
-        )),
+        ),
         Column(children: [
           for (var i = 0; i < people.length; i++) ...[
             if (i > 0) const _Hairline(),
-            _PersonRow(person: people[i]),
+            _PersonRow(person: people[i], picks: picksOf(people[i].id)),
           ],
         ]),
-      ]),
-    );
+      ]));
+    });
   }
 }
 
+/// How far the current gesture has pulled the sheet down, shared with the page's scroll physics.
+class _Pull {
+  _Pull(this.onMove);
+  final void Function(double dy) onMove;
+  double pulled = 0;
+
+  void move(double dy) {
+    final d = math.max(-pulled, dy);
+    pulled += d;
+    onMove(d);
+  }
+}
+
+/// Bounces at the bottom like any iOS list, but stops at the top, so pulling past it pulls the sheet;
+/// while the sheet is pulled, moving back up lifts it first and the content stays put.
+class _SheetPhysics extends ScrollPhysics {
+  const _SheetPhysics({required this.pull, super.parent});
+  final _Pull pull;
+
+  @override
+  _SheetPhysics applyTo(ScrollPhysics? ancestor) => _SheetPhysics(pull: pull, parent: buildParent(ancestor));
+
+  @override
+  double applyPhysicsToUserOffset(ScrollMetrics position, double offset) {
+    if (pull.pulled > 0 && offset < 0) {
+      final lift = math.min(-offset, pull.pulled);
+      pull.move(-lift);
+      offset += lift;
+      if (offset == 0) return 0;
+    }
+    return super.applyPhysicsToUserOffset(position, offset);
+  }
+
+  @override
+  double applyBoundaryConditions(ScrollMetrics position, double value) {
+    if (value < position.pixels && position.pixels <= position.minScrollExtent) return value - position.pixels;
+    if (value < position.minScrollExtent && position.minScrollExtent < position.pixels) return value - position.minScrollExtent;
+    return super.applyBoundaryConditions(position, value);
+  }
+}
+
+/// The place's facts, as on its Google Maps card: service options, then one line per fact.
+class _PlaceFacts extends StatelessWidget {
+  const _PlaceFacts({required this.plan});
+  final Plan plan;
+
+  static String _icon(PlaceDetailKind k) => switch (k) {
+        PlaceDetailKind.address => TuIcons.places,
+        PlaceDetailKind.hours => TuIcons.hours,
+        PlaceDetailKind.price => TuIcons.price,
+        PlaceDetailKind.booking => TuIcons.calendar,
+        PlaceDetailKind.order => TuIcons.delivery,
+        PlaceDetailKind.website => TuIcons.website,
+        PlaceDetailKind.phone => TuIcons.phone,
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tok;
+    final rows = <Widget>[
+      if (plan.services.isNotEmpty)
+        _FactRow(
+          child: Wrap(spacing: TokSpace.sm, runSpacing: TokSpace.x2xs, children: [
+            for (final s in plan.services)
+              Row(mainAxisSize: MainAxisSize.min, spacing: TokSpace.x2xs, children: [
+                LucideIcon(TuIcons.check, size: TokSize.iconSm, color: t.iconSuccess),
+                Text(s, style: TokText.labelMd.copyWith(color: t.textDefault)),
+              ]),
+          ]),
+        ),
+      for (final d in plan.details)
+        _FactRow(
+          icon: _icon(d.kind),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x3xs, children: [
+            Text.rich(TextSpan(style: TokText.labelMd.copyWith(color: t.textDefault), children: [
+              if (d.status != null) TextSpan(text: '${d.status} · ', style: TextStyle(color: t.textSuccess)),
+              TextSpan(text: d.text),
+            ])),
+            if (d.sub != null) Text(d.sub!, style: TokText.bodySm.copyWith(color: t.textMuted)),
+          ]),
+        ),
+    ];
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Padding(padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs), child: Text('Details', style: TokText.headingSm.copyWith(color: t.textDefault))),
+      for (var i = 0; i < rows.length; i++) ...[if (i > 0) const _Hairline(), rows[i]],
+    ]);
+  }
+}
+
+class _FactRow extends StatelessWidget {
+  const _FactRow({this.icon, required this.child});
+  final String? icon;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs, vertical: TokSpace.sm),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.md, children: [
+          if (icon != null) LucideIcon(icon!, size: TokSize.iconMd, color: context.tok.iconMuted),
+          Expanded(child: child),
+        ]),
+      );
+}
+
 class _MenuSectionView extends StatelessWidget {
-  const _MenuSectionView({required this.section, required this.added, required this.onToggle});
+  const _MenuSectionView({required this.section, required this.mine, required this.onToggle});
   final MenuSection section;
-  final Set<String> added;
+  final Set<String> mine;
   final ValueChanged<String> onToggle;
 
   @override
   Widget build(BuildContext context) {
     final t = context.tok;
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: TokSpace.xs, children: [
       Padding(
-        padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
+        padding: const EdgeInsets.fromLTRB(TokSpace.xs, 0, TokSpace.xs, TokSpace.x2xs),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x3xs, children: [
           Text(section.title, style: TokText.headingSm.copyWith(color: t.textDefault)),
           if (section.note != null) Text(section.note!, style: TokText.bodySm.copyWith(color: t.textMuted)),
         ]),
       ),
-      for (var i = 0; i < section.items.length; i++) ...[
-        if (i > 0) const _Hairline(),
-        _MenuRow(item: section.items[i], added: added.contains(section.items[i].name) || section.items[i].pickedBy.contains('ari'), onToggle: onToggle),
-      ],
+      for (var i = 0; i < section.items.length; i++) _MenuCard(item: section.items[i], index: i, added: mine.contains(section.items[i].name), onToggle: onToggle),
     ]);
   }
 }
 
-class _MenuRow extends StatelessWidget {
-  const _MenuRow({required this.item, required this.added, required this.onToggle});
+/// One dish: its photo as a sticker, name and the full description; the footer holds the price,
+/// who else has picked it, and Add.
+class _MenuCard extends StatelessWidget {
+  const _MenuCard({required this.item, required this.index, required this.added, required this.onToggle});
   final MenuItem item;
+  final int index;
   final bool added;
   final ValueChanged<String> onToggle;
 
   @override
   Widget build(BuildContext context) {
     final t = context.tok;
-    final others = item.pickedBy.where((id) => id != 'ari').toList();
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs, vertical: TokSpace.sm),
-      child: Row(spacing: TokSpace.sm, children: [
-        if (item.photo != null)
-          ClipRRect(
-            borderRadius: BorderRadius.circular(TokDim.menuPhotoRadius),
-            child: Image.asset(
-              'assets/photos/menu/${item.photo}.jpg',
-              width: TokDim.menuPhoto,
-              height: TokDim.menuPhoto,
-              fit: BoxFit.cover,
-              cacheWidth: (TokDim.menuPhoto * MediaQuery.devicePixelRatioOf(context)).round(),
-              excludeFromSemantics: true,
+    final others = item.pickedBy.where((id) => id != myId).toList();
+    return Container(
+      padding: const EdgeInsets.fromLTRB(TokSpace.sm, TokSpace.sm, TokSpace.x2xs, TokSpace.x2xs),
+      decoration: surfaceDecoration(context, BorderRadius.circular(TokRadius.card)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Padding(
+          padding: const EdgeInsets.only(right: TokSpace.xs),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.sm, children: [
+            if (item.photo != null)
+              DishSticker(item.photo!, size: TokDim.menuPhoto, edge: TokDim.menuPhotoEdge, radius: TokDim.menuPhotoRadius, tilt: index.isEven ? -TokDim.menuPhotoTilt : TokDim.menuPhotoTilt),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x3xs, children: [
+                Text(item.name, style: TokText.labelMd.copyWith(color: t.textDefault)),
+                if (item.note != null) Text(item.note!, style: TokText.bodySm.copyWith(color: t.textMuted)),
+              ]),
             ),
-          ),
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x3xs, children: [
-            Text(item.name, style: TokText.labelMd.copyWith(color: t.textDefault)),
-            if (item.note != null) Text(item.note!, style: TokText.bodySm.copyWith(color: t.textMuted)),
-            Text(item.price, style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textDefault)),
           ]),
         ),
-        if (others.isNotEmpty) Overlapped(overlap: TokDim.avatarOverlap, children: [for (final id in others) Sticker(faceOf(id), size: StickerSize.chip)]),
-        AddButton(added: added, itemName: item.name, onTap: () => onToggle(item.name)),
+        Row(spacing: TokSpace.xs, children: [
+          Expanded(child: Text(item.price, style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textDefault))),
+          if (others.isNotEmpty)
+            Semantics(
+              label: 'Picked by ${others.map((id) => people.firstWhere((p) => p.id == id).name).join(', ')}',
+              child: Overlapped(overlap: TokDim.avatarOverlap, children: [for (final id in others) Sticker(faceOf(id), size: StickerSize.chip)]),
+            ),
+          AddButton(added: added, itemName: item.name, onTap: () => onToggle(item.name)),
+        ]),
       ]),
     );
   }
 }
 
 class _PersonRow extends StatelessWidget {
-  const _PersonRow({required this.person});
+  const _PersonRow({required this.person, required this.picks});
   final Person person;
+  final List<MenuItem> picks;
 
   @override
   Widget build(BuildContext context) {
     final t = context.tok;
+    final shown = [for (final d in picks) if (d.photo != null) d];
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs, vertical: TokSpace.sm),
       child: Row(spacing: TokSpace.sm, children: [
@@ -241,6 +377,17 @@ class _PersonRow extends StatelessWidget {
             Text(person.status, style: TokText.bodySm.copyWith(color: person.going ? t.textMuted : t.textSubtle)),
           ]),
         ),
+        // What they'll have, as a little pile of stickers: at a glance, who has already picked
+        if (shown.isNotEmpty)
+          Semantics(
+            label: '${person.name} picked ${picks.map((d) => d.name).join(', ')}',
+            child: Overlapped(overlap: TokDim.avatarOverlap, children: [
+              for (var i = 0; i < shown.length; i++)
+                DishSticker(shown[i].photo!, size: TokDim.dishPickSize, edge: TokDim.dishPickEdge, radius: TokRadius.sm, tilt: i.isEven ? TokDim.menuPhotoTilt : -TokDim.menuPhotoTilt),
+            ]),
+          )
+        else if (person.going)
+          Text('No picks yet', style: TokText.bodySm.copyWith(color: t.textSubtle)),
       ]),
     );
   }

@@ -1,11 +1,12 @@
-import { X } from 'lucide-react';
+import { Banknote, Calendar, Check, Clock, Globe, MapPin, Phone, Truck, X, type LucideIcon } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion, type Variants } from 'motion/react';
 import { useState, type ReactNode } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import realMenu from '../../../app/assets/data/brasserie-menu.json';
-import { dishUrl, photoUrl, type Person } from '../data';
+import { photoUrl, type Person, type PlaceDetail } from '../data';
 import { AddButton } from './AddButton';
 import { Button } from './Button';
+import { DishSticker } from './DishSticker';
 import { KnowRow, KnowSection } from './KnowSection';
 import { RatingLine } from './RatingLine';
 import { SegmentedTabs } from './SegmentedTabs';
@@ -27,6 +28,9 @@ export interface DetailSheetProps {
   photos: string[];
   about: string;
   tips: string[];
+  /** Service options and facts, as on the place's Google Maps card. */
+  services?: string[];
+  details?: PlaceDetail[];
   people: Person[];
   /** Sticker of each person, by id; shows who picked a dish. */
   faces: Record<string, string>;
@@ -36,6 +40,8 @@ export interface DetailSheetProps {
 }
 
 const m = tokens.motion;
+const tilt = tokens.component.dimension['menu/photo-tilt'];
+const FACT_ICON: Record<PlaceDetail['kind'], LucideIcon> = { address: MapPin, hours: Clock, price: Banknote, booking: Calendar, order: Truck, website: Globe, phone: Phone };
 const ease = m['ease-out'] as [number, number, number, number];
 
 /**
@@ -62,7 +68,9 @@ export function DetailSheet(p: DetailSheetProps) {
     <motion.div custom={i} variants={block} className={className}>{children}</motion.div>
   );
 
-  const pickers = new Set(SECTIONS.flatMap(s => s.items.flatMap(i => i.pickedBy ?? [])));
+  const dishes = SECTIONS.flatMap(s => s.items);
+  const pickers = new Set([...dishes.flatMap(i => (i.pickedBy ?? []).filter(id => id !== 'ari')), ...(added.size ? ['ari'] : [])]);
+  const picksOf = (id: string) => dishes.filter(d => (id === 'ari' ? added.has(d.name) : d.pickedBy?.includes(id)));
   const going = p.people.filter(x => x.status !== 'Not going').length;
 
   return (
@@ -90,6 +98,32 @@ export function DetailSheet(p: DetailSheetProps) {
                 <Block i={2}><p className="tu-sheet__about text-body-sm">{p.about}</p></Block>
                 {/* The one highlighted block: worth knowing before going */}
                 <Block i={3}><KnowSection title="Know before you go">{p.tips.map(t => <KnowRow key={t}>{t}</KnowRow>)}</KnowSection></Block>
+                {!!(p.services?.length || p.details?.length) && (
+                  <Block i={4} className="tu-facts">
+                    <h3 className="tu-sheet__title text-heading-sm tu-sheet__pad">Details</h3>
+                    <div>
+                      {p.services && p.services.length > 0 && (
+                        <div className="tu-facts__row">
+                          <span className="tu-facts__services">
+                            {p.services.map(sv => <span key={sv} className="tu-facts__service text-label-md"><Check className="tu-facts__check" strokeWidth={2} absoluteStrokeWidth aria-hidden />{sv}</span>)}
+                          </span>
+                        </div>
+                      )}
+                      {p.details?.map(d => {
+                        const Icon = FACT_ICON[d.kind];
+                        return (
+                          <div key={d.kind} className="tu-facts__row">
+                            <Icon className="tu-facts__icon" strokeWidth={2} absoluteStrokeWidth aria-hidden />
+                            <div className="tu-sheet__row-text">
+                              <p className="text-label-md">{d.status && <span className="tu-facts__status">{d.status} · </span>}{d.text}</p>
+                              {d.sub && <p className="text-body-sm tu-sheet__muted">{d.sub}</p>}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </Block>
+                )}
               </>
             )}
             {tab === 'Menu' && (
@@ -104,21 +138,27 @@ export function DetailSheet(p: DetailSheetProps) {
                       <h3 className="tu-sheet__title text-heading-sm">{s.title}</h3>
                       {s.note && <p className="text-body-sm tu-sheet__muted">{s.note}</p>}
                     </div>
-                    {s.items.map(item => {
-                      const others = (item.pickedBy ?? []).filter(id => id !== 'ari');
-                      return (
-                        <div key={item.name} className="tu-sheet__row">
-                          {item.photo && <img src={dishUrl(item.photo)} alt="" className="tu-sheet__dish" loading="lazy" />}
-                          <div className="tu-sheet__row-text">
-                            <p className="text-label-md">{item.name}</p>
-                            {item.note && <p className="text-body-sm tu-sheet__muted">{item.note}</p>}
-                            <p className="text-label-md weight-semibold">{item.price}</p>
+                    <div className="tu-sheet__cards">
+                      {s.items.map((item, i) => {
+                        const others = (item.pickedBy ?? []).filter(id => id !== 'ari');
+                        return (
+                          <div key={item.name} className="tu-dish tu-surface">
+                            <div className="tu-dish__top">
+                              {item.photo && <DishSticker photo={item.photo} size="menu" tilt={i % 2 ? tilt : -tilt} />}
+                              <div className="tu-dish__text">
+                                <p className="text-label-md">{item.name}</p>
+                                {item.note && <p className="text-body-sm tu-sheet__muted">{item.note}</p>}
+                              </div>
+                            </div>
+                            <div className="tu-dish__foot">
+                              <p className="text-label-md weight-semibold tu-dish__price">{item.price}</p>
+                              {others.length > 0 && <span className="tu-sheet__faces">{others.map(id => <Sticker key={id} name={p.faces[id]} size="chip" />)}</span>}
+                              <AddButton added={added.has(item.name)} itemName={item.name} onToggle={() => toggle(item.name)} />
+                            </div>
                           </div>
-                          {others.length > 0 && <span className="tu-sheet__faces">{others.map(id => <Sticker key={id} name={p.faces[id]} size="chip" />)}</span>}
-                          <AddButton added={added.has(item.name)} itemName={item.name} onToggle={() => toggle(item.name)} />
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </Block>
                 ))}
                 <Block i={SECTIONS.length + 1}><p className="text-body-sm tu-sheet__subtle tu-sheet__pad">Prices with VAT. From the restaurant's own menu. Entrecôte photos are the restaurant's; other dish photos are illustrative, from Wikimedia Commons.</p></Block>
@@ -138,6 +178,12 @@ export function DetailSheet(p: DetailSheetProps) {
                         <p className="text-label-md">{x.name}</p>
                         <p className={`text-body-sm ${x.status === 'Not going' ? 'tu-sheet__subtle' : 'tu-sheet__muted'}`}>{x.status}</p>
                       </div>
+                      {/* What they'll have, as a little pile of stickers: at a glance, who has already picked */}
+                      {(() => {
+                        const picks = picksOf(x.id).filter(d => d.photo);
+                        if (picks.length) return <span className="tu-sheet__picks" aria-label={`${x.name} picked ${picks.map(d => d.name).join(', ')}`}>{picks.map((d, i) => <DishSticker key={d.name} photo={d.photo!} size="pick" tilt={i % 2 ? -tilt : tilt} />)}</span>;
+                        return x.status !== 'Not going' ? <span className="text-body-sm tu-sheet__subtle">No picks yet</span> : null;
+                      })()}
                     </div>
                   ))}
                 </Block>
