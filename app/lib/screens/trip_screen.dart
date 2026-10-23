@@ -136,12 +136,12 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   /// Where pins may sit: the map minus the top bar and the action bar.
   Rect _safe(Size size) {
     final pad = MediaQuery.paddingOf(context);
-    return Rect.fromLTRB(
+    return nonInverted(Rect.fromLTRB(
       TokDim.widgetEdgeInset,
       pad.top + TopBar.contentHeightWithFilter + TokDim.widgetEdgeInset,
       size.width - TokDim.widgetEdgeInset,
       size.height - math.max(pad.bottom, TokSpace.x2xl) - TokDim.buttonLg - TokDim.widgetEdgeInset,
-    );
+    ));
   }
 
   /// Moves the map so [target] lands on [screenPoint] (default: the middle), on the snap spring.

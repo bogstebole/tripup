@@ -7,6 +7,8 @@ storybook/node_modules/
 storybook/dist/
 storybook/storybook-static/
 app/build/
+# Built apps for testers (APK); too big for git
+releases/
 app/.dart_tool/
 app/ios/Pods/
 app/ios/.symlinks/

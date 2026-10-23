@@ -227,6 +227,8 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
   }
 
   void _setSize({Size? mid, Size? mini}) {
+    // Android's first frame can come before the screen has a size: wait for a real one
+    if ((mid ?? mini)!.isEmpty) return;
     if (mid != null) _midSize = mid;
     if (mini != null) _miniSize = mini;
     if (_midSize != null && _miniSize != null && _geo == null) {
@@ -259,7 +261,7 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
     final mapCenter = Offset(cardX, widget.anchor.dy - tailH - tailGap - onMap.height / 2);
 
     // Where it sits at the edge: clamped inside the safe area, arrow toward the place
-    final keep = widget.safe.deflate(TokDim.widgetEdgeSize / 2 + TokDim.widgetEdgeArrow + TokDim.widgetEdgeInset);
+    final keep = nonInverted(widget.safe.deflate(TokDim.widgetEdgeSize / 2 + TokDim.widgetEdgeArrow + TokDim.widgetEdgeInset));
     final edgeCenter = Offset(widget.anchor.dx.clamp(keep.left, keep.right), widget.anchor.dy.clamp(keep.top, keep.bottom));
     final toPlace = widget.anchor - edgeCenter;
     final angle = math.atan2(toPlace.dy, toPlace.dx);
@@ -447,6 +449,10 @@ Widget _move(Widget child, {required Rect rect, required Offset pivot, Offset sh
   }
   return opacity >= 0.999 ? w : Opacity(opacity: opacity, child: w);
 }
+
+/// [r], but never inside out: deflating a small rect, or measuring before the screen has a size (Android's
+/// first frame), can put its right edge left of its left one, and clamping into that throws.
+Rect nonInverted(Rect r) => Rect.fromLTRB(r.left, r.top, math.max(r.left, r.right), math.max(r.top, r.bottom));
 
 /// Finds where each part of the two layouts sits, from the unseen pass.
 class _Probe {

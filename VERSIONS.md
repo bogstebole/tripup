@@ -352,9 +352,11 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
   - Opening Menu builds all 118 rows in one frame: about 50 ms of UI work, so one visible hitch at the start of the switch.
   - The page being left is rebuilt from scratch on every tab change, so it vanishes at once instead of fading, blurring and sliding out as 1.12 describes. Fixing it changes the motion, so it waits for a decision.
 
-### Android version added (not built yet)
+### Android version: built and checked on the emulator
 - `app/android/` added with `flutter create --platforms=android` (app ID `com.bogste.tripup`, name TripUp, internet access declared so release builds can load the map).
-- Not built or run yet: this Mac has no Android Studio or Android SDK. Next: install them, check the app on the Android emulator, then send an APK to testers.
+- Built as a release APK (`releases/TripUp-android.apk`, 32 MB, arm64) and checked on the Android emulator (Pixel 8, Android 16): map, card, header and bottom blur, full view, Menu. It renders like the iPhone. Speed isn't checked: the emulator runs on the Mac's GPU.
+- Two fixes Android needed. Its first frame comes before the screen has a size: the safe area for pins turned inside out (and clamping into it threw), and the pin measured its card as 0 × 0 and never measured again, so only the tail showed. Now the safe area is never inside out, and the pin waits for a real size.
+- The builds hung at first because iCloud had moved project files off the disk to make room (the Android tools take about 6 GB). See `app/README.md`.
 
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html

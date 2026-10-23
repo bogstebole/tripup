@@ -10,11 +10,22 @@ flutter build ios --release && flutter install --release
 
 # on a simulator, with hot reload
 flutter run -d "iPhone 16"
+
+# Android: the APK for testers (copied to ../releases/, which git ignores)
+flutter build apk --release --no-tree-shake-icons --target-platform android-arm64
+
+# on the Android emulator (Pixel 8, API 36)
+emulator -avd TripUp_Pixel &
+flutter run -d emulator-5554
 ```
+
+Android tools are the command-line ones from Homebrew (no Android Studio): Java 21 (`openjdk@21`) and the SDK at `/opt/homebrew/share/android-commandlinetools`, both set with `flutter config`. `--no-tree-shake-icons` sidesteps a Flutter tool crash in icon font subsetting; the app draws its icons itself, so nothing is lost.
 
 After changing `design-system/tokens.json`, run `node ../design-system/build-tokens.mjs` to rewrite `lib/design/tokens.dart`.
 
-`build/` is a symlink to `~/Library/Caches/tripup-app/build`: the project sits in iCloud-synced Documents, and Xcode can't sign the Flutter framework there ("resource fork, Finder information, or similar detritus not allowed").
+`build/` is a symlink to `~/Library/Caches/tripup-app/build`: the project sits in iCloud-synced Documents, and Xcode can't sign the Flutter framework there ("resource fork, Finder information, or similar detritus not allowed"). `android/.gradle` is a symlink to `~/Library/Caches/tripup-app/android-gradle` for the same reason.
+
+If a build hangs with no error, check for files iCloud has moved off the disk to save space (`find . -flags +dataless`): reading one waits for it to download. `brctl download <file>` brings it back; Finder → Keep Downloaded on the project folder stops it happening.
 
 ## What's where
 
