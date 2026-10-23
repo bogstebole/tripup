@@ -40,7 +40,7 @@ export const EVENT = {
   when: '5 PM • Today',
   eta: 'In 64 mins',
   sticker: 'wings',
-  photos: ['brasserie-1', 'brasserie-2', 'brasserie-3'],
+  photos: ['brasserie-2', 'brasserie-3', 'brasserie-1', 'brasserie-4', 'brasserie-5'],   // 4 and 5 are from the restaurant's own menu
   // From the place's Google Maps card
   services: ['Dine-in', 'Takeaway', 'Delivery'],
   details: [

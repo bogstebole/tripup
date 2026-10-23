@@ -247,6 +247,11 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 ### Final UI, iteration 1.6: tabs and close in the full view's header
 - The tab switcher and the close button moved from the bottom of the full view into a header at the top, so the bottom no longer crowds. Pages start under the header and scroll up beneath it, through the same progressive blur and white fade (shown only once a page has scrolled). The header is also a handle for pulling the sheet down, as is pulling a page past its top. The bottom fade stays at the sheet's lower edge.
 
+### Final UI, iteration 1.7: Overview photos as a Material 3 carousel
+- **Order on Overview:** name and rating, then the photos, then the description.
+- **Photos are a Material 3 multi-browse carousel:** a large photo first, then a medium and a small one. Each photo is a mask that grows or shrinks as it moves between those places (the picture inside isn't squashed), and scrolling snaps to whole photos. Small and medium keep the design's peek widths (36 and 62); large takes the rest. In the app it's Flutter's own `CarouselView.weighted`; Storybook has a `PhotoCarousel` that follows the same places.
+- Five photos instead of three: two more of the restaurant's entrecôte, from its own menu (`brasserie-4`, `brasserie-5`).
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

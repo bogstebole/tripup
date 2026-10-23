@@ -3,11 +3,12 @@ import { AnimatePresence, motion, useReducedMotion, type Variants } from 'motion
 import { useState, type CSSProperties, type ReactNode } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import realMenu from '../../../app/assets/data/brasserie-menu.json';
-import { photoUrl, type Person, type PlaceDetail } from '../data';
+import { type Person, type PlaceDetail } from '../data';
 import { AddButton } from './AddButton';
 import { Button } from './Button';
 import { DishSticker } from './DishSticker';
 import { KnowRow, KnowSection } from './KnowSection';
+import { PhotoCarousel } from './PhotoCarousel';
 import { RatingLine } from './RatingLine';
 import { SegmentedTabs } from './SegmentedTabs';
 import { Sticker } from './Sticker';
@@ -94,15 +95,11 @@ export function DetailSheet(p: DetailSheetProps) {
           >
             {tab === 'Overview' && (
               <>
-                <Block i={0} className="tu-sheet__photos">
-                  {p.photos.map((ph, i) => (
-                    <img key={ph} src={photoUrl(ph)} alt="" className={`tu-sheet__photo tu-sheet__photo--${i === 0 ? 'start' : i === p.photos.length - 1 ? 'end' : 'main'}`} />
-                  ))}
-                </Block>
-                <Block i={1} className="tu-sheet__info">
+                <Block i={0} className="tu-sheet__info">
                   <h2 className="tu-sheet__name text-heading-md tu-ellipsis">{p.name}</h2>
                   <RatingLine rating={p.rating} kind={p.cuisine} align="start" />
                 </Block>
+                <Block i={1}><PhotoCarousel photos={p.photos} /></Block>
                 <Block i={2}><p className="tu-sheet__about text-body-sm">{p.about}</p></Block>
                 {/* The one highlighted block: worth knowing before going */}
                 <Block i={3}><KnowSection title="Know before you go">{p.tips.map(t => <KnowRow key={t}>{t}</KnowRow>)}</KnowSection></Block>

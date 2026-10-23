@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/material.dart' show CarouselView;
 import 'package:flutter/widgets.dart';
 
 import '../data.dart';
@@ -185,17 +186,6 @@ class _DetailSheetState extends State<DetailSheet> {
     final t = context.tok;
     final p = widget.plan;
     return _scroll(StaggerIn(spacing: TokSpace.md, children: [
-      SizedBox(
-        height: TokDim.photosHeight,
-        child: Row(spacing: TokSpace.xs, children: [
-          for (var i = 0; i < p.photos.length; i++)
-            i == 0
-                ? SizedBox(width: TokDim.photosPeekStart, child: _Photo(p.photos[i]))
-                : i == p.photos.length - 1
-                    ? SizedBox(width: TokDim.photosPeekEnd, child: _Photo(p.photos[i]))
-                    : Expanded(child: _Photo(p.photos[i])),
-        ]),
-      ),
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x2xs, children: [
@@ -203,6 +193,7 @@ class _DetailSheetState extends State<DetailSheet> {
           RatingLine(rating: p.rating, kind: p.cuisine, center: false),
         ]),
       ),
+      _PhotoCarousel(photos: p.photos),
       Padding(padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs), child: Text(p.about, style: TokText.bodySm.copyWith(color: t.textMuted))),
       // The one highlighted block: worth knowing before going
       KnowSection(title: 'Know before you go', children: [for (final tip in p.tips) KnowRow(title: tip)]),
@@ -477,13 +468,40 @@ class _Hairline extends StatelessWidget {
       );
 }
 
-class _Photo extends StatelessWidget {
-  const _Photo(this.name);
-  final String name;
+/// The place's photos as a Material 3 multi-browse carousel: a large photo first, then a medium and a small one,
+/// each growing or shrinking as it moves between those places, and snapping to whole photos.
+class _PhotoCarousel extends StatelessWidget {
+  const _PhotoCarousel({required this.photos});
+  final List<String> photos;
 
   @override
-  Widget build(BuildContext context) => ClipRRect(
-        borderRadius: BorderRadius.circular(TokRadius.card),
-        child: Image.asset('assets/photos/$name.png', fit: BoxFit.cover, height: double.infinity, filterQuality: FilterQuality.medium),
+  Widget build(BuildContext context) {
+    final t = context.tok;
+    return LayoutBuilder(builder: (context, box) {
+      // The items' own gaps reach past the page's edges, so the photos line up with them
+      final width = box.maxWidth + TokSpace.xs;
+      // Small and medium keep the design's peek widths; large takes the rest
+      final large = width - TokDim.photosPeekStart - TokDim.photosPeekEnd;
+      return SizedBox(
+        height: TokDim.photosHeight,
+        child: OverflowBox(
+          maxWidth: width,
+          minWidth: width,
+          child: CarouselView.weighted(
+            flexWeights: [large.round(), TokDim.photosPeekEnd.round(), TokDim.photosPeekStart.round()],
+            itemSnapping: true,
+            padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs / 2),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TokRadius.card)),
+            backgroundColor: t.bgMuted,
+            elevation: 0,
+            enableSplash: false,
+            children: [
+              for (final ph in photos)
+                Image.asset('assets/photos/$ph.png', fit: BoxFit.cover, filterQuality: FilterQuality.medium, cacheWidth: (width * MediaQuery.devicePixelRatioOf(context)).round()),
+            ],
+          ),
+        ),
       );
+    });
+  }
 }

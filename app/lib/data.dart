@@ -130,7 +130,7 @@ const plans = [
     cuisine: 'French',
     fan: [FanSticker('pho', 44.79, 0), FanSticker('sushi', 78.53, -7.99), FanSticker('wings', 95, 0), FanSticker('ice-cream', 65.47, 8.59)],
     chips: [InfoChip('+3', sticker: 'person-05', tilt: -6.22), InfoChip('€€', grow: true), InfoChip('5 PM • Today')],
-    photos: ['brasserie-1', 'brasserie-2', 'brasserie-3'],
+    photos: ['brasserie-2', 'brasserie-3', 'brasserie-1', 'brasserie-4', 'brasserie-5'],   // 4 and 5 are from the restaurant's own menu
     // From the place's Google Maps card
     services: ['Dine-in', 'Takeaway', 'Delivery'],
     details: [

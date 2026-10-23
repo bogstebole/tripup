@@ -1,0 +1,24 @@
+.tu-carousel {
+  display: grid;
+  height: var(--d-photos-height);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  flex: none;
+}
+.tu-carousel::-webkit-scrollbar { display: none; }
+/* The photos stay put while the track scrolls under them; their places follow the scroll */
+.tu-carousel__stage { grid-area: 1 / 1; position: sticky; left: 0; height: 100%; pointer-events: none; z-index: 1; }
+.tu-carousel__track { grid-area: 1 / 1; display: flex; height: 100%; }
+.tu-carousel__snap { flex: none; height: 100%; scroll-snap-align: start; }
+.tu-carousel__item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: var(--color-bg-muted);
+}
+.tu-carousel__item img { position: absolute; top: 0; left: 50%; height: 100%; transform: translateX(-50%); object-fit: cover; }
