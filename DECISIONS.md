@@ -87,3 +87,14 @@ What we decided, and why, in the order it happened. Each item: **the decision**,
 - **Android: an APK through Firebase App Distribution.** It's free, and testers get a link by email and install it. We didn't go through Google Play's internal testing, because it needs a paid Play account and a review.
 - **No Android phone here, so it's checked on the Android emulator on the Mac.** That shows layout and behaviour, but not real speed; the first Android testers will tell us that.
 - **The web link (Vercel) is the fallback for anyone else.** The task needs a public URL anyway, but it runs slower in a phone browser than the app does.
+
+## Performance (decided 23 Oct)
+
+- **Speed comes from drawing once what doesn't change, not from changing the design.** Glass and pin shadows are blurred once and reused, and what's behind the open full view is held as a picture. Measured on the iPhone 15, Menu scrolling went from 25.5 to 3.9 ms a frame, and the map from 18 to 4.7 ms (see `VERSIONS.md` 1.19).
+- **No blur under the top and bottom bars; the see-through white fade stays.** That blur was the biggest GPU cost on the map, and the breathing dot made it run 60 times a second, even at rest. On a warm phone every frame was late (about 20 ms); with the blur off it was 3.6 ms with none late. The cost is that the map's labels now show sharp behind the title, the day chips and the buttons.
+  - We didn't keep the blur and hold it as a picture while only the dot moves. It would look the same, but it's more code, and the picture could go stale.
+  - We didn't make the dot breathe at 30 fps or give the blur fewer bands. Both keep a constant cost and change the look a little.
+  - The full view's header keeps its blur. It only works while a page scrolls under it.
+- **Not done yet:**
+  - On a tab change, the old page vanishes instead of fading out as 1.12 describes, because it gets rebuilt. Fixing it changes the motion, so it waits for a decision.
+  - Opening Menu builds all 118 rows at once, about 50 ms. A list that only builds what's on screen would fix it.
