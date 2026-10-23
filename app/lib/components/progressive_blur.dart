@@ -8,10 +8,17 @@ import 'package:flutter/widgets.dart';
 /// its far edge never shows as a line. A masked blur doesn't render on iOS, so it's built from bands, all
 /// reading one shared backdrop.
 class ProgressiveBlur extends StatelessWidget {
-  const ProgressiveBlur({super.key, required this.sigma, this.solidUntil = 0, this.fromBottom = false});
+  const ProgressiveBlur({super.key, required this.sigma, this.solidUntil = 0, this.fromBottom = false, this.shared = false, this.solidHidden = false});
   final double sigma;
   final double solidUntil;
   final bool fromBottom;
+
+  /// Reads the backdrop of a [BackdropGroup] above it instead of its own: blurs that don't overlap, like the top
+  /// and bottom bars, then cost one read of the screen between them instead of one each.
+  final bool shared;
+
+  /// The solid part sits under something opaque, so it isn't blurred at all (no one would see it).
+  final bool solidHidden;
 
   /// Enough steps that no edge between them shows under a fade.
   static const _bands = 8;
@@ -30,16 +37,15 @@ class ProgressiveBlur extends StatelessWidget {
               height: far - near,
               child: ClipRect(child: BackdropFilter.grouped(filter: ui.ImageFilter.blur(sigmaX: s, sigmaY: s), child: const SizedBox.expand())),
             );
-        return BackdropGroup(
-          child: Stack(children: [
-            if (start > 0) band(0, start, sigma),
-            for (var j = 0; j < _bands; j++)
-              // Falls off as the square of the distance left, so the last steps are too small to see; bands that
-              // would barely blur are left out
-              if (sigma * math.pow(1 - (j + 0.5) / _bands, 2) case final s when s >= _least)
-                band(start + (h - start) * j / _bands, start + (h - start) * (j + 1) / _bands, s),
-          ]),
-        );
+        final bands = Stack(children: [
+          if (start > 0 && !solidHidden) band(0, start, sigma),
+          for (var j = 0; j < _bands; j++)
+            // Falls off as the square of the distance left, so the last steps are too small to see; bands that
+            // would barely blur are left out
+            if (sigma * math.pow(1 - (j + 0.5) / _bands, 2) case final s when s >= _least)
+              band(start + (h - start) * j / _bands, start + (h - start) * (j + 1) / _bands, s),
+        ]);
+        return shared ? bands : BackdropGroup(child: bands);
       });
 }
 

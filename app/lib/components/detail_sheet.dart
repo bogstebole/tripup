@@ -163,7 +163,8 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
                     : Opacity(
                         opacity: v,
                         child: Stack(fit: StackFit.expand, children: [
-                          ProgressiveBlur(sigma: TokDim.sheetTopBlur, solidUntil: solid),
+                          // Above [solid] the surface's white is opaque, so only the fading part needs blurring
+                          ProgressiveBlur(sigma: TokDim.sheetTopBlur, solidUntil: solid, solidHidden: true),
                           DecoratedBox(decoration: BoxDecoration(gradient: easedFade(t.cSurfaceTop, from: solid))),
                         ]),
                       ),

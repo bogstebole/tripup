@@ -322,6 +322,36 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - My location breathes: only the blue scales (to 75% and back, 1.2 s each way, an ease-in-out sine); the white rim stays still. It holds still with reduced motion and pauses while the full view covers the map or I'm off-screen.
 - Storybook: the same chips, corner badge and breathing dot; new tokens settle-ms, pulse-ms, ease-breathe and me/pulse-scale in Foundations → Motion. InfoChip's `faces` is gone (nothing used it any more).
 
+### Final UI, iteration 1.19: smooth frames on the phone (nothing looks or moves differently)
+- **Measured** on Bogdan's iPhone 15, profile build (on 1.14, before 1.15–1.18 were merged in), with `app/perf/trip_perf.dart`: it plays each scenario with scripted touches at the display's pace and records every frame (how to run it is at the top of the file). Before, the GPU side (raster) took 18–25 ms a frame in every scenario, against 16.7 ms at 60 Hz, so most frames came late. The UI side was never the problem (about 1 ms).
+- **What cost the frames**, found by switching each suspect off in turn:
+  - The inset shadows on every glass button, blurred again three times per button every frame: half of the map's 18 ms, and one Add button per menu row.
+  - The bars' progressive blurs: about 5 ms.
+  - With the full view up, the map and bars drawn and blurred again behind it on every frame.
+- **Changes:**
+  - Glass inset shadows, and the pin tail and edge arrow shadows, are blurred once per shape and size, then reused as an image.
+  - Behind the full view, the map and bars become a picture from the first frame of opening (when the map isn't moving), and the blurred backdrop joins it once the view rests open. Both go back to live drawing as it closes. When something behind changes (the minute tick), the picture is retaken once nothing is moving.
+  - The top and bottom bars' blurs share one read of the map. The full view's header skips the blur band that sits under opaque white.
+  - The stagger and page-leave blurs stay in place and switch off once sharp. Removing them rebuilt every block, all 118 menu rows at once, at the end of each entrance.
+- **Results** (raster ms per frame, average / 90th percentile; late frames):
+
+| Scenario | Before | After |
+| --- | --- | --- |
+| Map: pan and zoom | 18.0 / 19.4; 178 of 240 late | 4.7 / 7.8; 3 of 239 |
+| Up next: open and close the full view | 22.4 / 28.4; 187 of 191 | 3.1 / 5.1; 2 of 247 |
+| Full view: switch tabs | 20.4 / 23.7; 223 of 225 | 2.2 / 3.7; 4 of 313 |
+| Full view: scroll the Menu | 25.5 / 26.3; 530 of 530 | 3.9 / 4.3; 0 of 622 |
+| Full view: Overview photos and scroll | 17.8 / 19.9; 398 of 540 | 4.2 / 4.5; 2 of 628 |
+| Full view: scroll Group | 17.9 / 18.8; 238 of 274 | 4.5 / 4.6; 3 of 360 |
+| Map: tap day filters | 18.7 / 21.8; 225 of 247 | 6.3 / 13.4; 9 of 273 |
+
+- **Checked:** screenshots of the old and new builds on the simulator match pixel for pixel; the cached shadows are within 3/255.
+- **With 1.18's breathing dot** (main + these fixes): the map redraws about 60 times a second even at rest, and each redraw runs the bars' blurs again. On a cool phone that's 4.8 ms a frame with none late; plain 1.18 is 18.9 ms with every frame late. On a warm phone, after a few minutes, it climbs back to about 20 ms; with the bars' blur off it's 3.6 ms. The day filter shows the same thing.
+- **Still open:**
+  - The breathing dot keeps the bars' blur running. Options that keep it: hold the bars' blur as a picture while only the dot moves (no visual change), or breathe at 30 fps (half the work, hard to tell apart).
+  - Opening Menu builds all 118 rows in one frame: about 50 ms of UI work, so one visible hitch at the start of the switch.
+  - The page being left is rebuilt from scratch on every tab change, so it vanishes at once instead of fading, blurring and sliding out as 1.12 describes. Fixing it changes the motion, so it waits for a decision.
+
 ### Android version added (not built yet)
 - `app/android/` added with `flutter create --platforms=android` (app ID `com.bogste.tripup`, name TripUp, internet access declared so release builds can load the map).
 - Not built or run yet: this Mac has no Android Studio or Android SDK. Next: install them, check the app on the Android emulator, then send an APK to testers.
