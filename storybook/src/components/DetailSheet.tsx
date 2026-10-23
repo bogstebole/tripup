@@ -214,7 +214,7 @@ export function DetailSheet(p: DetailSheetProps) {
       {/* People: the total stays put at the bottom while the list scrolls above it */}
       {tab === 'People' && total > 0 && (
         <div className="tu-sheet__footer">
-          <p className="text-label-md tu-sheet__muted">Estimated total</p>
+          <p className="text-label-lg tu-sheet__total-label">Estimated total</p>
           <p className="text-heading-lg tu-sheet__cost">≈ {euros(total)}</p>
         </div>
       )}

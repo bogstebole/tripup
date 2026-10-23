@@ -258,7 +258,7 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 
 ### Final UI, iteration 1.9: "+N" on a pile of picks, total fixed at the bottom
 - **People:** a pile shows at most two dishes, the priciest ones (usually the mains), and one more sticker counts the rest ("+2", "+3"), in the count bubble's colours.
-- **Estimated total** is now a footer fixed at the bottom of People while the list scrolls above it: "Estimated total" on one line, the amount under it, larger (Heading/LG). The line explaining it is gone.
+- **Estimated total** is now a footer fixed at the bottom of People while the list scrolls above it, on one line: "Estimated total" (Label/LG) on the left, the amount (Heading/LG) on the right. The line explaining it is gone.
 
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html

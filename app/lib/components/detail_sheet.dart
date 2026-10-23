@@ -256,8 +256,8 @@ class _DetailSheetState extends State<DetailSheet> {
         Expanded(child: list),
         Padding(
           padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.xs, TokSpace.xs, TokSpace.md),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x3xs, children: [
-            Text('Estimated total', style: TokText.labelMd.copyWith(color: t.textMuted)),
+          child: Row(spacing: TokSpace.sm, children: [
+            Expanded(child: Text('Estimated total', style: TokText.labelLg.copyWith(color: t.textDefault))),
             Text('≈ ${euros(total)}', style: TokText.headingLg.copyWith(color: t.textDefault)),
           ]),
         ),
