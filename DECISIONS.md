@@ -191,6 +191,10 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 - **Plan something is a real flow:** search Lisbon (by name, kind or neighbourhood; accents don't matter), with what's near you before you type; pick a place and it shows on a small map; pick a day and a time range (From and To, each a wheel in 15-minute steps); then "Send to the group". It lands on everyone's itinerary ("until 8 PM") and map, and the map flies to it. The sheet grows to full height for it, easing in and out, and back down for the others.
 - **Not built:** searching beyond a list of 20 well-known Lisbon places (a real places API), and asking the group before it goes in.
 
+## The trip opens on today (24 Oct)
+
+- **Going into a trip picks today in the day filter,** every time, and the map starts where it does. Bogdan: the focus should be on today, not on everything at once. Past days' places (the stickers of where we've been) show again under All or their own day. Up next stays open with today picked; picking another day still folds it into its pin.
+
 ## Notes from the top, everywhere (24 Oct)
 
 - **Every short note (toast) comes from the top:** payments, squared up, the poll, Pay, "Link copied", "Added for…", and the Menu's "Added" with Undo. Before, some came from the bottom and some from the top. One place, one direction.

@@ -120,7 +120,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   Timer? _rescene;
 
   /// Days picked in the filter; empty means All.
-  Set<int> _days = const {};
+  Set<int> _days = {today};   // the trip opens on today: that's where the focus is
 
   /// Days picked in the itinerary's own filter (it opens on all of them).
   Set<int> _planDays = const {};
@@ -402,7 +402,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   void _setDays(Set<int> days, Size size) {
     setState(() {
       _days = days;
-      _upNextMid = days.isEmpty;
+      _upNextMid = days.isEmpty || days.contains(_upNext.day);
     });
     if (days.isEmpty) {
       _flyCamera(startCenter, startZoom);
@@ -491,6 +491,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     HapticFeedback.selectionClick();
     _homeCard = _cardRect();
     if (_reduce) {
+      _openOnToday();
       setState(() {
         _upNextIn = true;
         _upNextMid = true;
@@ -499,7 +500,9 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       _home.animateTo(0, duration: TokMotion.fade);
       return;
     }
-    // Up next is small for the start (one frame here, unseen, so it doesn't shrink on screen), then it all begins
+    // Up next is small for the start (one frame here, unseen, so it doesn't shrink on screen), then it all begins.
+    // The trip opens on today, where it started, whatever day was picked last time
+    _openOnToday();
     setState(() {
       _upNextMid = false;
       _upNextIn = false;
@@ -511,6 +514,12 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       _enter.forward(from: 0);
       setState(() {});
     });
+  }
+
+  /// Today picked in the day filter, and the map where it starts (it's out of sight: this is before the trip opens).
+  void _openOnToday() {
+    _days = {today};
+    _map.move(startCenter, startZoom);
   }
 
   /// Back to your trips.

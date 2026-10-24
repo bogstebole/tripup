@@ -531,6 +531,9 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - **Orchestrated entrance** (Bogdan's note): `entrance.dart` (`TripEntrance` clock, `EnterItem`, `EnterOrder`): back, title, Demo, six day chips, the footer's three buttons, each 30 ms after the last (`open-delay-ms` 220, `open-stagger-ms` 30, `open-item-ms` 200), then Up next opens from its pin (and the poll card shows only then). Up next waits small while you're on your trips and jumps there unseen (`PlanPin._go` jumps when the trip isn't ticking), so it never shrinks on screen. Whole thing ≈1 s. Checked at 8× slow motion, and in, out and in again.
 - **Storybook mirrors 1.32:** `Entrance.tsx` (the same order and timing), `TripCardStill`/`TripCardFace`, and `HomeLayer` as the Airbnb-style opening, with Up next opening from mini to mid when the last control starts. The opening and closing springs use Flutter's own spring formula so they keep time with the entrance clock.
 
+### Final UI, iteration 1.33: the trip opens on today
+- `_days` starts as `{today}` and `_goIn` resets it (and the camera) before the opening, unseen. `_setDays` keeps Up next open when the picked days include its day. Storybook's trip screen opens on today too.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

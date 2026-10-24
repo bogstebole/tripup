@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { AnimatePresence } from 'motion/react';
 import { useState } from 'react';
 import {
-  billTotal, euros, EVENT, EVERYONE_THERE, PEOPLE, peopleAt, personById, REN_JOINS, SCANNED_BILL, THE_BILL, TRIP, TRIP_DAYS, TRIP_NOW,
+  billTotal, euros, EVENT, EVERYONE_THERE, PEOPLE, peopleAt, personById, REN_JOINS, SCANNED_BILL, THE_BILL, TODAY, TRIP, TRIP_DAYS, TRIP_NOW,
   upNextAt, YOUR_TRIPS, type Bill, type Person,
 } from '../data';
 import { ActionBar, TopBar } from './Bars';
@@ -89,7 +89,8 @@ export const GroupBillIn: Story = {
  *  opens, the controls arrive one by one and Up next opens from its pin last (see Entrance.tsx). Back goes to your
  *  trips. */
 function TripScreen({ onBack, now = TRIP_NOW }: { onBack?: () => void; now?: Date }) {
-  const [days, setDays] = useState<number[]>([]);
+  // The trip opens on today: that's where the focus is
+  const [days, setDays] = useState<number[]>([TODAY]);
   const upNextIn = useEnteredLast();
   return (
     <div style={{ position: 'absolute', inset: 0, background: 'var(--color-bg-canvas)' }}>
