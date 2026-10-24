@@ -645,7 +645,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
               child: IgnorePointer(
                 child: BackdropFilter(
                   enabled: behind > 0.01 && !lightEffects,
-                  filter: ui.ImageFilter.blur(sigmaX: TokDim.sheetBackdropBlur * behind, sigmaY: TokDim.sheetBackdropBlur * behind),
+                  filter: ui.ImageFilter.blur(sigmaX: TokDim.tripOpenBlur * behind, sigmaY: TokDim.tripOpenBlur * behind),
                   child: ColoredBox(color: t.cTripOpenWash.withValues(alpha: t.cTripOpenWash.a * behind)),
                 ),
               ),

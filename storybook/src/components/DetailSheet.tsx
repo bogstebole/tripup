@@ -1,4 +1,4 @@
-import { Banknote, Calendar, Check, Clock, Globe, MapPin, Phone, ScanLine, Truck, X, type LucideIcon } from 'lucide-react';
+import { Banknote, Calendar, Check, Clock, Globe, MapPin, Navigation, Phone, ScanLine, Truck, X, type LucideIcon } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion, type MotionValue, type Variants } from 'motion/react';
 import { createContext, useContext, useState, type CSSProperties, type ReactNode } from 'react';
 import tokens from '../../../design-system/tokens.json';
@@ -161,6 +161,7 @@ export function DetailSheet(p: DetailSheetProps) {
   const total = p.bill ? billTotal(p.bill) : p.people.reduce((sum, x) => sum + costOf(x.id), 0);
   const going = p.people.filter(x => x.going).length;
   const here = p.people.filter(x => isHere(x, p.now ?? TRIP_NOW)).length;
+  const site = p.details?.find(d => d.kind === 'website');
 
   return (
     <article className="tu-sheet tu-surface tu-surface--sheet" aria-label={p.name}>
@@ -339,6 +340,15 @@ export function DetailSheet(p: DetailSheetProps) {
         {/* Content scrolling up passes under a blur and the surface's white instead of being cut at the edge */}
         <div className="tu-sheet__top-fade" aria-hidden style={{ '--under': under } as CSSProperties} />
       </motion.div>
+      {/* Overview: Website and Directions stay at the bottom while it scrolls; Directions opens the maps app */}
+      {tab === 'Overview' && p.at && (
+        <motion.div className="tu-sheet__footer-wrap" style={{ opacity: p.contentOpacity }}>
+        <motion.div className="tu-sheet__footer tu-sheet__actions" variants={block} custom={1} initial="hidden" animate="shown">
+          {site && <TextButton variant="soft" label="Website" icon={Globe} size="lg" wide onClick={() => openWebsite(site.text)} />}
+          <TextButton label="Directions" icon={Navigation} size="lg" wide onClick={() => openDirections(p.at!)} />
+        </motion.div>
+        </motion.div>
+      )}
       {/* Group: the bottom stays put while the list scrolls above it: the estimate, then (while the plan is on) Scan
           the bill; once it's in, the bill's total and who owes what */}
       {tab === 'Group' && total > 0 && (
@@ -362,3 +372,10 @@ export function DetailSheet(p: DetailSheetProps) {
     </article>
   );
 }
+
+/** The place's site, in a new tab. */
+const openWebsite = (host: string) => window.open(host.startsWith('http') ? host : `https://${host}`, '_blank', 'noopener');
+
+/** Walking directions to the place in the maps app (Google Maps on the web; the app uses Apple Maps on iPhone). */
+const openDirections = (at: LatLng) =>
+  window.open(`https://www.google.com/maps/dir/?api=1&destination=${at[0]},${at[1]}&travelmode=walking`, '_blank', 'noopener');

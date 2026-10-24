@@ -95,6 +95,8 @@
 /* Its own layer, so the footer can fade with the rest of what's on the sheet (opened in place of a pop-up) */
 .tu-sheet__footer-wrap { flex: none; }
 .tu-sheet__footer { flex: none; display: flex; flex-direction: column; gap: var(--space-md); padding: var(--space-xs) var(--space-xs) var(--space-md); }
+.tu-sheet__actions { flex-direction: row; gap: var(--space-xs); }
+.tu-sheet__actions > * { flex: 1 1 0; min-width: 0; }
 .tu-sheet__footer-row { display: flex; align-items: center; gap: var(--space-sm); }
 .tu-sheet__footer-text { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: var(--space-3xs); color: var(--color-text-default); }
 .tu-sheet__list { display: flex; flex-direction: column; gap: var(--space-md); }

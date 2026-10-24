@@ -134,6 +134,7 @@ abstract final class TuIcons {
   static const unfold = Lucide.chevronDown;
   static const bell = Lucide.bell;
   static const search = Lucide.search;
+  static const directions = Lucide.navigation;
   static const hours = Lucide.clock;
   static const price = Lucide.banknote;
   static const delivery = Lucide.truck;

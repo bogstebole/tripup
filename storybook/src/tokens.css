@@ -69,8 +69,8 @@
   --c-me-dot-edge: #ffffff;
   --c-me-ring: #93c5fd;
   --c-me-cone: #60a5fa;
-  --c-sheet-scrim: rgb(255 255 255 / 0.2);
-  --c-sheet-scrim-flat: rgb(255 255 255 / 0.55);
+  --c-sheet-scrim: rgb(0 30 129 / 0.23);
+  --c-sheet-scrim-flat: rgb(0 30 129 / 0.35);
   --c-top-bar-bg: rgb(255 255 255 / 0.7);
   --c-action-bar-bg: #ffffff;
   --c-toast-bg: #1d4ed8;
@@ -250,7 +250,8 @@
   --d-dish-pick-size: 32px;
   --d-dish-pick-edge: 2px;
   --d-sheet-inset: 16px;
-  --d-sheet-backdrop-blur: 12px;
+  --d-sheet-backdrop-blur: 2.5px;
+  --d-trip-open-blur: 12px;
   --d-sheet-fade: 16px;
   --d-sheet-top-fade: 32px;
   --d-sheet-compact-height: 480px;
@@ -362,8 +363,8 @@
   --c-me-dot-edge: #ffffff;
   --c-me-ring: #93c5fd;
   --c-me-cone: #60a5fa;
-  --c-sheet-scrim: rgb(24 24 27 / 0.2);
-  --c-sheet-scrim-flat: rgb(24 24 27 / 0.55);
+  --c-sheet-scrim: rgb(0 30 129 / 0.23);
+  --c-sheet-scrim-flat: rgb(0 30 129 / 0.35);
   --c-top-bar-bg: rgb(24 24 27 / 0.7);
   --c-action-bar-bg: #18181b;
   --c-toast-bg: #1d4ed8;

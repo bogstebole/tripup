@@ -85,8 +85,8 @@ class TokColors {
     'c/me/dot-edge': Color(0xFFFFFFFF),
     'c/me/ring': Color(0xFF93C5FD),
     'c/me/cone': Color(0xFF60A5FA),
-    'c/sheet/scrim': Color(0x33FFFFFF),
-    'c/sheet/scrim-flat': Color(0x8CFFFFFF),
+    'c/sheet/scrim': Color(0x3B001E81),
+    'c/sheet/scrim-flat': Color(0x59001E81),
     'c/top-bar/bg': Color(0xB3FFFFFF),
     'c/action-bar/bg': Color(0xFFFFFFFF),
     'c/toast/bg': Color(0xFF1D4ED8),
@@ -180,8 +180,8 @@ class TokColors {
     'c/me/dot-edge': Color(0xFFFFFFFF),
     'c/me/ring': Color(0xFF93C5FD),
     'c/me/cone': Color(0xFF60A5FA),
-    'c/sheet/scrim': Color(0x3318181B),
-    'c/sheet/scrim-flat': Color(0x8C18181B),
+    'c/sheet/scrim': Color(0x3B001E81),
+    'c/sheet/scrim-flat': Color(0x59001E81),
     'c/top-bar/bg': Color(0xB318181B),
     'c/action-bar/bg': Color(0xFF18181B),
     'c/toast/bg': Color(0xFF1D4ED8),
@@ -413,7 +413,8 @@ abstract final class TokDim {
   static const double dishPickSize = 32;
   static const double dishPickEdge = 2;
   static const double sheetInset = 16;
-  static const double sheetBackdropBlur = 12;
+  static const double sheetBackdropBlur = 2.5;
+  static const double tripOpenBlur = 12;
   static const double sheetFade = 16;
   static const double sheetTopFade = 32;
   static const double sheetCompactHeight = 480;

@@ -166,8 +166,8 @@ struct TokColors {
     cMeDotEdge: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1),
     cMeRing: Color(.sRGB, red: 0.5765, green: 0.7725, blue: 0.9922, opacity: 1),
     cMeCone: Color(.sRGB, red: 0.3765, green: 0.6471, blue: 0.9804, opacity: 1),
-    cSheetScrim: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.2),
-    cSheetScrimFlat: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.55),
+    cSheetScrim: Color(.sRGB, red: 0.0000, green: 0.1176, blue: 0.5059, opacity: 0.23),
+    cSheetScrimFlat: Color(.sRGB, red: 0.0000, green: 0.1176, blue: 0.5059, opacity: 0.35),
     cTopBarBg: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.7),
     cActionBarBg: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1),
     cToastBg: Color(.sRGB, red: 0.1137, green: 0.3059, blue: 0.8471, opacity: 1),
@@ -261,8 +261,8 @@ struct TokColors {
     cMeDotEdge: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1),
     cMeRing: Color(.sRGB, red: 0.5765, green: 0.7725, blue: 0.9922, opacity: 1),
     cMeCone: Color(.sRGB, red: 0.3765, green: 0.6471, blue: 0.9804, opacity: 1),
-    cSheetScrim: Color(.sRGB, red: 0.0941, green: 0.0941, blue: 0.1059, opacity: 0.2),
-    cSheetScrimFlat: Color(.sRGB, red: 0.0941, green: 0.0941, blue: 0.1059, opacity: 0.55),
+    cSheetScrim: Color(.sRGB, red: 0.0000, green: 0.1176, blue: 0.5059, opacity: 0.23),
+    cSheetScrimFlat: Color(.sRGB, red: 0.0000, green: 0.1176, blue: 0.5059, opacity: 0.35),
     cTopBarBg: Color(.sRGB, red: 0.0941, green: 0.0941, blue: 0.1059, opacity: 0.7),
     cActionBarBg: Color(.sRGB, red: 0.0941, green: 0.0941, blue: 0.1059, opacity: 1),
     cToastBg: Color(.sRGB, red: 0.1137, green: 0.3059, blue: 0.8471, opacity: 1),
@@ -401,7 +401,8 @@ enum TokDim {
   static let dishPickSize: CGFloat = 32
   static let dishPickEdge: CGFloat = 2
   static let sheetInset: CGFloat = 16
-  static let sheetBackdropBlur: CGFloat = 12
+  static let sheetBackdropBlur: CGFloat = 2.5
+  static let tripOpenBlur: CGFloat = 12
   static let sheetFade: CGFloat = 16
   static let sheetTopFade: CGFloat = 32
   static let sheetCompactHeight: CGFloat = 480

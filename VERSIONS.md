@@ -595,6 +595,12 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - `lightEffects` (`lib/design/theme.dart`), set before the first frame from Android's API level (`StartupTimings.weakGraphics`, MainActivity's `sdk`): below 29 it turns off the blur in `StaggerIn` and `fadeBlurOut`, the pin's part blur and `crossfadeSeam`, `ProgressiveBlur`, the sheet backdrop (with the flatter `sheet/scrim-flat` wash), the poll scrim, and the opening's wash and seam.
 - On the Y7-like emulator it looks right (map, Money); its GPU is the Mac's, so the frame times there don't tell. The real check is the Y7's panel again.
 
+### Final UI, iteration 1.40: Website and Directions on Overview, one darker backdrop (branch `feature/overview-actions`)
+- Overview's footer stays put under the scrolling page: **Website** (soft, only when the place has one) and **Directions** (primary). Directions opens Apple Maps on iPhone (walking, to the place's pin) and Google Maps elsewhere; Website opens the browser. `url_launcher` added; Android's manifest may now ask for https links. New icon `TuIcons.directions` (Lucide `navigation`).
+- Every backdrop behind a sheet or pop-up is now the expanded poll's: `sheet/scrim` = `{blue.975}@23` with a 2.5 blur (was a light wash with a stronger blur); `sheet/scrim-flat` (Android before 10) = `{blue.975}@35`. The trip's opening keeps its own blur through the new `trip-open/blur` token.
+- **Checked** on the iPhone 16 simulator: the footer on La Brasserie's Overview, Directions opening Maps, Website opening Safari, the darker backdrop behind the details and Money.
+- Storybook: the same footer on `DetailSheet`'s Overview (`EVENT` now carries La Brasserie's `at`); its tokens follow the new scrim.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

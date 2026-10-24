@@ -123,6 +123,7 @@ export type PlaceDetail = { kind: 'address' | 'hours' | 'price' | 'booking' | 'o
 export const EVENT = {
   label: 'Up next',
   name: "La Brasserie de L'Entrecôte - Alvalade",
+  at: [38.754444, -9.140476] as LatLng,   // Av. da Igreja 12B, Alvalade
   rating: '4.2 (173)',
   cuisine: 'French',
   price: '€20–40',   // the range from the price detail below
@@ -227,7 +228,7 @@ export type Plan = {
   rating?: string; cuisine?: string;
 };
 export const PLANS: Plan[] = [
-  { id: 'brasserie', name: EVENT.name, sticker: EVENT.sticker, at: [38.754444, -9.140476], day: TODAY, hour: 17 },   // Av. da Igreja 12B, Alvalade
+  { id: 'brasserie', name: EVENT.name, sticker: EVENT.sticker, at: EVENT.at, day: TODAY, hour: 17 },
   { id: 'croissants', name: 'Sam Croissants', sticker: 'nata', at: [38.6975, -9.2032], day: TODAY, hour: 18 },
   { id: 'tram', name: 'Tram 28 ride', sticker: 'tram', at: [38.7114, -9.1296], day: 15, hour: 10 },
   { id: 'sail', name: 'Sail on the Tagus', sticker: 'caravel', at: [38.77, -9.0935], day: 16, hour: 18 },   // Doca dos Olivais

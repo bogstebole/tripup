@@ -1,7 +1,10 @@
+import 'dart:io' show Platform;
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart' show CarouselView;
 import 'package:flutter/widgets.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../data.dart';
@@ -254,11 +257,13 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
       );
 
 
-  // ---------- Overview: Bogdan's design, then the place's facts from Google Maps
+  // ---------- Overview: Bogdan's design, then the place's facts from Google Maps; Website and Directions stay at the
+  // bottom while it scrolls
   Widget _overview(BuildContext context) {
     final t = context.tok;
     final p = widget.plan;
-    return _scroll(_enter(spacing: TokSpace.md, children: [
+    final site = p.details.where((d) => d.kind == PlaceDetailKind.website).firstOrNull;
+    final list = _scroll(_enter(spacing: TokSpace.md, children: [
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x2xs, children: [
@@ -282,6 +287,23 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
       if (p.tips.isNotEmpty) KnowSection(title: 'Know before you go', children: [for (final tip in p.tips) KnowTip(tip)]),
       if (p.services.isNotEmpty || p.details.isNotEmpty) _PlaceFacts(plan: p),
     ]));
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Expanded(child: list),
+      _enter(children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.xs, TokSpace.xs, TokSpace.md),
+          child: Row(spacing: TokSpace.xs, children: [
+            if (site != null)
+              Expanded(
+                child: TuTextButton(label: 'Website', icon: TuIcons.website, kind: GlassKind.soft, size: TuButtonSize.lg, wide: true, onTap: () => openWebsite(site.text)),
+              ),
+            Expanded(
+              child: TuTextButton(label: 'Directions', icon: TuIcons.directions, size: TuButtonSize.lg, wide: true, onTap: () => openDirections(p.at, p.name)),
+            ),
+          ]),
+        ),
+      ]),
+    ]);
   }
 
   // ---------- Menu: the whole real menu, prices, who picked what, and Add
@@ -463,6 +485,20 @@ class _SheetPhysics extends ScrollPhysics {
     if (value < position.minScrollExtent && position.minScrollExtent < position.pixels) return value - position.minScrollExtent;
     return super.applyBoundaryConditions(position, value);
   }
+}
+
+/// The place's own site, in the browser.
+Future<void> openWebsite(String host) async {
+  await launchUrl(Uri.parse(host.startsWith('http') ? host : 'https://$host'), mode: LaunchMode.externalApplication);
+}
+
+/// Walking directions to [at] in the phone's own maps: Apple Maps on iPhone, Google Maps elsewhere.
+Future<void> openDirections(LatLng at, String name) async {
+  final to = '${at.latitude},${at.longitude}';
+  final url = !kIsWeb && Platform.isIOS
+      ? Uri.https('maps.apple.com', '/', {'daddr': to, 'dirflg': 'w', 'q': name})
+      : Uri.https('www.google.com', '/maps/dir/', {'api': '1', 'destination': to, 'travelmode': 'walking'});
+  await launchUrl(url, mode: LaunchMode.externalApplication);
 }
 
 /// The place's facts, as on its Google Maps card: service options, then one line per fact.
