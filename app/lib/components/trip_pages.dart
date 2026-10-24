@@ -8,14 +8,18 @@ import '../design/theme.dart';
 import '../design/tokens.dart';
 import 'basics.dart';
 import 'glass.dart';
+import 'segmented_tabs.dart';
 import 'stagger.dart';
 import 'trip_sheet.dart';
 
 /// Every day of the trip, in order: where we've been, what's planned, and today marked. Tapping a stop shows it
 /// on the map.
 class ItineraryPage extends StatelessWidget {
-  const ItineraryPage({super.key, this.onPick, this.todayKey, this.onPoll});
+  const ItineraryPage({super.key, this.onPick, this.todayKey, this.onPoll, this.days = const {}});
   final ValueChanged<LatLng>? onPick;
+
+  /// The days picked in its filter; empty means all of them.
+  final Set<int> days;
 
   /// Opens the dinner poll (from tonight's slot, while it isn't decided).
   final VoidCallback? onPoll;
@@ -31,8 +35,9 @@ class ItineraryPage extends StatelessWidget {
     final now = tripNow();
     final all = tripPlans;
     final next = all.where((p) => p.start.isAfter(now)).firstOrNull;
-    return StaggerIn(children: [
+    return StaggerIn(spacing: TokSpace.sm, children: [
       for (final (i, day) in tripDays.indexed)
+        if (days.isEmpty || days.contains(day))
         () {
           final been = visited.where((v) => v.day == day).toList(), planned = all.where((p) => p.day == day).toList();
           final rows = <Widget>[
@@ -68,9 +73,14 @@ class ItineraryPage extends StatelessWidget {
                 onTap: onPick == null ? null : () => onPick!(p.at),
               ),
           ];
-          return Column(key: day == today ? todayKey : null, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          // Each day is its own grey block, so what belongs to it is plain at a glance
+          return Container(
+            key: day == today ? todayKey : null,
+            padding: const EdgeInsets.fromLTRB(0, TokSpace.sm, 0, TokSpace.x2xs),
+            decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.sheet)),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Padding(
-              padding: EdgeInsets.fromLTRB(TokSpace.xs, i == 0 ? 0 : TokSpace.xl, TokSpace.xs, TokSpace.x2xs),
+              padding: const EdgeInsets.fromLTRB(TokSpace.sm, 0, TokSpace.sm, TokSpace.x2xs),
               child: Row(spacing: TokSpace.xs, children: [
                 Text('${weekdayShort(DateTime(tripYear, tripMonth, day))} $day', style: TokText.headingSm.copyWith(color: day < today ? t.textMuted : t.textDefault)),
                 Text('Day ${i + 1}', style: TokText.bodySm.copyWith(color: t.textMuted)),
@@ -79,18 +89,25 @@ class ItineraryPage extends StatelessWidget {
             ),
             if (rows.isEmpty)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs, vertical: TokSpace.xs),
-                child: Text('Nothing planned yet', style: TokText.bodySm.copyWith(color: t.textSubtle)),
+                padding: const EdgeInsets.fromLTRB(TokSpace.sm, TokSpace.x2xs, TokSpace.sm, TokSpace.sm),
+                child: Text('Nothing planned yet', style: TokText.bodySm.copyWith(color: t.textMuted)),
               ),
-            for (final (j, r) in rows.indexed) ...[if (j > 0) const Hairline(), r],
-          ]);
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: TokSpace.x2xs),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                for (final (j, r) in rows.indexed) ...[if (j > 0) const Hairline(), r],
+              ]),
+            ),
+          ]),
+          );
         }(),
     ]);
   }
 }
 
-/// The group's money: what I owe (and paying it), what's been spent, the fewest payments that square everyone up,
-/// each person's balance, and the expenses. Tonight's dinner joins once the bill comes; until then it's an estimate.
+/// The group's money: what I owe (and paying it) on top, then one thing at a time in tabs: the fewest payments that
+/// square everyone up, each person's balance, or the expenses (the list that grows all trip). Tonight's dinner joins
+/// once the bill comes; until then it's an estimate.
 class MoneyPage extends StatefulWidget {
   const MoneyPage({super.key, this.onScan});
 
@@ -106,6 +123,9 @@ class MoneyPage extends StatefulWidget {
 class _MoneyPageState extends State<MoneyPage> {
   /// The payment whose "why" is open, if any.
   Payment? _why;
+
+  /// Settle up, Balances or Expenses.
+  int _tab = 0;
 
   VoidCallback? get onScan => widget.onScan;
 
@@ -173,7 +193,45 @@ class _MoneyPageState extends State<MoneyPage> {
           child: Text("Tonight's dinner isn't on it yet: about ${euros(estimate)}, from what everyone picked. It splits by who had what.",
               style: TokText.bodySm.copyWith(color: t.textMuted)),
         ),
-      SheetSection('Settle up', subtitle: '${pays.length} payments square everyone, instead of $paymentsOneByOne'),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.lg, TokSpace.xs, TokSpace.xs),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: SegmentedTabs(
+            tabs: const ['Settle up', 'Balances', 'Expenses'],
+            index: _tab,
+            onChanged: (i) => setState(() => _tab = i),
+          ),
+        ),
+      ),
+      // One tab's list at a time: it fades in, the last one fades out with a blur
+      AnimatedSwitcher(
+        duration: TokMotion.enter,
+        reverseDuration: TokMotion.fade,
+        layoutBuilder: (current, previous) => Stack(alignment: Alignment.topCenter, children: [...previous, ?current]),
+        transitionBuilder: (child, anim) => child.key == ValueKey(_tab) ? FadeTransition(opacity: anim, child: child) : fadeBlurOut(anim, child),
+        child: KeyedSubtree(
+          key: ValueKey(_tab),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: switch (_tab) {
+            0 => _settle(context, pays),
+            1 => _balances(context),
+            _ => _expenses(context),
+          }),
+        ),
+      ),
+    ]);
+  }
+
+  /// A short line under the tabs, about the list.
+  Widget _note(BuildContext context, String text) => Padding(
+        padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.x2xs, TokSpace.xs, TokSpace.xs),
+        child: Text(text, style: TokText.bodySm.copyWith(color: context.tok.textMuted)),
+      );
+
+  List<Widget> _settle(BuildContext context, List<Payment> pays) {
+    final t = context.tok;
+    return [
+      _note(context, '${pays.length} payments square everyone, instead of $paymentsOneByOne'),
       for (final (i, p) in pays.indexed) ...[
         if (i > 0) const Hairline(),
         SheetRow(
@@ -196,7 +254,13 @@ class _MoneyPageState extends State<MoneyPage> {
           child: _why == p ? _explain(context, p) : const SizedBox(width: double.infinity),
         ),
       ],
-      const SheetSection('Balances'),
+    ];
+  }
+
+  List<Widget> _balances(BuildContext context) {
+    final t = context.tok;
+    return [
+      _note(context, 'Who gets money back, and who owes'),
       for (final (i, person) in people.indexed) ...[
         if (i > 0) const Hairline(),
         () {
@@ -216,7 +280,13 @@ class _MoneyPageState extends State<MoneyPage> {
           );
         }(),
       ],
-      const SheetSection('Expenses', subtitle: 'Newest first'),
+    ];
+  }
+
+  List<Widget> _expenses(BuildContext context) {
+    final t = context.tok;
+    return [
+      _note(context, '${tripExpenses.length} expenses · ${euros(spentSoFar)} · newest first'),
       for (final (i, e) in tripExpenses.indexed) ...[
         if (i > 0) const Hairline(),
         SheetRow(
@@ -229,7 +299,7 @@ class _MoneyPageState extends State<MoneyPage> {
           ]),
         ),
       ],
-    ]);
+    ];
   }
 }
 

@@ -1,4 +1,6 @@
 // Joining a trip mid-way, from the invite link: what the new person sees on their own phone.
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart' show Material, MaterialType, TextField, InputDecoration;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -92,10 +94,15 @@ class _JoinFlowState extends State<JoinFlow> {
     final t = context.tok;
     final now = tripNow();
     final crew = [for (final p in people) if (onTrip(p, now) && (widget.preview || p.id != 'ren')) p];
-    return ListView(
-      padding: EdgeInsets.fromLTRB(TokSpace.lg, pad.top + TokSpace.x5xl, TokSpace.lg, pad.bottom + TokSpace.xl),
-      children: [
-        StaggerIn(spacing: TokSpace.md, crossAxisAlignment: CrossAxisAlignment.center, children: [
+    // In the middle of the screen (clear of the pill on top), scrolling only if it doesn't fit
+    final inset = EdgeInsets.fromLTRB(TokSpace.lg, pad.top + TokSpace.x5xl, TokSpace.lg, pad.bottom + TokSpace.x5xl);
+    return LayoutBuilder(
+      builder: (context, box) => SingleChildScrollView(
+        padding: inset,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: math.max(0, box.maxHeight - inset.vertical)),
+          child: Center(
+            child: StaggerIn(spacing: TokSpace.md, crossAxisAlignment: CrossAxisAlignment.center, children: [
           Overlapped(overlap: TokDim.avatarOverlap, children: [for (final p in crew) Sticker(p.sticker, size: StickerSize.row)]),
           Column(spacing: TokSpace.x2xs, children: [
             Text("$myName invited you to", textAlign: TextAlign.center, style: TokText.bodyMd.copyWith(color: t.textMuted)),
@@ -135,7 +142,9 @@ class _JoinFlowState extends State<JoinFlow> {
             },
           ),
         ]),
-      ],
+          ),
+        ),
+      ),
     );
   }
 

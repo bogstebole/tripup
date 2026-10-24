@@ -553,6 +553,9 @@ class _Seam extends StatelessWidget {
 /// The same seam blur, for other files.
 Widget crossfadeSeam({required double sigma, required Widget child}) => _Seam(sigma: sigma, child: child);
 
+/// The size reporter, for other files.
+Widget reportSize({required ValueChanged<Size> onSize, required Widget child}) => _SizeReporter(onSize: onSize, child: child);
+
 /// Reports its child's size after layout.
 class _SizeReporter extends SingleChildRenderObjectWidget {
   const _SizeReporter({required this.onSize, super.child});

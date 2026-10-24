@@ -146,6 +146,8 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 - **Every voter's face,** not two and "+N": there are five people at most.
 - **The card is wider** (345, or the screen less its margins) and can **fold into a pill** under the day filter: "Dinner poll · 2 of 5 · closes in 28 mins", with a chevron to unfold. A poll that opens always shows in full first. We didn't fold it by itself after a while: the user decides when it's in the way.
 - **A red dot that slowly breathes says it's live,** on the card and the pill ("Live poll · closes in…"). Red is what "live" looks like everywhere. With reduced motion it stays still.
+- **Folding is one surface changing shape** (Bogdan: the first version swapped two things). The box springs between the card's size and the pill's while one content fades out and the other in, slightly blurred where they overlap. Both are pinned to the box's left edge, so the live dot and its line ride along. We didn't use a crossfade of two separate widgets: it read as a swap.
+- **You vote on the card itself.** Tapping a place votes for it (a ring on the right fills with a check), and its bar and faces update at once. Before, the card only opened the poll, so voting took two taps. Ratings, prices and walks are a link at the bottom ("Ratings, prices and walks →").
 - **Not built:** pins for the options on the map. All three are on the same street, so their pins would sit on top of each other; the cards say how far each is instead. The rest of the dinner (the bill and so on) is La Brasserie's; picking another place by hand gives it a plain plan.
 
 ## Your trips and joining (built 24 Oct)
@@ -158,6 +160,14 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 - **Then a catch-up, not a tour.** Where they're staying, where they've been, what's coming (an open poll says he can vote), and the money rule in one sentence. We didn't show the full itinerary or the balance: he hasn't spent anything yet.
 - **Invite can preview it** ("See what they'll see"), so whoever sends the link knows what the other person gets.
 - **Not built:** a real deep link and a second account. It's one app on one phone; the link is a stand-in.
+
+## Itinerary and Money: one thing at a time (24 Oct)
+
+- **Each day of the itinerary is a grey block,** so what belongs to which day is plain. Before, days were headings over one long list.
+- **The itinerary filters by day, like the map,** with the same chips (All, Tue 12…) pinned under its title. It opens on All, scrolled to today. It has its own filter rather than following the map's, so planning ahead doesn't change what the map shows.
+- **Money keeps "You owe Maya" on top, then tabs: Settle up · Balances · Expenses.** One list at a time, so the expenses (the list that grows all trip) never push the rest away. Settle up is first: it's the one with something to do. We didn't keep the three sections stacked: with a week of expenses it becomes a long scroll.
+- **Ren's invite sits in the middle of the screen,** not at the top.
+- **The home screen will be Bogdan's design;** the current list stays until it arrives.
 
 ## Notes from the top, everywhere (24 Oct)
 

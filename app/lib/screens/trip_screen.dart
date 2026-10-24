@@ -109,6 +109,9 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
 
   /// Days picked in the filter; empty means All.
   Set<int> _days = const {};
+
+  /// Days picked in the itinerary's own filter (it opens on all of them).
+  Set<int> _planDays = const {};
   bool _shows(int day) => _days.isEmpty || _days.contains(day);
 
   /// Whoever has already got to the Up next place.
@@ -412,7 +415,10 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     if (_covered) return;
     _popDrag.value = 0;
     _popClosing = false;
-    setState(() => _popup = which);
+    setState(() {
+      _popup = which;
+      _planDays = const {};
+    });
     _holdUnder();
     if (_reduce) {
       _pop.value = 1;
@@ -515,7 +521,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
 
     void dragUpdate(DragUpdateDetails d) => _popDrag.value = math.max(0, _popDrag.value + d.delta.dy);
     final (title, subtitle, page) = switch (_popup!) {
-      _Popup.itinerary => ('Itinerary', ItineraryPage.subtitle, ItineraryPage(todayKey: _todayKey, onPoll: () => setState(() => _popup = _Popup.poll), onPick: (at) {
+      _Popup.itinerary => ('Itinerary', ItineraryPage.subtitle, ItineraryPage(todayKey: _todayKey, days: _planDays, onPoll: () => setState(() => _popup = _Popup.poll), onPick: (at) {
           _closePopup();
           _flyTo(at);
         }) as Widget),
@@ -544,6 +550,16 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           onHeaderDragUpdate: dragUpdate,
           onHeaderDragEnd: dragEnd,
           focus: _popup == _Popup.itinerary ? _todayKey : null,
+          // The itinerary filters by day, like the map
+          top: _popup != _Popup.itinerary
+              ? null
+              : ToggleChips<int>(
+                  options: tripDays,
+                  selected: _planDays,
+                  labelOf: _dayLabel,
+                  padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
+                  onChanged: (d) => setState(() => _planDays = d),
+                ),
           child: page,
         ),
       ),
@@ -772,7 +788,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           top: _safe(size).top,
           child: IgnorePointer(
             ignoring: !pollOpen(tripNow()) || _covered,
-            // Card and pill swap in place: the one leaving shrinks a little into the top as it fades
+            // It comes and goes with a fade and a slight scale from the top; folding is the card's own morph
             child: AnimatedSwitcher(
               duration: TokMotion.enter,
               reverseDuration: TokMotion.fade,
@@ -785,9 +801,10 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
               ),
               child: !pollOpen(tripNow()) || _covered
                   ? const SizedBox.shrink()
-                  : _pollFolded
-                      ? Center(key: const ValueKey('poll-pill'), child: PollPill(onUnfold: () => _foldPoll(false)))
-                      : Center(key: const ValueKey('poll'), child: PollCard(onOpen: () => _openPopup(_Popup.poll), onFold: () => _foldPoll(true))),
+                  : Center(
+                      key: const ValueKey('poll'),
+                      child: PollOnMap(folded: _pollFolded, onFold: () => _foldPoll(true), onUnfold: () => _foldPoll(false), onOpen: () => _openPopup(_Popup.poll)),
+                    ),
             ),
           ),
         ),
