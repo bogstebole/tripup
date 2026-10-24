@@ -566,16 +566,31 @@ export const startsAt = (t: Date, now = TRIP_NOW) => (dayName(t, now) === 'Today
 export const plansAhead = (now: Date, poll: PollState) =>
   plansWith(dinnerChoice(now, poll) ?? null).filter(p => planStart(p).getTime() + PLAN_LASTS_MS > now.getTime());
 
-/** Another trip on the home list: where, when, a sticker, who (their stickers), and a line about it. */
-export type TripSummary = { title: string; dates: string; sticker: string; faces: string[]; note: string };
+/** Another trip on the home list: where, when, a sticker, who (their stickers), and a line about it. `faceTilts`: how
+ *  much each face leans, in degrees, by its place in `faces` (as they're placed in the design). */
+export type TripSummary = { title: string; dates: string; sticker: string; faces: string[]; note: string; faceTilts?: number[] };
 
 export const UPCOMING_TRIPS: TripSummary[] = [
-  { title: 'Porto weekend', dates: '19–21 Jun', sticker: 'caravel', faces: ['person-04', 'person-01', 'person-02', 'person-05'], note: 'In 5 weeks · 4 going' },
+  { title: 'Berlin', dates: '23 June - 23 July', sticker: 'brandenburg', faces: ['person-03', 'person-05'], note: 'In 6 weeks · 3 going', faceTilts: [0, -6.22] },
 ];
 
-/** Done and settled; folded away under the others. */
+/** Done and settled. */
 export const PAST_TRIPS: TripSummary[] = [
-  { title: 'Tokyo', dates: 'Oct 2025', sticker: 'sushi', faces: ['person-04', 'person-05', 'person-02'], note: '€1,840 · squared up' },
-  { title: 'Mallorca', dates: 'Aug 2025', sticker: 'ice-cream', faces: ['person-04', 'person-01', 'person-03', 'person-02'], note: '€960 · squared up' },
-  { title: 'Hanoi', dates: 'Mar 2025', sticker: 'pho', faces: ['person-04', 'person-01'], note: '€610 · squared up' },
+  { title: 'Mallorca', dates: 'Jan 24 - Feb 12', sticker: 'windmill', faces: ['person-02', 'person-03', 'person-04'], note: '€960 · squared up' },
+  { title: 'Tokyo', dates: 'Oct 3 - Oct 14', sticker: 'sushi', faces: ['person-04', 'person-05', 'person-02'], note: '€1,840 · squared up' },
+  { title: 'Hanoi', dates: 'Mar 8 - Mar 15', sticker: 'pho', faces: ['person-04', 'person-01'], note: '€610 · squared up' },
+];
+
+/** The current trip's card on Your trips (Figma 75:5927): a still of Lisbon, far bigger than the card and placed so the
+ *  neighbourhoods we've been in show, with a few of the places on it as stickers. In the design's units (px): the card
+ *  covers a HOME_MAP_FRAME box (scaled to fill the real card); the image's rect and each sticker's centre, height and
+ *  tilt (degrees) are placed in it. */
+export const HOME_MAP_FRAME = { width: 361, height: 438 };
+export const HOME_MAP_IMAGE = '/assets/map/home-lisbon.png';
+export const HOME_MAP_IMAGE_RECT = { left: -634, top: -343, width: 1792, height: 1024 };
+export const HOME_MAP_STICKERS = [
+  { sticker: 'belem', x: 324.5, y: 29, height: 38, tilt: 0 },
+  { sticker: 'galo', x: 236.26, y: 65.85, height: 26.25, tilt: 11.86 },
+  { sticker: 'azulejo', x: 330, y: 90, height: 16, tilt: 0 },
+  { sticker: 'caravel', x: 228.07, y: 129.65, height: 23.55, tilt: 0 },
 ];

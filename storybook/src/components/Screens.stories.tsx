@@ -93,13 +93,18 @@ function TripScreen({ onBack }: { onBack?: () => void }) {
 }
 
 /** The app's first screen at `now`: your trips, over the trip's screen. The current trip goes in (your trips zoom past
- *  and fade) and the trip's Back comes back to them (they settle from the same zoom). */
-function Home({ now, pastOpen }: { now?: Date; pastOpen?: boolean }) {
+ *  and fade) and the trip's Back comes back to them (they settle from the same zoom). The bell's note comes down at
+ *  the top. */
+function Home({ now, scrolledToEnd }: { now?: Date; scrolledToEnd?: boolean }) {
   const [home, setHome] = useState(true);
   return (
     <div style={phone}>
-      <TripScreen onBack={() => setHome(true)} />
-      <AnimatePresence initial={false}>{home && <HomeLayer key="home" now={now} pastOpen={pastOpen} onOpen={() => setHome(false)} />}</AnimatePresence>
+      <NoticeLayer>
+        <TripScreen onBack={() => setHome(true)} />
+        <AnimatePresence initial={false}>
+          {home && <HomeLayer key="home" now={now} scrolledToEnd={scrolledToEnd} onOpen={() => setHome(false)} />}
+        </AnimatePresence>
+      </NoticeLayer>
     </div>
   );
 }
@@ -128,13 +133,13 @@ function Joining({ start, preview, now = REN_JOINS }: { start?: JoinStep; previe
 
 export const YourTrips: Story = {
   name: 'Your trips',
-  parameters: { docs: { description: { story: 'The app opens here (the Demo moment "Your trips", 2 PM). The trip I\'m on sits on top, on the surface: the first five places we\'ve been (stickers, overlapped), its name, "Lisbon · 12–21 May · Day 3 of 10", what\'s on right now in brand blue ("Poll open: where for dinner tonight?", "Now: dinner at La Brasserie de L\'Entrecôte", or the next plan: at 2 PM the dinner isn\'t decided yet, so "Up next: Sam Croissants, 6 PM"), who\'s on it (Ren joins at 2:10, so four faces) and "You owe Maya €181.50" ("4 on this trip" once I\'ve paid), with an arrow. Under it, Coming up (Porto weekend) and Past trips, folded, with how many and a chevron (see Your trips · past open). Tapping the card goes into the trip: your trips zoom past (to page-zoom-scale 1.04) and fade as an exit (fade-ms), the trip\'s screen under them; its Back brings them back, settling from that zoom (enter-ms, ease-out). Reduced motion: fades only.' } } },
+  parameters: { docs: { description: { story: 'The app opens here (the Demo moment "Your trips", 2 PM), on the brand blue (Figma 75:5927). At the top, "Your trips" in white, the bell (soft, md: nothing new yet, so "No new notifications" comes down at the top) and me in a soft glass circle as big as the bell. home-header-gap (29) under them, the trip I\'m on as a card 438 high, with the surface\'s corners and shadow and a 5 px white edge over it all: a still of Lisbon placed as in the design and scaled to cover the card from the top, with Belém, the galo, an azulejo and the caravel on it as stickers, and white rising from the bottom (solid up to home-map-fade-start, 15.2 % of the card, clear by the top). On it, "Happening now" (a soft glass pill with a green bead), the trip\'s name (heading-xl, one line, ending in "…" when it\'s long), its dates, who\'s on it (Ren joins at 2:10, so four faces, 39 px, overlapped) and the arrow in (primary, md). Then Coming up (Berlin) and Previous trips 3 (the count softer), as light brand rows: a 48 px sticker, the name (body-lg, medium), the dates, and the faces on the row\'s bottom edge, some tilted. Nothing folds, and there\'s no Demo button here (it\'s in the trip\'s top bar). The list fades into the blue at the bottom (home-bottom-fade, 89). Tapping the card goes into the trip: your trips zoom past (to page-zoom-scale 1.04) and fade as an exit (fade-ms), the trip\'s screen under them; its Back brings them back, settling from that zoom (enter-ms, ease-out). Reduced motion: fades only.' } } },
   render: () => <Home now={YOUR_TRIPS} />,
 };
-export const YourTripsPastOpen: Story = {
-  name: 'Your trips · past open',
-  parameters: { docs: { description: { story: 'At the demo\'s start (3:56 PM): Ren is in, so five faces, and the poll has put La Brasserie in tonight ("Up next: La Brasserie de L\'Entrecôte, 5 PM"). Past trips are unfolded: Tokyo, Mallorca and Hanoi, each squared up, with hairlines between. A tap on "Past trips" folds them back: the list closes from the bottom (enter-ms, ease-out) and the chevron turns down with it; reduced motion, it fades.' } } },
-  render: () => <Home pastOpen />,
+export const YourTripsScrolled: Story = {
+  name: 'Your trips · scrolled to the end',
+  parameters: { docs: { description: { story: 'At the demo\'s start (3:56 PM): Ren is in, so five faces on the card. Scrolled to the end: Previous trips (Mallorca, Tokyo, Hanoi), all of them (they no longer fold away), the last row clear of the fade with home-bottom-fade of room under it; the rows above pass under the fade into the blue as they scroll.' } } },
+  render: () => <Home scrolledToEnd />,
 };
 export const RenInvite: Story = {
   name: "Ren's phone · invite",

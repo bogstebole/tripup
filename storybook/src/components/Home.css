@@ -1,67 +1,162 @@
-/* Your trips: the first screen (see Home.tsx). It scrolls on its own, over the trip's screen. */
+/* Your trips: the first screen (see Home.tsx), on the brand blue. The list scrolls on its own, over the trip's screen,
+   and fades into the blue at the bottom. */
 .tu-home {
+  position: relative;
+  height: 100%;
+  background: var(--c-home-bg);
+  color: var(--c-home-fg);
+}
+.tu-home__list {
   height: 100%;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: none;
-  padding: var(--space-md) var(--space-md) var(--space-xl);
-  background: var(--color-bg-canvas);
+  padding: var(--space-md) 0 var(--d-home-bottom-fade);
 }
-.tu-home::-webkit-scrollbar { display: none; }
-.tu-home__head { display: flex; align-items: center; margin-bottom: var(--space-md); }
-.tu-home__title { flex: 1 1 0; min-width: 0; margin: 0; color: var(--color-text-default); }
-.tu-home__muted { color: var(--color-text-muted); }
-/* Faces, overlapped, the later ones on top */
-.tu-home__faces { display: flex; align-items: center; flex: none; }
-.tu-home__faces > * + * { margin-left: calc(var(--d-chip-face-overlap) * -1); }
+.tu-home__list::-webkit-scrollbar { display: none; }
+.tu-home__fade {
+  position: absolute;
+  inset: auto 0 0;
+  height: var(--d-home-bottom-fade);
+  background: linear-gradient(to bottom, transparent, var(--c-home-bg));
+  pointer-events: none;
+}
 
-/* The trip you're on, on the surface. The whole card is one button. */
+/* "Your trips", the bell and me, then the trip you're on */
+.tu-home__top { padding: 0 var(--space-md); }
+.tu-home__head { display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--d-home-header-gap); }
+.tu-home__title { flex: 1 1 0; min-width: 0; margin: 0; }
+/* Me: soft glass, as round and as big as the bell */
+.tu-home__me {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--d-button-md);
+  height: var(--d-button-md);
+  border-radius: var(--radius-pill);
+  background: var(--c-button-soft-bg);
+  box-shadow: var(--inset-button-soft), var(--shadow-slightly-raised);
+}
+.tu-home__gap { height: var(--space-xl); }
+
+/* Coming up, Previous trips: a heading in white (its count softer), then light rows */
+.tu-home__section { display: flex; flex-direction: column; gap: var(--space-xs); padding: var(--space-md); }
+.tu-home__heading { margin: 0; }
+.tu-home__count { color: var(--c-home-count-fg); }
+
+/* The trip you're on: 438 high, the surface's corners and shadow, a white edge on top of everything in it. The whole
+   card is one button. */
 .tu-home-card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
+  position: relative;
+  display: block;
   width: 100%;
-  padding: var(--space-md);
+  height: var(--d-home-card-height);
+  overflow: hidden;
+  border-radius: var(--d-surface-radius);
+  box-shadow: var(--shadow-surface);
   text-align: left;
   transition: transform var(--press-ms) var(--ease-out);
+}
+.tu-home-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: var(--d-home-card-edge) solid var(--c-home-card-edge);
+  border-radius: inherit;
+  pointer-events: none;
 }
 .tu-home-card:active { transform: scale(var(--press-scale)); }
 .tu-home-card:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: var(--space-3xs); }
-/* Where we've been, overlapped like the Up next card's fan */
-.tu-home-card__stickers { display: flex; align-items: center; }
-.tu-home-card__stickers > * + * { margin-left: calc(var(--d-sticker-overlap) * -1); }
-.tu-home-card__titles { display: flex; flex-direction: column; gap: var(--space-3xs); }
+
+/* The design's frame (--frame-w × --frame-h, from HOME_MAP_FRAME) scaled to cover the card from the top: as wide as
+   the card, or wider when the card is too narrow for its height; centred, the rest cut off */
+.tu-home-card__map {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: max(100%, var(--d-home-card-height) * var(--frame-w) / var(--frame-h));
+  aspect-ratio: var(--frame-w) / var(--frame-h);
+  overflow: hidden;
+  translate: -50% 0;
+}
+/* The still, far bigger than the frame, and the places on it, each on its centre (the sticker's tilt turns it there) */
+.tu-home-card__city { position: absolute; max-width: none; }
+.tu-home-card__place { position: absolute; translate: -50% -50%; }
+/* White rising from the bottom: solid up to map-fade-start of the card, then clear by the top */
+.tu-home-card__fade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    var(--c-home-map-fade),
+    var(--c-home-map-fade) calc(var(--d-home-map-fade-start) * 100%),
+    transparent
+  );
+}
+/* "Happening now" at the top, the rest at the bottom, clear of the white edge */
+.tu-home-card__body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  height: 100%;
+  padding: calc(var(--space-xl) + var(--d-home-card-edge));
+}
+.tu-home-card__now { display: flex; align-items: flex-start; flex: 1 1 0; min-height: 0; }
+.tu-home-card__titles { display: flex; flex-direction: column; min-width: 0; }
 .tu-home-card__title { color: var(--color-text-default); }
-.tu-home-card__status { color: var(--color-text-brand); }
-.tu-home-card__crew { display: flex; align-items: center; gap: var(--space-xs); }
-.tu-home-card__owe { flex: 1 1 0; min-width: 0; }
+.tu-home-card__dates { color: var(--color-text-muted); }
+.tu-home-card__crew { display: flex; align-items: center; }
+/* Everyone on it, overlapped, the later ones on top */
+.tu-home-card__faces { display: flex; align-items: center; flex: 1 1 0; min-width: 0; }
+.tu-home-card__face { height: var(--d-home-hero-face); }
+.tu-home-card__face + .tu-home-card__face { margin-left: calc(var(--d-home-hero-face-overlap) * -1); }
 /* The arrow takes no presses of its own: they land on the card */
 .tu-home-card__go { pointer-events: none; }
 
-/* "Past trips 3" and a chevron: down while folded, turning up as they unfold */
-.tu-home__past {
+/* "Happening now": a soft glass pill with a green bead (a small glow around it, no blur) */
+.tu-home-now {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  width: 100%;
-  margin-top: var(--space-md);
-  padding: var(--space-sm) var(--space-xs);
-  border-radius: var(--radius-card);
+  height: var(--d-home-now-pill-height);
+  padding: 0 var(--space-sm);
+  border-radius: var(--radius-pill);
+  background: var(--c-button-soft-bg);
+  box-shadow: var(--inset-button-soft), var(--shadow-slightly-raised);
   color: var(--color-text-default);
-  text-align: left;
-  transition: transform var(--press-ms) var(--ease-out);
 }
-.tu-home__past:active { transform: scale(var(--press-scale)); }
-.tu-home__past:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: calc(var(--space-3xs) * -1); }
-.tu-home__chevron {
-  width: var(--size-icon-sm);
-  height: var(--size-icon-sm);
+.tu-home-now__dot {
   flex: none;
-  margin-left: auto;
-  color: var(--color-icon-muted);
-  transform: rotate(0.5turn);
-  transition: transform var(--enter-ms) var(--ease-out);
+  width: var(--d-home-now-dot);
+  height: var(--d-home-now-dot);
+  border: calc(var(--d-surface-edge-width) / 2) solid var(--c-now-dot-edge);
+  border-radius: var(--radius-pill);
+  background: linear-gradient(to bottom, var(--c-now-dot-top), var(--c-now-dot-bottom));
+  box-shadow: 0 0 0 var(--d-home-now-dot-glow) var(--c-now-dot-glow);
 }
-.tu-home__chevron[data-open] { transform: none; }
-/* The past trips grow open from the top, clipped as they go */
-.tu-home__fold { overflow: hidden; }
+
+/* Another trip: a light brand row with its sticker (in a row-sticker square), name and dates, and the faces */
+.tu-home-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-card);
+  background: var(--c-home-row-bg);
+}
+.tu-home-row__sticker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: var(--d-home-row-sticker);
+  height: var(--d-home-row-sticker);
+}
+.tu-home-row__sticker > img { max-width: 100%; max-height: 100%; }
+.tu-home-row__titles { display: flex; flex-direction: column; flex: 1 1 0; min-width: 0; }
+.tu-home-row__title { color: var(--color-text-default); }
+.tu-home-row__dates { color: var(--color-text-muted); }
+/* Overlapped, the later ones on top, on the row's bottom edge */
+.tu-home-row__faces { display: flex; align-items: center; flex: none; align-self: flex-end; }
+.tu-home-row__faces > * + * { margin-left: calc(var(--d-home-row-face-overlap) * -1); }
