@@ -88,7 +88,7 @@ export function TripSheet({ title, subtitle, children, onClose, compact, footer 
  * (enter-ms, ease-out, stagger-ms apart; past stagger-max the rest come in with the last one, so a long list
  * doesn't drag). With reduced motion they only fade in.
  */
-export function StaggerIn({ children, gap }: { children: ReactNode; gap?: 'xs' | 'sm' }) {
+export function StaggerIn({ children, gap }: { children: ReactNode; gap?: 'xs' | 'sm' | 'md' }) {
   const reduce = useReducedMotion();
   return (
     <div className="tu-stagger" style={gap ? { gap: `var(--space-${gap})` } : undefined}>

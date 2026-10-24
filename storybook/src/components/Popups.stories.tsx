@@ -9,8 +9,12 @@ import {
 import { ActionBar, TopBar } from './Bars';
 import { Camera } from './BillScan';
 import { NoticeLayer, useNotice, type NoticeState } from './Notice';
+import { JoinLayer } from './Join';
 import { PollCard, PollPage, pollSubtitle } from './Poll';
-import { ADD_SUBTITLE, AddPage, ITINERARY_SUBTITLE, ItineraryPage, MONEY_SUBTITLE, MoneyPage, moneySubtitle, type ItineraryPageProps } from './TripPages';
+import {
+  ADD_SUBTITLE, AddPage, ITINERARY_SUBTITLE, ItineraryPage, MONEY_SUBTITLE, MoneyPage, moneySubtitle, type AddPageProps, type AddStep,
+  type ItineraryPageProps,
+} from './TripPages';
 import { TripSheet } from './TripSheet';
 
 const m = tokens.motion;
@@ -49,17 +53,19 @@ type PollSlot = { subtitle: string; page: ReactNode; card?: ReactNode };
 
 /**
  * The trip screen with one footer pop-up open. The footer's buttons open the others once it's closed. `money` swaps
- * in another state of the money pop-up, `itinerary` sets the itinerary's page (the poll, now); `poll` is the dinner
- * poll (its pop-up, and its card on the map while no pop-up covers it); `children` go over everything (the camera).
- * Notes for everyone come down at the top: the pages show theirs, and `notices` lets the story show its own too.
- * `open` and `onOpen` say from outside which pop-up is open.
+ * in another state of the money pop-up, `itinerary` sets the itinerary's page (the poll, now), `add` the add page's
+ * (its step, and Invite's preview); `poll` is the dinner poll (its pop-up, and its card on the map while no pop-up
+ * covers it); `children` go over everything (the camera, the invited person's phone). Notes for everyone come down at
+ * the top: the pages show theirs, and `notices` lets the story show its own too. `open` and `onOpen` say from outside
+ * which pop-up is open.
  */
-function Screen({ start = null, open: shown, onOpen, money, itinerary, poll, notices, children }: {
+function Screen({ start = null, open: shown, onOpen, money, itinerary, add, poll, notices, children }: {
   start?: Which | null;
   open?: Which | null;
   onOpen?: (which: Which | null) => void;
   money?: { subtitle: string; page: ReactNode };
   itinerary?: Omit<ItineraryPageProps, 'onPick' | 'onPoll'>;
+  add?: AddPageProps;
   poll?: PollSlot;
   notices?: NoticeState;
   children?: ReactNode;
@@ -72,7 +78,7 @@ function Screen({ start = null, open: shown, onOpen, money, itinerary, poll, not
   const sheet: Record<Which, { title: string; subtitle: string; page: ReactNode } | undefined> = {
     itinerary: { title: 'Itinerary', subtitle: ITINERARY_SUBTITLE, page: <ItineraryPage onPick={close} onPoll={poll && (() => setOpen('poll'))} {...itinerary} /> },
     money: { title: 'Money', subtitle: money?.subtitle ?? MONEY_SUBTITLE, page: money?.page ?? <MoneyPage /> },
-    add: { title: 'Add to the trip', subtitle: ADD_SUBTITLE, page: <AddPage /> },
+    add: { title: 'Add to the trip', subtitle: ADD_SUBTITLE, page: <AddPage {...add} /> },
     poll: poll && { title: 'Dinner tonight', subtitle: poll.subtitle, page: poll.page },
   };
   const current = open ? sheet[open] : undefined;
@@ -295,6 +301,19 @@ function PollStory({ start }: { start?: Which }) {
   );
 }
 
+// ---------- Add: a plan, or someone new
+
+/** The add pop-up, on `start`. Invite's See what they'll see opens the invited person's phone over everything (as in
+ *  Screens · Invite preview); its × or Close the preview goes back to Invite. */
+function AddStory({ start }: { start?: AddStep }) {
+  const [preview, setPreview] = useState(false);
+  return (
+    <Screen start="add" add={{ start, onPreview: () => setPreview(true) }}>
+      <AnimatePresence>{preview && <JoinLayer key="preview" preview onJoined={() => setPreview(false)} onClose={() => setPreview(false)} />}</AnimatePresence>
+    </Screen>
+  );
+}
+
 const meta = {
   title: 'Pop-ups',
   parameters: {
@@ -352,8 +371,14 @@ export const ScanTheBill: Story = {
 };
 
 export const Add: Story = {
-  parameters: { docs: { description: { story: 'Two choices: plan something, or invite someone. Plan shows ideas nearby, each with the free slot it would go in, and an Add button (a note confirms the slot). Invite shows the link with Copy link (a note confirms) and says what joining costs. Back returns to the choice; a step fades out with a blur while the next one arrives.' } } },
-  render: () => <Screen start="add" />,
+  parameters: { docs: { description: { story: 'Two choices: plan something, or invite someone. Plan shows ideas nearby, each with the free slot it would go in, and an Add button (a note confirms the slot). Invite shows the link with Copy link (a note confirms), says what joining costs, and can show what they\'ll see (see Add · invite). Back returns to the choice; a step fades out with a blur while the next one arrives.' } } },
+  render: () => <AddStory />,
+};
+
+export const AddInvite: Story = {
+  name: 'Add · invite',
+  parameters: { docs: { description: { story: 'Invite, as it opens from Invite someone: the link with Copy link, the note on what joining costs, and under it, from the page\'s left edge, a soft "See what they\'ll see" (TextButton soft, 44 px). It opens the invited person\'s phone over everything, the way Ren\'s phone opens (it fades in from page-zoom-scale, enter-ms, and fades away, fade-ms; reduced motion, fades only): "What they\'ll see" at the top, the name field empty, and the trip as anyone joining now would see it (see Screens · Invite preview). Nobody joins; × or Close the preview goes back to Invite, the pop-up still open.' } } },
+  render: () => <AddStory start="invite" />,
 };
 
 export const ItineraryPollOpen: Story = {

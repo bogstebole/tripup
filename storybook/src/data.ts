@@ -23,9 +23,10 @@ export const MY_ID = 'ari';
  * `leaves` and `arrives` are when they set off for dinner and get there, in minutes after midnight on the trip's
  * today (the app simulates their walks on the demo clock; in the real app it's their shared locations).
  * `status` is what the app works out from that at the demo's start (Thu 15:56); see `statusOf` and `peopleAt`.
- * `joined` is the day they joined the trip: costs from before it aren't theirs.
+ * `joined` is the day they joined the trip, and `joinedMinute` when that day (minutes after midnight; 0 if left out):
+ * costs from before it aren't theirs.
  */
-export type Person = { id: string; name: string; sticker: string; status: string; going: boolean; joined: number; leaves: number; arrives: number };
+export type Person = { id: string; name: string; sticker: string; status: string; going: boolean; joined: number; joinedMinute?: number; leaves: number; arrives: number };
 type Walker = Omit<Person, 'status'>;
 /** The group, on their way to dinner (17:00): Maya is there, Nic is on his way, Leo leaves at 16:16, and Ren (who
  *  joined today) and I leave at 16:30. */
@@ -34,7 +35,7 @@ const CREW: Walker[] = [
   { id: 'maya', name: 'Maya', sticker: 'person-01', going: true, joined: 12, leaves: 15 * 60 + 28, arrives: 15 * 60 + 46 },
   { id: 'nic', name: 'Nic', sticker: 'person-05', going: true, joined: 12, leaves: 15 * 60 + 48, arrives: 16 * 60 + 4 },
   { id: 'leo', name: 'Leo', sticker: 'person-02', going: true, joined: 12, leaves: 16 * 60 + 16, arrives: 16 * 60 + 36 },
-  { id: 'ren', name: 'Ren', sticker: 'person-03', going: true, joined: TODAY, leaves: 16 * 60 + 30, arrives: 16 * 60 + 48 },   // joined mid-trip, today
+  { id: 'ren', name: 'Ren', sticker: 'person-03', going: true, joined: TODAY, joinedMinute: 14 * 60 + 10, leaves: 16 * 60 + 30, arrives: 16 * 60 + 48 },   // joined mid-trip, today at 2:10 PM
 ];
 
 const minuteOf = (t: Date) => t.getHours() * 60 + t.getMinutes() + t.getSeconds() / 60;
@@ -168,10 +169,13 @@ export const upNextChips = (here: string[]): InfoChip[] => [
   { text: EVENT.price, grow: here.length < 4 },
 ];
 
+/** How long a plan lasts after its start, for when it counts as over (the app's `planLasts`). */
+export const PLAN_LASTS_MS = 3 * 3600000;
+
 /** Dinner is on: its time has come (from a quarter of an hour before, for the three hours it lasts) and someone is
  *  there (inside the geofence). Nobody presses anything for it; it's where people are and the time. */
 export const isActive = (now: Date) =>
-  now.getTime() >= DINNER.getTime() - 15 * 60000 && now.getTime() < DINNER.getTime() + 3 * 3600000 && CREW.some(p => isHere(p, now));
+  now.getTime() >= DINNER.getTime() - 15 * 60000 && now.getTime() < DINNER.getTime() + PLAN_LASTS_MS && CREW.some(p => isHere(p, now));
 
 /** Moments of the brief's story (the app's Demo button): everyone's at the table, then the bill comes. */
 export const EVERYONE_THERE = new Date(2026, 4, 14, 17, 0);
@@ -540,3 +544,38 @@ export const plansWith = (dinner?: string | null) =>
     ? PLANS
     : [...PLANS.filter(p => p.id !== DINNER_SLOT_ID || p.id === dinner), ...(dinner && dinner !== DINNER_SLOT_ID ? [pollOptionPlan(pollOptionById(dinner))] : [])]
         .sort((x, y) => planStart(x).getTime() - planStart(y).getTime());
+
+// ---------- Your trips, and joining one
+// The app opens on your trips; the one you're on goes into its map. Ren joins from the invite link with only a name,
+// and sees the trip so far. The app's Demo moments "Your trips" (01) and "Ren joins" (03).
+
+/** The Demo's moments: your trips at 2 PM, and Ren joining at 2:10 PM (before the poll opens). */
+export const YOUR_TRIPS = tripDate(TODAY, 14, 0), REN_JOINS = tripDate(TODAY, 14, 10);
+
+/** My own name, for what others see (in the app I'm "You"). */
+export const MY_NAME = 'Ari';
+
+/** Whether `p` is on the trip by `now` (Ren joins today at 2:10 PM). */
+export const onTrip = (p: Pick<Person, 'joined' | 'joinedMinute'>, now: Date) =>
+  p.joined < TODAY || (p.joined === TODAY && minuteOf(now) >= (p.joinedMinute ?? 0));
+
+/** "5 PM" if it's today, else "Tomorrow, 10 AM" (the app's `Plan.startsAt`). */
+export const startsAt = (t: Date, now = TRIP_NOW) => (dayName(t, now) === 'Today' ? clockTime(t) : `${dayName(t, now)}, ${clockTime(t)}`);
+
+/** The plans not over yet at `now`, in order, with tonight's dinner as the poll stands (out while it's undecided). */
+export const plansAhead = (now: Date, poll: PollState) =>
+  plansWith(dinnerChoice(now, poll) ?? null).filter(p => planStart(p).getTime() + PLAN_LASTS_MS > now.getTime());
+
+/** Another trip on the home list: where, when, a sticker, who (their stickers), and a line about it. */
+export type TripSummary = { title: string; dates: string; sticker: string; faces: string[]; note: string };
+
+export const UPCOMING_TRIPS: TripSummary[] = [
+  { title: 'Porto weekend', dates: '19–21 Jun', sticker: 'caravel', faces: ['person-04', 'person-01', 'person-02', 'person-05'], note: 'In 5 weeks · 4 going' },
+];
+
+/** Done and settled; folded away under the others. */
+export const PAST_TRIPS: TripSummary[] = [
+  { title: 'Tokyo', dates: 'Oct 2025', sticker: 'sushi', faces: ['person-04', 'person-05', 'person-02'], note: '€1,840 · squared up' },
+  { title: 'Mallorca', dates: 'Aug 2025', sticker: 'ice-cream', faces: ['person-04', 'person-01', 'person-03', 'person-02'], note: '€960 · squared up' },
+  { title: 'Hanoi', dates: 'Mar 2025', sticker: 'pho', faces: ['person-04', 'person-01'], note: '€610 · squared up' },
+];

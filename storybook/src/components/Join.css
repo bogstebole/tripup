@@ -1,0 +1,79 @@
+/* Joining from the invite link: the new person's phone (see Join.tsx). A page at a time, each scrolling on its own;
+   the pill and the × stay at the top over an eased fade. */
+.tu-join { position: absolute; inset: 0; overflow: hidden; background: var(--color-bg-canvas); }
+.tu-join__page {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  /* Starts well under the pill */
+  padding: var(--space-5xl) var(--space-md) var(--space-xl);
+}
+.tu-join__page::-webkit-scrollbar { display: none; }
+/* The invite is narrower: lg each side */
+.tu-join__page--invite { padding-inline: var(--space-lg); }
+.tu-join__fade { position: absolute; top: 0; left: 0; right: 0; height: calc(var(--space-xs) + var(--d-button-sm) + var(--space-xl)); pointer-events: none; }
+/* The pill in the middle, the × at the end, and room for a button's width at the start so the pill stays centred */
+.tu-join__top {
+  position: absolute;
+  top: var(--space-xs);
+  left: var(--space-md);
+  right: var(--space-md);
+  display: grid;
+  grid-template-columns: var(--d-button-sm) minmax(0, 1fr) var(--d-button-sm);
+  align-items: center;
+}
+.tu-join__pill {
+  grid-column: 2;
+  justify-self: center;
+  max-width: 100%;
+  padding: var(--space-2xs) var(--space-sm);
+  border-radius: var(--radius-pill);
+  background: var(--color-bg-muted);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tu-join__muted { color: var(--color-text-muted); }
+.tu-join__center { text-align: center; }
+.tu-join__lead { width: var(--size-icon-md); height: var(--size-icon-md); flex: none; color: var(--color-icon-brand); }
+
+/* The invite: everyone there (their faces, overlapped), who invited you to what, all centred */
+.tu-join__faces { display: flex; justify-content: center; align-items: center; }
+.tu-join__faces > * + * { margin-left: calc(var(--d-avatar-overlap) * -1); }
+.tu-join__titles { display: flex; flex-direction: column; gap: var(--space-2xs); text-align: center; }
+/* The trip's name, two lines at most; one long word breaks where it must */
+.tu-join__trip {
+  margin: 0;
+  color: var(--color-text-default);
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+/* The name field: a muted pill as tall as the button under it, md more above it than between the rest */
+.tu-join__name {
+  width: 100%;
+  height: var(--d-button-lg);
+  margin-top: var(--space-md);
+  padding: 0 var(--space-md);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-bg-muted);
+  color: var(--color-text-default);
+}
+.tu-join__name::placeholder { color: var(--color-text-subtle); }
+.tu-join__name:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: var(--space-3xs); }
+
+/* The trip so far */
+.tu-join__welcome { display: flex; flex-direction: column; gap: var(--space-2xs); padding: 0 var(--space-xs); color: var(--color-text-default); }
+.tu-join__welcome h1 { margin: 0; }
+/* Where they've been, overlapped, from the left */
+.tu-join__stickers { display: flex; align-items: center; padding: 0 var(--space-xs); }
+.tu-join__stickers > * + * { margin-left: calc(var(--d-sticker-overlap) * -1); }
+.tu-join__rule { padding: 0 var(--space-xs); color: var(--color-text-default); }
+.tu-join__open { margin-top: var(--space-xl); }
