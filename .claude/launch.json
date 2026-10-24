@@ -15,6 +15,12 @@
       "url": "http://localhost:8765"
     },
     {
+      "name": "storybook",
+      "runtimeExecutable": "/bin/sh",
+      "runtimeArgs": ["-c", "cd \"/Users/bogste/Documents/Projects/Personal/Bending Spoon Test Task/storybook\" && exec npm run storybook"],
+      "port": 6006
+    },
+    {
       "name": "storybook-attach",
       "url": "http://localhost:6006"
     }

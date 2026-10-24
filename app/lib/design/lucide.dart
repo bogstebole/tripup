@@ -29,4 +29,5 @@ abstract final class Lucide {
   static const chevronDown = '<path d="m6 9 6 6 6-6"/>';
   static const bell = '<path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/>';
   static const search = '<path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/>';
+  static const navigation = '<polygon points="3 11 22 2 13 21 11 13 3 11"/>';
 }

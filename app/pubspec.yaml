@@ -43,6 +43,7 @@ dependencies:
   http: ^1.6.0
   vector_tile_renderer: ^6.1.0
   flutter_svg: ^2.3.0
+  url_launcher: ^6.3.3
 
 dev_dependencies:
   flutter_test:
