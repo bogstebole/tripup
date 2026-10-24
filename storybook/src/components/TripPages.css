@@ -5,11 +5,14 @@
 .tu-pages__check { width: var(--size-icon-sm); height: var(--size-icon-sm); flex: none; color: var(--color-icon-success); }
 .tu-pages__lead { width: var(--size-icon-md); height: var(--size-icon-md); flex: none; color: var(--color-icon-brand); }
 
-/* Itinerary: a heading per day ("Thu 14 · Day 3 · Today"), then where we've been and what's planned */
-.tu-day { display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-xl) var(--space-xs) var(--space-2xs); }
-.tu-day--first { padding-top: var(--space-none); }
+/* Itinerary: each day its own grey block, sm apart: a heading ("Thu 14 · Day 3 · Today"), then where we've been and
+   what's planned */
+.tu-day-block { display: flex; flex-direction: column; padding: var(--space-sm) 0 var(--space-2xs); border-radius: var(--radius-sheet); background: var(--color-bg-muted); }
+.tu-day { display: flex; align-items: center; gap: var(--space-xs); padding: 0 var(--space-sm) var(--space-2xs); }
 .tu-day h3 { margin: 0; }
-.tu-day__empty { padding: var(--space-xs); color: var(--color-text-subtle); }
+/* The rows, their text in line with the heading */
+.tu-day-block__rows { padding: 0 var(--space-2xs); }
+.tu-day__empty { padding: var(--space-2xs) var(--space-sm) var(--space-sm); color: var(--color-text-muted); }
 /* A small brand pill next to a heading */
 .tu-tag { padding: var(--space-3xs) var(--space-xs); border-radius: var(--radius-pill); background: var(--color-bg-brand-subtle); color: var(--color-text-brand); }
 
@@ -18,6 +21,12 @@
 .tu-owe--square { background: var(--color-bg-success-subtle); }
 .tu-owe__text { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: var(--space-3xs); color: var(--color-text-default); }
 .tu-owe__done { width: var(--size-icon-md); height: var(--size-icon-md); flex: none; color: var(--color-icon-success); }
+/* The tabs under it, from the page's left edge; then one tab's list, with a short line on top. The leaving list
+   fades out over the same spot as the new one. */
+.tu-money-tabs { display: flex; padding: var(--space-lg) var(--space-xs) var(--space-xs); }
+.tu-money-list { display: grid; }
+.tu-money-list__tab { grid-area: 1 / 1; min-width: 0; }
+.tu-money-note { padding: var(--space-2xs) var(--space-xs) var(--space-xs); color: var(--color-text-muted); }
 /* Who pays whom: their two faces with an arrow between */
 .tu-pay { display: inline-flex; align-items: center; gap: var(--space-3xs); flex: none; }
 .tu-pay__arrow { width: var(--size-icon-sm); height: var(--size-icon-sm); flex: none; color: var(--color-icon-muted); }

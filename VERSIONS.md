@@ -500,6 +500,7 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - **Ren's phone:** the invite is centred on the screen.
 - Tokens: `poll/mark` 24, `poll/mark-ring` 2.
 - Home screen: waiting for Bogdan's design.
+- **Storybook mirrors 1.28:** the poll's one-surface fold (Motion spring between measured sizes), voting on the card (new story Widget › Poll card · your vote), the itinerary's filter and day blocks (Pop-ups › Itinerary · one day), Money's tabs (Money · balances, Money · expenses) and the centred invite. No hairlines inside the itinerary's grey day blocks, in either: they didn't show on the grey.
 
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html

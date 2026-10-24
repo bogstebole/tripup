@@ -94,9 +94,8 @@ class ItineraryPage extends StatelessWidget {
               ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: TokSpace.x2xs),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                for (final (j, r) in rows.indexed) ...[if (j > 0) const Hairline(), r],
-              ]),
+              // No hairlines inside the block: on its grey they wouldn't show, and the rows' spacing is enough
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: rows),
             ),
           ]),
           );
