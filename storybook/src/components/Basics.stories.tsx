@@ -104,11 +104,11 @@ export const Dish: Story = {
 
 export const Note: Story = {
   name: 'Toast',
-  parameters: { docs: { description: { story: 'A flat pill in the brand blue (not glass, so it does not read as a button): a check, the one line that matters, and Undo. Shown when a dish is added; it comes up from past the bottom edge, stays for toast-ms (3 s), and goes back down the way it came, a little quicker. CSS transitions, so a new one while it is up just retargets.' } } },
+  parameters: { docs: { description: { story: 'A flat pill in the brand blue (not glass, so it does not read as a button): a check, the one line that matters, and Undo. Every note comes from the top of the screen, where the top bar\'s buttons are: it slides down from above the edge, stays for toast-ms (3 s), or toast-action-ms (6 s) with Undo, so there\'s time to reach it, and goes back up the way it came, a little quicker. A line too long for the screen ends in an ellipsis; Undo always shows. CSS transitions, so a new one while it is up just retargets.' } } },
   render: function Render() {
     const [shown, setShown] = useState(true);
     return (
-      <div style={{ position: 'relative', width: 343, height: 120, overflow: 'hidden', borderRadius: 'var(--radius-card)', background: 'var(--color-bg-default)' }}>
+      <div style={{ position: 'relative', width: 343, height: 140, overflow: 'hidden', borderRadius: 'var(--radius-card)', background: 'var(--color-bg-default)', display: 'flex', alignItems: 'flex-end' }}>
         <button type="button" className="text-label-md" style={{ margin: 'var(--space-md)' }} onClick={() => setShown(s => !s)}>{shown ? 'Hide' : 'Show'}</button>
         <Toast label="Added for Today, 5 PM" shown={shown} actionLabel="Undo" onAction={() => setShown(false)} />
       </div>

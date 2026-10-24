@@ -1,19 +1,20 @@
 // The pages of the footer's three pop-ups: the itinerary, the group's money, and adding to the trip. Each goes inside
-// a TripSheet, which scrolls it and shows its toasts.
-import { ArrowRight, Check, ChevronLeft, CircleCheck, Copy, MapPinPlus, ScanLine, UserPlus } from 'lucide-react';
+// a TripSheet, which scrolls it; their notes come down at the top of the screen (see Notice.tsx).
+import { ArrowRight, Check, ChevronLeft, CircleCheck, Copy, MapPin, MapPinPlus, ScanLine, UserPlus } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useState, type ReactElement } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import {
-  balanceLeft, clockTime, dayName, DINNER_ESTIMATE, euros, INVITE_LINK, isPaid, MY_ID, payLine, PEOPLE, personById, PLAN_IDEAS,
-  planStart, PLANS, PRE_DINNER, shareOf, SPENT_SO_FAR, squaredUp, timeUntil, TODAY, tripDate, TRIP_DAYS, TRIP_NOW, VISITED,
-  type Money, type Payment,
+  balanceLeft, clockTime, dayName, DINNER, DINNER_ESTIMATE, DINNER_TABLE, dinnerChoice, euros, INVITE_LINK, isPaid, MY_ID, payLine, PEOPLE,
+  personById, PLAN_IDEAS, planStart, plansWith, POLL_OPENS, pollClosed, pollOpen, PRE_DINNER, shareOf, SPENT_SO_FAR, squaredUp, timeUntil,
+  TODAY, tripDate, TRIP_DAYS, TRIP_NOW, VISITED, votesIn, type Money, type Payment, type PollState,
 } from '../data';
 import { AddButton } from './AddButton';
 import { TextButton } from './Button';
 import { KnowRow } from './KnowSection';
 import { Sticker } from './Sticker';
-import { Hairline, SheetRow, SheetSection, Slot, StaggerIn, useSheetToast } from './TripSheet';
+import { useTripNotice } from './Notice';
+import { Hairline, SheetRow, SheetSection, Slot, StaggerIn } from './TripSheet';
 import './TripPages.css';
 
 const m = tokens.motion;
@@ -28,12 +29,27 @@ const withHairlines = <T,>(items: T[], row: (x: T) => ReactElement) => items.fla
 /** "12–21 May · Day 3 of 10". */
 export const ITINERARY_SUBTITLE = `${TRIP_DAYS[0].day}–${TRIP_DAYS[TRIP_DAYS.length - 1].day} May · Day ${TRIP_DAYS.findIndex(d => d.day === TODAY) + 1} of ${TRIP_DAYS.length}`;
 
+export interface ItineraryPageProps {
+  /** Tapping a stop: show it on the map. */
+  onPick?: (place: string) => void;
+  /** The dinner poll, while it decides tonight's dinner (my vote, an Undo, a place picked by hand). Leave it out for
+   *  the plans as they stand at the demo's start: the poll long closed, La Brasserie at 5 PM. */
+  poll?: PollState;
+  /** Opens the dinner poll, from tonight's slot while it isn't decided. */
+  onPoll?: () => void;
+  /** Now, in the trip (the demo's start, 3:56 PM, by default). */
+  now?: Date;
+}
+
 /**
  * Every day of the trip, in order: where we've been, what's planned, and today marked. It opens on today. Tapping a
- * stop shows it on the map (the pop-up closes and the map flies there).
+ * stop shows it on the map (the pop-up closes and the map flies there). While the dinner poll hasn't decided, today
+ * has a Dinner slot at 5 PM instead of the place ("Poll open · 3 of 5 voted"), which opens the poll.
  */
-export function ItineraryPage({ onPick }: { onPick?: (place: string) => void }) {
-  const next = PLANS.find(p => planStart(p) > TRIP_NOW);
+export function ItineraryPage({ onPick, poll, onPoll, now = TRIP_NOW }: ItineraryPageProps) {
+  const dinner = poll && (dinnerChoice(now, poll) ?? null);
+  const plans = plansWith(dinner);
+  const next = plans.find(p => planStart(p) > now);
   return (
     <StaggerIn>
       {TRIP_DAYS.map(({ day, label }, i) => {
@@ -48,12 +64,26 @@ export function ItineraryPage({ onPick }: { onPick?: (place: string) => void }) 
               onClick={onPick && (() => onPick(v.name))}
             />
           )),
-          ...PLANS.filter(p => p.day === day).map(p => (
+          // Tonight's slot, until the poll has picked a place
+          ...(poll && day === TODAY && dinner === null
+            ? [
+                <SheetRow
+                  key="dinner-slot"
+                  leading={<Slot><MapPin className="tu-pages__lead" strokeWidth={2} absoluteStrokeWidth aria-hidden /></Slot>}
+                  title="Dinner"
+                  subtitle={pollOpen(now, poll) ? `Poll open · ${votesIn(now, poll)} of ${DINNER_TABLE.length} voted` : pollClosed(now, poll) ? 'No place yet: pick one' : `Poll at ${clockTime(POLL_OPENS)}`}
+                  tone="brand"
+                  trailing={<span className="text-label-md weight-semibold tu-pages__strong">{clockTime(DINNER)}</span>}
+                  onClick={onPoll}
+                />,
+              ]
+            : []),
+          ...plans.filter(p => p.day === day).map(p => (
             <SheetRow
               key={p.id}
               leading={<Slot><Sticker name={p.sticker} size="row" /></Slot>}
               title={p.name}
-              subtitle={p === next ? `Up next · ${timeUntil(planStart(p))}` : timeUntil(planStart(p))}
+              subtitle={p === next ? `Up next · ${timeUntil(planStart(p), now)}` : timeUntil(planStart(p), now)}
               tone={p === next ? 'brand' : undefined}
               trailing={<span className="text-label-md weight-semibold tu-pages__strong">{clockTime(planStart(p))}</span>}
               onClick={onPick && (() => onPick(p.name))}
@@ -101,7 +131,7 @@ export interface MoneyPageProps {
  * paid, a green "Lisbon is squared up".
  */
 export function MoneyPage({ money = PRE_DINNER, made: kept, onPay, dinnerOn, onScan }: MoneyPageProps) {
-  const toast = useSheetToast();
+  const toast = useTripNotice();
   const [own, setOwn] = useState<Payment[]>([]);
   const made = kept ?? own;
   // The payment whose "why" is open, if any
@@ -286,7 +316,7 @@ function Back({ onClick }: { onClick: () => void }) {
 }
 
 function PlanStep({ onBack }: { onBack: () => void }) {
-  const toast = useSheetToast();
+  const toast = useTripNotice();
   const [added, setAdded] = useState<string[]>([]);
   return (
     <StaggerIn>
@@ -320,7 +350,7 @@ function PlanStep({ onBack }: { onBack: () => void }) {
 }
 
 function InviteStep({ onBack }: { onBack: () => void }) {
-  const toast = useSheetToast();
+  const toast = useTripNotice();
   const copy = () => {
     // The story's frame may not be allowed the clipboard; the note shows either way, as in the app
     navigator.clipboard?.writeText(`https://${INVITE_LINK}`).catch(() => {});

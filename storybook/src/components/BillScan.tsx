@@ -1,16 +1,15 @@
 // Scanning the dinner's bill: the camera finds the paper, reads it, and every line lands on whoever had it.
-import { X } from 'lucide-react';
+import { Check, ChevronUp, X } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useEffect, useLayoutEffect, useRef, useState, type Ref } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import {
-  billShares, billTotal, BRASSERIE_BILL, DINNER_TABLE, euros, lineTotal, menuItemNamed, MY_ID, personById, photoUrl, scannedBill,
-  type Bill,
+  billShares, billTotal, BRASSERIE_BILL, DINNER_TABLE, euros, lineTotal, menuItemNamed, MY_ID, personById, scannedBill, type Bill,
 } from '../data';
 import { Button, TextButton } from './Button';
-import { FacePile } from './FacePile';
 import { Sticker } from './Sticker';
-import { Hairline, SheetRow, StaggerIn, TripSheet } from './TripSheet';
+import { Hairline, SheetRow, Slot, StaggerIn, TripSheet } from './TripSheet';
+import './Surface.css';
 import './BillScan.css';
 
 const m = tokens.motion;
@@ -24,6 +23,7 @@ type Phase = 'aim' | 'lock' | 'read' | 'review';
 type Box = { left: number; top: number; width: number; height: number };
 /** An element's box in the camera's own frame (its offsets, so a transform above the camera doesn't skew it). */
 const boxOf = (el: HTMLElement, grow = 0): Box => ({ left: el.offsetLeft - grow, top: el.offsetTop - grow, width: el.offsetWidth + grow * 2, height: el.offsetHeight + grow * 2 });
+const who = (id: string) => (id === MY_ID ? 'You' : personById(id).name);
 
 export interface BillScanProps {
   /** The bill as checked (who had each line, who paid), to add to the trip's money. */
@@ -32,11 +32,31 @@ export interface BillScanProps {
 }
 
 /**
- * Full screen, over everything: the camera's view of the bill on the table. A moment to find the paper
- * (scan-find-ms), then the frame closes in from the screen's edges onto it (enter-ms, ease-out) and turns blue, a line
- * reads it top to bottom at an even pace (scan-read-ms, linear), and the bill rises with every line on the faces of
- * whoever had it. Tap a line to change who had it; tap "Change" to change who paid. Reduced motion: straight to the
- * bill, which fades in. In the prototype the camera shows a prepared bill (there's no real camera or OCR).
+ * The camera over the screen: it fades in like any modal (enter-ms) and leaves with a blur (fade-ms), so the bill
+ * melts into the page under it (Group or Money, in the same place on the same background). Reduced motion: fades.
+ * Put it in AnimatePresence.
+ */
+export function Camera({ onAdd, onClose }: BillScanProps) {
+  const reduce = useReducedMotion();
+  return (
+    <motion.div
+      style={{ position: 'absolute', inset: 0 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1, transition: { duration: m['enter-ms'] / 1000, ease } }}
+      exit={{ opacity: 0, filter: reduce ? 'none' : ['blur(0px)', `blur(${m['enter-blur']}px)`], transition: { duration: m['fade-ms'] / 1000, ease } }}
+    >
+      <BillScan onAdd={onAdd} onClose={onClose} />
+    </motion.div>
+  );
+}
+
+/**
+ * Full screen, over everything: the camera's view of the bill, on one plain colour (c-scan-bg). A moment to find the
+ * paper (scan-find-ms), then the frame closes in from the screen's edges onto it (enter-ms, ease-out) and turns blue, a
+ * line reads it top to bottom at an even pace (scan-read-ms, linear), and the bill rises with every line on the faces
+ * of whoever had it. Then the colour fades out (enter-ms) and the paper with it (fade-ms), so the bill sits on what's
+ * behind: the same backdrop as the full view, in the same place. Reduced motion: straight to the bill, which fades in.
+ * In the prototype the camera shows a prepared bill (there's no real camera or OCR).
  */
 export function BillScan({ onAdd, onClose }: BillScanProps) {
   const reduce = useReducedMotion();
@@ -44,6 +64,13 @@ export function BillScan({ onAdd, onClose }: BillScanProps) {
   const root = useRef<HTMLDivElement>(null);
   const aim = useRef<HTMLDivElement>(null);
   const paper = useRef<HTMLDivElement>(null);
+  // Where the payer menu sits, while it's open: its bottom-left corner xs above the trigger's top-left. It goes over
+  // everything in the camera (so nothing clips it), with a tap anywhere else closing it.
+  const [menu, setMenu] = useState<{ left: number; bottom: number } | null>(null);
+  const openMenu = (trigger: HTMLElement) => {
+    const t = trigger.getBoundingClientRect(), r = root.current?.getBoundingClientRect();
+    if (r) setMenu({ left: t.left - r.left, bottom: r.bottom - t.top + tokens.space.xs });
+  };
   // Where the frame starts (the screen's edges) and where the paper is, once it's found
   const [from, setFrom] = useState<Box | null>(null);
   const [to, setTo] = useState<Box | null>(null);
@@ -65,8 +92,8 @@ export function BillScan({ onAdd, onClose }: BillScanProps) {
   const frame = phase === 'aim' ? from : to ?? from;
   return (
     <div ref={root} className="tu-scan" data-phase={phase}>
-      {/* The camera's view: the restaurant, dim, with the bill on the table */}
-      <img className="tu-scan__photo" src={photoUrl('brasserie-1')} alt="" draggable={false} />
+      {/* The camera's view: one plain colour with the bill on it, both fading once the bill is up */}
+      <div className="tu-scan__bg" aria-hidden />
       <div className="tu-scan__middle">
         <Paper ref={paper} />
       </div>
@@ -114,12 +141,27 @@ export function BillScan({ onAdd, onClose }: BillScanProps) {
           <p className="text-label-md tu-scan__hint" role="status">{phase === 'aim' ? 'Hold the bill inside the frame' : 'Reading the bill…'}</p>
         </>
       )}
-      {/* The bill, rising over the camera once it's read */}
+      {/* The bill, rising over the camera once it's read, in the full view's place */}
       {review && (
         <div className="tu-scan__place">
-          <BillReview bill={bill} onChange={setBill} onAdd={() => onAdd?.(bill)} onClose={onClose} />
+          <BillReview bill={bill} payerMenuOpen={!!menu} onPayer={openMenu} onChange={setBill} onAdd={() => onAdd?.(bill)} onClose={onClose} />
         </div>
       )}
+      {menu && <div className="tu-payer__outside" onClick={() => setMenu(null)} aria-hidden />}
+      <AnimatePresence>
+        {menu && (
+          <PayerMenu
+            key="payer"
+            at={menu}
+            payer={bill.paidBy}
+            table={DINNER_TABLE}
+            onPick={id => {
+              setBill(b => ({ ...b, paidBy: id }));
+              setMenu(null);
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -131,10 +173,19 @@ const names = (ids: string[]) => {
 };
 
 /**
- * The bill as read: every line with what it is on the menu, how many at what price, who had it (their faces) and its
- * amount. Under it, what each person had to the cent, who paid, and Add to the trip's money.
+ * The bill as read: the total, big, then every line with what it is on the menu, how many at what price, its amount
+ * and every face of whoever had it. Under it, what each person had to the cent (scrolling sideways once they don't
+ * fit), who paid, and Add to the trip's money.
  */
-function BillReview({ bill, onChange, onAdd, onClose }: { bill: Bill; onChange: (b: Bill) => void; onAdd: () => void; onClose?: () => void }) {
+function BillReview({ bill, payerMenuOpen, onPayer, onChange, onAdd, onClose }: {
+  bill: Bill;
+  payerMenuOpen: boolean;
+  /** Opens the payer menu over its trigger. */
+  onPayer: (trigger: HTMLElement) => void;
+  onChange: (b: Bill) => void;
+  onAdd: () => void;
+  onClose?: () => void;
+}) {
   const reduce = useReducedMotion();
   const table = DINNER_TABLE, shares = billShares(bill);
   // The line whose faces are open for changing, if any, and each line's place (to bring an opened one into view)
@@ -157,21 +208,19 @@ function BillReview({ bill, onChange, onAdd, onClose }: { bill: Bill; onChange: 
     }, m['enter-ms']);
   };
   const toggle = (line: number, id: string) => {
-    const who = bill.who[line].includes(id) ? bill.who[line].filter(x => x !== id) : [...bill.who[line], id];
-    if (!who.length) return; // someone always has it
-    onChange({ ...bill, who: bill.who.map((w, i) => (i === line ? who : w)) });
+    const had = bill.who[line].includes(id) ? bill.who[line].filter(x => x !== id) : [...bill.who[line], id];
+    if (!had.length) return; // someone always has it
+    onChange({ ...bill, who: bill.who.map((w, i) => (i === line ? had : w)) });
   };
-  const nextPayer = () => onChange({ ...bill, paidBy: table[(table.indexOf(bill.paidBy) + 1) % table.length] });
-  const payer = bill.paidBy === MY_ID ? 'You' : personById(bill.paidBy).name;
 
   return (
     <TripSheet
       title="The bill"
-      subtitle={`La Brasserie de L'Entrecôte · ${euros(billTotal(bill))}`}
+      subtitle={`La Brasserie de L'Entrecôte · ${bill.lines.length} lines`}
       onClose={onClose}
       footer={
         <div className="tu-bill__footer">
-          {/* What each person had, to the cent */}
+          {/* What each person had, to the cent: side by side while they fit, scrolling sideways once they don't */}
           <div className="tu-bill__shares">
             {table.map(id => (
               <span key={id} className="tu-bill__share">
@@ -181,34 +230,40 @@ function BillReview({ bill, onChange, onAdd, onClose }: { bill: Bill; onChange: 
             ))}
           </div>
           <div className="tu-bill__actions">
-            <button type="button" className="tu-bill__payer text-body-sm" aria-label={`Who paid: ${payer === 'You' ? 'you' : payer}. Change`} onClick={nextPayer}>
-              {payer} paid · <span className="weight-semibold tu-bill__change">Change</span>
-            </button>
+            <PayerTrigger payer={bill.paidBy} open={payerMenuOpen} onOpen={onPayer} />
             <TextButton label="Add to the trip's money" onClick={onAdd} />
           </div>
         </div>
       }
     >
       <StaggerIn>
+        {/* The total, big: it's the number everyone checks first */}
+        <div key="total" className="tu-bill__total">
+          <span className="text-label-lg tu-bill__total-label">Total</span>
+          <span className="text-heading-lg">{euros(billTotal(bill))}</span>
+        </div>
         <p key="intro" className="text-body-sm tu-bill__intro">
           Each line goes to whoever picked it on the menu; anything nobody picked goes to everyone. Tap a line to change who had it.
         </p>
         {bill.lines.flatMap((line, i) => {
-          const who = bill.who[i];
+          const had = bill.who[i];
           const block = (
             <div key={`line-${i}`} ref={el => { lines.current[i] = el; }}>
               <SheetRow
                 title={menuItemNamed(line.item)?.name ?? line.printed}
-                subtitle={`${line.qty} × ${euros(line.unit)} · ${who.length === table.length ? 'Everyone' : names(who)}`}
+                subtitle={`${line.qty} × ${euros(line.unit)} · ${had.length === table.length ? 'Everyone' : names(had)}`}
                 trailing={
                   <span className="tu-bill__amount">
                     <span className="text-label-lg">{euros(lineTotal(line))}</span>
-                    <FacePile faces={who.map(id => personById(id).sticker)} size="chip" label={names(who)} />
+                    {/* Every face, overlapped (there's room for the whole table) */}
+                    <span className="tu-bill__pile" role="img" aria-label={names(had)}>
+                      {had.map(id => <Sticker key={id} name={personById(id).sticker} size="chip" />)}
+                    </span>
                   </span>
                 }
                 onClick={() => edit(i)}
               />
-              {/* Who had it: everyone at the table, the ones who had it full, the others faded; tap to change */}
+              {/* Who had it: everyone at the table in a grey block, the ones who had it full, the others faded; tap to change */}
               <AnimatePresence initial={false}>
                 {editing === i && (
                   <motion.div
@@ -220,14 +275,14 @@ function BillReview({ bill, onChange, onAdd, onClose }: { bill: Bill; onChange: 
                   >
                     <div className="tu-bill__faces">
                       {table.map(id => {
-                        const had = who.includes(id);
+                        const on = had.includes(id);
                         return (
                           <button
                             key={id}
                             type="button"
-                            className={had ? 'tu-bill__face' : 'tu-bill__face tu-bill__face--off'}
-                            aria-pressed={had}
-                            aria-label={`${personById(id).name}: ${had ? 'had it' : "didn't have it"}`}
+                            className={on ? 'tu-bill__face' : 'tu-bill__face tu-bill__face--off'}
+                            aria-pressed={on}
+                            aria-label={`${personById(id).name}: ${on ? 'had it' : "didn't have it"}`}
                             onClick={() => toggle(i, id)}
                           >
                             <Sticker name={personById(id).sticker} size="avatar" />
@@ -245,6 +300,60 @@ function BillReview({ bill, onChange, onAdd, onClose }: { bill: Bill; onChange: 
         })}
       </StaggerIn>
     </TripSheet>
+  );
+}
+
+/** Who paid: the payer's face, "You paid" and a chevron up, where the payer menu opens. */
+function PayerTrigger({ payer, open, onOpen }: { payer: string; open: boolean; onOpen: (trigger: HTMLElement) => void }) {
+  return (
+    <button
+      type="button"
+      className="tu-payer"
+      aria-haspopup="menu"
+      aria-expanded={open}
+      aria-label={`${who(payer)} paid. Change who paid`}
+      onClick={e => onOpen(e.currentTarget)}
+    >
+      <Sticker name={personById(payer).sticker} size="chip" />
+      <span className="text-label-md weight-semibold tu-ellipsis">{who(payer)} paid</span>
+      <ChevronUp className="tu-payer__chevron" strokeWidth={2} absoluteStrokeWidth aria-hidden />
+    </button>
+  );
+}
+
+/**
+ * The payer menu: a small surface opening upward from the trigger (it sits at the bottom of the screen), everyone at
+ * the table, the payer checked; picking one changes who paid and closes it. It grows from the trigger's corner and
+ * fades: fade-ms in, press-ms out, from press-scale. Reduced motion: fades only. Put it in AnimatePresence.
+ */
+function PayerMenu({ at, payer, table, onPick }: { at: { left: number; bottom: number }; payer: string; table: string[]; onPick: (id: string) => void }) {
+  const reduce = useReducedMotion();
+  return (
+    <motion.div
+      role="menu"
+      aria-label="Who paid"
+      className="tu-payer__menu tu-surface"
+      style={{ left: at.left, bottom: at.bottom, originX: 0, originY: 1 }}
+      initial={{ opacity: 0, scale: reduce ? 1 : m['press-scale'] }}
+      animate={{ opacity: 1, scale: 1, transition: { duration: m['fade-ms'] / 1000, ease } }}
+      exit={{ opacity: 0, scale: reduce ? 1 : m['press-scale'], pointerEvents: 'none', transition: { duration: m['press-ms'] / 1000, ease } }}
+    >
+      {table.map(id => (
+        <button
+          key={id}
+          type="button"
+          role="menuitemradio"
+          aria-checked={id === payer}
+          aria-label={`${who(id)} paid`}
+          className="tu-payer__option"
+          onClick={() => onPick(id)}
+        >
+          <Slot size="avatar"><Sticker name={personById(id).sticker} size="avatar" /></Slot>
+          <span className="text-label-lg tu-payer__name">{who(id)}</span>
+          {id === payer && <Check className="tu-payer__check" strokeWidth={2} absoluteStrokeWidth aria-hidden />}
+        </button>
+      ))}
+    </motion.div>
   );
 }
 

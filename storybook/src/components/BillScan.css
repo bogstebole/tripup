@@ -1,8 +1,11 @@
-/* The camera, over the whole screen: the restaurant dim behind the paper. In these frames the phone's top inset is
-   md, so the camera's bar sits at xl like the top bar's buttons, and there's no bottom inset. */
-.tu-scan { position: absolute; inset: 0; overflow: clip; background: var(--c-scan-bg); color: var(--c-scan-fg); }
-.tu-scan__photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: var(--d-scan-photo-opacity); }
-.tu-scan__middle { position: absolute; inset: 0; display: grid; place-items: center; }
+/* The camera, over the whole screen: one plain colour behind the paper. In these frames the phone's top inset is md,
+   so the camera's bar sits at xl like the top bar's buttons, and there's no bottom inset. */
+.tu-scan { position: absolute; inset: 0; overflow: clip; color: var(--c-scan-fg); }
+/* Once the bill is up, the colour gives way to what's behind (the full view's backdrop), so the bill sits where the full
+   view does, on the same background */
+.tu-scan__bg { position: absolute; inset: 0; background: var(--c-scan-bg); transition: opacity var(--enter-ms) var(--ease-out); }
+.tu-scan[data-phase="review"] .tu-scan__bg { opacity: 0; }
+.tu-scan__middle { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
 
 /* Where the frame starts: in from the screen's edges, clear of the bar and the hint */
 .tu-scan__aim { position: absolute; left: var(--space-xl); right: var(--space-xl); top: calc(var(--space-md) + var(--space-3xl)); bottom: var(--space-3xl); pointer-events: none; }
@@ -33,7 +36,7 @@
   flex-direction: column;
 }
 
-/* The paper bill: dark ink on white, one line per item; it fades back once the bill is up */
+/* The paper bill: dark ink on white, one line per item; it fades out once the bill is up */
 .tu-paper {
   width: var(--d-scan-paper-width);
   padding: var(--space-md);
@@ -45,17 +48,23 @@
   box-shadow: var(--shadow-surface);
   transition: opacity var(--fade-ms) var(--ease-out);
 }
-.tu-scan[data-phase="review"] .tu-paper { opacity: var(--d-scan-off-opacity); }
+.tu-scan[data-phase="review"] .tu-paper { opacity: 0; }
 .tu-paper__centre { text-align: center; white-space: pre; }
 .tu-paper__line { display: flex; gap: var(--space-xs); }
 .tu-paper__item { flex: 1 1 0; min-width: 0; overflow: hidden; white-space: nowrap; }
 .tu-paper__rule { display: block; height: var(--d-surface-edge-width); margin: var(--space-2xs) 0; background: var(--c-scan-ink); }
 
-/* The bill's page: each line, then the faces to change who had it */
+/* The bill's page: the total, then each line, and the faces to change who had it */
+.tu-bill__total { display: flex; align-items: flex-end; gap: var(--space-sm); padding: 0 var(--space-xs) var(--space-sm); color: var(--color-text-default); }
+.tu-bill__total-label { flex: 1 1 0; min-width: 0; }
 .tu-bill__intro { padding: 0 var(--space-xs) var(--space-xs); color: var(--color-text-muted); }
 .tu-bill__amount { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-3xs); flex: none; color: var(--color-text-default); }
+/* Every face of whoever had it, overlapped, the later ones on top */
+.tu-bill__pile { display: inline-flex; align-items: center; }
+.tu-bill__pile > * + * { margin-left: calc(var(--d-chip-face-overlap) * -1); }
 .tu-bill__who { overflow: hidden; }
-.tu-bill__faces { display: flex; padding: 0 var(--space-xs) var(--space-sm); }
+/* The opened line's faces, in a grey block under it */
+.tu-bill__faces { display: flex; margin: 0 var(--space-xs) var(--space-sm); padding: var(--space-sm) 0; border-radius: var(--radius-card); background: var(--color-bg-muted); }
 .tu-bill__face {
   flex: 1 1 0;
   min-width: 0;
@@ -73,10 +82,24 @@
 
 /* Under the page: what each person had, then who paid and Add */
 .tu-bill__footer { display: flex; flex-direction: column; gap: var(--space-sm); padding: var(--space-sm) var(--space-xs) var(--space-md); border-top: var(--d-surface-edge-width) solid var(--color-border-default); }
-.tu-bill__shares { display: flex; }
-.tu-bill__share { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: var(--space-3xs); color: var(--color-text-default); }
+/* Each person at least 5xl wide: the cells share the width while they fit, and scroll sideways once they don't */
+.tu-bill__shares { display: flex; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; }
+.tu-bill__shares::-webkit-scrollbar { display: none; }
+.tu-bill__share { flex: 1 0 var(--space-5xl); display: flex; flex-direction: column; align-items: center; gap: var(--space-3xs); color: var(--color-text-default); }
 .tu-bill__actions { display: flex; align-items: center; gap: var(--space-sm); }
-.tu-bill__payer { flex: 1 1 0; min-width: 0; text-align: left; color: var(--color-text-muted); border-radius: var(--radius-sm); transition: transform var(--press-ms) var(--ease-out); }
-.tu-bill__payer:active { transform: scale(var(--press-scale)); }
-.tu-bill__payer:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: var(--space-3xs); }
-.tu-bill__change { color: var(--color-text-brand); }
+
+/* Who paid: their face, "You paid" and a chevron up, where the menu opens */
+.tu-payer { flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: var(--space-2xs); color: var(--color-text-default); border-radius: var(--radius-sm); transition: transform var(--press-ms) var(--ease-out); }
+.tu-payer:active { transform: scale(var(--press-scale)); }
+.tu-payer:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: var(--space-3xs); }
+.tu-payer__chevron { width: var(--size-icon-sm); height: var(--size-icon-sm); flex: none; color: var(--color-icon-muted); }
+
+/* Over everything in the camera: the tap outside the payer menu that closes it, then the menu: a small surface,
+   everyone at the table, the payer checked */
+.tu-payer__outside { position: absolute; inset: 0; z-index: 4; }
+.tu-payer__menu { position: absolute; z-index: 5; width: calc(var(--d-widget-mid-width) * 2 / 3); padding: var(--space-2xs); display: flex; flex-direction: column; border-radius: var(--radius-card); }
+.tu-payer__option { display: flex; align-items: center; gap: var(--space-xs); width: 100%; padding: var(--space-2xs) var(--space-xs); border-radius: var(--radius-control); text-align: left; color: var(--color-text-default); transition: transform var(--press-ms) var(--ease-out); }
+.tu-payer__option:active { transform: scale(var(--press-scale)); }
+.tu-payer__option:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: calc(var(--space-3xs) * -1); }
+.tu-payer__name { flex: 1 1 0; min-width: 0; }
+.tu-payer__check { width: var(--size-icon-sm); height: var(--size-icon-sm); flex: none; color: var(--color-icon-brand); }

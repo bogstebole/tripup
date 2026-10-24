@@ -1,26 +1,28 @@
 import { Banknote, Calendar, Check, Clock, Globe, MapPin, Phone, ScanLine, Truck, X, type LucideIcon } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion, type Variants } from 'motion/react';
-import { createContext, useContext, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { createContext, useContext, useState, type CSSProperties, type ReactNode } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import realMenu from '../../../app/assets/data/brasserie-menu.json';
-import { billShares, billTotal, euros, eurosIn, MY_ID, personById, type Bill, type Person, type PlaceDetail } from '../data';
+import { billShares, billTotal, euros, eurosIn, isHere, MY_ID, personById, TRIP_NOW, type Bill, type Person, type PlaceDetail } from '../data';
 import { AddButton } from './AddButton';
 import { Button, TextButton } from './Button';
 import { DishMore, DishSticker } from './DishSticker';
 import { KnowRow, KnowSection } from './KnowSection';
+import { useTripNotice } from './Notice';
 import { PhotoCarousel } from './PhotoCarousel';
 import { RatingLine } from './RatingLine';
 import { SegmentedTabs } from './SegmentedTabs';
-import { Toast } from './Toast';
 import { ToggleChips } from './ToggleChips';
 import { Sticker } from './Sticker';
 import './Surface.css';
 import './DetailSheet.css';
 
+/** The full view's pages, always in this order. */
 export const DETAIL_TABS = ['Overview', 'Menu', 'Group'] as const;
 export type DetailTab = (typeof DETAIL_TABS)[number];
-/** While the plan is on, the group and the bill matter more than the place's details: Group first, Overview last. */
-export const ACTIVE_TABS: DetailTab[] = ['Group', 'Menu', 'Overview'];
+/** The page the sheet opens on: Group while the plan is on (the group and the bill matter more than the place's
+ *  details then), Overview otherwise (the app's `DetailPage.openingFor`). */
+export const openingTab = (active?: boolean): DetailTab => (active ? 'Group' : 'Overview');
 
 type MenuItem = { name: string; price: string; note?: string; photo?: string; pickedBy?: string[] };
 type MenuSection = { title: string; course?: string; note?: string; items: MenuItem[] };
@@ -48,13 +50,15 @@ export interface DetailSheetProps {
   /** "Today, 5 PM". */
   whenLong?: string;
   people: Person[];
+  /** Now, in the trip (the demo's start by default): who's here, while the plan is on. */
+  now?: Date;
   /** Sticker of each person, by id; shows who picked a dish. */
   faces: Record<string, string>;
   tab?: DetailTab;
   onTabChange?: (tab: DetailTab) => void;
   onClose?: () => void;
-  /** The plan is on (its time has come and someone is there): the tabs go Group · Menu · Overview, it opens on
-   *  Group, and Group's footer offers Scan the bill. */
+  /** The plan is on (its time has come and someone is there): it opens on Group (the tabs keep their order), Group
+   *  says who's here, and its footer offers Scan the bill. */
   active?: boolean;
   /** Tonight's bill, once it's scanned: Group shows what each person had, exactly, and the bill's total. */
   bill?: Bill;
@@ -85,8 +89,8 @@ const ease = m['ease-out'] as [number, number, number, number];
  * another (fade, light blur, a few px up), the old page fades out with a blur. Menu is the restaurant's real menu.
  */
 export function DetailSheet(p: DetailSheetProps) {
-  const tabs = p.active ? ACTIVE_TABS : [...DETAIL_TABS];
-  const [own, setOwn] = useState<DetailTab>(tabs[0]);
+  const tabs = [...DETAIL_TABS];
+  const [own, setOwn] = useState<DetailTab>(openingTab(p.active));
   const tab = p.tab ?? own;
   // How far the page has scrolled under the top edge, 0–1 over the top fade's height
   const [under, setUnder] = useState(0);
@@ -98,20 +102,16 @@ export function DetailSheet(p: DetailSheetProps) {
   // The menu's filter (empty means everything); once it changes, the list under it swaps on its own
   const [filter, setFilter] = useState<string[]>([]);
   const [filtered, setFiltered] = useState(false);
-  // The "added" toast: shown for toast-ms, Undo takes the dish back off
-  const [toast, setToast] = useState<{ name: string; shown: boolean } | null>(null);
-  const timer = useRef<number | undefined>(undefined);
-  const hideToast = () => { window.clearTimeout(timer.current); setToast(t => (t ? { ...t, shown: false } : t)); };
+  // Adding a dish says so at the top of the screen, like every other note, with Undo (for toast-action-ms), which
+  // takes it back off
+  const notice = useTripNotice();
+  const remove = (name: string) => setAdded(a => { if (!a.has(name)) return a; const n = new Set(a); n.delete(name); return n; });
   const toggle = (name: string) => {
     const adding = !added.has(name);
-    setAdded(a => { const n = new Set(a); adding ? n.add(name) : n.delete(name); return n; });
-    if (adding) {
-      setToast({ name, shown: true });
-      window.clearTimeout(timer.current);
-      timer.current = window.setTimeout(hideToast, m['toast-ms']);
-    } else if (toast?.name === name) hideToast();
+    if (!adding) return remove(name);
+    setAdded(a => new Set(a).add(name));
+    notice(`Added for ${p.whenLong ?? 'later'}`, { label: 'Undo', onTap: () => remove(name) });
   };
-  const undo = () => { if (toast) setAdded(a => { const n = new Set(a); n.delete(toast.name); return n; }); hideToast(); };
 
   // The new page comes in from the side the tab is on, once the old one has mostly gone; the first page rises.
   // Each block waits its turn (capped so a long list doesn't drag), then sharpens into place. Full transform
@@ -146,6 +146,7 @@ export function DetailSheet(p: DetailSheetProps) {
   const costOf = (id: string) => (shares ? shares[id] ?? 0 : picksOf(id).reduce((sum, d) => sum + (eurosIn(d.price) ?? 0), 0));
   const total = p.bill ? billTotal(p.bill) : p.people.reduce((sum, x) => sum + costOf(x.id), 0);
   const going = p.people.filter(x => x.going).length;
+  const here = p.people.filter(x => isHere(x, p.now ?? TRIP_NOW)).length;
 
   return (
     <article className="tu-sheet tu-surface tu-surface--sheet" aria-label={p.name}>
@@ -276,9 +277,12 @@ export function DetailSheet(p: DetailSheetProps) {
             )}
             {tab === 'Group' && (
               <>
+                {/* Once the plan is on, it's who has got there, not who's coming */}
                 <Block i={0} className="tu-sheet__info">
-                  <h2 className="tu-sheet__name text-heading-md tu-ellipsis">Who's coming</h2>
-                  <p className="text-body-sm tu-sheet__muted">{going} of {p.people.length} going{p.whenLong ? ` · ${p.whenLong}` : ''}</p>
+                  <h2 className="tu-sheet__name text-heading-md tu-ellipsis">{p.active ? "Who's here" : "Who's coming"}</h2>
+                  <p className="text-body-sm tu-sheet__muted">
+                    {p.active ? `${here} of ${going} here · Now` : `${going} of ${p.people.length} going${p.whenLong ? ` · ${p.whenLong}` : ''}`}
+                  </p>
                 </Block>
                 <div>
                   {p.people.map((x, xi) => (
@@ -330,12 +334,10 @@ export function DetailSheet(p: DetailSheetProps) {
             <p className="text-heading-lg tu-sheet__cost">{p.bill ? euros(total) : `≈ ${euros(total)}`}</p>
           </div>
           {p.bill
-            ? <TextButton variant="soft" label="See who owes what" className="tu-sheet__footer-action" onClick={p.onSettle} />
-            : p.active && <TextButton label="Scan the bill" icon={ScanLine} className="tu-sheet__footer-action" onClick={p.onScan} />}
+            ? <TextButton variant="soft" label="See who owes what" size="lg" wide onClick={p.onSettle} />
+            : p.active && <TextButton label="Scan the bill" icon={ScanLine} size="lg" wide onClick={p.onScan} />}
         </motion.div>
       )}
-      {/* What I just added, with Undo, centred at the bottom; it comes up from past the edge and goes back down */}
-      <Toast label={`Added for ${p.whenLong ?? 'later'}`} shown={!!toast?.shown} actionLabel="Undo" onAction={undo} />
     </article>
   );
 }

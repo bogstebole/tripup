@@ -462,6 +462,11 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - **Poll fixes** (found while mirroring in Storybook):
   - The countdown and the early close count only votes cast by now; before, they peeked at votes still to come.
   - A tie now goes to whichever place reached that count first, as intended; before, the first in the list won it.
+- Tapping a note's action (Undo) also puts the note away (the Menu's Undo used to leave it up). `ToastSlot`, the old bottom toast, is removed: nothing used it.
+- **Storybook mirrors 1.24 and 1.25.**
+  - New stories: `widget-up-next--poll-card`, `pop-ups--poll-open` (live, with Replay), `pop-ups--poll-closed`, `pop-ups--poll-undone`, `pop-ups--itinerary-poll-open`.
+  - The bill polish, the camera, the payer menu and notes from the top are mirrored; there's a new shared `Notice`.
+  - The payer menu renders at the camera's top level rather than through a portal; it looks and behaves the same.
 
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html

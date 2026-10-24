@@ -16,3 +16,7 @@
 .tu-btn:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: var(--space-3xs); }
 /* With a label: a pill as tall as the top bar's buttons */
 .tu-btn--text { display: inline-flex; align-items: center; gap: var(--space-xs); height: var(--d-button-md); padding: 0 var(--space-md); white-space: nowrap; }
+.tu-btn--text-sm { height: var(--d-button-sm); }
+.tu-btn--text-lg { height: var(--d-button-lg); }
+/* Wide: the whole width it's given, the label in the middle */
+.tu-btn--wide { width: 100%; justify-content: center; }

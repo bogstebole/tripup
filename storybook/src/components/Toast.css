@@ -1,7 +1,13 @@
 .tu-toast {
+  /* At the top of the screen, where the top bar's buttons are. Centred as wide as its line, never wider than the
+     screen less md each side (then the line ends in an ellipsis). */
   position: absolute;
-  left: 50%;
-  bottom: var(--space-md);
+  top: var(--space-xl);
+  left: var(--space-md);
+  right: var(--space-md);
+  width: fit-content;
+  max-width: calc(100% - 2 * var(--space-md));
+  margin-inline: auto;
   z-index: 3;
   display: inline-flex;
   align-items: center;
@@ -12,27 +18,25 @@
   background: var(--c-toast-bg);
   color: var(--c-toast-fg);
   white-space: nowrap;
-  /* Hidden: just past the bottom edge (the sheet clips it) */
-  transform: translate(-50%, calc(100% + var(--space-md)));
+  /* Hidden: half its height again above where it shows (the screen clips it) */
+  transform: translate(0, -150%);
   opacity: 0;
   pointer-events: none;
   /* Leaving: a little quicker than arriving */
   transition: transform var(--fade-ms) var(--ease-out), opacity var(--fade-ms) var(--ease-out);
 }
 .tu-toast[data-shown] {
-  transform: translate(-50%, 0);
+  transform: translate(0, 0);
   opacity: 1;
   pointer-events: auto;
   transition-duration: var(--enter-ms);
 }
 /* Without an action, the line keeps a little room before the pill's end */
 .tu-toast--plain { padding-right: calc(var(--space-xs) + var(--space-2xs)); }
-/* At the top of the screen, where the top bar's buttons are: hidden, half its height again above where it shows */
-.tu-toast--top { top: var(--space-xl); bottom: auto; transform: translate(-50%, -150%); }
-.tu-toast--top[data-shown] { transform: translate(-50%, 0); }
 .tu-toast__icon { width: var(--size-icon-sm); height: var(--size-icon-sm); flex: none; }
-.tu-toast__action { height: 100%; padding: 0 var(--space-md); color: inherit; border-radius: var(--radius-pill); }
+.tu-toast__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.tu-toast__action { flex: none; height: 100%; padding: 0 var(--space-md); color: inherit; border-radius: var(--radius-pill); }
 .tu-toast__action:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: calc(var(--space-3xs) * -1); }
 @media (prefers-reduced-motion: reduce) {
-  .tu-toast, .tu-toast--top { transform: translate(-50%, 0); }
+  .tu-toast { transform: translate(0, 0); }
 }

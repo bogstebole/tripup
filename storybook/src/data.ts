@@ -114,8 +114,8 @@ export const dayName = (t: Date, now = TRIP_NOW) => {
   return d === 0 ? 'Today' : d === 1 ? 'Tomorrow' : `${t.toLocaleDateString('en-GB', { weekday: 'short' })} ${t.getDate()}`;
 };
 
-/** Dinner, the Up next plan. */
-const DINNER = new Date(2026, 4, 14, 17, 0);
+/** Dinner, the Up next plan: tonight, 5 PM (the slot the dinner poll decides). */
+export const DINNER = new Date(2026, 4, 14, 17, 0);
 
 export type PlaceDetail = { kind: 'address' | 'hours' | 'price' | 'booking' | 'order' | 'website' | 'phone'; text: string; status?: string; sub?: string };
 
@@ -394,3 +394,149 @@ export const PLAN_IDEAS: PlanIdea[] = [
 
 /** The trip's invite link: no account, they type a name and they're in. */
 export const INVITE_LINK = 'tripup.app/j/lisbon-may';
+
+// ---------- The dinner poll: where to eat tonight
+// Maya asks at 2:30 PM; everyone votes from wherever they are. It closes at 3 PM, or as soon as everyone has voted,
+// and the winner goes into tonight's 5 PM slot by itself (with Undo). Votes arrive on the demo clock, as they would
+// from everyone's phones. All three are real places on Avenida da Igreja, with their public ratings and prices. The
+// app keeps my vote and the Undo in its own state; here they're a `PollState` the story holds.
+
+/** A point on the map: latitude, longitude. */
+export type LatLng = readonly [lat: number, lng: number];
+
+/** Where I start (the app's `me`). I leave for dinner at 4:30 PM, so during the poll I'm still here. */
+export const ME_START: LatLng = [38.7478, -9.1475];
+
+/** A walk: about 4.8 km/h, along streets about a third longer than a straight line (as in the app). */
+const WALKING_METRES_PER_MINUTE = 80, STREET_DETOUR = 1.3;
+
+/** Metres between two points, rounded to the metre: Vincenty on the WGS-84 ellipsoid, as the app's latlong2
+ *  `Distance` does it. (Haversine comes out a metre long for Churrasqueira, enough to make its walk 18 min.) */
+export const metresBetween = ([lat1, lng1]: LatLng, [lat2, lng2]: LatLng) => {
+  const a = 6378137, b = 6356752.314245, f = 1 / 298.257223563;
+  const rad = (d: number) => (d * Math.PI) / 180;
+  const L = rad(lng2 - lng1);
+  const u1 = Math.atan((1 - f) * Math.tan(rad(lat1))), u2 = Math.atan((1 - f) * Math.tan(rad(lat2)));
+  const sinU1 = Math.sin(u1), cosU1 = Math.cos(u1), sinU2 = Math.sin(u2), cosU2 = Math.cos(u2);
+  let lambda = L, lambdaP = 0, sinSigma = 0, cosSigma = 0, sigma = 0, cosSqAlpha = 0, cos2SigmaM = 0;
+  for (let i = 0; i < 200; i++) {
+    const sinLambda = Math.sin(lambda), cosLambda = Math.cos(lambda);
+    sinSigma = Math.hypot(cosU2 * sinLambda, cosU1 * sinU2 - sinU1 * cosU2 * cosLambda);
+    if (sinSigma === 0) return 0;   // the same point
+    cosSigma = sinU1 * sinU2 + cosU1 * cosU2 * cosLambda;
+    sigma = Math.atan2(sinSigma, cosSigma);
+    const sinAlpha = (cosU1 * cosU2 * sinLambda) / sinSigma;
+    cosSqAlpha = 1 - sinAlpha * sinAlpha;
+    cos2SigmaM = cosSqAlpha ? cosSigma - (2 * sinU1 * sinU2) / cosSqAlpha : 0;   // 0 along the equator
+    const C = (f / 16) * cosSqAlpha * (4 + f * (4 - 3 * cosSqAlpha));
+    lambdaP = lambda;
+    lambda = L + (1 - C) * f * sinAlpha * (sigma + C * sinSigma * (cos2SigmaM + C * cosSigma * (-1 + 2 * cos2SigmaM ** 2)));
+    if (Math.abs(lambda - lambdaP) <= 1e-12) break;
+  }
+  const uSq = (cosSqAlpha * (a * a - b * b)) / (b * b);
+  const A = 1 + (uSq / 16384) * (4096 + uSq * (-768 + uSq * (320 - 175 * uSq)));
+  const B = (uSq / 1024) * (256 + uSq * (-128 + uSq * (74 - 47 * uSq)));
+  const deltaSigma = B * sinSigma * (cos2SigmaM + (B / 4) * (cosSigma * (-1 + 2 * cos2SigmaM ** 2) - (B / 6) * cos2SigmaM * (-3 + 4 * sinSigma ** 2) * (-3 + 4 * cos2SigmaM ** 2)));
+  return Math.round(b * A * (sigma - deltaSigma));
+};
+
+/** Walking minutes from where I am, the way the live statuses count them: 16, 17 and 17 to the poll's three. */
+export const walkMinutes = (to: LatLng, from: LatLng = ME_START) => Math.ceil((metresBetween(from, to) * STREET_DETOUR) / WALKING_METRES_PER_MINUTE);
+
+/** A place in the poll. `short` is what people call it, for notes ("La Brasserie"). */
+export type PollOption = { id: string; name: string; short: string; sticker: string; rating: string; cuisine: string; price: string; at: LatLng };
+export const POLL_OPTIONS: PollOption[] = [
+  { id: 'brasserie', name: "La Brasserie de L'Entrecôte", short: 'La Brasserie', sticker: 'wings', rating: '4.2 (173)', cuisine: 'French', price: '€20–40', at: [38.754444, -9.140476] },
+  { id: 'dote', name: 'Dote Alvalade', short: 'Dote', sticker: 'sardine-tin', rating: '3.9 (3,096)', cuisine: 'Portuguese', price: '€15–20', at: [38.7546, -9.13985] },   // Av. da Igreja 24
+  { id: 'churrasqueira', name: 'Churrasqueira de Alvalade', short: 'Churrasqueira', sticker: 'galo', rating: '4.2 (156)', cuisine: 'Grill', price: '€5–10', at: [38.7547, -9.1393] },   // Av. da Igreja 23D
+];
+export const pollOptionById = (id: string) => POLL_OPTIONS.find(o => o.id === id)!;
+
+/** The plan the poll decides: tonight's dinner, 5 PM. It isn't on the map or the itinerary until the poll has chosen. */
+export const DINNER_SLOT_ID = 'brasserie';
+
+export const POLL_OPENS = tripDate(TODAY, 14, 30), POLL_CLOSES = tripDate(TODAY, 15, 0);
+export const POLL_ASKED_BY = 'maya';
+
+/** The others' votes, as they come in. */
+export type Vote = { who: string; option: string; at: Date };
+export const POLL_VOTES: Vote[] = [
+  { who: 'maya', option: 'brasserie', at: tripDate(TODAY, 14, 30) },
+  { who: 'leo', option: 'churrasqueira', at: tripDate(TODAY, 14, 36) },
+  { who: 'nic', option: 'brasserie', at: tripDate(TODAY, 14, 41) },
+  { who: 'ren', option: 'brasserie', at: tripDate(TODAY, 14, 47) },
+];
+
+/** The poll as it stands on my phone: my vote and when I cast it (it can change until the poll closes), whether the
+ *  winner going into tonight was undone, and then the place picked by hand. The app's `myVote`, `pollUndone` and
+ *  `pickedDinner`. */
+export type PollState = { mine?: { option: string; at: Date }; undone?: boolean; picked?: string };
+
+/** Who has voted for `option` by `now`: the others in the order they voted, then me. */
+export const votersOf = (option: string, now: Date, poll: PollState) => [
+  ...POLL_VOTES.filter(v => v.option === option && v.at <= now).map(v => v.who),
+  ...(poll.mine && poll.mine.option === option && poll.mine.at <= now ? [MY_ID] : []),
+];
+
+export const votesIn = (now: Date, poll: PollState) => POLL_OPTIONS.reduce((n, o) => n + votersOf(o.id, now, poll).length, 0);
+
+/** Every vote cast by `now`, with when: the others', then mine. */
+const votesBy = (now: Date, poll: PollState): Vote[] => [
+  ...POLL_VOTES.filter(v => v.at <= now),
+  ...(poll.mine && poll.mine.at <= now ? [{ who: MY_ID, option: poll.mine.option, at: poll.mine.at }] : []),
+];
+
+/** When the poll closes, as known at `now`: the moment the last person voted, if everyone at the table has by then;
+ *  otherwise its deadline. It can't count votes that haven't come in yet. */
+export const pollClosedAt = (now: Date, poll: PollState) => {
+  const cast = votesBy(now, poll).map(v => v.at).sort((x, y) => x.getTime() - y.getTime());
+  const last = cast[cast.length - 1];
+  return cast.length >= DINNER_TABLE.length && last < POLL_CLOSES ? last : POLL_CLOSES;
+};
+
+export const pollOpen = (now: Date, poll: PollState) => now >= POLL_OPENS && now < pollClosedAt(now, poll);
+export const pollClosed = (now: Date, poll: PollState) => now >= pollClosedAt(now, poll);
+
+/** The option with the most votes. A tie goes to whichever reached that many first (the time of its latest vote). */
+export const pollLeader = (now: Date, poll: PollState) => {
+  const votes = votesBy(now, poll);
+  let best: string | undefined, most = 0, reached = Infinity;
+  for (const o of POLL_OPTIONS) {
+    const times = votes.filter(v => v.option === o.id).map(v => v.at.getTime()).sort((x, y) => x - y);
+    if (!times.length) continue;
+    const at = times[times.length - 1];   // when it got to its count
+    if (times.length > most || (times.length === most && at < reached)) [best, most, reached] = [o.id, times.length, at];
+  }
+  return best;
+};
+
+/** What tonight's dinner is, once decided: the poll's winner, unless that was undone and another picked by hand. */
+export const dinnerChoice = (now: Date, poll: PollState) => (!pollClosed(now, poll) ? undefined : poll.undone ? poll.picked : pollLeader(now, poll));
+
+/** "3 votes to 1", for the result. */
+export const pollScore = (now: Date, poll: PollState) => {
+  const counts = POLL_OPTIONS.map(o => votersOf(o.id, now, poll).length).sort((x, y) => y - x);
+  return counts.length > 1 ? `${counts[0]} votes to ${counts[1]}` : `${counts[0]} votes`;
+};
+
+/** "closes in 19 mins": the whole minutes left, plus one (as the app counts it). */
+export const pollCountdown = (now: Date, poll: PollState) => {
+  const mins = Math.floor((pollClosedAt(now, poll).getTime() - now.getTime()) / 60000) + 1;
+  return `closes in ${mins} ${mins === 1 ? 'min' : 'mins'}`;
+};
+
+/** The notes everyone on the trip gets: when the poll opens, and when it closes (with Undo). */
+export const pollStartedLine = () => `${personById(POLL_ASKED_BY).name} started a poll: where for dinner tonight?`;
+export const pollWonLine = (o: PollOption) => `${o.short} won · added to tonight`;
+
+/** A place as tonight's plan: La Brasserie's own plan, a plain one for the others. */
+export const pollOptionPlan = (o: PollOption): Plan => PLANS.find(p => p.id === o.id) ?? { id: o.id, name: o.name, sticker: o.sticker, day: TODAY, hour: DINNER.getHours() };
+
+/** Every plan, in order, with tonight's dinner as decided: `undefined` leaves the plans as they stand at the demo's
+ *  start (La Brasserie, as the poll chose); `null` takes tonight's slot out while it's undecided; an id puts that place
+ *  in it (the app's `tripPlans`). */
+export const plansWith = (dinner?: string | null) =>
+  dinner === undefined
+    ? PLANS
+    : [...PLANS.filter(p => p.id !== DINNER_SLOT_ID || p.id === dinner), ...(dinner && dinner !== DINNER_SLOT_ID ? [pollOptionPlan(pollOptionById(dinner))] : [])]
+        .sort((x, y) => planStart(x).getTime() - planStart(y).getTime());

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { ArrowLeft, ArrowRight, Copy, MapPin, Plus, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Copy, MapPin, Plus, ScanLine, X } from 'lucide-react';
 import { CrewButton } from './Bars';
 import { Button, TextButton } from './Button';
 
@@ -20,7 +20,7 @@ const meta = {
           '- **Sizes**: `sm` 40 inside cards and sheets, `md` 44 in the top bar (minimum touch target), `lg` 56 in the action bar.',
           '- Icons are Lucide, 16 px, 2 px stroke, in the button\'s foreground token.',
           '- Press: scales to 0.97 in 120 ms with the ease-out curve. Focus: 2 px focus ring.',
-          '- **TextButton**: the same glass as a 44 px pill with a label (and an optional icon), for actions a bare icon can\'t say: Pay, Copy link.',
+          '- **TextButton**: the same glass as a 44 px pill with a label (and an optional icon), for actions a bare icon can\'t say: Pay, Copy link. At `lg` it\'s 56 px, and `wide` fills the width it\'s given: the main action at the bottom of a page (Scan the bill, See who owes what).',
         ].join('\n'),
       },
     },
@@ -68,12 +68,16 @@ export const InContext: Story = {
 
 export const Text: Story = {
   name: 'TextButton',
-  parameters: { docs: { description: { story: 'A glass pill with a label, 44 px tall, for actions a bare icon can\'t say. Primary by default: Pay in the money pop-up, Copy link in the invite.' } } },
+  parameters: { docs: { description: { story: 'A glass pill with a label, 44 px tall, for actions a bare icon can\'t say. Primary by default: Pay in the money pop-up, Copy link in the invite. At `lg` (56 px) and `wide`, it\'s the main action at the bottom of a page: Scan the bill and See who owes what in the full view\'s Group, the width of the page.' } } },
   render: () => (
-    <div style={{ display: 'flex', gap: 'var(--space-md)' }}>
-      <TextButton label="Pay" />
-      <TextButton label="Copy link" icon={Copy} />
-      <TextButton label="Copy link" icon={Copy} variant="soft" />
+    <div style={{ display: 'grid', gap: 'var(--space-md)', width: 343 }}>
+      <div style={{ display: 'flex', gap: 'var(--space-md)' }}>
+        <TextButton label="Pay" />
+        <TextButton label="Copy link" icon={Copy} />
+        <TextButton label="Copy link" icon={Copy} variant="soft" />
+      </div>
+      <TextButton label="Scan the bill" icon={ScanLine} size="lg" wide />
+      <TextButton label="See who owes what" variant="soft" size="lg" wide />
     </div>
   ),
 };

@@ -1,9 +1,8 @@
 import { X } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
-import { Children, createContext, isValidElement, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { Children, isValidElement, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import { Button } from './Button';
-import { Toast } from './Toast';
 import { easedFade } from './easedFade';
 import './Surface.css';
 import './TripSheet.css';
@@ -17,10 +16,6 @@ const inset = spaceOf(tokens.component.dimension['sheet/inset']);
 const topFade = spaceOf(tokens.component.dimension['sheet/top-fade']);
 const rise = spaceOf(tokens.component.dimension['tab/enter-shift']);
 const blur = `blur(${m['enter-blur']}px)`;
-
-/** Shows a short note at the bottom of the pop-up a page is in ("Link copied"); it hides itself after toast-ms. */
-const ShowToast = createContext<(label: string) => void>(() => {});
-export const useSheetToast = () => useContext(ShowToast);
 
 export interface TripSheetProps {
   title: string;
@@ -39,20 +34,13 @@ export interface TripSheetProps {
  * and close, and a page that scrolls up under the header. It rises from the bottom in the full view's place, from
  * just past the bottom edge (its own height plus the inset), and goes back down quicker than it came; with reduced
  * motion it only fades. Put it in AnimatePresence so it can leave. On the phone, a pull down on the header closes it too.
+ * It has no notes of its own: its pages show them at the top of the screen (see Notice.tsx).
  */
 export function TripSheet({ title, subtitle, children, onClose, compact, footer }: TripSheetProps) {
   const reduce = useReducedMotion();
   const scroll = useRef<HTMLDivElement>(null);
   // How far the page has scrolled under the header, 0–1 over the top fade's height
   const [under, setUnder] = useState(0);
-  const [toast, setToast] = useState<{ label: string; shown: boolean } | null>(null);
-  const timer = useRef<number | undefined>(undefined);
-  const showToast = useCallback((label: string) => {
-    setToast({ label, shown: true });
-    window.clearTimeout(timer.current);
-    timer.current = window.setTimeout(() => setToast(t => (t ? { ...t, shown: false } : t)), m['toast-ms']);
-  }, []);
-  useEffect(() => () => window.clearTimeout(timer.current), []);
 
   // Open on the marked block (today, in the itinerary): its top just under the header
   useLayoutEffect(() => {
@@ -79,7 +67,7 @@ export function TripSheet({ title, subtitle, children, onClose, compact, footer 
       exit={reduce ? { opacity: 0, transition: { duration: m['fade-ms'] / 1000, ease } } : { transform: away, transition: { duration: m['fade-ms'] / 1000, ease } }}
     >
       <div ref={scroll} className="tu-trip-sheet__scroll" onScroll={e => setUnder(Math.min(1, e.currentTarget.scrollTop / topFade))}>
-        <ShowToast.Provider value={showToast}>{children}</ShowToast.Provider>
+        {children}
       </div>
       {/* The header's white shows once the page goes under it, so a page at rest isn't faded at the top */}
       <div className="tu-trip-sheet__top-fade" aria-hidden style={{ opacity: under, background: easedFade('var(--c-surface-top)', { from: 'var(--header)' }) }} />
@@ -90,7 +78,6 @@ export function TripSheet({ title, subtitle, children, onClose, compact, footer 
         </div>
         <Button icon={X} label="Close" size="sm" onClick={onClose} />
       </div>
-      <Toast label={toast?.label ?? ''} shown={!!toast?.shown} />
       {footer != null && <div className="tu-trip-sheet__footer">{footer}</div>}
     </motion.article>
   );
@@ -101,7 +88,7 @@ export function TripSheet({ title, subtitle, children, onClose, compact, footer 
  * (enter-ms, ease-out, stagger-ms apart; past stagger-max the rest come in with the last one, so a long list
  * doesn't drag). With reduced motion they only fade in.
  */
-export function StaggerIn({ children, gap }: { children: ReactNode; gap?: 'xs' }) {
+export function StaggerIn({ children, gap }: { children: ReactNode; gap?: 'xs' | 'sm' }) {
   const reduce = useReducedMotion();
   return (
     <div className="tu-stagger" style={gap ? { gap: `var(--space-${gap})` } : undefined}>

@@ -1,9 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
-import { UP_NEXT, UP_NEXT_NOW, upNextChips } from '../data';
+import { TODAY, tripDate, UP_NEXT, UP_NEXT_NOW, upNextChips } from '../data';
 import { EdgeArrow, MeEdge, MeMarker, PinTail } from './MapShapes';
 import { RecenterButton } from './Bars';
+import { PollCard as PollCardView } from './Poll';
 import { UpNextWidget, type WidgetState } from './UpNextWidget';
+
+/** Halfway through the dinner poll: 2:41 PM and a half, Maya, Leo and Nic have voted. */
+const MID_POLL = new Date(tripDate(TODAY, 14, 41).getTime() + 30 * 1000);
 
 
 const meta = {
@@ -83,4 +87,13 @@ export const Shapes: Story = {
       <RecenterButton />
     </div>
   ),
+};
+
+export const PollCard: Story = {
+  name: 'Poll card',
+  parameters: {
+    controls: { disable: true },
+    docs: { description: { story: 'While the dinner poll is open (2:30 to 3 PM, or until everyone has voted) this card stands where the Up next card would, under the day filter, with no pin. In brand blue, "Poll · closes in 19 mins"; the question; "5 PM · Maya asked · 3 of 5 voted"; then the three places, each with its sticker, its name (one line, ellipsized), Leading on the one ahead, and the faces of who voted for it. Here it\'s 2:41 PM: Maya and Nic for La Brasserie, Leo for Churrasqueira, nobody yet for Dote. Tapping it opens the poll (see Pop-ups › Poll · open, where it follows the votes live once the pop-up is closed). It fades in and grows from its top (morph-enter-scale, enter-ms, ease-out), and goes quicker (fade-ms) once the poll closes or a pop-up covers it. Reduced motion: fades only.' } },
+  },
+  render: () => <PollCardView now={MID_POLL} poll={{}} />,
 };

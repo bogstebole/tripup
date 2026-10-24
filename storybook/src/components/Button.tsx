@@ -28,16 +28,21 @@ export function Button({ variant = 'soft', size = 'md', icon: Icon, label, class
 export interface TextButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
   /** `primary` by default: these are the one action of their block (Pay, Copy link). */
   variant?: ButtonVariant;
+  /** Its height, as Button's: `md` 44 by default; `lg` 56 for the main action at the bottom of a page (Scan the bill). */
+  size?: ButtonSize;
+  /** Fills the width it's given, its label centred (the main action at the bottom of a page). */
+  wide?: boolean;
   /** The visible label; also the accessible name. */
   label: string;
   /** An optional Lucide icon before the label, 16 px. */
   icon?: LucideIcon;
 }
 
-/** A glass pill with a label, for actions a bare icon can't say: Pay, Copy link. Same glass and press as Button, 44 tall. */
-export function TextButton({ variant = 'primary', label, icon: Icon, className, ...rest }: TextButtonProps) {
+/** A glass pill with a label, for actions a bare icon can't say: Pay, Copy link. Same glass and press as Button, 44 tall
+ *  (56 at `lg`), as wide as its label unless `wide`. */
+export function TextButton({ variant = 'primary', size = 'md', wide, label, icon: Icon, className, ...rest }: TextButtonProps) {
   return (
-    <button type="button" className={['tu-btn', `tu-btn--${variant}`, 'tu-btn--text', className].filter(Boolean).join(' ')} {...rest}>
+    <button type="button" className={['tu-btn', `tu-btn--${variant}`, 'tu-btn--text', size !== 'md' && `tu-btn--text-${size}`, wide && 'tu-btn--wide', className].filter(Boolean).join(' ')} {...rest}>
       {Icon && <Icon className="tu-btn__icon" strokeWidth={2} absoluteStrokeWidth aria-hidden />}
       <span className="text-label-md weight-semibold">{label}</span>
     </button>

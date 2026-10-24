@@ -7,7 +7,7 @@
   grid-template: minmax(0, 1fr) / minmax(0, 1fr);
   height: 100%;
   padding: 0 var(--space-xs);
-  /* clip, not hidden: the hidden toast below the edge mustn't make the sheet itself scrollable */
+  /* clip, not hidden: nothing past the edge may make the sheet itself scrollable */
   overflow: clip;
   pointer-events: auto;
 }

@@ -187,9 +187,15 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   /// Takes the poll's winner back out of tonight; the poll then lets anyone pick by hand.
   void _undoWinner() {
     pollUndone.value = true;
+    _openPopup(_Popup.poll);
+  }
+
+  /// Does what the note offers (Undo), and puts the note away.
+  void _actOnNotice(({String label, VoidCallback onTap}) action) {
     _noticeTimer?.cancel();
     setState(() => _noticeShown = false);
-    _openPopup(_Popup.poll);
+    tripNotice.value = null;
+    action.onTap();
   }
 
   void _showNotice() {
@@ -749,7 +755,9 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
                 duration: _noticeShown ? TokMotion.enter : TokMotion.fade,
                 curve: TokMotion.easeOut,
                 child: Center(
-                  child: _notice == null ? const SizedBox.shrink() : Toast(label: _notice!, actionLabel: _noticeAction?.label, onAction: _noticeAction?.onTap),
+                  child: _notice == null
+                      ? const SizedBox.shrink()
+                      : Toast(label: _notice!, actionLabel: _noticeAction?.label, onAction: _noticeAction == null ? null : () => _actOnNotice(_noticeAction!)),
                 ),
               ),
             ),
