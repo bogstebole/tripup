@@ -74,7 +74,7 @@ class TokColors {
     'c/pin/dash': Color(0xFF2563EB),
     'c/pin/tail': Color(0xFF2563EB),
     'c/pin/tail-edge': Color(0xFFFFFFFF),
-    'c/scan/bg': Color(0xFF000000),
+    'c/scan/bg': Color(0xFF18181B),
     'c/scan/fg': Color(0xFFFFFFFF),
     'c/scan/paper': Color(0xFFFFFFFF),
     'c/scan/ink': Color(0xFF27272A),
@@ -151,7 +151,7 @@ class TokColors {
     'c/pin/dash': Color(0xFF2563EB),
     'c/pin/tail': Color(0xFF2563EB),
     'c/pin/tail-edge': Color(0xFFFFFFFF),
-    'c/scan/bg': Color(0xFF000000),
+    'c/scan/bg': Color(0xFF18181B),
     'c/scan/fg': Color(0xFFFFFFFF),
     'c/scan/paper': Color(0xFFFFFFFF),
     'c/scan/ink': Color(0xFF27272A),
@@ -294,7 +294,6 @@ abstract final class TokDim {
   static const double scanPaperWidth = 296;
   static const double scanCorner = 24;
   static const double scanStroke = 3;
-  static const double scanPhotoOpacity = 0.4;
   static const double scanOffOpacity = 0.3;
   static const double pollLostOpacity = 0.6;
   static const double toggleChipHeight = 32;

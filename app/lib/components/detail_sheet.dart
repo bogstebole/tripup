@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart' show CarouselView;
@@ -12,11 +11,10 @@ import 'glass.dart';
 import 'progressive_blur.dart';
 import 'segmented_tabs.dart';
 import 'stagger.dart';
-import 'toast.dart';
 import 'toggle_chips.dart';
 
-/// The full view's pages. While the dinner is on, the group and the bill matter more than the place's details, so
-/// Group comes first and Overview last.
+/// The full view's pages, always in this order. While the dinner is on, the sheet opens on Group (the group and the
+/// bill matter more than the place's details then).
 enum DetailPage {
   overview('Overview'),
   menu('Menu'),
@@ -25,7 +23,10 @@ enum DetailPage {
   const DetailPage(this.label);
   final String label;
 
-  static List<DetailPage> forPlan(Plan p, DateTime now) => isActive(p, now) ? const [group, menu, overview] : const [overview, menu, group];
+  static const order = [overview, menu, group];
+
+  /// The page the sheet opens on.
+  static DetailPage openingFor(Plan p, DateTime now) => isActive(p, now) ? group : overview;
 }
 
 /// What the menu can be narrowed to: what anyone has picked, or a course.
@@ -59,10 +60,8 @@ class DetailSheet extends StatefulWidget {
 }
 
 class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStateMixin {
-  int _tab = 0;
-
-  /// The pages in their order for this opening (see [DetailPage.forPlan]).
-  late final _pages = DetailPage.forPlan(widget.plan, tripNow());
+  late int _tab = _pages.indexOf(DetailPage.openingFor(widget.plan, tripNow()));
+  static const _pages = DetailPage.order;
 
   /// Which way the last tab change went: 1 to the right, -1 to the left, 0 for the page the sheet opened on.
   int _dir = 0;
@@ -84,36 +83,21 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
   /// Set once the filter changes, so the list under it swaps on its own instead of arriving with the page.
   bool _filtered = false;
 
-  // The "added" toast: up quickly, down a little quicker, both ease-out
-  late final _toast = AnimationController(vsync: this, duration: TokMotion.enter, reverseDuration: TokMotion.fade);
-  late final _toastShown = CurvedAnimation(parent: _toast, curve: TokMotion.easeOut, reverseCurve: TokMotion.easeOut.flipped);
-  MenuItem? _toasted;
-  Timer? _toastTimer;
-
   void _toggle(MenuItem item) {
     final adding = !_mine!.contains(item.name);
     setState(() => adding ? _mine!.add(item.name) : _mine!.remove(item.name));
     myPicks.value = {..._mine!};   // the bill matches against these
+    // The note comes from the top, like every other one, with Undo
     if (adding) {
-      setState(() => _toasted = item);
-      _toast.forward();
-      _toastTimer?.cancel();
-      _toastTimer = Timer(TokMotion.toast, _toast.reverse);
-    } else if (_toasted?.name == item.name) {
-      _hideToast();
+      noticeAction = (label: 'Undo', onTap: () => _undo(item));
+      tripNotice.value = 'Added for ${widget.plan.whenLong}';
     }
   }
 
-  void _hideToast() {
-    _toastTimer?.cancel();
-    _toast.reverse();
-  }
-
-  void _undo() {
-    final item = _toasted;
-    if (item != null && _mine!.contains(item.name)) setState(() => _mine!.remove(item.name));
+  void _undo(MenuItem item) {
+    if (!mounted || !_mine!.contains(item.name)) return;
+    setState(() => _mine!.remove(item.name));
     myPicks.value = {..._mine!};
-    _hideToast();
   }
 
   /// How far the page has scrolled under the top edge, 0–1 over the top fade's height.
@@ -121,8 +105,6 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
 
   @override
   void dispose() {
-    _toastTimer?.cancel();
-    _toast.dispose();
     _under.dispose();
     super.dispose();
   }
@@ -152,20 +134,6 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
                   ? child
                   : fadeBlurOut(anim, child, to: (MediaQuery.maybeDisableAnimationsOf(context) ?? false) ? Offset.zero : Offset(-_dir * TokDim.tabSlide, 0)),
               child: KeyedSubtree(key: ValueKey(_tab), child: _page(context)),
-            ),
-          ),
-          // What I just added, with Undo, centred at the bottom of the page
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: TokSpace.md,
-            child: Center(
-              child: ToastSlot(
-                animation: _toastShown,
-                child: _toasted == null
-                    ? const SizedBox.shrink(key: ValueKey(''))
-                    : Toast(key: ValueKey(_toasted!.name), label: 'Added for ${widget.plan.whenLong}', actionLabel: 'Undo', onAction: _undo),
-              ),
             ),
           ),
           // The header's backdrop shows once content goes under it, so a page at rest isn't faded at the top
@@ -378,7 +346,10 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
           final total = bill?.total ?? cost.values.fold<double>(0, (a, b) => a + b);
           final on = isActive(widget.plan, tripNow());
           final list = _scroll(_enter(children: [
-            _PageTitle(title: "Who's coming", subtitle: '${people.where((x) => x.going).length} of ${people.length} going · ${widget.plan.whenLong}'),
+            // Once the dinner is on, it's who has got there, not who's coming
+            on
+                ? _PageTitle(title: "Who's here", subtitle: '${people.where((x) => isHere(x, tripNow())).length} of ${people.where((x) => x.going).length} here · Now')
+                : _PageTitle(title: "Who's coming", subtitle: '${people.where((x) => x.going).length} of ${people.length} going · ${widget.plan.whenLong}'),
             const SizedBox(height: TokSpace.md),
             for (var i = 0; i < people.length; i++)
               Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -408,9 +379,9 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
                     Text(amount, style: TokText.headingLg.copyWith(color: t.textDefault)),
                   ]),
                   if (bill != null)
-                    Center(child: TuTextButton(label: 'See who owes what', kind: GlassKind.soft, onTap: widget.onSettle))
+                    TuTextButton(label: 'See who owes what', kind: GlassKind.soft, size: TuButtonSize.lg, wide: true, onTap: widget.onSettle)
                   else if (on)
-                    Center(child: TuTextButton(label: 'Scan the bill', icon: TuIcons.scan, onTap: widget.onScan)),
+                    TuTextButton(label: 'Scan the bill', icon: TuIcons.scan, size: TuButtonSize.lg, wide: true, onTap: widget.onScan),
                 ]),
               ),
             ]),

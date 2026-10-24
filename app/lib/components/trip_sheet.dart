@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
@@ -8,7 +7,6 @@ import '../design/tokens.dart';
 import 'basics.dart';
 import 'glass.dart';
 import 'progressive_blur.dart';
-import 'toast.dart';
 
 /// One of the footer's pop-ups (itinerary, money, add): the full view's surface, a header with the title and close,
 /// and a page that scrolls up under the header. It rises from the bottom (see TripScreen); the header is also a
@@ -22,7 +20,6 @@ class TripSheet extends StatefulWidget {
     this.onClose,
     this.onHeaderDragUpdate,
     this.onHeaderDragEnd,
-    this.toast,
     this.focus,
     this.footer,
   });
@@ -41,8 +38,6 @@ class TripSheet extends StatefulWidget {
   final GestureDragUpdateCallback? onHeaderDragUpdate;
   final GestureDragEndCallback? onHeaderDragEnd;
 
-  /// Set it to show a short note at the bottom ("Link copied"); it hides itself after a few seconds.
-  final ValueNotifier<String?>? toast;
 
   /// The header's height: its top inset, then the taller of the title block and the close button.
   static double get headerHeight =>
@@ -52,21 +47,15 @@ class TripSheet extends StatefulWidget {
   State<TripSheet> createState() => _TripSheetState();
 }
 
-class _TripSheetState extends State<TripSheet> with SingleTickerProviderStateMixin {
+class _TripSheetState extends State<TripSheet> {
   /// How far the page has scrolled under the header, 0–1 over the top fade's height.
   final _under = ValueNotifier<double>(0);
-
-  late final _toast = AnimationController(vsync: this, duration: TokMotion.enter, reverseDuration: TokMotion.fade);
-  late final _toastShown = CurvedAnimation(parent: _toast, curve: TokMotion.easeOut, reverseCurve: TokMotion.easeOut.flipped);
-  String? _note;
-  Timer? _toastTimer;
 
   final _scroll = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    widget.toast?.addListener(_showToast);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final at = widget.focus?.currentContext;
       if (!mounted || at == null || !_scroll.hasClients) return;
@@ -78,24 +67,9 @@ class _TripSheetState extends State<TripSheet> with SingleTickerProviderStateMix
 
   @override
   void dispose() {
-    widget.toast?.removeListener(_showToast);
-    _toastTimer?.cancel();
-    _toast.dispose();
     _under.dispose();
     _scroll.dispose();
     super.dispose();
-  }
-
-  void _showToast() {
-    final note = widget.toast?.value;
-    if (note == null) return;
-    setState(() => _note = note);
-    _toast.forward();
-    _toastTimer?.cancel();
-    _toastTimer = Timer(TokMotion.toast, () {
-      if (mounted) _toast.reverse();
-      widget.toast?.value = null;
-    });
   }
 
   @override
@@ -165,17 +139,6 @@ class _TripSheetState extends State<TripSheet> with SingleTickerProviderStateMix
                       ),
                       TuButton(icon: TuIcons.close, label: 'Close', size: TuButtonSize.sm, onTap: widget.onClose),
                     ]),
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: TokSpace.md,
-                child: Center(
-                  child: ToastSlot(
-                    animation: _toastShown,
-                    child: _note == null ? const SizedBox.shrink(key: ValueKey('')) : Toast(key: ValueKey(_note), label: _note!),
                   ),
                 ),
               ),

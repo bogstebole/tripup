@@ -92,8 +92,7 @@ class ItineraryPage extends StatelessWidget {
 /// The group's money: what I owe (and paying it), what's been spent, the fewest payments that square everyone up,
 /// each person's balance, and the expenses. Tonight's dinner joins once the bill comes; until then it's an estimate.
 class MoneyPage extends StatefulWidget {
-  const MoneyPage({super.key, this.toast, this.onScan});
-  final ValueNotifier<String?>? toast;
+  const MoneyPage({super.key, this.onScan});
 
   /// Scan tonight's bill (offered only while the dinner is on and before it's in).
   final VoidCallback? onScan;
@@ -108,7 +107,6 @@ class _MoneyPageState extends State<MoneyPage> {
   /// The payment whose "why" is open, if any.
   Payment? _why;
 
-  ValueNotifier<String?>? get toast => widget.toast;
   VoidCallback? get onScan => widget.onScan;
 
   String _name(String id) => personById(id).name;
@@ -155,7 +153,7 @@ class _MoneyPageState extends State<MoneyPage> {
                 label: 'Pay',
                 onTap: () {
                   recordPayment(mine!);
-                  toast?.value = payLine(mine);
+                  tripNotice.value = payLine(mine);
                 },
               ),
           ]),
@@ -266,8 +264,7 @@ Widget _explain(BuildContext context, Payment p) {
 /// Adding to the trip: a plan (a place to go, put in a free slot on everyone's itinerary and map) or someone new
 /// (a link: no account, and they only share costs from the day they join).
 class AddPage extends StatefulWidget {
-  const AddPage({super.key, this.toast});
-  final ValueNotifier<String?>? toast;
+  const AddPage({super.key});
 
   static const subtitle = 'A plan, or someone new';
 
@@ -357,7 +354,7 @@ class _AddPageState extends State<AddPage> {
                   itemName: idea.name,
                   onTap: () {
                     addedPlans.value = on ? [for (final p in added) if (p.id != idea.id) p] : [...added, idea.plan];
-                    if (!on) widget.toast?.value = 'Added for $slot';
+                    if (!on) tripNotice.value = 'Added for $slot';
                   },
                 ),
               );
@@ -383,7 +380,7 @@ class _AddPageState extends State<AddPage> {
               icon: TuIcons.copy,
               onTap: () {
                 Clipboard.setData(const ClipboardData(text: 'https://$_link'));
-                widget.toast?.value = 'Link copied';
+                tripNotice.value = 'Link copied';
               },
             ),
           ]),

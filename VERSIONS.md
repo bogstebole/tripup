@@ -447,6 +447,19 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - Tokens: `poll/lost-opacity` 0.6, `motion.toast-action-ms` 6000.
 - Checked on the simulator: open, vote, leading, close, the winner on the map, Undo, the hand pick.
 
+### Final UI, iteration 1.25: Bogdan's notes on the dinner (branch `feature/bill-polish`)
+- **Tabs:** they keep their order (Overview · Menu · Group); while the dinner is on, the sheet only opens on Group (`DetailPage.openingFor`).
+- **Group:** "Who's here · N of 5 here · Now" while the dinner is on. Scan the bill and See who owes what are full width and 56 px (`TuTextButton` gets `size` and `wide`).
+- **The bill:**
+  - the total big at the top;
+  - every face on each line;
+  - the line editor in a grey block;
+  - per-person totals that scroll sideways once they don't fit;
+  - who paid as an upward menu (`_PayerPicker`: OverlayPortal anchored to the trigger, fade and scale from its corner, 160 ms in and 120 ms out).
+- **Camera:** a plain `scan/bg` (zinc 900), with no photo. In review the colour fades, so the bill sits on the full view's blurred map. Add lets the bill fade and blur into the page under it.
+- **Notes:** `TripSheet` lost its own toast; every note goes through `tripNotice` at the top, the Menu's "Added" with Undo included.
+- Token removed: `scan/photo-opacity`. Icon: chevron-up.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

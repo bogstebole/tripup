@@ -23,6 +23,7 @@ import '../components/map_shapes.dart';
 import '../components/people_layer.dart';
 import '../components/plan_pin.dart';
 import '../components/poll.dart';
+import '../components/stagger.dart';
 import '../components/toast.dart';
 import '../components/trip_pages.dart';
 import '../components/trip_sheet.dart';
@@ -49,7 +50,6 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   /// Which footer pop-up is up (or closing), if any.
   _Popup? _popup;
   bool _popClosing = false;
-  final _popToast = ValueNotifier<String?>(null);
   final _todayKey = GlobalKey();
 
   /// The camera is up, scanning the dinner's bill.
@@ -443,10 +443,10 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           _closePopup();
           _flyTo(at);
         }) as Widget),
-      _Popup.money => ('Money', MoneyPage.subtitle, MoneyPage(toast: _popToast, onScan: _scan)),
-      _Popup.add => ('Add to the trip', AddPage.subtitle, AddPage(toast: _popToast)),
+      _Popup.money => ('Money', MoneyPage.subtitle, MoneyPage(onScan: _scan)),
+      _Popup.add => ('Add to the trip', AddPage.subtitle, const AddPage()),
       _Popup.story => ('Story', StoryPage.subtitle, StoryPage(onPick: _jump)),
-      _Popup.poll => ('Dinner tonight', PollPage.subtitle(tripNow()), PollPage(toast: _popToast)),
+      _Popup.poll => ('Dinner tonight', PollPage.subtitle(tripNow()), const PollPage()),
     };
     return Positioned.fromRect(
       rect: to,
@@ -464,7 +464,6 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           onClose: () => _closePopup(),
           onHeaderDragUpdate: dragUpdate,
           onHeaderDragEnd: dragEnd,
-          toast: _popToast,
           focus: _popup == _Popup.itinerary ? _todayKey : null,
           child: page,
         ),
@@ -561,7 +560,6 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     _drag.dispose();
     _pop.dispose();
     _popDrag.dispose();
-    _popToast.dispose();
     addedPlans.removeListener(_sceneChanged);
     tripNotice.removeListener(_showNotice);
     myVote.removeListener(_pollTick);
@@ -710,23 +708,31 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           _popupSheet(context, size, pad),
         ],
         // The camera, over everything, fading in like any modal
-        if (_scanning)
-          Positioned.fill(
-            child: TweenAnimationBuilder<double>(
-              tween: Tween(begin: 0, end: 1),
-              duration: TokMotion.enter,
-              curve: TokMotion.easeOut,
-              builder: (context, v, child) => Opacity(opacity: v, child: child),
-              child: BillScan(
-                onClose: () => setState(() => _scanning = false),
-                onAdd: (bill) {
-                  addBill(bill);
-                  setState(() => _scanning = false);
-                  tripNotice.value = 'Dinner added · ${euros(bill.total)}, split by who had what';
-                },
-              ),
-            ),
+        // The camera, over everything: it fades in, and leaves with a blur, so the bill melts into the page under it
+        // (Group or Money, in the same place on the same background)
+        Positioned.fill(
+          child: AnimatedSwitcher(
+            duration: TokMotion.enter,
+            reverseDuration: TokMotion.fade,
+            switchInCurve: TokMotion.easeOut,
+            transitionBuilder: (child, anim) => child.key != const ValueKey('scan')
+                ? child
+                : _scanning
+                    ? FadeTransition(opacity: anim, child: child)
+                    : fadeBlurOut(anim, child),
+            child: !_scanning
+                ? const SizedBox.shrink(key: ValueKey('none'))
+                : BillScan(
+                    key: const ValueKey('scan'),
+                    onClose: () => setState(() => _scanning = false),
+                    onAdd: (bill) {
+                      addBill(bill);
+                      setState(() => _scanning = false);
+                      tripNotice.value = 'Dinner added · ${euros(bill.total)}, split by who had what';
+                    },
+                  ),
           ),
+        ),
         // A note for everyone, sliding down from the top and back up the way it came
         Positioned(
           left: TokSpace.md,

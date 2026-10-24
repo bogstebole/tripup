@@ -61,8 +61,7 @@ class PollCard extends StatelessWidget {
 /// The poll: a card per place (its sticker, rating, food, price and how far it is), who voted for it, and Vote. Once
 /// it has closed: which one won and went into tonight; after an Undo, a way to pick one by hand.
 class PollPage extends StatelessWidget {
-  const PollPage({super.key, this.toast});
-  final ValueNotifier<String?>? toast;
+  const PollPage({super.key});
 
   static String subtitle(DateTime now) => pollClosed(now)
       ? 'Closed · ${pollUndone.value ? (pickedDinner.value == null ? 'nothing added yet' : '${pollOptionById(pickedDinner.value!).short} picked by hand') : '${pollOptionById(pollLeader(now)!).short} won, ${pollScore(now)}'}'
@@ -135,7 +134,7 @@ class PollPage extends StatelessWidget {
                       kind: GlassKind.soft,
                       onTap: () {
                         pickedDinner.value = o.id;
-                        toast?.value = '${o.short} added for tonight, 5 PM';
+                        tripNotice.value = '${o.short} added for tonight, 5 PM';
                       },
                     ),
                 ]),

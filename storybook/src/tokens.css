@@ -58,7 +58,7 @@
   --c-pin-dash: #2563eb;
   --c-pin-tail: #2563eb;
   --c-pin-tail-edge: #ffffff;
-  --c-scan-bg: #000000;
+  --c-scan-bg: #18181b;
   --c-scan-fg: #ffffff;
   --c-scan-paper: #ffffff;
   --c-scan-ink: #27272a;
@@ -167,7 +167,6 @@
   --d-scan-paper-width: 296px;
   --d-scan-corner: 24px;
   --d-scan-stroke: 3px;
-  --d-scan-photo-opacity: 0.4;
   --d-scan-off-opacity: 0.3;
   --d-poll-lost-opacity: 0.6;
   --d-toggle-chip-height: 32px;
@@ -301,7 +300,7 @@
   --c-pin-dash: #2563eb;
   --c-pin-tail: #2563eb;
   --c-pin-tail-edge: #ffffff;
-  --c-scan-bg: #000000;
+  --c-scan-bg: #18181b;
   --c-scan-fg: #ffffff;
   --c-scan-paper: #ffffff;
   --c-scan-ink: #27272a;

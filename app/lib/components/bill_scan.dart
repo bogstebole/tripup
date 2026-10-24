@@ -100,10 +100,6 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
     setState(() => _bill = Bill(_bill.lines, [for (var i = 0; i < _bill.lines.length; i++) i == line ? who : _bill.who[i]], _bill.paidBy, _bill.at));
   }
 
-  void _nextPayer() {
-    final table = dinnerTable;
-    setState(() => _bill = Bill(_bill.lines, _bill.who, table[(table.indexOf(_bill.paidBy) + 1) % table.length], _bill.at));
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -111,20 +107,22 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
     final size = MediaQuery.sizeOf(context), pad = MediaQuery.paddingOf(context);
     final screen = Rect.fromLTRB(TokSpace.xl, pad.top + TokSpace.x3xl, size.width - TokSpace.xl, size.height - pad.bottom - TokSpace.x3xl);
     final review = _phase == _Phase.review;
-    return ColoredBox(
-      color: t.cScanBg,
-      child: Stack(
+    return Stack(
         children: [
-          // The camera's view: the restaurant, dim, with the bill on the table
+          // The camera's view: one plain colour with the bill on it. Once the bill is read the colour gives way to the
+          // app behind (the same blurred map as the full view), so the bill sits where the full view does, on the
+          // same background, and adding it leads straight back into Group
           Positioned.fill(
-            child: Opacity(
-              opacity: TokDim.scanPhotoOpacity,
-              child: Image.asset('assets/photos/brasserie-1.png', fit: BoxFit.cover),
+            child: AnimatedOpacity(
+              opacity: review ? 0 : 1,
+              duration: TokMotion.enter,
+              curve: TokMotion.easeOut,
+              child: ColoredBox(color: t.cScanBg),
             ),
           ),
           Center(
             child: AnimatedOpacity(
-              opacity: review ? TokDim.scanOffOpacity : 1,
+              opacity: review ? 0 : 1,
               duration: TokMotion.fade,
               curve: TokMotion.easeOut,
               child: KeyedSubtree(key: _paperKey, child: const _Paper()),
@@ -208,7 +206,6 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
               ),
             ),
         ],
-      ),
     );
   }
 
@@ -222,7 +219,7 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
 
     return TripSheet(
       title: 'The bill',
-      subtitle: "La Brasserie de L'Entrecôte · ${euros(_bill.total)}",
+      subtitle: "La Brasserie de L'Entrecôte · ${_bill.lines.length} lines",
       onClose: widget.onClose,
       footer: Container(
         padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.sm, TokSpace.xs, TokSpace.md),
@@ -234,45 +231,34 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
         child: Column(
           spacing: TokSpace.sm,
           children: [
-            // What each person had, to the cent
-            Row(
-              children: [
-                for (final id in table)
-                  Expanded(
-                    child: Column(
-                      spacing: TokSpace.x3xs,
-                      children: [
-                        Sticker(personById(id).sticker, size: StickerSize.avatar),
-                        Text(
-                          euros(shares[id] ?? 0),
-                          style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textDefault),
-                        ),
-                      ],
+            // What each person had, to the cent; side by side while they fit, scrolling sideways once they don't
+            LayoutBuilder(
+              builder: (context, box) {
+                final fits = table.length * TokSpace.x5xl <= box.maxWidth;
+                final cells = [
+                  for (final id in table)
+                    SizedBox(
+                      width: fits ? box.maxWidth / table.length : TokSpace.x5xl,
+                      child: Column(
+                        spacing: TokSpace.x3xs,
+                        children: [
+                          Sticker(personById(id).sticker, size: StickerSize.avatar),
+                          Text(euros(shares[id] ?? 0), style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textDefault)),
+                        ],
+                      ),
                     ),
-                  ),
-              ],
+                ];
+                return fits ? Row(children: cells) : SingleChildScrollView(scrollDirection: Axis.horizontal, child: Row(children: cells));
+              },
             ),
             Row(
               spacing: TokSpace.sm,
               children: [
                 Expanded(
-                  child: Pressable(
-                    onTap: _nextPayer,
-                    semanticLabel: 'Who paid: ${_bill.paidBy == myId ? 'you' : personById(_bill.paidBy).name}. Change',
-                    child: Text.rich(
-                      TextSpan(
-                        children: [
-                          TextSpan(
-                            text: '${_bill.paidBy == myId ? 'You' : personById(_bill.paidBy).name} paid · ',
-                            style: TokText.bodySm.copyWith(color: t.textMuted),
-                          ),
-                          TextSpan(
-                            text: 'Change',
-                            style: TokText.bodySm.copyWith(fontWeight: TokWeight.semibold, color: t.textBrand),
-                          ),
-                        ],
-                      ),
-                    ),
+                  child: _PayerPicker(
+                    payer: _bill.paidBy,
+                    table: table,
+                    onPick: (id) => setState(() => _bill = Bill(_bill.lines, _bill.who, id, _bill.at)),
                   ),
                 ),
                 TuTextButton(label: "Add to the trip's money", onTap: () => widget.onAdd(_bill)),
@@ -283,6 +269,17 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
       ),
       child: StaggerIn(
         children: [
+          // The total, big: it's the number everyone checks first
+          Padding(
+            padding: const EdgeInsets.fromLTRB(TokSpace.xs, 0, TokSpace.xs, TokSpace.sm),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(child: Text('Total', style: TokText.labelLg.copyWith(color: t.textDefault))),
+                Text(euros(_bill.total), style: TokText.headingLg.copyWith(color: t.textDefault)),
+              ],
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.fromLTRB(TokSpace.xs, 0, TokSpace.xs, TokSpace.xs),
             child: Text(
@@ -307,7 +304,8 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
                       spacing: TokSpace.x3xs,
                       children: [
                         Text(euros(line.total), style: TokText.labelLg.copyWith(color: t.textDefault)),
-                        FacePile(faces: [for (final id in who) personById(id).sticker], size: StickerSize.chip),
+                        // Every face, overlapped (there's room for the whole table)
+                        Overlapped(overlap: TokDim.chipFaceOverlap, children: [for (final id in who) Sticker(personById(id).sticker, size: StickerSize.chip)]),
                       ],
                     ),
                     onTap: () => _edit(i),
@@ -319,8 +317,10 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
                     alignment: Alignment.topCenter,
                     child: _editing != i
                         ? const SizedBox(width: double.infinity)
-                        : Padding(
-                            padding: const EdgeInsets.fromLTRB(TokSpace.xs, 0, TokSpace.xs, TokSpace.sm),
+                        : Container(
+                            margin: const EdgeInsets.fromLTRB(TokSpace.xs, 0, TokSpace.xs, TokSpace.sm),
+                            padding: const EdgeInsets.symmetric(vertical: TokSpace.sm),
+                            decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.card)),
                             child: Row(
                               children: [
                                 for (final id in table)
@@ -433,4 +433,112 @@ class _Corners extends CustomPainter {
 
   @override
   bool shouldRepaint(_Corners o) => o.rect != rect || o.color != color;
+}
+
+/// Who paid: shows the payer; tapping opens a small menu upward (it sits at the bottom of the screen) with everyone at
+/// the table. The menu grows from the trigger's corner and fades, quickly, both ways.
+class _PayerPicker extends StatefulWidget {
+  const _PayerPicker({required this.payer, required this.table, required this.onPick});
+  final String payer;
+  final List<String> table;
+  final ValueChanged<String> onPick;
+
+  @override
+  State<_PayerPicker> createState() => _PayerPickerState();
+}
+
+class _PayerPickerState extends State<_PayerPicker> with SingleTickerProviderStateMixin {
+  final _portal = OverlayPortalController();
+  final _link = LayerLink();
+  late final _shown = AnimationController(vsync: this, duration: TokMotion.fade, reverseDuration: TokMotion.press);
+  late final _ease = CurvedAnimation(parent: _shown, curve: TokMotion.easeOut, reverseCurve: TokMotion.easeOut.flipped);
+
+  @override
+  void dispose() {
+    _shown.dispose();
+    super.dispose();
+  }
+
+  void _open() {
+    _portal.show();
+    _shown.forward();
+  }
+
+  void _close() => _shown.reverse().whenComplete(() {
+        if (mounted) _portal.hide();
+      });
+
+  String _name(String id, {bool start = false}) => id == myId ? (start ? 'You' : 'you') : personById(id).name;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tok;
+    return CompositedTransformTarget(
+      link: _link,
+      child: OverlayPortal(
+        controller: _portal,
+        overlayChildBuilder: (context) => Stack(
+          children: [
+            // A tap anywhere else closes it
+            Positioned.fill(child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: _close)),
+            CompositedTransformFollower(
+              link: _link,
+              targetAnchor: Alignment.topLeft,
+              followerAnchor: Alignment.bottomLeft,
+              offset: const Offset(0, -TokSpace.xs),
+              child: FadeTransition(
+                opacity: _ease,
+                child: ScaleTransition(
+                  scale: Tween(begin: TokMotion.pressScale, end: 1.0).animate(_ease),
+                  alignment: Alignment.bottomLeft,
+                  child: Container(
+                    width: TokDim.widgetMidWidth * 2 / 3,
+                    padding: const EdgeInsets.all(TokSpace.x2xs),
+                    decoration: surfaceDecoration(context, BorderRadius.circular(TokRadius.card)),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        for (final id in widget.table)
+                          Pressable(
+                            onTap: () {
+                              HapticFeedback.selectionClick();
+                              widget.onPick(id);
+                              _close();
+                            },
+                            semanticLabel: '${_name(id, start: true)} paid',
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs, vertical: TokSpace.x2xs),
+                              child: Row(
+                                spacing: TokSpace.xs,
+                                children: [
+                                  SizedBox(width: TokDim.stickerAvatar, child: Center(child: Sticker(personById(id).sticker, size: StickerSize.avatar))),
+                                  Expanded(child: Text(_name(id, start: true), style: TokText.labelLg.copyWith(color: t.textDefault))),
+                                  if (id == widget.payer) LucideIcon(TuIcons.check, size: TokSize.iconSm, color: t.iconBrand),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        child: Pressable(
+          onTap: _open,
+          semanticLabel: '${_name(widget.payer, start: true)} paid. Change who paid',
+          child: Row(
+            spacing: TokSpace.x2xs,
+            children: [
+              Sticker(personById(widget.payer).sticker, size: StickerSize.chip),
+              Flexible(child: Text('${_name(widget.payer, start: true)} paid', maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textDefault))),
+              LucideIcon(TuIcons.openUp, size: TokSize.iconSm, color: t.iconMuted),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

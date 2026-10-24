@@ -113,13 +113,20 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 ## The dinner, the bill, squared up (built 24 Oct)
 
 - **The dinner turns "Now" by itself.** Once its time has come (from a quarter of an hour before) and someone is inside its geofence, the card says "Now", with a dot, and "You're here" once I'm in. The mini pin says "Now". Nobody presses anything.
-- **While it's on, the full view opens on Group,** with Overview last. Once you're there, the group and the bill matter more than the place's details.
-- **Scan the bill shows only while the dinner is on,** at the bottom of Group and in Money. Before that there's nothing to scan.
+- **While it's on, the full view opens on Group.** The tabs keep their order (Bogdan: moving them was confusing); only the page it opens on changes. Group then reads "Who's here", not "Who's coming".
+- **Scan the bill shows only while the dinner is on,** at the bottom of Group (full width, 56 px, the page's main action) and in Money. Before that there's nothing to scan.
 - **The scan reads the bill against what people picked on the Menu.**
   - A line goes to whoever picked it, split if several did. A line nobody picked (the couvert, the water) goes to everyone.
   - Any line can be changed by tapping faces: the same control for every line.
   - So "Ren and Nic skip the wine" needs nothing special. The three of us picked the wine, so it lands on us.
   - We didn't build a wine switch or an "exclude" step: it would only fit this one story.
+- **On the bill:**
+  - The total is big at the top.
+  - Every line shows all its faces (no "+N"; there's room).
+  - An opened line shows the table in a grey block, which reads better.
+  - Who paid is a menu that opens upward, with faces, not a "Change" that cycles names.
+  - The totals per person scroll sideways if the table grows.
+- **One background from the camera to Group.** The camera is a plain colour (no photo behind the bill). Once the bill is read, that colour gives way to the same blurred map the full view sits on, and the bill sits where the full view does. "Add" lets it melt (fade and blur) into Group underneath. Before, the jump from a dark camera to the page felt like two different places.
 - **The scan shows how it works:** the frame closes in on the paper, a line reads it, and the lines land on faces. In the prototype it plays a prepared bill made from the real menu (€228.80); there's no real camera or OCR.
 - **Ren comes to dinner** (the brief needs it), and I walk there too: my blue dot follows my route.
 - **The others pay on their own.** After the bill is in, their payments come in a little apart, each a note at the top of the map. No control makes them pay, and the last one to pay sees "Everyone else has paid".
@@ -136,6 +143,10 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 - **A note with an action stays twice as long (6 s),** so there's time to reach Undo.
 - **After Undo, anyone can pick by hand** ("Add to tonight").
 - **Not built:** pins for the options on the map. All three are on the same street, so their pins would sit on top of each other; the cards say how far each is instead. The rest of the dinner (the bill and so on) is La Brasserie's; picking another place by hand gives it a plain plan.
+
+## Notes from the top, everywhere (24 Oct)
+
+- **Every short note (toast) comes from the top:** payments, squared up, the poll, Pay, "Link copied", "Added for…", and the Menu's "Added" with Undo. Before, some came from the bottom and some from the top. One place, one direction.
 
 ## Sharing with testers (decided 23 Oct)
 

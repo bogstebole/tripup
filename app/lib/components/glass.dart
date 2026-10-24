@@ -77,10 +77,14 @@ class TuButton extends StatelessWidget {
 
 /// A glass pill with a label (and an optional icon before it), for actions a bare icon can't say: Pay, Copy link.
 class TuTextButton extends StatelessWidget {
-  const TuTextButton({super.key, required this.label, this.icon, this.kind = GlassKind.primary, this.onTap});
+  const TuTextButton({super.key, required this.label, this.icon, this.kind = GlassKind.primary, this.size = TuButtonSize.md, this.wide = false, this.onTap});
   final String label;
   final String? icon;
   final GlassKind kind;
+  final TuButtonSize size;
+
+  /// Fills the width it's given (the main action at the bottom of a page).
+  final bool wide;
   final VoidCallback? onTap;
 
   @override
@@ -92,10 +96,11 @@ class TuTextButton extends StatelessWidget {
       semanticLabel: label,
       child: Glass(
         kind: kind,
-        height: TokDim.buttonMd,
+        width: wide ? double.infinity : null,
+        height: TuButton.sizeOf(size),
         radius: BorderRadius.circular(TokRadius.pill),
         padding: const EdgeInsets.symmetric(horizontal: TokSpace.md),
-        child: Row(mainAxisSize: MainAxisSize.min, spacing: TokSpace.xs, children: [
+        child: Row(mainAxisSize: wide ? MainAxisSize.max : MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, spacing: TokSpace.xs, children: [
           if (icon != null) LucideIcon(icon!, size: TokSize.iconSm, color: fg),
           Text(label, style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: fg)),
         ]),
@@ -122,6 +127,7 @@ abstract final class TuIcons {
   static const backSmall = Lucide.chevronLeft;
   static const scan = Lucide.scanLine;
   static const bill = Lucide.receipt;
+  static const openUp = Lucide.chevronUp;
   static const hours = Lucide.clock;
   static const price = Lucide.banknote;
   static const delivery = Lucide.truck;
