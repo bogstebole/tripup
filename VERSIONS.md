@@ -459,6 +459,9 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - **Camera:** a plain `scan/bg` (zinc 900), with no photo. In review the colour fades, so the bill sits on the full view's blurred map. Add lets the bill fade and blur into the page under it.
 - **Notes:** `TripSheet` lost its own toast; every note goes through `tripNotice` at the top, the Menu's "Added" with Undo included.
 - Token removed: `scan/photo-opacity`. Icon: chevron-up.
+- **Poll fixes** (found while mirroring in Storybook):
+  - The countdown and the early close count only votes cast by now; before, they peeked at votes still to come.
+  - A tie now goes to whichever place reached that count first, as intended; before, the first in the list won it.
 
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html

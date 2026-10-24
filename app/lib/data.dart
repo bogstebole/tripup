@@ -696,22 +696,33 @@ List<String> votersOf(String option, DateTime now) => [
 
 int votesIn(DateTime now) => [for (final o in pollOptions) ...votersOf(o.id, now)].length;
 
-/// When the poll closed: at its deadline, or the moment the last person voted.
-DateTime get pollClosedAt {
-  final last = [for (final v in pollVotes) v.at, if (myVote.value case final mine?) mine.at]..sort();
-  return last.length >= dinnerTable.length && last.last.isBefore(pollCloses) ? last.last : pollCloses;
+/// Every vote cast by [now], with when.
+List<({String who, String option, DateTime at})> _votesBy(DateTime now) => [
+      for (final v in pollVotes) if (!v.at.isAfter(now)) v,
+      if (myVote.value case final mine? when !mine.at.isAfter(now)) (who: myId, option: mine.option, at: mine.at),
+    ];
+
+/// When the poll closes, as known at [now]: the moment the last person voted, if everyone has by then; otherwise its
+/// deadline. (It can't count votes that haven't come in yet.)
+DateTime pollClosedAt(DateTime now) {
+  final cast = [for (final v in _votesBy(now)) v.at]..sort();
+  return cast.length >= dinnerTable.length && cast.last.isBefore(pollCloses) ? cast.last : pollCloses;
 }
 
-bool pollOpen(DateTime now) => !now.isBefore(pollOpens) && now.isBefore(pollClosedAt);
-bool pollClosed(DateTime now) => !now.isBefore(pollClosedAt);
+bool pollOpen(DateTime now) => !now.isBefore(pollOpens) && now.isBefore(pollClosedAt(now));
+bool pollClosed(DateTime now) => !now.isBefore(pollClosedAt(now));
 
-/// The option with the most votes (a tie goes to whichever got there first).
+/// The option with the most votes. A tie goes to whichever reached that many first.
 String? pollLeader(DateTime now) {
+  final votes = _votesBy(now);
   String? best;
   var most = 0;
+  DateTime? reached;
   for (final o in pollOptions) {
-    final n = votersOf(o.id, now).length;
-    if (n > most) (best, most) = (o.id, n);
+    final times = [for (final v in votes) if (v.option == o.id) v.at]..sort();
+    if (times.isEmpty) continue;
+    final at = times.last;   // when it got to its count
+    if (times.length > most || (times.length == most && at.isBefore(reached!))) (best, most, reached) = (o.id, times.length, at);
   }
   return best;
 }

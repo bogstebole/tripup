@@ -11,7 +11,7 @@ import 'glass.dart';
 import 'stagger.dart';
 
 String _countdown(DateTime now) {
-  final mins = pollClosedAt.difference(now).inMinutes + 1;
+  final mins = pollClosedAt(now).difference(now).inMinutes + 1;
   return 'closes in $mins ${mins == 1 ? 'min' : 'mins'}';
 }
 

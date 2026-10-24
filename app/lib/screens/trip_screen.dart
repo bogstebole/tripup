@@ -168,7 +168,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     if (was != -1 && phase == 1 && was == 0 && fresh(pollOpens)) {
       tripNotice.value = '${personById(pollAskedBy).name} started a poll: where for dinner tonight?';
     }
-    if (was != -1 && phase == 2 && was != 2 && fresh(pollClosedAt) && !pollUndone.value) {
+    if (was != -1 && phase == 2 && was != 2 && fresh(pollClosedAt(now)) && !pollUndone.value) {
       final winner = pollOptionById(pollLeader(now)!);
       noticeAction = (label: 'Undo', onTap: _undoWinner);
       tripNotice.value = '${winner.short} won · added to tonight';
