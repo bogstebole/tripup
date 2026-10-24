@@ -461,7 +461,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     if (_inTrip) return;
     HapticFeedback.selectionClick();
     _homeCard = _cardRect();
-    _reduce ? _home.animateTo(0, duration: TokMotion.fade) : springTo(_home, 0, TokMotion.springExpand);
+    _reduce ? _home.animateTo(0, duration: TokMotion.fade) : springTo(_home, 0, TokMotion.springOpen);
     setState(() {});
   }
 
@@ -497,38 +497,40 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
             ignoring: _home.isAnimating,
             child: Opacity(
               opacity: 1 - smoothstep(0.2, 0.9, p),
-              child: _reduce
-                  ? child
-                  : Transform.scale(
-                      scale: 1 + p * (TokMotion.pageZoomScale - 1),
-                      alignment: Alignment.topLeft,
-                      origin: _homeCard?.center ?? Offset.zero,
-                      child: child,
-                    ),
+              child: Transform.scale(
+                scale: _reduce ? 1 : 1 + p * (TokMotion.pageZoomScale - 1),
+                alignment: Alignment.topLeft,
+                origin: _homeCard?.center ?? Offset.zero,
+                child: child,
+              ),
             ),
           );
         },
         child: TripsHome(key: _homeKey, onOpen: _goIn, cardKey: _homeCardKey),
       );
 
-  /// The trip screen opening out of the trip card (and closing into it): scaled down to the card's width and clipped
-  /// to its rounded rect, then both grow to the whole screen. It fades in over the card's first moments, so the card's
-  /// still of the city gives way to the live map. With reduced motion it only fades.
+  /// The trip screen opening out of the trip card (and closing into it), as one container: scaled down to the card's
+  /// width and clipped to its rounded rect, then both grow to the whole screen. It fades in over the card's first
+  /// moments, so the card's still of the city gives way to the live map. With reduced motion it only fades.
+  ///
+  /// The widgets around the trip stay the same at rest and in motion (only their values change): a different wrapper
+  /// on landing would build the map and its pins anew, and the Up next card would play its entrance a second time.
   Widget _openingTrip(BuildContext context, Size size, Widget trip) => AnimatedBuilder(
         animation: _home,
         child: trip,
         builder: (context, child) {
           final p = (1 - _home.value).clamp(0.0, 1.0);
-          if (_inTrip) return child!;
-          if (_reduce) return IgnorePointer(child: Opacity(opacity: p, child: child));
+          final moving = !_inTrip && !_reduce;
           final screen = Offset.zero & size;
-          final rect = Rect.lerp(_homeCard ?? screen, screen, p)!;
+          final rect = moving ? Rect.lerp(_homeCard ?? screen, screen, p)! : screen;
           final scale = rect.width / size.width;
           return IgnorePointer(
+            ignoring: !_inTrip,
             child: ClipRRect(
-              clipper: _RRectClip(RRect.fromRectAndRadius(rect, Radius.circular(TokDim.surfaceRadius * (1 - p)))),
+              clipper: _RRectClip(RRect.fromRectAndRadius(rect, Radius.circular(moving ? TokDim.surfaceRadius * (1 - p) : 0))),
+              clipBehavior: moving ? Clip.antiAlias : Clip.none,
               child: Opacity(
-                opacity: smoothstep(0, 0.3, p),
+                opacity: _inTrip ? 1 : _reduce ? p : smoothstep(0, 0.3, p),
                 child: Transform(
                   transform: Matrix4.translationValues(rect.center.dx - size.width / 2 * scale, rect.center.dy - size.height / 2 * scale, 0)
                     ..multiply(Matrix4.diagonal3Values(scale, scale, 1)),

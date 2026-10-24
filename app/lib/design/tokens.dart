@@ -465,6 +465,7 @@ abstract final class TokMotion {
   static const springExpand = TokSpring(0.55, 0.08);
   static const springCollapse = TokSpring(0.38, 0);
   static const springSnap = TokSpring(0.35, 0);
+  static const springOpen = TokSpring(0.5, 0);
   static const double crossfadeBlur = 2;
   static const double enterBlur = 4;
   static const double morphEnterScale = 0.9;

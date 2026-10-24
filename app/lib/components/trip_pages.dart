@@ -138,21 +138,20 @@ class _MoneyPageState extends State<MoneyPage> {
                 ? ('You owe ${_name(mine.to)}', othersPaid && dinnerBill.value != null ? 'Everyone else has paid' : null, false)
                 : ('', null, false);
     return StaggerIn(children: [
-      // Its text on the page's one left edge, with the title above and everything under it
+      // A rounded pill like Invite's link: what I owe and Pay (or that it's settled)
       if (mine != null || square)
         Container(
-          padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.md, TokSpace.md, TokSpace.md),
-          decoration: BoxDecoration(color: square ? t.bgSuccessSubtle : t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.card)),
+          padding: const EdgeInsets.fromLTRB(TokSpace.md, TokSpace.xs, TokSpace.xs, TokSpace.xs),
+          decoration: BoxDecoration(color: square ? t.bgSuccessSubtle : t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.pill)),
           child: Row(spacing: TokSpace.sm, children: [
             Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x3xs, children: [
-                Text(head, style: TokText.labelLg.copyWith(color: t.textDefault)),
-                if (!done) Text(euros(mine!.amount), style: TokText.headingLg.copyWith(color: t.textDefault)),
-                if (sub != null) Text(sub, style: TokText.bodySm.copyWith(color: done ? t.textSuccess : t.textMuted)),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(done ? head : '$head${sub != null ? ' · $sub' : ''}', maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.bodySm.copyWith(color: t.textMuted)),
+                Text(done ? (sub ?? '') : euros(mine!.amount), maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingSm.copyWith(color: done ? t.textSuccess : t.textDefault)),
               ]),
             ),
             if (done)
-              LucideIcon(TuIcons.done, size: TokSize.iconMd, color: t.iconSuccess)
+              Padding(padding: const EdgeInsets.only(right: TokSpace.xs), child: LucideIcon(TuIcons.done, size: TokSize.iconMd, color: t.iconSuccess))
             else
               TuTextButton(
                 label: 'Pay',
