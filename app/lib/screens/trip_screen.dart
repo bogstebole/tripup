@@ -637,14 +637,14 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           // What shows when: the card's words leave first, the live trip arrives near full size
           final words = moving ? 1 - smoothstep(0, 0.25, p) : 0.0;
           final live = _inTrip ? 1.0 : _reduce ? p : smoothstep(0.45, 0.85, p);
-          final seam = moving ? TokMotion.crossfadeBlur * 4 * live * (1 - live) : 0.0;
+          final seam = moving && !lightEffects ? TokMotion.crossfadeBlur * 4 * live * (1 - live) : 0.0;
           final behind = _inTrip ? 0.0 : smoothstep(0, 0.6, p);
           return Stack(children: [
             // The list behind blurs and washes out
             Positioned.fill(
               child: IgnorePointer(
                 child: BackdropFilter(
-                  enabled: behind > 0.01,
+                  enabled: behind > 0.01 && !lightEffects,
                   filter: ui.ImageFilter.blur(sigmaX: TokDim.sheetBackdropBlur * behind, sigmaY: TokDim.sheetBackdropBlur * behind),
                   child: ColoredBox(color: t.cTripOpenWash.withValues(alpha: t.cTripOpenWash.a * behind)),
                 ),
@@ -1070,10 +1070,12 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
                 opacity: _pollExpanded && pollOpen(tripNow()) && !_covered ? 1 : 0,
                 duration: _pollExpanded ? TokMotion.enter : TokMotion.fold,   // in step with the card
                 curve: TokMotion.easeOut,
-                child: BackdropFilter(
-                  filter: ui.ImageFilter.blur(sigmaX: TokDim.pollScrimBlur, sigmaY: TokDim.pollScrimBlur),
-                  child: ColoredBox(color: t.cPollScrim),
-                ),
+                child: lightEffects
+                    ? ColoredBox(color: t.cPollScrim)
+                    : BackdropFilter(
+                        filter: ui.ImageFilter.blur(sigmaX: TokDim.pollScrimBlur, sigmaY: TokDim.pollScrimBlur),
+                        child: ColoredBox(color: t.cPollScrim),
+                      ),
               ),
             ),
           ),
@@ -1208,8 +1210,10 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       builder: (context, _) {
         final p = math.max(_open.value, _pop.value).clamp(0.0, 1.0);
         return BackdropFilter(
+          enabled: !lightEffects,
           filter: ui.ImageFilter.blur(sigmaX: TokDim.sheetBackdropBlur * p, sigmaY: TokDim.sheetBackdropBlur * p),
-          child: ColoredBox(color: t.cSheetScrim.withValues(alpha: t.cSheetScrim.a * p)),
+          // Without the blur (light effects) a stronger wash keeps the map back
+          child: ColoredBox(color: (lightEffects ? t.cSheetScrimFlat : t.cSheetScrim).withValues(alpha: (lightEffects ? t.cSheetScrimFlat : t.cSheetScrim).a * p)),
         );
       },
     );

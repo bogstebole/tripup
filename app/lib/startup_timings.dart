@@ -4,6 +4,7 @@
 // it (a screenshot of it is the report), tap the panel to close it. Nothing shows in the normal UI.
 import 'dart:async';
 import 'dart:developer' show Timeline;
+import 'dart:io' show Platform;
 import 'dart:ui' show FramePhase, FrameTiming;
 
 import 'package:flutter/foundation.dart';
@@ -20,6 +21,19 @@ typedef StartupStep = ({String name, int ms, String? detail});
 abstract final class StartupTimings {
   static final _clock = Stopwatch();
   static const _channel = MethodChannel('tripup/startup');
+
+  /// Whether this phone draws with Skia on Android (before 10), whose GPUs can't afford the app's blurs: see
+  /// [lightEffects]. Anywhere else, or if the question fails, no.
+  static Future<bool> weakGraphics() async {
+    if (kIsWeb || !Platform.isAndroid) return false;
+    try {
+      return (await _channel.invokeMethod<int>('sdk') ?? 99) < 29;
+    } on PlatformException {
+      return false;
+    } on MissingPluginException {
+      return false;
+    }
+  }
 
   /// From the app's process starting to Dart's main(), from Android (null until it answers, or elsewhere).
   static int? _beforeMain;

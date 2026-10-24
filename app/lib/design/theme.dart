@@ -27,6 +27,12 @@ SpringDescription springOf(TokSpring s) => SpringDescription.withDurationAndBoun
     );
 
 /// Animates [c] to [target] on [spring], keeping the current velocity so a change of mind mid-way stays smooth.
+/// Light effects: no blurs anywhere (the entrances, crossfades, backdrops and the opening's wash keep their motion,
+/// fades and tints). For phones whose graphics can't afford them: Android before 10, where Flutter draws with Skia
+/// rather than Impeller, on GPUs like the Huawei Y7 2019's, which took 350 ms a frame with the blurs (24 Oct).
+/// Set once at start, before the first frame.
+bool lightEffects = false;
+
 TickerFuture springTo(AnimationController c, double target, TokSpring spring, {double? velocity}) {
   final sim = SpringSimulation(springOf(spring), c.value, target, velocity ?? c.velocity, tolerance: const Tolerance(distance: 0.0005, velocity: 0.005));
   return c.animateWith(sim);
