@@ -1,4 +1,6 @@
-// Frame times for the trip screen's heaviest moments, measured with the real app on the phone in profile mode:
+// Frame times for the trip screen's heaviest moments, measured with the real app on the phone in profile mode.
+// Android (emulator or phone): flutter run --profile -t perf/trip_perf.dart -d <id>, and read the PERF lines in the log
+// (--dart-define=PERF_ONLY=launch,trip_open runs only some). iPhone:
 //   flutter build ios --profile -t perf/trip_perf.dart
 //   xcrun devicectl device install app --device <id> build/ios/iphoneos/Runner.app
 //   xcrun devicectl device process launch --console --terminate-existing --device <id> com.bogste.tripup
@@ -26,6 +28,10 @@ typedef Scenario = Future<void> Function(Player p);
 
 /// The scenarios, in the order they run (the first full-view open also decodes the photos).
 final scenarios = <String, Scenario>{
+  'launch': launch,
+  'trip_open': tripOpen,
+  'popup_itinerary': (p) => popup(p, Player.button('Itinerary')),
+  'popup_money': (p) => popup(p, Player.money),
   'map_idle': mapIdle,
   'map_pan_zoom': mapPanZoom,
   'sheet_open_close': sheetOpenClose,
@@ -36,7 +42,10 @@ final scenarios = <String, Scenario>{
   'day_filter': dayFilter,
 };
 
-Future<void> main() => runAll({for (final e in scenarios.entries) e.key: e.value});
+/// `--dart-define=PERF_ONLY=launch,trip_open` runs only those.
+const _only = String.fromEnvironment('PERF_ONLY');
+
+Future<void> main() => runAll({for (final e in scenarios.entries) if (_only.isEmpty || _only.split(',').contains(e.key)) e.key: e.value});
 
 /// Runs each scenario on a fresh app and reports. [before] runs ahead of each one (for experiments).
 Future<void> runAll(Map<String, Scenario> plan, {void Function(String key)? before}) async {
@@ -60,6 +69,50 @@ Future<void> runAll(Map<String, Scenario> plan, {void Function(String key)? befo
   debugPrint('PERF DONE ${file.path}');
   await Future<void>.delayed(const Duration(seconds: 1));
   exit(0);
+}
+
+/// From runApp: Your trips' first frames and its entrance, while the map loads behind it.
+Future<void> launch(Player p) async {
+  await p.measure('', () async {
+    await p.start(inTrip: false, settle: 0);
+    await p.wait(4000);
+  }, settle: 0);
+}
+
+/// The trip opening out of its card (the opening, the entrance), and back to Your trips.
+Future<void> tripOpen(Player p) async {
+  await p.start(inTrip: false);
+  Future<void> cycle() async {
+    await p.tap(Player.tripCard);
+    await p.wait(2500);
+    await p.tap(Player.button('Back to trips'));
+    await p.wait(1500);
+  }
+
+  await p.measure('_first', cycle);
+  await p.measure('', () async {
+    for (var i = 0; i < 2; i++) {
+      await cycle();
+    }
+  });
+}
+
+/// A footer pop-up rising over the blurred map and closing, three times.
+Future<void> popup(Player p, bool Function(Widget) button) async {
+  await p.start();
+  Future<void> cycle() async {
+    await p.tap(button);
+    await p.wait(1200);
+    await p.tap(Player.closeButton);
+    await p.wait(1000);
+  }
+
+  await p.measure('_first', cycle);
+  await p.measure('', () async {
+    for (var i = 0; i < 3; i++) {
+      await cycle();
+    }
+  });
 }
 
 /// Nothing touched: whatever keeps animating on its own (my location breathing) still draws frames.
@@ -188,6 +241,9 @@ class Player {
   final _clock = Stopwatch()..start();
 
   static bool openButton(Widget w) => w is TuButton && w.icon == TuIcons.forward;
+  static bool tripCard(Widget w) => w is TuButton && w.label.startsWith('Open ');
+  static bool money(Widget w) => w.runtimeType.toString() == '_CrewButton';
+  static bool Function(Widget) button(String label) => (w) => w is TuButton && w.label == label;
   static bool closeButton(Widget w) => w is TuButton && w.label == 'Close';
   static bool tabs(Widget w) => w is SegmentedTabs;
   static bool Function(Widget) tab(String name) => (w) => w is Text && w.data == name;
@@ -196,10 +252,14 @@ class Player {
   Future<void> wait(int ms) => Future<void>.delayed(Duration(milliseconds: ms));
   Future<void> _frame() => SchedulerBinding.instance.endOfFrame;
 
-  /// A fresh app, as it opens: tiles loaded, the Up next card up.
-  Future<Size> start() async {
+  /// A fresh app, as it opens on Your trips; then (unless not [inTrip]) into the trip: tiles loaded, the Up next card up.
+  Future<Size> start({bool inTrip = true, int settle = 6000}) async {
     runApp(KeyedSubtree(key: UniqueKey(), child: const TripUpApp()));
-    await wait(6000);
+    await wait(settle);
+    if (inTrip) {
+      await tap(tripCard);
+      await wait(2500);
+    }
     final view = WidgetsBinding.instance.platformDispatcher.implicitView!;
     return view.physicalSize / view.devicePixelRatio;
   }
@@ -210,8 +270,8 @@ class Player {
   }
 
   /// Records every frame drawn while [action] runs, under this scenario's name plus [suffix].
-  Future<void> measure(String suffix, Future<void> Function() action) async {
-    await wait(2000);   // let earlier frame timings flush
+  Future<void> measure(String suffix, Future<void> Function() action, {int settle = 2000}) async {
+    await wait(settle);   // let earlier frame timings flush
     final timings = <FrameTiming>[];
     void add(List<FrameTiming> t) => timings.addAll(t);
     SchedulerBinding.instance.addTimingsCallback(add);

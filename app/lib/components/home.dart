@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import '../data.dart';
 import '../design/theme.dart';
 import '../design/tokens.dart';
+import '../startup_timings.dart';
 import 'basics.dart';
 import 'glass.dart';
 import 'stagger.dart';
@@ -24,7 +25,7 @@ class TripsHome extends StatelessWidget {
     final t = context.tok;
     final pad = MediaQuery.paddingOf(context);
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,   // white status bar on the blue
+      value: systemBarsOver(dark: true),   // white status bar (and navigation bar icons) on the blue
       child: ColoredBox(
         color: t.cHomeBg,
         child: Stack(children: [
@@ -38,7 +39,11 @@ class TripsHome extends StatelessWidget {
                     child: Column(children: [
                       Row(spacing: TokSpace.sm, children: [
                         Expanded(
-                          child: Text('Your trips', maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingLg.copyWith(color: t.cHomeFg)),
+                          // A long press shows the startup timings (hidden, for testers' phones)
+                          child: GestureDetector(
+                            onLongPress: StartupTimings.show,
+                            child: Text('Your trips', maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingLg.copyWith(color: t.cHomeFg)),
+                          ),
                         ),
                         TuButton(icon: TuIcons.bell, label: 'Notifications', onTap: () => tripNotice.value = 'No new notifications'),
                         // Me
@@ -197,7 +202,18 @@ class _HomeMap extends StatelessWidget {
   Widget build(BuildContext context) => SizedBox.fromSize(
         size: homeMapFrame,
         child: Stack(clipBehavior: Clip.hardEdge, children: [
-          Positioned.fromRect(rect: homeMapImageRect, child: Image.asset(homeMapImage, fit: BoxFit.fill, filterQuality: FilterQuality.medium)),
+          Positioned.fromRect(
+            rect: homeMapImageRect,
+            child: Image.asset(
+              homeMapImage,
+              fit: BoxFit.fill,
+              filterQuality: FilterQuality.medium,
+              frameBuilder: (context, child, frame, _) {
+                if (frame != null) StartupTimings.mark('Lisbon still decoded');
+                return child;
+              },
+            ),
+          ),
           for (final s in homeMapStickers)
             Positioned(
               left: s.center.dx,

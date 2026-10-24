@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
@@ -9,10 +8,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
-import 'package:vector_map_tiles/vector_map_tiles.dart';
-import 'package:vector_tile_renderer/vector_tile_renderer.dart' show Theme, ThemeReader;
 
 import '../components/bars.dart';
 import '../components/bill_scan.dart';
@@ -23,6 +19,7 @@ import '../components/entrance.dart';
 import '../components/home.dart';
 import '../components/join.dart';
 import '../components/map_shapes.dart';
+import '../components/map_tiles.dart';
 import '../components/people_layer.dart';
 import '../components/plan_pin.dart';
 import '../components/poll.dart';
@@ -34,6 +31,7 @@ import '../data.dart';
 import '../platform/poll_activity.dart';
 import '../design/theme.dart';
 import '../design/tokens.dart';
+import '../startup_timings.dart';
 
 /// The trip: the map with past places and planned pins, the Up next card, and its full view.
 class TripScreen extends StatefulWidget {
@@ -95,8 +93,6 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   bool get _covered => _sheet || _popup != null;
   late final _fly = AnimationController(vsync: this);
   Timer? _tick;
-  Theme? _theme;
-  TileProviders? _tiles;
   bool _upNextMid = false;   // the app opens on your trips; Up next opens last as you go in
 
   /// The trip's entrance clock (see [EnterOrder]): 0 at the tap, 1 once every control is in. At rest it's 1.
@@ -144,7 +140,9 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _loadMap();
+    // The map's style and tiles load right after the first frame (Your trips), not before it; draw it once they're ready
+    SchedulerBinding.instance.addPostFrameCallback((_) => MapTiles.start());
+    MapTiles.source.addListener(_sceneChanged);
     _map.mapEventStream.listen(_onMapEvent);
     // On the next minute, then every minute, so "In 64 mins" counts down
     _tick = Timer(Duration(seconds: 60 - tripNow().second), () {
@@ -163,7 +161,11 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
         _upNextMid = false;
         _upNextIn = false;
       }
+      if (_inTrip) StartupTimings.mark('Trip opened (map full screen)');
       setState(() {});
+    });
+    _enter.addStatusListener((status) {
+      if (status == AnimationStatus.completed) StartupTimings.phaseEnd('Opening the trip');
     });
     // The last control has started: Up next opens now, the end of the entrance
     _enter.addListener(() {
@@ -336,21 +338,6 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     _closeSheet();
   }
 
-  /// Google-like style on free OpenStreetMap vector tiles (OpenFreeMap, no key). Built by tools/google_style.py.
-  Future<void> _loadMap() async {
-    final style = jsonDecode(await rootBundle.loadString('assets/map/style-google.json')) as Map<String, dynamic>;
-    final source = (style['sources'] as Map<String, dynamic>)['openmaptiles'] as Map<String, dynamic>;
-    final tileJson = jsonDecode((await http.get(Uri.parse(source['url'] as String))).body) as Map<String, dynamic>;
-    if (!mounted) return;
-    _sceneChanged();
-    setState(() {
-      _theme = ThemeReader().read(style);
-      _tiles = TileProviders({
-        'openmaptiles': NetworkVectorTileProvider(urlTemplate: (tileJson['tiles'] as List).first as String, maximumZoom: (tileJson['maxzoom'] as num).toInt()),
-      });
-    });
-  }
-
   void _onMapEvent(MapEvent e) {
     if (e is MapEventWithMove) {
       _mapQuiet.reset();
@@ -385,15 +372,14 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       TokDim.widgetEdgeInset,
       pad.top + TopBar.contentHeightWithFilter + TokDim.widgetEdgeInset,
       size.width - TokDim.widgetEdgeInset,
-      size.height - math.max(pad.bottom, TokSpace.x2xl) - TokDim.buttonLg - TokDim.widgetEdgeInset,
+      size.height - ActionBar.rowInset(context) - TokDim.buttonLg - TokDim.widgetEdgeInset,
     ));
   }
 
   /// Where pins sit: [_safe], but reaching down to the bottom buttons' row, beside the buttons and never on them.
   PinArea _area(Size size) {
-    final pad = MediaQuery.paddingOf(context);
     final safe = _safe(size);
-    final row = size.height - math.max(pad.bottom, TokSpace.x2xl);
+    final row = size.height - ActionBar.rowInset(context);
     final dock = Rect.fromLTRB((size.width - ActionBar.width) / 2, row - TokDim.buttonLg, (size.width + ActionBar.width) / 2, row).inflate(TokDim.widgetEdgeInset);
     return PinArea(nonInverted(Rect.fromLTRB(safe.left, safe.top, safe.right, row)), dock: dock);
   }
@@ -552,6 +538,8 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       _upNextIn = false;
     });
     _enter.value = 0;
+    StartupTimings.mark('Trip card tapped');
+    StartupTimings.phaseStart('Opening the trip');
     SchedulerBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       springTo(_home, 0, TokMotion.springOpen);
@@ -603,7 +591,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           child: FlutterMap(
             options: MapOptions(initialCenter: at, initialZoom: 15.5, backgroundColor: t.bgCanvas, interactionOptions: const InteractionOptions(flags: InteractiveFlag.none)),
             children: [
-              if (_theme != null && _tiles != null) VectorTileLayer(theme: _theme!, tileProviders: _tiles!),
+              if (MapTiles.source.value case final source?) TripTileLayer(source: source),
               MarkerLayer(markers: [
                 Marker(point: at, width: TokDim.stickerMap * 2, height: TokDim.stickerMap, child: Center(child: Sticker(sticker, size: StickerSize.map))),
               ]),
@@ -951,6 +939,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     _noticeTimer?.cancel();
     _payTick?.cancel();
     demoMoment.removeListener(_sceneChanged);
+    MapTiles.source.removeListener(_sceneChanged);
     _fly.dispose();
     _map.dispose();
     super.dispose();
@@ -962,7 +951,10 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     final size = MediaQuery.sizeOf(context);
     final pad = MediaQuery.paddingOf(context);
     final area = _area(size);
-    final trip = Stack(children: [
+    // The map is light: dark icons in the system bars over it (the app draws under them, edge to edge)
+    final trip = AnnotatedRegion<SystemUiOverlayStyle>(
+      value: systemBarsOver(dark: false),
+      child: Stack(children: [
         Positioned.fill(
           child: FlutterMap(
             mapController: _map,
@@ -975,7 +967,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
               interactionOptions: const InteractionOptions(flags: InteractiveFlag.all & ~InteractiveFlag.rotate),
             ),
             children: [
-              if (_theme != null && _tiles != null) VectorTileLayer(theme: _theme!, tileProviders: _tiles!),
+              if (MapTiles.source.value case final source?) TripTileLayer(source: source),
               _VisitedLayer(shows: _shows),
               // Where everyone is right now; they only show for today
               PeopleLayer(shown: _shows(today)),
@@ -1022,16 +1014,16 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           ),
         ),
         // The map's credit, under the buttons where pins never go, so it always stays readable (and stays while the
-        // buttons step away)
+        // buttons step away); on Android just above the system's navigation bar, never under it (see ActionBar)
         Positioned(
           left: 0,
           right: 0,
-          bottom: math.max(pad.bottom, TokSpace.x2xl) - TokText.bodySm.fontSize! * TokText.bodySm.height! - TokSpace.x3xs,
-          child: IgnorePointer(child: Text('© OpenFreeMap © OpenMapTiles © OpenStreetMap', textAlign: TextAlign.center, style: TokText.bodySm.copyWith(color: t.cAttributionFg))),
+          bottom: ActionBar.creditInset(context),
+          child: IgnorePointer(child: Text('© OpenFreeMap © OpenMapTiles © OpenStreetMap', textAlign: TextAlign.center, style: ActionBar.creditStyle.copyWith(color: t.cAttributionFg))),
         ),
         Positioned(
           right: TokSpace.md,
-          bottom: math.max(pad.bottom, TokSpace.x2xl) + TokDim.buttonLg + TokSpace.xl,
+          bottom: ActionBar.rowInset(context) + TokDim.buttonLg + TokSpace.xl,
           child: IgnorePointer(
             ignoring: !_meOff,
             child: AnimatedOpacity(
@@ -1047,7 +1039,8 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
             ),
           ),
         ),
-      ]);
+      ]),
+    );
     // Your trips, and the trip opening out of its card over them; whichever isn't showing isn't drawn or ticking
     final under = ColoredBox(
       color: t.bgCanvas,

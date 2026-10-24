@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 
 import '../design/theme.dart';
 import '../design/tokens.dart';
+import '../startup_timings.dart';
 import 'glass.dart';
 
 /// The raised white glass every widget sits on (see Storybook: Components/Basics → Surface).
@@ -39,7 +40,16 @@ class Sticker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final img = Image.asset('assets/stickers/$name.png', height: height ?? heightOf(size!), fit: BoxFit.contain, filterQuality: FilterQuality.medium);
+    final img = Image.asset(
+      'assets/stickers/$name.png',
+      height: height ?? heightOf(size!),
+      fit: BoxFit.contain,
+      filterQuality: FilterQuality.medium,
+      frameBuilder: (context, child, frame, _) {
+        if (frame != null) StartupTimings.sticker(name);
+        return child;
+      },
+    );
     return tilt == 0 ? img : Transform.rotate(angle: tilt * 3.141592653589793 / 180, child: img);
   }
 }

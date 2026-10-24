@@ -107,7 +107,10 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
     final size = MediaQuery.sizeOf(context), pad = MediaQuery.paddingOf(context);
     final screen = Rect.fromLTRB(TokSpace.xl, pad.top + TokSpace.x3xl, size.width - TokSpace.xl, size.height - pad.bottom - TokSpace.x3xl);
     final review = _phase == _Phase.review;
-    return Stack(
+    // White bar icons over the camera's dark view, dark ones once the bill sits on the light page
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: systemBarsOver(dark: !review),
+      child: Stack(
         children: [
           // The camera's view: one plain colour with the bill on it. Once the bill is read the colour gives way to the
           // app behind (the same blurred map as the full view), so the bill sits where the full view does, on the
@@ -206,6 +209,7 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
               ),
             ),
         ],
+    ),
     );
   }
 

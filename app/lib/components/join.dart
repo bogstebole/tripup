@@ -47,7 +47,10 @@ class _JoinFlowState extends State<JoinFlow> {
   Widget build(BuildContext context) {
     final t = context.tok;
     final pad = MediaQuery.paddingOf(context);
-    return ColoredBox(
+    // Ren's screen is light: dark icons in the system bars
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: systemBarsOver(dark: false),
+      child: ColoredBox(
       color: t.bgCanvas,
       child: Stack(children: [
         Positioned.fill(
@@ -87,6 +90,7 @@ class _JoinFlowState extends State<JoinFlow> {
           ]),
         ),
       ]),
+    ),
     );
   }
 

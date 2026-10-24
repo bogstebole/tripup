@@ -32,6 +32,20 @@ TickerFuture springTo(AnimationController c, double target, TokSpring spring, {d
   return c.animateWith(sim);
 }
 
+/// The system bars over the app, which draws edge to edge under them (see main.dart and MainActivity): see-through,
+/// no contrast scrim, icons light over a dark screen ([dark]) or dark over a light one. (Below Android 8 the app stops
+/// above the navigation bar, whose icons are always white: see-through, it shows black behind them.)
+SystemUiOverlayStyle systemBarsOver({required bool dark}) => SystemUiOverlayStyle(
+      statusBarColor: const Color(0x00000000),
+      statusBarIconBrightness: dark ? Brightness.light : Brightness.dark,
+      statusBarBrightness: dark ? Brightness.dark : Brightness.light,   // iOS names it after the background
+      systemStatusBarContrastEnforced: false,
+      systemNavigationBarColor: const Color(0x00000000),
+      systemNavigationBarDividerColor: const Color(0x00000000),
+      systemNavigationBarIconBrightness: dark ? Brightness.light : Brightness.dark,
+      systemNavigationBarContrastEnforced: false,
+    );
+
 /// Soft shapes (blurred shadows) drawn once into an image at the screen's pixel density and reused, instead of being
 /// blurred again on the GPU every frame. A blur has no hard edge, so the image looks the same wherever it lands.
 abstract final class SoftImage {
