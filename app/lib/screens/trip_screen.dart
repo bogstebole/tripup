@@ -76,6 +76,9 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   ({String label, VoidCallback onTap})? _noticeAction;
   bool _noticeShown = false;
 
+  /// The open poll folded into a pill, off the map.
+  bool _pollFolded = false;
+
   /// The poll as last seen (0 not open yet, 1 open, 2 closed) and its vote count, to notice when either changes.
   int _pollPhase = -1, _pollVotes = -1;
   Timer? _noticeTimer, _payTick;
@@ -175,6 +178,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     final phase = pollClosed(now) ? 2 : pollOpen(now) ? 1 : 0, votes = votesIn(now);
     if (phase == _pollPhase && votes == _pollVotes) return;
     final was = _pollPhase;
+    if (phase != was) _pollFolded = false;   // a poll that opens shows in full
     _pollPhase = phase;
     _pollVotes = votes;
     // Only a change that just happened is news (not one the demo jumped over)
@@ -189,6 +193,11 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       _upNextMid = true;
     }
     _sceneChanged();
+  }
+
+  void _foldPoll(bool fold) {
+    HapticFeedback.selectionClick();
+    setState(() => _pollFolded = fold);
   }
 
   /// Tonight's place changed by hand (Undo, or picked in the poll): the map and the Up next card follow at once.
@@ -420,6 +429,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     jumpTo(m);
     setState(() {
       _upNextMid = true;
+      _pollFolded = false;
       _joining = m.opens == 'join';
       _joinPreview = false;
     });
@@ -762,16 +772,22 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           top: _safe(size).top,
           child: IgnorePointer(
             ignoring: !pollOpen(tripNow()) || _covered,
+            // Card and pill swap in place: the one leaving shrinks a little into the top as it fades
             child: AnimatedSwitcher(
               duration: TokMotion.enter,
               reverseDuration: TokMotion.fade,
               switchInCurve: TokMotion.easeOut,
               switchOutCurve: TokMotion.easeOut,
+              layoutBuilder: (current, previous) => Stack(alignment: Alignment.topCenter, children: [...previous, ?current]),
               transitionBuilder: (child, anim) => FadeTransition(
                 opacity: anim,
-                child: ScaleTransition(scale: Tween(begin: TokMotion.morphEnterScale, end: 1.0).animate(anim), alignment: Alignment.topCenter, child: child),
+                child: _reduce ? child : ScaleTransition(scale: Tween(begin: TokMotion.morphEnterScale, end: 1.0).animate(anim), alignment: Alignment.topCenter, child: child),
               ),
-              child: pollOpen(tripNow()) && !_covered ? Center(key: const ValueKey('poll'), child: PollCard(onOpen: () => _openPopup(_Popup.poll))) : const SizedBox.shrink(),
+              child: !pollOpen(tripNow()) || _covered
+                  ? const SizedBox.shrink()
+                  : _pollFolded
+                      ? Center(key: const ValueKey('poll-pill'), child: PollPill(onUnfold: () => _foldPoll(false)))
+                      : Center(key: const ValueKey('poll'), child: PollCard(onOpen: () => _openPopup(_Popup.poll), onFold: () => _foldPoll(true))),
             ),
           ),
         ),

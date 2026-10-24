@@ -142,6 +142,10 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 - **It closes at 3 PM, or as soon as everyone has voted.** The winner goes into tonight by itself (nobody else does this). Its card and pin appear, and the note offers Undo.
 - **A note with an action stays twice as long (6 s),** so there's time to reach Undo.
 - **After Undo, anyone can pick by hand** ("Add to tonight").
+- **Bars, not a "Leading" tag** (Bogdan's note, 24 Oct). Under each place, a bar of its votes out of the five at the table, so you compare at a glance; the one ahead is in brand, the rest grey. Bars only grow as votes come in, and the fill slides in rather than stretching, so its rounded end keeps its shape. We didn't show percentages: with five people, faces and a bar say it better.
+- **Every voter's face,** not two and "+N": there are five people at most.
+- **The card is wider** (345, or the screen less its margins) and can **fold into a pill** under the day filter: "Dinner poll · 2 of 5 · closes in 28 mins", with a chevron to unfold. A poll that opens always shows in full first. We didn't fold it by itself after a while: the user decides when it's in the way.
+- **A red dot that slowly breathes says it's live,** on the card and the pill ("Live poll · closes in…"). Red is what "live" looks like everywhere. With reduced motion it stays still.
 - **Not built:** pins for the options on the map. All three are on the same street, so their pins would sit on top of each other; the cards say how far each is instead. The rest of the dinner (the bill and so on) is La Brasserie's; picking another place by hand gives it a plain plan.
 
 ## Your trips and joining (built 24 Oct)

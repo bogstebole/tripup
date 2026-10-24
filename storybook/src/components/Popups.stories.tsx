@@ -10,7 +10,7 @@ import { ActionBar, TopBar } from './Bars';
 import { Camera } from './BillScan';
 import { NoticeLayer, useNotice, type NoticeState } from './Notice';
 import { JoinLayer } from './Join';
-import { PollCard, PollPage, pollSubtitle } from './Poll';
+import { PollCard, PollOnMap, PollPage, PollPill, pollSubtitle } from './Poll';
 import {
   ADD_SUBTITLE, AddPage, ITINERARY_SUBTITLE, ItineraryPage, MONEY_SUBTITLE, MoneyPage, moneySubtitle, type AddPageProps, type AddStep,
   type ItineraryPageProps,
@@ -35,7 +35,7 @@ const place = {
 };
 // The map and the bars blur away behind it, under a light scrim
 const backdrop = { position: 'absolute' as const, inset: 0, background: 'var(--c-sheet-scrim)', backdropFilter: 'blur(var(--d-sheet-backdrop-blur))', WebkitBackdropFilter: 'blur(var(--d-sheet-backdrop-blur))' };
-// The dinner poll's card: where the Up next card would be, under the top bar, grown from its top
+// The dinner poll's card (or pill): where the Up next card would be, under the top bar, grown from its top
 const pollCardPlace = {
   position: 'absolute' as const,
   top: 'calc(var(--space-xl) + var(--d-button-md) + var(--d-widget-edge-inset))',
@@ -43,13 +43,13 @@ const pollCardPlace = {
   right: 0,
   display: 'flex',
   justifyContent: 'center',
-  transformOrigin: 'top center',
 };
 
 type Which = 'itinerary' | 'money' | 'add' | 'poll';
 
-/** The dinner poll on the screen: its pop-up's subtitle and page, and its card on the map while it's open. */
-type PollSlot = { subtitle: string; page: ReactNode; card?: ReactNode };
+/** The dinner poll on the screen: its pop-up's subtitle and page, and its card on the map while it's open (`folded`:
+ *  the card is folded into its pill). */
+type PollSlot = { subtitle: string; page: ReactNode; card?: ReactNode; folded?: boolean };
 
 /**
  * The trip screen with one footer pop-up open. The footer's buttons open the others once it's closed. `money` swaps
@@ -89,19 +89,13 @@ function Screen({ start = null, open: shown, onOpen, money, itinerary, add, poll
           <TopBar title={TRIP.title} dates={TRIP.dates} />
           <ActionBar onItinerary={() => setOpen('itinerary')} onMoney={() => setOpen('money')} onAdd={() => setOpen('add')} />
         </div>
-        {/* While the dinner poll is open its card stands on the map, fading in and growing from its top (enter-ms), and
-            going quicker (fade-ms); a pop-up covers it */}
+        {/* While the dinner poll is open its card (or its pill) stands on the map, fading in and growing from its top
+            (enter-ms), and going quicker (fade-ms); card and pill swap the same way; a pop-up covers it */}
         <AnimatePresence>
           {poll?.card && !current && (
-            <motion.div
-              key="poll-card"
-              style={pollCardPlace}
-              initial={{ opacity: 0, scale: reduce ? 1 : m['morph-enter-scale'] }}
-              animate={{ opacity: 1, scale: 1, transition: { duration: (reduce ? m['fade-ms'] : m['enter-ms']) / 1000, ease } }}
-              exit={{ opacity: 0, scale: reduce ? 1 : m['morph-enter-scale'], transition: { duration: m['fade-ms'] / 1000, ease } }}
-            >
+            <PollOnMap key={poll.folded ? 'poll-pill' : 'poll-card'} style={pollCardPlace}>
               {poll.card}
-            </motion.div>
+            </PollOnMap>
           )}
         </AnimatePresence>
         <AnimatePresence>
@@ -243,6 +237,8 @@ function LivePoll({ from, start = 'poll' }: { from: 'open' | 'closed' | 'undone'
   const now = usePollClock(from === 'open' ? undefined : POLL_CLOSES);
   const [poll, setPoll] = useState<PollState>(from === 'undone' ? { undone: true } : {});
   const [open, setOpen] = useState<Which | null>(start);
+  // The card folded into its pill, off the map
+  const [folded, setFolded] = useState(false);
   const notices = useNotice();
   const [, showNotice, hideNotice] = notices;
 
@@ -283,7 +279,12 @@ function LivePoll({ from, start = 'poll' }: { from: 'open' | 'closed' | 'undone'
             onPick={option => setPoll(p => ({ ...p, picked: option }))}
           />
         ),
-        card: pollOpen(now, poll) ? <PollCard now={now} poll={poll} onOpen={() => setOpen('poll')} /> : undefined,
+        card: !pollOpen(now, poll)
+          ? undefined
+          : folded
+            ? <PollPill now={now} poll={poll} onUnfold={() => setFolded(false)} />
+            : <PollCard now={now} poll={poll} onOpen={() => setOpen('poll')} onFold={() => setFolded(true)} />,
+        folded,
       }}
       notices={notices}
     />
@@ -389,7 +390,7 @@ export const ItineraryPollOpen: Story = {
 
 export const PollOpen: Story = {
   name: 'Poll · open',
-  parameters: { docs: { description: { story: `Maya asks at 2:30 PM and everyone hears it at the top ("Maya started a poll: where for dinner tonight?"). The pop-up: how it works, then a card per place: its sticker, name, rating, food and price, and how far it is on foot from where I am (16, 17 and 17 min: the distance × 1.3 for the streets, at 80 m a minute, rounded up). Under each, who voted (their faces), how many, Leading on the one ahead, and Vote, which turns to a blue "✓ Your vote"; a tap on another place moves my vote. The subtitle counts down to 3 PM ("closes in 30 mins"). The timing is sped up: in the app the others vote 6, 11 and 17 min in (Leo for Churrasqueira, then Nic and Ren for La Brasserie); here a trip minute passes every ${POLL_MINUTE_MS / 1000} s, and the clock holds after Ren's vote so the poll stays open to look at. Leading follows the count, and a tie goes to whichever got to that many first (the time of its latest vote): when Leo votes, Churrasqueira ties La Brasserie 1–1 and La Brasserie, there first, stays ahead. Vote Churrasqueira before Nic does and it takes the lead (2–1); Nic's vote ties it 2–2, and Churrasqueira, which got to 2 first, keeps it; Ren's vote then puts La Brasserie ahead. The countdown only counts votes already in, so it reads to 3 PM until everyone has voted. It closes as soon as all five have, so with my vote in it closes on Ren's (or on my vote, after his): the page turns to the result and "La Brasserie won · added to tonight" comes down with Undo (see Poll · closed). Close the pop-up to see its card on the map, which follows the votes too; tap it to open the poll again. Replay starts over.` } } },
+  parameters: { docs: { description: { story: `Maya asks at 2:30 PM and everyone hears it at the top ("Maya started a poll: where for dinner tonight?"). The pop-up: how it works, then a card per place: its sticker, name, rating, food and price, and how far it is on foot from where I am (16, 17 and 17 min: the distance × 1.3 for the streets, at 80 m a minute, rounded up). Under each, a bar of its share of the five votes (brand for the one ahead, grey for the others, on a white track since the card is grey; it slides out from the left as votes come in, enter-ms, ease-out), then who voted (every face), how many, and Vote, which turns to a blue "✓ Your vote"; a tap on another place moves my vote. There's no Leading tag: the bars show it. The subtitle counts down to 3 PM ("closes in 30 mins"). The timing is sped up: in the app the others vote 6, 11 and 17 min in (Leo for Churrasqueira, then Nic and Ren for La Brasserie); here a trip minute passes every ${POLL_MINUTE_MS / 1000} s, and the clock holds after Ren's vote so the poll stays open to look at. The one ahead follows the count, and a tie goes to whichever got to that many first (the time of its latest vote): when Leo votes, Churrasqueira ties La Brasserie 1–1 and La Brasserie, there first, stays ahead. Vote Churrasqueira before Nic does and it takes the lead (2–1); Nic's vote ties it 2–2, and Churrasqueira, which got to 2 first, keeps it; Ren's vote then puts La Brasserie ahead. The countdown only counts votes already in, so it reads to 3 PM until everyone has voted. It closes as soon as all five have, so with my vote in it closes on Ren's (or on my vote, after his): the page turns to the result and "La Brasserie won · added to tonight" comes down with Undo (see Poll · closed). Close the pop-up to see its card on the map, which follows the votes too; tap it to open the poll again, or its chevron to fold it into a pill under the day filter (tap the pill to unfold it; see Widget › Up next · Poll card ↔ pill). Replay starts over.` } } },
   render: () => <PollStory />,
 };
 
