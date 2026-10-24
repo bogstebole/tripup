@@ -189,6 +189,8 @@
   --d-poll-live-dot: 8px;
   --d-poll-mark: 24px;
   --d-home-header-gap: 29px;
+  --d-plan-map-height: 160px;
+  --d-plan-picker-height: 180px;
   --d-home-card-height: 438px;
   --d-home-card-edge: 5px;
   --d-home-map-fade-start: 0.152;
