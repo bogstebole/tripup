@@ -203,6 +203,15 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 - **A plan in the itinerary opens its details right there,** not the map: the itinerary's sheet and the details are the same surface in the same place, so the details' content fades in where the list was, and closing slides it down like a pop-up. A plan we know little about (Tram 28, an added one) shows its time, how far it is and a small map; the Menu tab appears only for a place with a menu. Places we've been still show on the map.
 - **Coming back from the details lands without a change** (Bogdan: the chips changed and the pin blinked at the end). The card that shrinks back is now exactly the card on the map, who's there included (it showed "N coming" until it landed), and the pin's tail stays under it the whole time instead of popping in when the card arrived.
 
+## The final UI in Figma (25 Oct)
+
+- **Built as design, not pictures** (Bogdan: every screen in Figma, 1:1 with the app, clearly defined auto layout following what we built). Each screen is composed from components that mirror the app's widgets, with the same structure and the same tokens as variables, so a change in Figma reads like a change in code. Screenshots of the app were only references to check against.
+- **One library, one source of truth for values.** The tokens already in Figma stayed; what the app had and Figma didn't (component colours and sizes, the glass and surface shadows) was added from `tokens.json` and aliased to the existing variables, not duplicated.
+- **The map stays a picture,** like a photo: it's drawn from the same tiles at the same camera as the app (a small driver in `app/perf/`), with nothing on it. Everything on top of it (pins, people, me, the bars) is components, placed where the app puts them at that moment.
+- **Scenes per moment of the story** (3:56 PM at launch, 2:10, 2:30, 3:00, 5 PM, a plan just sent) are components, so every sheet or pop-up of that moment sits on the same map, under the same blue scrim as in the app.
+- **The flows follow the brief's scenario,** grouped as epics with their stories and criteria, in Bogdan's example format: the stories read as the acceptance criteria for the screens next to them.
+- **What we didn't do:** a flat export of the app's drawing into Figma (it would match pixels but have no auto layout or components), and the Live Activity on the lock screen (iOS system UI; can be added as its own story).
+
 ## Getting there from the details, and one backdrop (24 Oct)
 
 - **Overview ends with Website and Directions,** fixed at the bottom while the page scrolls, like the Group page's Scan the bill. Directions is the primary one: on a trip the question is "how do I get there", and it opens the phone's maps app straight to walking directions (Apple Maps on iPhone, Google Maps elsewhere), with no step in between. Website is the soft one and only shows when the place has a site. We didn't draw directions inside TripUp: the maps apps already do it better, and the trip's map is for the group, not for routing.

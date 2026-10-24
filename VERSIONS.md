@@ -601,6 +601,12 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - **Checked** on the iPhone 16 simulator: the footer on La Brasserie's Overview, Directions opening Maps, Website opening Safari, the darker backdrop behind the details and Money.
 - Storybook: the same footer on `DetailSheet`'s Overview (`EVENT` now carries La Brasserie's `at`); its tokens follow the new scrim.
 
+### Figma: the final UI, 1:1 with the app (branch `feature/figma-final-ui`, 25 Oct)
+- Figma file, page **Final UI**: six epics in the format of Bogdan's example section (epic card, story cards with the user story and acceptance criteria in our fonts, one section per story with its screens joined by his green connector, no Monday chip, borders excluded from layout). Your trips · The group, on the map (4 stories) · Ren joins mid-trip · Choosing dinner · The bill · Settling up: 32 screens, 440 × 956 (iPhone 16/17 Pro Max), radius 40.
+- Every screen is made of components with auto layout, the way the widgets are built: buttons, chips, tabs, top and action bars, Up next, pins, sheets, pop-ups, rows, the poll, the bill, toasts and system bars (section **Components**, 176 components). Colours, spacing, radii, sizes and shadows are Figma variables and styles: the existing collections plus **Component** (55 colours, light and dark) and **Component size** (93 sizes) from `tokens.json`, and glass and surface effect styles.
+- Stickers are Bogdan's sticker components; the restaurant and dish photos are the app's own. The map is the one picture: `app/perf/figma_map.dart` draws the trip map with the app's tiles at the app's camera for each moment of the story (and the small maps of single places), and records where every pin, person and me sit, so the Figma markers are placed where the app puts them (`figma/map/`).
+- Checked against the app on the iPhone 17 Pro Max simulator, screen by screen (reference shots in `figma/shots/`, not used in the file).
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 
