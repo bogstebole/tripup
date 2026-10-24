@@ -343,7 +343,7 @@ enum TokDim {
   static let pollMetaFace: CGFloat = 16
   static let pollMetaFaceOverlap: CGFloat = 5
   static let pollNotVotedOpacity: CGFloat = 0.4
-  static let pollActivityMark: CGFloat = 28
+  static let pollActivityMark: CGFloat = 20
   static let pollActivityBar: CGFloat = 4
   static let pollActivityTimer: CGFloat = 48
   static let pollMark: CGFloat = 24

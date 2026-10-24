@@ -1,6 +1,7 @@
-// The dinner poll on the lock screen and in the Dynamic Island, with a vote button per place. It's the app's poll card
-// (Bogdan's design, Figma 82:3) made to fit: the live sign and countdown, the question, and each place with its
-// sticker, a bar of its votes and the vote. The lock screen is light, the Island dark, both from the app's tokens.
+// The dinner poll on the lock screen and in the Dynamic Island. It's the app's poll card (Bogdan's design, Figma
+// 82:3) made to fit the little room a Live Activity has: the live line and countdown, the question, then the three
+// places side by side as small cards, each with its sticker, name, a bar of its votes, and the vote (the whole card
+// is the button). It follows the system's light or dark look on the lock screen; the Island is always dark.
 import ActivityKit
 import SwiftUI
 import WidgetKit
@@ -9,20 +10,17 @@ struct PollLiveActivity: Widget {
   var body: some WidgetConfiguration {
     ActivityConfiguration(for: PollActivityAttributes.self) { context in
       PollLockScreen(context: context)
-        .activityBackgroundTint(TokColors.light.bgDefault)
-        .activitySystemActionForegroundColor(TokColors.light.textBrand)
     } dynamicIsland: { context in
       let tok = TokColors.dark
       return DynamicIsland {
         DynamicIslandExpandedRegion(.leading) {
-          LiveLabel(state: context.state, tok: tok, short: true).padding(.leading, TokSpace.x2xs)
+          LiveLine(state: context.state, tok: tok, short: true).padding(.leading, TokSpace.xs)
         }
         DynamicIslandExpandedRegion(.trailing) {
-          Countdown(state: context.state, tok: tok).padding(.trailing, TokSpace.x2xs)
+          Countdown(state: context.state, tok: tok).padding(.trailing, TokSpace.xs)
         }
-        // The Island has room for the places, not the question too
         DynamicIslandExpandedRegion(.bottom) {
-          Places(context: context, tok: tok).padding(.horizontal, TokSpace.x2xs)
+          PlaceCards(context: context, tok: tok).padding(.top, TokSpace.xs)
         }
       } compactLeading: {
         HStack(spacing: TokSpace.x2xs) {
@@ -43,53 +41,63 @@ struct PollLiveActivity: Widget {
   }
 }
 
-/// The lock screen: who asked and the countdown, the question, and the places.
+/// The lock screen: the live line and countdown, the question, and the places. Light or dark with the system.
 struct PollLockScreen: View {
   let context: ActivityViewContext<PollActivityAttributes>
+  @Environment(\.colorScheme) private var scheme
 
   var body: some View {
-    let tok = TokColors.light
+    let tok = scheme == .dark ? TokColors.dark : TokColors.light
+    // A Live Activity has 160 points of height: every gap here is counted
     VStack(alignment: .leading, spacing: TokSpace.xs) {
-      HStack(spacing: TokSpace.xs) {
-        LiveLabel(state: context.state, tok: tok)
-        Spacer(minLength: 0)
-        Countdown(state: context.state, tok: tok)
+      VStack(alignment: .leading, spacing: TokSpace.x3xs) {
+        HStack(spacing: TokSpace.xs) {
+          LiveLine(state: context.state, tok: tok)
+          Spacer(minLength: 0)
+          Countdown(state: context.state, tok: tok)
+        }
+        Text(title)
+          .font(TokText.headingSm)
+          .foregroundStyle(tok.textDefault)
+          .lineLimit(1)
       }
-      Text(title)
-        .font(TokText.headingMd)
-        .foregroundStyle(tok.textDefault)
-        .lineLimit(1)
-      Places(context: context, tok: tok)
+      PlaceCards(context: context, tok: tok)
     }
-    .padding(TokSpace.md)
+    .padding(.horizontal, TokSpace.md)
+    .padding(.vertical, TokSpace.sm)
+    .activityBackgroundTint(tok.bgDefault)
+    .activitySystemActionForegroundColor(tok.textBrand)
   }
 
   private var title: String {
     if let winner = context.attributes.places.first(where: { $0.id == context.state.winner }) {
-      return "Tonight: \(winner.short), 5 PM"
+      return "Tonight: \(winner.name)"
     }
     return context.attributes.question
   }
 }
 
-/// "Live poll" with the red dot and how many have voted, or once it's closed, that it's decided. [short] for the
-/// Island's narrow corner: "Dinner poll · 2/5".
-struct LiveLabel: View {
+/// "Live poll • 2 of 5 voted" with the red dot after it, as on the app's card; once it's closed, that it's decided.
+/// [short] for the Island's narrow corner: "2/5 voted".
+struct LiveLine: View {
   let state: PollActivityAttributes.ContentState
   let tok: TokColors
   var short = false
 
   var body: some View {
     HStack(spacing: TokSpace.xs) {
-      if state.winner == nil { LiveDot(tok: tok) }
-      Text(short
-          ? "Dinner poll · \(state.voted)/\(state.table)"
-          : state.winner == nil ? "Live poll · \(state.voted) of \(state.table) voted" : "Poll closed · \(state.voted) of \(state.table) voted")
+      Text(text)
         .font(TokText.labelMd.weight(.semibold))
         .foregroundStyle(state.winner == nil ? tok.textBrand : tok.textMuted)
         .contentTransition(.numericText(value: Double(state.voted)))
         .lineLimit(1)
+      if state.winner == nil { LiveDot(tok: tok) }
     }
+  }
+
+  private var text: String {
+    if short { return "\(state.voted)/\(state.table) voted" }
+    return state.winner == nil ? "Live poll • \(state.voted) of \(state.table) voted" : "Poll closed • \(state.voted) of \(state.table) voted"
   }
 }
 
@@ -122,67 +130,84 @@ struct LiveDot: View {
   }
 }
 
-/// Each place: its sticker, short name and vote count, a bar of its votes, and the vote. The places keep their order
-/// whatever the count (nothing jumps); the one ahead is in brand.
-struct Places: View {
+/// The three places side by side. They keep their order whatever the count, so nothing jumps.
+struct PlaceCards: View {
   let context: ActivityViewContext<PollActivityAttributes>
   let tok: TokColors
 
   var body: some View {
-    let state = context.state
-    let lead = state.votes.max(by: { $0.value < $1.value })?.key
-    VStack(spacing: TokSpace.x2xs) {
+    HStack(spacing: TokSpace.xs) {
       ForEach(context.attributes.places, id: \.id) { place in
-        let votes = state.votes[place.id] ?? 0
-        let share = state.table > 0 ? CGFloat(votes) / CGFloat(state.table) : 0
-        let ahead = state.winner.map { $0 == place.id } ?? (votes > 0 && place.id == lead)
-        HStack(spacing: TokSpace.sm) {
-          Image(place.sticker).resizable().scaledToFit().frame(width: TokDim.stickerChip, height: TokDim.stickerChip)
-          VStack(alignment: .leading, spacing: TokSpace.x3xs) {
-            HStack {
-              Text(place.short).font(TokText.labelMd).foregroundStyle(tok.textDefault).lineLimit(1)
-              Spacer(minLength: TokSpace.xs)
-              Text("\(votes)")
-                .font(TokText.labelSm)
-                .foregroundStyle(tok.textMuted)
-                .contentTransition(.numericText(value: Double(votes)))
-            }
-            // The bar grows from the left (a scale, so its rounded end keeps its shape)
-            Capsule()
-              .fill(tok.cPollBarTrack)
-              .frame(height: TokDim.pollActivityBar)
-              .overlay(alignment: .leading) {
-                Capsule()
-                  .fill(ahead ? tok.cPollBarLead : tok.cPollBar)
-                  .scaleEffect(x: share, anchor: .leading)
-              }
-          }
-          if state.winner == nil {
-            Button(intent: PollVoteIntent(place: place.id)) {
-              VoteMark(on: state.mine == place.id, tok: tok)
-            }
+        if context.state.winner == nil {
+          // The whole card votes (or moves my vote here)
+          Button(intent: PollVoteIntent(place: place.id)) { PlaceCard(place: place, state: context.state, tok: tok) }
             .buttonStyle(.plain)
-            .accessibilityLabel(state.mine == place.id ? "Your vote: \(place.name)" : "Vote for \(place.name)")
-          }
+            .accessibilityLabel(context.state.mine == place.id ? "Your vote: \(place.name)" : "Vote for \(place.name)")
+        } else {
+          PlaceCard(place: place, state: context.state, tok: tok)
         }
       }
     }
   }
 }
 
-/// The vote: a soft circle with a check, filled in brand once it's yours.
-struct VoteMark: View {
+/// One place, small: its sticker and the vote mark (filled in brand once it's mine, or the winner's), its name, and
+/// a bar of its votes with the count. My pick sits on brand-subtle; once closed, the others fade back.
+struct PlaceCard: View {
+  let place: PollActivityAttributes.Place
+  let state: PollActivityAttributes.ContentState
+  let tok: TokColors
+
+  var body: some View {
+    let votes = state.votes[place.id] ?? 0
+    let share = state.table > 0 ? CGFloat(votes) / CGFloat(state.table) : 0
+    let picked = state.winner.map { $0 == place.id } ?? (state.mine == place.id)
+    VStack(alignment: .leading, spacing: TokSpace.x2xs) {
+      HStack(alignment: .top) {
+        Image(place.sticker).resizable().scaledToFit().frame(width: TokDim.stickerMini, height: TokDim.stickerMini)
+        Spacer(minLength: 0)
+        Mark(on: picked, tok: tok)
+      }
+      HStack(spacing: TokSpace.x2xs) {
+        Text(place.short)
+          .font(TokText.labelMd)
+          .foregroundStyle(tok.textDefault)
+          .lineLimit(1)
+        Spacer(minLength: 0)
+        Text("\(votes)")
+          .font(TokText.labelSm)
+          .foregroundStyle(tok.textMuted)
+          .contentTransition(.numericText(value: Double(votes)))
+      }
+      // The bar grows from the left (a scale, so its rounded end keeps its shape)
+      Capsule()
+        .fill(tok.cPollBarTrackOnMuted)
+        .frame(height: TokDim.pollActivityBar)
+        .overlay(alignment: .leading) {
+          Capsule().fill(tok.cPollBarLead).scaleEffect(x: share, anchor: .leading)
+        }
+    }
+    .padding(TokSpace.xs)
+    .frame(maxWidth: .infinity)
+    .background(RoundedRectangle(cornerRadius: TokRadius.card).fill(picked ? tok.bgBrandSubtle : tok.bgSubtle))
+    .opacity(state.winner != nil && !picked ? TokDim.pollLostOpacity : 1)
+  }
+}
+
+/// The vote mark: an empty ring, or filled in brand with a check once it's mine.
+struct Mark: View {
   let on: Bool
   let tok: TokColors
 
   var body: some View {
     ZStack {
-      Circle().fill(on ? tok.bgBrand : tok.bgMuted)
+      Circle().strokeBorder(tok.borderStrong, lineWidth: on ? 0 : TokDim.pollMarkRing)
+      Circle().fill(tok.bgBrand).opacity(on ? 1 : 0)
       Image(systemName: "checkmark")
-        .font(TokText.labelSm.weight(.bold))
-        .foregroundStyle(on ? tok.textOnBrand : tok.textDefault)
+        .font(TokText.caption.weight(.bold))
+        .foregroundStyle(tok.textOnBrand)
+        .opacity(on ? 1 : 0)
     }
     .frame(width: TokDim.pollActivityMark, height: TokDim.pollActivityMark)
-    .contentTransition(.opacity)
   }
 }

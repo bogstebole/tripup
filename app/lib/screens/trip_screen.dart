@@ -1049,7 +1049,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
               onTap: () => _expandPoll(false),
               child: AnimatedOpacity(
                 opacity: _pollExpanded && pollOpen(tripNow()) && !_covered ? 1 : 0,
-                duration: _pollExpanded ? TokMotion.enter : TokMotion.fade,
+                duration: _pollExpanded ? TokMotion.enter : TokMotion.fold,   // in step with the card
                 curve: TokMotion.easeOut,
                 child: BackdropFilter(
                   filter: ui.ImageFilter.blur(sigmaX: TokDim.pollScrimBlur, sigmaY: TokDim.pollScrimBlur),

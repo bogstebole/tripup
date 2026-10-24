@@ -550,6 +550,11 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - `NSSupportsLiveActivities` in the app's Info.plist. The extension is embedded before Flutter's Thin Binary phase (else Xcode reports a cycle).
 - Checked on the iPhone 16 simulator: the activity on the lock screen and in the Island, voting from the lock screen (the activity updates at once and the app shows the vote), the notification as the poll opens. Not checked there: the notification's buttons (the simulator doesn't open a notification on a long press); same code path as the activity's buttons.
 
+### Final UI, iteration 1.36: the poll's fold and a clearer Live Activity (branch `feature/poll-polish`)
+- **Poll card fold:** `PollCard` is stateful with one controller (`enter` to open, new `fold` 200 ms to close) and an ease-out edge both ways; the places are clipped by `Align.heightFactor` and fade over the first half of the fold; the scrim fades over `fold` too. Checked at 8× slow motion.
+- **Live Activity:** places as three side-by-side cards (sticker 28, ring 20 / filled check, name + count, 4 px bar); whole card is the vote; brand-subtle when picked, 0.6 once another place won; the lock screen follows `colorScheme`; padding and gaps cut to fit the 160 pt height; the Island's expanded view uses the same cards with "2/5 voted". Checked on the simulator in light and dark, voting from the lock screen.
+- Tokens: `fold-ms` 200; `poll/activity-mark` 28 → 20.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

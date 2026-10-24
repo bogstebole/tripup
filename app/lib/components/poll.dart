@@ -24,11 +24,44 @@ int walkMinutes(PollOption o, DateTime now) =>
 /// Tapping it opens it in place, over a tinted, blurred map: the same card grows down to show each place, with its
 /// rating, food and price, a bar of its votes, Details, who voted for it, and the vote itself. One element: the head
 /// stays put, the places arrive under it one by one, and closing folds them away again.
-class PollCard extends StatelessWidget {
+class PollCard extends StatefulWidget {
   const PollCard({super.key, required this.expanded, required this.onToggle, required this.onDetails});
   final bool expanded;
   final VoidCallback onToggle;
   final ValueChanged<PollOption> onDetails;
+
+  @override
+  State<PollCard> createState() => _PollCardState();
+}
+
+class _PollCardState extends State<PollCard> with SingleTickerProviderStateMixin {
+  /// How open it is: 0 the compact card, 1 open. Opening takes the usual time, folding a little less.
+  late final _open = AnimationController(vsync: this, value: widget.expanded ? 1 : 0, duration: TokMotion.enter, reverseDuration: TokMotion.fold);
+
+  /// The card's edge, ease-out both ways so it answers at once: down on opening, up on folding.
+  late final _edge = CurvedAnimation(parent: _open, curve: TokMotion.easeOut, reverseCurve: TokMotion.easeOut.flipped);
+
+  bool get expanded => widget.expanded;
+  VoidCallback get onToggle => widget.onToggle;
+  ValueChanged<PollOption> get onDetails => widget.onDetails;
+
+  @override
+  void didUpdateWidget(PollCard old) {
+    super.didUpdateWidget(old);
+    if (old.expanded == widget.expanded) return;
+    if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) {
+      _open.value = widget.expanded ? 1 : 0;
+    } else {
+      widget.expanded ? _open.forward() : _open.reverse();
+    }
+  }
+
+  @override
+  void dispose() {
+    _edge.dispose();
+    _open.dispose();
+    super.dispose();
+  }
 
   // A vote shows at once (the rest of the poll moves on the demo's clock)
   @override
@@ -37,7 +70,6 @@ class PollCard extends StatelessWidget {
   Widget _card(BuildContext context) {
     final t = context.tok;
     final now = tripNow();
-    final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     final width = MediaQuery.sizeOf(context).width - 2 * TokSpace.md;
     return Container(
       width: width,
@@ -85,29 +117,31 @@ class PollCard extends StatelessWidget {
             ),
           ]),
         ),
-        // The places, open: the card grows to hold them (an on-screen morph, so ease in and out), and they arrive one
-        // by one; closing, they fade away first and the card folds up after them
+        // The places, open. Like an accordion: the card's edge moves down to reveal them while they arrive one by one
+        // under the head. Folding is the same move back, one continuous motion: the edge starts rising at once and
+        // the places fade over the first half, so they're gone before it reaches them. With reduced motion it simply
+        // shows or hides.
         Flexible(
-          child: AnimatedSize(
-            duration: reduce ? Duration.zero : TokMotion.enter,
-            reverseDuration: reduce ? Duration.zero : TokMotion.fade,
-            curve: TokMotion.easeInOut,
-            alignment: Alignment.topCenter,
-            child: AnimatedSwitcher(
-              duration: TokMotion.enter,
-              reverseDuration: TokMotion.fade,
-              layoutBuilder: (current, previous) => Stack(alignment: Alignment.topCenter, children: [...previous, ?current]),
-              transitionBuilder: (child, anim) => child.key == const ValueKey('places') && !expanded ? fadeBlurOut(anim, child) : FadeTransition(opacity: anim, child: child),
-              child: !expanded
-                  ? const SizedBox(key: ValueKey('none'), width: double.infinity)
-                  : SingleChildScrollView(
-                      key: const ValueKey('places'),
-                      padding: const EdgeInsets.only(top: TokSpace.sm),
-                      child: StaggerIn(spacing: TokSpace.sm, children: [
-                        for (final o in pollOptions) _Place(option: o, now: now, onDetails: () => onDetails(o)),
-                      ]),
-                    ),
+          child: AnimatedBuilder(
+            animation: _open,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(top: TokSpace.sm),
+              child: StaggerIn(spacing: TokSpace.sm, children: [
+                for (final o in pollOptions) _Place(option: o, now: now, onDetails: () => onDetails(o)),
+              ]),
             ),
+            builder: (context, child) {
+              final v = _open.value;
+              if (v == 0) return const SizedBox(width: double.infinity);   // shut: the places go (and stagger in again next time)
+              final folding = _open.status == AnimationStatus.reverse;
+              return ClipRect(
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  heightFactor: _edge.value,
+                  child: Opacity(opacity: folding ? const Interval(0.5, 1).transform(v) : 1, child: child),
+                ),
+              );
+            },
           ),
         ),
       ]),
