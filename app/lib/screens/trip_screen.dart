@@ -19,6 +19,7 @@ import '../components/bill_scan.dart';
 import '../components/basics.dart';
 import '../components/toggle_chips.dart';
 import '../components/detail_sheet.dart';
+import '../components/entrance.dart';
 import '../components/home.dart';
 import '../components/join.dart';
 import '../components/map_shapes.dart';
@@ -95,7 +96,13 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   Timer? _tick;
   Theme? _theme;
   TileProviders? _tiles;
-  bool _upNextMid = true;
+  bool _upNextMid = false;   // the app opens on your trips; Up next opens last as you go in
+
+  /// The trip's entrance clock (see [EnterOrder]): 0 at the tap, 1 once every control is in. At rest it's 1.
+  late final _enter = AnimationController(vsync: this, duration: EnterOrder.total, value: 1);
+
+  /// Up next (or the poll) has had its turn in the entrance.
+  bool _upNextIn = false;
   bool _meOff = false;
   bool _sheet = false;
   Rect? _from;
@@ -144,7 +151,23 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     demoMoment.addListener(_sceneChanged);
     // The money pop-up estimates tonight's dinner from the menu's picks, so load it now
     brasserieMenu.then((_) => _sceneChanged());
-    _home.addStatusListener((_) => setState(() {}));
+    _home.addStatusListener((_) {
+      // Back on your trips: Up next waits, small, for the next way in (it jumps there unseen; the trip isn't ticking)
+      if (!_home.isAnimating && _home.value > 0.5) {
+        _upNextMid = false;
+        _upNextIn = false;
+      }
+      setState(() {});
+    });
+    // The last control has started: Up next opens now, the end of the entrance
+    _enter.addListener(() {
+      if (!_upNextIn && _enter.value * EnterOrder.total.inMicroseconds >= EnterOrder.last.inMicroseconds) {
+        setState(() {
+          _upNextIn = true;
+          _upNextMid = true;
+        });
+      }
+    });
     _pop.addListener(() {
       if (_popup != null && _popClosing && _pop.value <= 0.002) {
         _pop.stop();
@@ -443,7 +466,8 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     HapticFeedback.selectionClick();
     jumpTo(m);
     setState(() {
-      _upNextMid = true;
+      // From your trips, Up next waits for its turn in the entrance
+      if (!_onHome) _upNextMid = true;
       _pollFolded = false;
       _joining = m.opens == 'join';
       _joinPreview = false;
@@ -460,13 +484,33 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     }
   }
 
-  /// Into the trip's map, from the list.
+  /// Into the trip's map, from the list: the surface grows out of the card (see [_openingTrip]) while the clock of
+  /// the trip's entrance runs: its controls arrive one by one, and Up next opens last. All of it within a second.
   void _goIn() {
-    if (_inTrip) return;
+    if (_inTrip || _home.isAnimating && _home.velocity < 0) return;
     HapticFeedback.selectionClick();
     _homeCard = _cardRect();
-    _reduce ? _home.animateTo(0, duration: TokMotion.fade) : springTo(_home, 0, TokMotion.springOpen);
-    setState(() {});
+    if (_reduce) {
+      setState(() {
+        _upNextIn = true;
+        _upNextMid = true;
+      });
+      _enter.value = 1;
+      _home.animateTo(0, duration: TokMotion.fade);
+      return;
+    }
+    // Up next is small for the start (one frame here, unseen, so it doesn't shrink on screen), then it all begins
+    setState(() {
+      _upNextMid = false;
+      _upNextIn = false;
+    });
+    _enter.value = 0;
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      springTo(_home, 0, TokMotion.springOpen);
+      _enter.forward(from: 0);
+      setState(() {});
+    });
   }
 
   /// Back to your trips.
@@ -488,7 +532,12 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   void _closeJoin({bool joined = false}) {
     setState(() => _joining = false);
     if (!joined) return;
-    setState(() => _home.value = 0);
+    setState(() {
+      _home.value = 0;
+      _enter.value = 1;
+      _upNextIn = true;
+      _upNextMid = true;
+    });
     tripNotice.value = '${personById('ren').name} joined the trip';
   }
 
@@ -801,6 +850,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     _drag.dispose();
     _pop.dispose();
     _home.dispose();
+    _enter.dispose();
     _popDrag.dispose();
     addedPlans.removeListener(_sceneChanged);
     tripNotice.removeListener(_showNotice);
@@ -863,7 +913,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
             dates: tripDates,
             onBack: _goHome,
             trailing: DemoButton(time: clockTime(tripNow()), onTap: () => _openPopup(_Popup.story)),
-            filter: ToggleChips<int>(options: tripDays, selected: _days, labelOf: _dayLabel, onChanged: (d) => _setDays(d, size)),
+            filter: ToggleChips<int>(options: tripDays, selected: _days, labelOf: _dayLabel, enterFrom: EnterOrder.firstChip, onChanged: (d) => _setDays(d, size)),
           ),
         ),
         // Slides down past the edge while the map moves (quick), and back up once it settles (a little slower)
@@ -913,7 +963,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       color: t.bgCanvas,
       child: Stack(children: [
         Positioned.fill(child: Offstage(offstage: _inTrip, child: TickerMode(enabled: !_inTrip, child: _homeLayer(context)))),
-        Positioned.fill(child: Offstage(offstage: _onHome, child: TickerMode(enabled: !_onHome, child: _openingTrip(context, size, trip)))),
+        Positioned.fill(child: Offstage(offstage: _onHome, child: TickerMode(enabled: !_onHome, child: _openingTrip(context, size, TripEntrance(clock: _enter, child: trip))))),
       ]),
     );
     final scene = Stack(children: [
@@ -932,7 +982,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           right: 0,
           top: _safe(size).top,
           child: IgnorePointer(
-            ignoring: !pollOpen(tripNow()) || _covered || !_inTrip,
+            ignoring: !pollOpen(tripNow()) || _covered || !_inTrip || !_upNextIn,
             // It comes and goes with a fade and a slight scale from the top; folding is the card's own morph
             child: AnimatedSwitcher(
               duration: TokMotion.enter,
@@ -945,7 +995,8 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
                 child: _reduce ? child : ScaleTransition(scale: Tween(begin: TokMotion.morphEnterScale, end: 1.0).animate(anim), alignment: Alignment.topCenter, child: child),
               ),
               // Only on the map: not over your trips, nor while the trip opens
-              child: !pollOpen(tripNow()) || _covered || !_inTrip
+              // (in the entrance it comes last, in Up next's place)
+              child: !pollOpen(tripNow()) || _covered || !_inTrip || !_upNextIn
                   ? const SizedBox.shrink()
                   : Center(
                       key: const ValueKey('poll'),

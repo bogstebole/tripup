@@ -266,6 +266,9 @@
   --morph-enter-scale: 0.9;
   --page-zoom-scale: 1.04;
   --stagger-ms: 40ms;
+  --open-delay-ms: 220ms;
+  --open-stagger-ms: 30ms;
+  --open-item-ms: 200ms;
   --enter-ms: 260ms;
   --page-enter-delay-ms: 80ms;
   --toast-ms: 3000ms;

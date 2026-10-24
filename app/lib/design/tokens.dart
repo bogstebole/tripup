@@ -476,6 +476,9 @@ abstract final class TokMotion {
   static const double morphEnterScale = 0.9;
   static const double pageZoomScale = 1.04;
   static const stagger = Duration(milliseconds: 40);
+  static const openDelay = Duration(milliseconds: 220);
+  static const openStagger = Duration(milliseconds: 30);
+  static const openItem = Duration(milliseconds: 200);
   static const int staggerMax = 8;
   static const enter = Duration(milliseconds: 260);
   static const pageEnterDelay = Duration(milliseconds: 80);

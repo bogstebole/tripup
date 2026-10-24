@@ -4,6 +4,7 @@ import '../data.dart';
 import '../design/theme.dart';
 import '../design/tokens.dart';
 import 'basics.dart';
+import 'entrance.dart';
 import 'glass.dart';
 import 'map_shapes.dart';
 import 'progressive_blur.dart';
@@ -39,14 +40,17 @@ class TopBar extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: TokSpace.md),
           child: Row(spacing: TokSpace.md, children: [
-            TuButton(icon: TuIcons.back, label: 'Back to trips', onTap: onBack),
+            EnterItem(index: EnterOrder.back, child: TuButton(icon: TuIcons.back, label: 'Back to trips', onTap: onBack)),
             Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingSm.copyWith(color: t.textDefault)),
-                Text(dates, style: TokText.labelMd.copyWith(color: t.textMuted)),
-              ]),
+              child: EnterItem(
+                index: EnterOrder.title,
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                  Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingSm.copyWith(color: t.textDefault)),
+                  Text(dates, style: TokText.labelMd.copyWith(color: t.textMuted)),
+                ]),
+              ),
             ),
-            ?trailing,
+            if (trailing != null) EnterItem(index: EnterOrder.demo, child: trailing!),
           ]),
         ),
         ?filter,
@@ -73,9 +77,9 @@ class ActionBar extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(TokSpace.md, TokSpace.md, TokSpace.md, bottom > 0 ? bottom : TokSpace.x2xl),
       decoration: BoxDecoration(gradient: easedFade(t.cActionBarBg, from: TokDim.actionBarFadeStart, up: true)),
       child: Row(mainAxisAlignment: MainAxisAlignment.center, spacing: TokSpace.xs, children: [
-        TuButton(icon: TuIcons.places, label: 'Itinerary', size: TuButtonSize.lg, onTap: onItinerary),
-        _CrewButton(onTap: onMoney),
-        TuButton(icon: TuIcons.add, label: 'Add to the trip', size: TuButtonSize.lg, kind: GlassKind.primary, onTap: onAdd),
+        EnterItem(index: EnterOrder.footer, child: TuButton(icon: TuIcons.places, label: 'Itinerary', size: TuButtonSize.lg, onTap: onItinerary)),
+        EnterItem(index: EnterOrder.footer + 1, child: _CrewButton(onTap: onMoney)),
+        EnterItem(index: EnterOrder.footer + 2, child: TuButton(icon: TuIcons.add, label: 'Add to the trip', size: TuButtonSize.lg, kind: GlassKind.primary, onTap: onAdd)),
       ]),
     );
   }
