@@ -13,7 +13,7 @@ import { JoinLayer } from './Join';
 import { PollOnMap, PollPage, pollSubtitle } from './Poll';
 import { ToggleChips } from './ToggleChips';
 import {
-  ADD_SUBTITLE, AddPage, ITINERARY_SUBTITLE, ItineraryPage, MONEY_SUBTITLE, MoneyPage, moneySubtitle, type AddPageProps, type AddStep,
+  ADD_SUBTITLE, AddPage, ITINERARY_SUBTITLE, ItineraryPage, MONEY_SUBTITLE, MoneyFooter, MoneyPage, type AddPageProps, type AddStep,
   type ItineraryPageProps, type MoneyTab,
 } from './TripPages';
 import { TripSheet } from './TripSheet';
@@ -57,7 +57,7 @@ type PollSlot = { subtitle: string; page: ReactNode; card?: ReactNode };
 
 /**
  * The trip screen with one footer pop-up open. The footer's buttons open the others once it's closed. `money` swaps
- * in another state of the money pop-up, `itinerary` sets the itinerary's page (the poll, now), `add` the add page's
+ * in another state of the money pop-up (its page and its footer), `itinerary` sets the itinerary's page (the poll, now), `add` the add page's
  * (its step, and Invite's preview); `poll` is the dinner poll (its pop-up, and its card on the map while no pop-up
  * covers it); `children` go over everything (the camera, the invited person's phone). Notes for everyone come down at
  * the top: the pages show theirs, and `notices` lets the story show its own too. `open` and `onOpen` say from outside
@@ -68,7 +68,7 @@ function Screen({ start = null, open: shown, onOpen, money, itinerary, add, poll
   start?: Which | null;
   open?: Which | null;
   onOpen?: (which: Which | null) => void;
-  money?: { subtitle: string; page: ReactNode };
+  money?: { page: ReactNode; footer?: ReactNode };
   itinerary?: Omit<ItineraryPageProps, 'onPick' | 'onPoll' | 'days'>;
   add?: AddPageProps;
   poll?: PollSlot;
@@ -88,14 +88,14 @@ function Screen({ start = null, open: shown, onOpen, money, itinerary, add, poll
     setLastOpen(open);
     if (open === 'itinerary') setPlanDays([]);
   }
-  const sheet: Record<Which, { title: string; subtitle: string; page: ReactNode; top?: ReactNode } | undefined> = {
+  const sheet: Record<Which, { title: string; subtitle: string; page: ReactNode; top?: ReactNode; footer?: ReactNode } | undefined> = {
     itinerary: {
       title: 'Itinerary',
       subtitle: ITINERARY_SUBTITLE,
       page: <ItineraryPage onPick={close} onPoll={poll && (() => setOpen('poll'))} {...itinerary} days={planDays} />,
       top: <ToggleChips label="Filter the itinerary by day" options={dayOptions} selected={planDays} onChange={setPlanDays} inset="xs" />,
     },
-    money: { title: 'Money', subtitle: money?.subtitle ?? MONEY_SUBTITLE, page: money?.page ?? <MoneyPage /> },
+    money: { title: 'Money', subtitle: MONEY_SUBTITLE, page: money?.page ?? <MoneyPage />, footer: money?.footer ?? <MoneyFooter /> },
     add: { title: 'Add to the trip', subtitle: ADD_SUBTITLE, page: <AddPage {...add} /> },
     poll: poll && { title: 'Dinner tonight', subtitle: poll.subtitle, page: poll.page },
   };
@@ -138,7 +138,7 @@ function Screen({ start = null, open: shown, onOpen, money, itinerary, add, poll
         <div style={place}>
           <AnimatePresence>
             {open && current && (
-              <TripSheet key={open} title={current.title} subtitle={current.subtitle} compact={open === 'add'} top={current.top} onClose={close}>
+              <TripSheet key={open} title={current.title} subtitle={current.subtitle} compact={open === 'add'} top={current.top} footer={current.footer} onClose={close}>
                 {current.page}
               </TripSheet>
             )}
@@ -199,7 +199,10 @@ function LiveMoney({ from, scanning: scanFirst = false }: { from: 'dinner-on' | 
   return (
     <Screen
       start="money"
-      money={{ subtitle: moneySubtitle(money), page: <MoneyPage money={money} made={made} onPay={pay} dinnerOn onScan={() => setScanning(true)} /> }}
+      money={{
+        page: <MoneyPage money={money} made={made} onPay={pay} />,
+        footer: <MoneyFooter money={money} dinnerOn onScan={() => setScanning(true)} />,
+      }}
       notices={notices}
     >
       <AnimatePresence>{scanning && <Camera key="camera" onAdd={add} onClose={() => setScanning(false)} />}</AnimatePresence>
@@ -365,51 +368,51 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Itinerary: Story = {
-  parameters: { docs: { description: { story: 'Every day of the trip, in order, each in its own grey block (bg-muted, radius-sheet, sm apart), so what belongs to which day is plain: its heading ("Thu 14 · Day 3 · Today", past days muted), then where we\'ve been (a check) and what\'s planned (its time), with hairlines between; a day with nothing yet says "Nothing planned yet". Under the title, pinned while the page scrolls under it, the day filter: the same chips as the map\'s (All, Tue 12…), but its own, so planning ahead doesn\'t change what the map shows. It opens on All, scrolled to today, just under the header; picking days shows only those (they combine; All brings every day back, at once). The next plan says "Up next" in brand blue. Tapping a stop closes the pop-up and shows it on the map.' } } },
+  parameters: { docs: { description: { story: 'Every day of the trip: today first, then the days ahead, then the ones behind us. No grey blocks: a hairline between days, md above and below it (as on a place\'s Group page). Each day has its heading ("Thu 14 · Day 3 · Today", past days muted; the day number is still its place in the trip), then where we\'ve been ("Been there", no check) and what\'s planned (its time); a day with nothing yet says "Nothing planned yet". Headings and rows share the page\'s one left edge. Under the title, pinned while the page scrolls under it, the day filter: the same chips as the map\'s (All, Tue 12…), but its own, so planning ahead doesn\'t change what the map shows. It opens on All, on today, just under the header; picking days shows only those, in the same order (they combine; All brings every day back, at once). The next plan says "Up next" in brand blue. Tapping a stop closes the pop-up and shows it on the map.' } } },
   render: () => <Screen start="itinerary" />,
 };
 
 export const ItineraryOneDay: Story = {
   name: 'Itinerary · one day',
-  parameters: { docs: { description: { story: 'The filter on Thu 14: only today\'s block (been there, then what\'s planned, Up next in brand). Pick more days to add them, or All for every day. Closing the itinerary and opening it again starts on All.' } } },
+  parameters: { docs: { description: { story: 'The filter on Thu 14: only today (what\'s planned, Up next in brand). Pick more days to add them, or All for every day. Closing the itinerary and opening it again starts on All.' } } },
   render: () => <Screen start="itinerary" planDays={[TODAY]} />,
 };
 
 export const Money: Story = {
-  parameters: { docs: { description: { story: 'Before dinner. On top, what I owe and Pay, in the one grey block (it\'s the thing to act on), and tonight\'s dinner as an estimate until the bill comes. Then tabs, Settle up · Balances · Expenses (SegmentedTabs, from the page\'s left edge, lg above), one list at a time, each with a short muted line on top; so the expenses, the list that grows all trip, never push the rest away. Settle up comes first, as it\'s the one with something to do: "3 payments square everyone, instead of 9" (one expense at a time), each with its Why (tap it). Balances: "Who gets money back, and who owes", in plain words (see Money · balances). Expenses: "3 expenses · €726.00 · newest first" (see Money · expenses). Picking a tab slides the pill to it (spring-snap) and fades its list in (enter-ms, ease-out) while the last one fades out with a blur (fade-ms, enter-blur; reduced motion, no blur). Pay flips the block to "You\'re square with Maya" and a note comes down at the top; my payment row turns to Paid and the balances follow. Costs from before someone joined stay with the people who were there (Ren joined today).' } } },
+  parameters: { docs: { description: { story: 'Before dinner. The subtitle: "5 people · split by who had what". Every text sits on the page\'s one left edge. On top, what I owe and Pay, in the one grey block (it\'s the thing to act on; bg-muted, radius-card, its text xs in like every row\'s, md everywhere else). Then tabs the width of the page, Settle up · Balances · Expenses (SegmentedTabs wide: the three share it equally; lg above), one list at a time, each under a section title with a line under it (lg above); so the expenses, the list that grows all trip, never push the rest away. Settle up comes first, as it\'s the one with something to do: "3 payments square everyone, instead of 9" (one expense at a time), each with its Why (tap it). Balances: "Who gets money back, and who owes", in plain words (see Money · balances). Expenses: "Newest first" (see Money · expenses). The footer stays put while the lists scroll, over a hairline: "Spent so far", "3 expenses · yours €181.50", and €726.00 (heading-lg) on the right, like the Menu\'s total. There\'s no estimate for tonight\'s dinner: it joins once its bill is in. Picking a tab slides the pill to it (spring-snap) and fades its list in (enter-ms, ease-out) while the last one fades out with a blur (fade-ms, enter-blur; reduced motion, no blur). Pay flips the block to "You\'re square with Maya" and a note comes down at the top; my payment row turns to Paid and the balances follow. Costs from before someone joined stay with the people who were there (Ren joined today).' } } },
   render: () => <Screen start="money" />,
 };
 
 /** The money pop-up before dinner, opening on `tab`. */
-const moneyOn = (tab: MoneyTab) => <Screen start="money" money={{ subtitle: MONEY_SUBTITLE, page: <MoneyPage tab={tab} /> }} />;
+const moneyOn = (tab: MoneyTab) => <Screen start="money" money={{ page: <MoneyPage tab={tab} /> }} />;
 
 export const MoneyBalances: Story = {
   name: 'Money · balances',
-  parameters: { docs: { description: { story: 'The Balances tab: "Who gets money back, and who owes", then each person with what they get back (green) or owe: Maya gets back €418.50; I owe €181.50, Leo €135.50, Nic €101.50; Ren joined today, so "Joined today · shares costs from then on". Paying (Pay, on top) moves the balances; once someone has paid what they owe, they\'re Square.' } } },
+  parameters: { docs: { description: { story: 'The Balances tab: its title, "Who gets money back, and who owes", then each person with what they get back (green) or owe: Maya gets back €418.50; I owe €181.50, Leo €135.50, Nic €101.50; Ren joined today, so "Joined today · shares costs from then on". Paying (Pay, on top) moves the balances; once someone has paid what they owe, they\'re Square.' } } },
   render: () => moneyOn('Balances'),
 };
 
 export const MoneyExpenses: Story = {
   name: 'Money · expenses',
-  parameters: { docs: { description: { story: 'The Expenses tab: "3 expenses · €726.00 · newest first", then each with who paid, the day and how many shared it, its amount and my share ("yours €150.00"). Once the bill is in, the dinner sits on top of the list, split by who had what (see Money · bill in).' } } },
+  parameters: { docs: { description: { story: 'The Expenses tab: its title, "Newest first", then each with who paid, the day and how many shared it, its amount and my share ("yours €150.00"). What they come to is in the footer: 3 expenses, mine €181.50 of €726.00. Once the bill is in, the dinner sits on top of the list, split by who had what (see Money · bill in).' } } },
   render: () => moneyOn('Expenses'),
 };
 
 export const MoneyDinnerOn: Story = {
   name: 'Money · dinner on',
-  parameters: { docs: { description: { story: 'While the dinner is on and before its bill is in, the estimate gives way to "Dinner is on" and Scan the bill. Scan the bill opens the camera (see Scan the bill); Add brings the bill in here, with a note for everyone at the top, and the others start paying (as in Money · bill in).' } } },
+  parameters: { docs: { description: { story: 'While the dinner is on and before its bill is in, the footer has Scan the bill under the total, the width of the page and 56 px tall (TextButton lg, wide). It opens the camera (see Scan the bill); Add brings the bill in here, with a note for everyone at the top: the footer goes to "4 expenses · yours €240.62" and €954.80, Scan the bill goes, and the others start paying (as in Money · bill in).' } } },
   render: () => <LiveMoney from="dinner-on" />,
 };
 
 export const MoneyBillIn: Story = {
   name: 'Money · bill in',
-  parameters: { docs: { description: { story: `The bill was just added (€228.80, paid by me, split by who had what): €954.80 spent, 4 expenses, and 4 payments instead of 13, all to Maya (Leo €185.92, Nic €136.72, Ren €30.72, me €11.82). Each payment (Settle up) has a Why that opens under it: what they had of each expense, what they paid, and why it goes to one person. The others pay on their own: in the app 30 s apart, here ${OTHERS_PAY_EVERY / 1000} s apart, each with a note for everyone at the top ("Leo paid Maya €185.92"). Once they have, the top block says "Everyone else has paid" over my €11.82; my Pay makes it "You\'re square with Maya", and when the last payment lands, the block turns green and everyone hears "Lisbon is squared up".` } } },
+  parameters: { docs: { description: { story: `The bill was just added (€228.80, paid by me, split by who had what): the footer says 4 expenses, yours €240.62, €954.80 spent (no Scan the bill now); 4 payments instead of 13, all to Maya (Leo €185.92, Nic €136.72, Ren €30.72, me €11.82). Each payment (Settle up) has a Why that opens under it: what they had of each expense, what they paid, and why it goes to one person. The others pay on their own: in the app 30 s apart, here ${OTHERS_PAY_EVERY / 1000} s apart, each with a note for everyone at the top ("Leo paid Maya €185.92"). Once they have, the top block says "Everyone else has paid" over my €11.82; my Pay makes it "You\'re square with Maya", and when the last payment lands, the block turns green and everyone hears "Lisbon is squared up".` } } },
   render: () => <LiveMoney from="bill-in" />,
 };
 
 export const MoneySquaredUp: Story = {
   name: 'Money · squared up',
-  parameters: { docs: { description: { story: 'Everyone has paid: the top block is green, "Lisbon is squared up", 4 payments, €365.18 in all. Under the tabs, every payment is Paid (each still has its Why); every balance is Square (Balances); and the dinner sits on top of the expenses, by who had what (Expenses: "4 expenses · €954.80 · newest first").' } } },
+  parameters: { docs: { description: { story: 'Everyone has paid: the top block is green, "Lisbon is squared up", 4 payments, €365.18 in all. Under the tabs, every payment is Paid (each still has its Why); every balance is Square (Balances); and the dinner sits on top of the expenses, by who had what (Expenses). The footer: "Spent so far", "4 expenses · yours €240.62", €954.80.' } } },
   render: () => <LiveMoney from="squared-up" />,
 };
 

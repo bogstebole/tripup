@@ -82,28 +82,25 @@ export const GroupBillIn: Story = {
 
 // ---------- Your trips, and Ren joining
 
-/** The trip's screen under your trips and Ren's phone: its bars (the map isn't drawn here). Back goes to your trips. */
+/** The trip's screen, opening out of your trips' card and under Ren's phone: its bars on the canvas (the map isn't
+ *  drawn here). Back goes to your trips. */
 function TripScreen({ onBack }: { onBack?: () => void }) {
   return (
-    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'var(--color-bg-canvas)' }}>
       <TopBar title={TRIP.title} dates={TRIP.dates} onBack={onBack} />
       <ActionBar />
     </div>
   );
 }
 
-/** The app's first screen at `now`: your trips, over the trip's screen. The current trip goes in (your trips zoom past
- *  and fade) and the trip's Back comes back to them (they settle from the same zoom). The bell's note comes down at
- *  the top. */
+/** The app's first screen at `now`: your trips. The current trip's card opens into the trip's screen (your trips fade
+ *  and lean in behind it), and the trip's Back closes it into the card again. The bell's note comes down at the top. */
 function Home({ now, scrolledToEnd }: { now?: Date; scrolledToEnd?: boolean }) {
-  const [home, setHome] = useState(true);
+  const [inTrip, setInTrip] = useState(false);
   return (
     <div style={phone}>
       <NoticeLayer>
-        <TripScreen onBack={() => setHome(true)} />
-        <AnimatePresence initial={false}>
-          {home && <HomeLayer key="home" now={now} scrolledToEnd={scrolledToEnd} onOpen={() => setHome(false)} />}
-        </AnimatePresence>
+        <HomeLayer inTrip={inTrip} trip={<TripScreen onBack={() => setInTrip(false)} />} now={now} scrolledToEnd={scrolledToEnd} onOpen={() => setInTrip(true)} />
       </NoticeLayer>
     </div>
   );
@@ -133,7 +130,7 @@ function Joining({ start, preview, now = REN_JOINS }: { start?: JoinStep; previe
 
 export const YourTrips: Story = {
   name: 'Your trips',
-  parameters: { docs: { description: { story: 'The app opens here (the Demo moment "Your trips", 2 PM), on the brand blue (Figma 75:5927). At the top, "Your trips" in white, the bell (soft, md: nothing new yet, so "No new notifications" comes down at the top) and me in a soft glass circle as big as the bell. home-header-gap (29) under them, the trip I\'m on as a card 438 high, with the surface\'s corners and shadow and a 5 px white edge over it all: a still of Lisbon placed as in the design and scaled to cover the card from the top, with Belém, the galo, an azulejo and the caravel on it as stickers, and white rising from the bottom (solid up to home-map-fade-start, 15.2 % of the card, clear by the top). On it, "Happening now" (a soft glass pill with a green bead), the trip\'s name (heading-xl, one line, ending in "…" when it\'s long), its dates, who\'s on it (Ren joins at 2:10, so four faces, 39 px, overlapped) and the arrow in (primary, md). Then Coming up (Berlin) and Previous trips 3 (the count softer), as light brand rows: a 48 px sticker, the name (body-lg, medium), the dates, and the faces on the row\'s bottom edge, some tilted. Nothing folds, and there\'s no Demo button here (it\'s in the trip\'s top bar). The list fades into the blue at the bottom (home-bottom-fade, 89). Tapping the card goes into the trip: your trips zoom past (to page-zoom-scale 1.04) and fade as an exit (fade-ms), the trip\'s screen under them; its Back brings them back, settling from that zoom (enter-ms, ease-out). Reduced motion: fades only.' } } },
+  parameters: { docs: { description: { story: 'The app opens here (the Demo moment "Your trips", 2 PM), on the brand blue (Figma 75:5927). At the top, "Your trips" in white, the bell (soft, md: nothing new yet, so "No new notifications" comes down at the top) and me in a soft glass circle as big as the bell. home-header-gap (29) under them, the trip I\'m on as a card 438 high, with the surface\'s corners and shadow and a 5 px white edge over it all: a still of Lisbon placed as in the design and scaled to cover the card from the top, with Belém, the galo, an azulejo and the caravel on it as stickers, and white rising from the bottom (solid up to home-map-fade-start, 15.2 % of the card, clear by the top). On it, "Happening now" (a soft glass pill with a green bead), the trip\'s name (heading-xl, one line, ending in "…" when it\'s long), its dates, who\'s on it (Ren joins at 2:10, so four faces, 39 px, overlapped) and the arrow in (primary, md). Then Coming up (Berlin) and Previous trips 3 (the count softer), as light brand rows: a 48 px sticker, the name (body-lg, medium), the dates, and the faces on the row\'s bottom edge, some tilted. Nothing folds, and there\'s no Demo button here (it\'s in the trip\'s top bar). The list fades into the blue at the bottom (home-bottom-fade, 89). Tapping the card opens it into the trip: the whole trip screen grows out of the card, scaled to the card\'s width and clipped to its rounded rect (the card\'s corners, d-surface-radius, easing to none), both growing to the whole screen on spring-expand. It fades in over the first 30% of the way (eased in and out), so the card gives way to the trip; behind it your trips fade (over 20–90%) and lean in toward the card (to page-zoom-scale 1.04, about the card\'s centre). The trip\'s Back closes it into the card again (spring-collapse), and your trips come back as they were, scroll and all. Nothing takes taps while it moves. Reduced motion: fades only (fade-ms). Here the trip\'s screen is its bars on the canvas (the map isn\'t drawn).' } } },
   render: () => <Home now={YOUR_TRIPS} />,
 };
 export const YourTripsScrolled: Story = {

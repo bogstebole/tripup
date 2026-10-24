@@ -7,16 +7,18 @@ export interface SegmentedTabsProps {
   tabs: string[];
   value: string;
   onChange?: (tab: string) => void;
+  /** Fills the width, the tabs sharing it equally (Money's tabs); otherwise as wide as the labels. */
+  wide?: boolean;
 }
 
 const { duration, bounce } = tokens.motion['spring-snap'];
 
 /** Pill tabs on a muted track. The selected pill is a Surface that slides to the tapped tab. */
-export function SegmentedTabs({ tabs, value, onChange }: SegmentedTabsProps) {
+export function SegmentedTabs({ tabs, value, onChange, wide }: SegmentedTabsProps) {
   const id = useId();
   const reduce = useReducedMotion();
   return (
-    <div className="tu-tabs" role="tablist">
+    <div className={wide ? 'tu-tabs tu-tabs--wide' : 'tu-tabs'} role="tablist">
       {tabs.map(tab => {
         const on = tab === value;
         return (

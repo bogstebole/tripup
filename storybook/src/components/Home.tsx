@@ -1,8 +1,8 @@
-// The first screen: your trips (Figma 75:5927). The app has the same in lib/components/home.dart; it sits over the
-// trip's screen and zooms past as you go into the trip (see HomeLayer).
+// The first screen: your trips (Figma 75:5927). The app has the same in lib/components/home.dart; going into the trip,
+// the trip's screen opens out of the trip card over it (see HomeLayer).
 import { ArrowRight, Bell } from 'lucide-react';
-import { motion, useReducedMotion } from 'motion/react';
-import { useLayoutEffect, useRef, type CSSProperties } from 'react';
+import { animate, motion, useMotionValue, useReducedMotion, useTransform } from 'motion/react';
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type Ref } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import {
   HOME_MAP_FRAME, HOME_MAP_IMAGE, HOME_MAP_IMAGE_RECT, HOME_MAP_STICKERS, MY_ID, MY_NAME, onTrip, PAST_TRIPS, PEOPLE, personById, TRIP,
@@ -16,9 +16,6 @@ import './Button.css';
 import './Home.css';
 
 const m = tokens.motion;
-const ease = m['ease-out'] as [number, number, number, number];
-// Full transform strings, so Motion runs them on the compositor
-const zoomed = `scale(${m['page-zoom-scale']})`, settled = 'scale(1)';
 
 export interface TripsHomeProps {
   /** Into the trip you're on: its card (or the arrow on it). */
@@ -27,6 +24,8 @@ export interface TripsHomeProps {
   now?: Date;
   /** Opens scrolled to the end, where the list fades into the blue (the app opens at the top). */
   scrolledToEnd?: boolean;
+  /** On the current trip's card, so the trip can open out of it. */
+  cardRef?: Ref<HTMLButtonElement>;
 }
 
 /**
@@ -34,7 +33,7 @@ export interface TripsHomeProps {
  * stickers, "Happening now", its name and dates, who's on it, and the way in. Under it, the trip coming up and the
  * ones before, as rows. Tapping the current one goes into its map. The bell has nothing yet, and says so at the top.
  */
-export function TripsHome({ onOpen, now = TRIP_NOW, scrolledToEnd }: TripsHomeProps) {
+export function TripsHome({ onOpen, now = TRIP_NOW, scrolledToEnd, cardRef }: TripsHomeProps) {
   const notice = useTripNotice();
   const list = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
@@ -53,7 +52,7 @@ export function TripsHome({ onOpen, now = TRIP_NOW, scrolledToEnd }: TripsHomePr
                 <Sticker name={personById(MY_ID).sticker} size="avatar" />
               </span>
             </div>
-            <CurrentTrip now={now} onOpen={onOpen} />
+            <CurrentTrip now={now} onOpen={onOpen} cardRef={cardRef} />
           </div>
           {/* xl between the card and the rows (a step of the stagger too, as in the app) */}
           <div key="gap" className="tu-home__gap" />
@@ -84,10 +83,10 @@ function Section({ title, trips, count }: { title: string; trips: TripSummary[];
  * The trip you're on: the city's still with stickers, fading to white at the bottom, where its name, dates, who's on
  * it and the way in sit. The whole card goes in, the arrow too.
  */
-function CurrentTrip({ now, onOpen }: { now: Date; onOpen?: () => void }) {
+function CurrentTrip({ now, onOpen, cardRef }: { now: Date; onOpen?: () => void; cardRef?: Ref<HTMLButtonElement> }) {
   const crew = PEOPLE.filter(p => onTrip(p, now));
   return (
-    <button type="button" className="tu-home-card" aria-label={`Open ${TRIP.title}`} onClick={onOpen}>
+    <button ref={cardRef} type="button" className="tu-home-card" aria-label={`Open ${TRIP.title}`} onClick={onOpen}>
       {/* The city, scaled to fill the card, then white rising from the bottom so the text reads */}
       <HomeMap />
       <span className="tu-home-card__fade" />
@@ -168,23 +167,118 @@ function TripRow({ trip }: { trip: TripSummary }) {
   );
 }
 
+type Box = { left: number; top: number; width: number; height: number };
+/** The screen's box, and the trip card's place in it, taken as a transition starts. */
+type Frame = { screen: Box; card?: Box };
+
+/** 0 up to `a`, 1 from `b`, eased in and out between (the app's smoothstep). */
+const smoothstep = (a: number, b: number, v: number) => {
+  const x = Math.min(1, Math.max(0, (v - a) / (b - a)));
+  return x * x * (3 - 2 * x);
+};
+const mix = (a: number, b: number, k: number) => a + (b - a) * k;
+
 /**
- * Your trips over the trip's screen (the app's home layer), which is under them all along. Going into the trip they
- * zoom past you (to page-zoom-scale) and fade, quickly, as an exit (fade-ms, ease-out); the trip's Back brings them
- * back, settling from that same zoom (enter-ms, ease-out). Reduced motion: fades only. Put it in AnimatePresence
- * (`initial={false}`, so the screen opens on it).
+ * The screen's box, and the card's place in it as laid out: without the list's lean (the scale on `home`, whose box is
+ * the screen's) or the card's press (a scale about its centre).
  */
-export function HomeLayer(props: TripsHomeProps) {
-  const reduce = useReducedMotion();
-  const away = reduce ? { opacity: 0 } : { opacity: 0, transform: zoomed };
+function measure(screen: HTMLElement | null, home: HTMLElement | null, card: HTMLElement | null): Frame {
+  const box = { left: 0, top: 0, width: screen?.offsetWidth ?? 0, height: screen?.offsetHeight ?? 0 };
+  if (!home || !card) return { screen: box };
+  const h = home.getBoundingClientRect(), c = card.getBoundingClientRect();
+  const lean = h.width / home.offsetWidth || 1;
+  const x = (c.left + c.width / 2 - h.left) / lean, y = (c.top + c.height / 2 - h.top) / lean;
+  return { screen: box, card: { left: x - card.offsetWidth / 2, top: y - card.offsetHeight / 2, width: card.offsetWidth, height: card.offsetHeight } };
+}
+
+export interface HomeLayerProps extends Omit<TripsHomeProps, 'cardRef'> {
+  /** In the trip; false is on your trips. */
+  inTrip: boolean;
+  /** The trip's screen, which opens out of the trip card. */
+  trip: ReactNode;
+}
+
+/**
+ * Your trips, and the trip's screen over them (the app's home layer and its opening trip), with one spring between.
+ * Going in, the trip card opens into the trip: the whole trip screen grows out of the card's place, scaled to the
+ * card's width and clipped to its rounded rect (the card's corners, d-surface-radius, easing to none), both growing
+ * to the whole screen (spring-expand). It fades in over the first 30% of the way, so the card's still of the city
+ * gives way to the trip. Behind it your trips fade (over 20–90%) and lean in toward the card (to page-zoom-scale,
+ * about the card's centre). The trip's Back closes it into the card again (spring-collapse). Nothing takes taps
+ * while it moves. Reduced motion: fades only (fade-ms). Whichever isn't showing isn't drawn, and keeps its place (the
+ * list its scroll).
+ */
+export function HomeLayer({ inTrip, trip, ...home }: HomeLayerProps) {
+  const reduce = !!useReducedMotion();
+  // 1 on your trips, 0 in the trip (a spring, so it can go a little past either)
+  const t = useMotionValue(inTrip ? 0 : 1);
+  const frame = useMotionValue<Frame>({ screen: { left: 0, top: 0, width: 0, height: 0 } });
+  const [moving, setMoving] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null), homeRef = useRef<HTMLDivElement>(null), cardRef = useRef<HTMLButtonElement>(null);
+
+  // In or back: the card's place is taken first (before the first frame), then the spring runs from wherever it is
+  useLayoutEffect(() => {
+    const to = inTrip ? 0 : 1;
+    if (t.get() === to && !t.isAnimating()) return;
+    frame.set(measure(rootRef.current, homeRef.current, cardRef.current));
+    setMoving(true);
+    const done = () => setMoving(false);
+    const spring = inTrip ? m['spring-expand'] : m['spring-collapse'];
+    if (reduce) animate(t, to, { duration: m['fade-ms'] / 1000, ease: 'linear', onComplete: done });
+    else animate(t, to, { type: 'spring', duration: spring.duration, bounce: spring.bounce, onComplete: done });
+  }, [inTrip, reduce, t, frame]);
+  useEffect(() => () => t.stop(), [t]);
+
+  // 0 on the list, 1 in the trip
+  const p = () => Math.min(1, Math.max(0, 1 - t.get()));
+  // Your trips: fading, and leaning in toward the card
+  const homeOpacity = useTransform(() => 1 - smoothstep(0.2, 0.9, p()));
+  const homeTransform = useTransform(() => (reduce || p() <= 0 ? 'none' : `scale(${1 + p() * (m['page-zoom-scale'] - 1)})`));
+  const homeOrigin = useTransform(() => {
+    const c = frame.get().card;
+    return c ? `${c.left + c.width / 2}px ${c.top + c.height / 2}px` : '0px 0px';
+  });
+  // The trip: its box goes from the card's (the screen's, if there's no card) to the screen's; the trip is scaled to
+  // the box's width, centred on it, and clipped to it. In the trip, none of it applies.
+  const tripBox = (): Box => {
+    const { screen, card = screen } = frame.get(), k = p();
+    return { left: mix(card.left, screen.left, k), top: mix(card.top, screen.top, k), width: mix(card.width, screen.width, k), height: mix(card.height, screen.height, k) };
+  };
+  const tripClip = useTransform(() => {
+    const { screen } = frame.get(), r = tripBox(), k = p();
+    if (reduce || k >= 1) return 'none';
+    return `inset(${r.top}px ${screen.width - r.left - r.width}px ${screen.height - r.top - r.height}px ${r.left}px round calc(var(--d-surface-radius) * ${1 - k}))`;
+  });
+  const tripTransform = useTransform(() => {
+    const { screen } = frame.get(), r = tripBox();
+    if (reduce || p() >= 1 || !screen.width) return 'none';
+    const s = r.width / screen.width;
+    return `translate(${r.left + r.width / 2 - (screen.width / 2) * s}px, ${r.top + r.height / 2 - (screen.height / 2) * s}px) scale(${s})`;
+  });
+  const tripOpacity = useTransform(() => (reduce ? p() : smoothstep(0, 0.3, p())));
+
+  const onHome = !moving && !inTrip, inTheTrip = !moving && inTrip;
   return (
-    <motion.div
-      style={{ position: 'absolute', inset: 0 }}
-      initial={away}
-      animate={{ ...(reduce ? { opacity: 1 } : { opacity: 1, transform: settled }), transition: { duration: m['enter-ms'] / 1000, ease } }}
-      exit={{ ...away, pointerEvents: 'none', transition: { duration: m['fade-ms'] / 1000, ease } }}
-    >
-      <TripsHome {...props} />
-    </motion.div>
+    <div ref={rootRef} style={{ position: 'absolute', inset: 0 }}>
+      <motion.div
+        ref={homeRef}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          opacity: homeOpacity,
+          transform: homeTransform,
+          transformOrigin: homeOrigin,
+          visibility: inTheTrip ? 'hidden' : undefined,
+          pointerEvents: moving ? 'none' : undefined,
+        }}
+      >
+        <TripsHome {...home} cardRef={cardRef} />
+      </motion.div>
+      <motion.div style={{ position: 'absolute', inset: 0, clipPath: tripClip, visibility: onHome ? 'hidden' : undefined, pointerEvents: inTheTrip ? undefined : 'none' }}>
+        <motion.div style={{ position: 'absolute', inset: 0, opacity: tripOpacity, transform: tripTransform, transformOrigin: '0 0' }}>
+          {trip}
+        </motion.div>
+      </motion.div>
+    </div>
   );
 }

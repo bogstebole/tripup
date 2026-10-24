@@ -49,7 +49,7 @@ export const Chips: Story = {
 
 export const Tabs: Story = {
   name: 'SegmentedTabs',
-  parameters: { docs: { description: { story: 'Pill tabs on a muted track. The selected pill is a Surface that springs to the tapped tab (spring-snap: 0.35 s, no bounce).' } } },
+  parameters: { docs: { description: { story: 'Pill tabs on a muted track. The selected pill is a Surface that springs to the tapped tab (spring-snap: 0.35 s, no bounce). As wide as its labels; `wide` fills the width it\'s given, the tabs sharing it equally (Money\'s tabs, see Pop-ups › Money).' } } },
   render: function Render() {
     const [tab, setTab] = useState('Overview');
     return <SegmentedTabs tabs={['Overview', 'Menu', 'Group']} value={tab} onChange={setTab} />;

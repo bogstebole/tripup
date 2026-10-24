@@ -25,7 +25,8 @@ export interface TripSheetProps {
   onClose?: () => void;
   /** Add's pop-up: only a few rows, so it stops at sheet/compact-height and sits at the bottom of its place. */
   compact?: boolean;
-  /** Stays put at the bottom while the page scrolls above it (the scanned bill's totals and its button). */
+  /** Stays put at the bottom while the page scrolls above it (the scanned bill's totals and its button; Money's spent
+   *  so far). */
   footer?: ReactNode;
   /** Stays put under the title while the page scrolls under it (the itinerary's day filter): one chip row high
    *  (toggle-chip-height), sm under the title, and the header grows by as much. */
@@ -114,7 +115,7 @@ export function StaggerIn({ children, gap }: { children: ReactNode; gap?: 'xs' |
 }
 
 /** A heading inside a pop-up's page, with an optional line under it. `top` is the room above it. */
-export function SheetSection({ title, subtitle, top = 'xl' }: { title: string; subtitle?: string; top?: 'md' | 'xl' }) {
+export function SheetSection({ title, subtitle, top = 'xl' }: { title: string; subtitle?: string; top?: 'md' | 'lg' | 'xl' }) {
   return (
     <div className="tu-sheet-section" style={{ paddingTop: `var(--space-${top})` }}>
       <h3 className="text-heading-sm">{title}</h3>

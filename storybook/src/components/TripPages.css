@@ -2,38 +2,39 @@
 .tu-pages__muted { color: var(--color-text-muted); }
 .tu-pages__success { color: var(--color-text-success); }
 .tu-pages__note { padding: var(--space-md) var(--space-xs) 0; color: var(--color-text-muted); }
-.tu-pages__check { width: var(--size-icon-sm); height: var(--size-icon-sm); flex: none; color: var(--color-icon-success); }
 .tu-pages__lead { width: var(--size-icon-md); height: var(--size-icon-md); flex: none; color: var(--color-icon-brand); }
 
-/* Itinerary: each day its own grey block, sm apart: a heading ("Thu 14 · Day 3 · Today"), then where we've been and
-   what's planned */
-.tu-day-block { display: flex; flex-direction: column; padding: var(--space-sm) 0 var(--space-2xs); border-radius: var(--radius-sheet); background: var(--color-bg-muted); }
-.tu-day { display: flex; align-items: center; gap: var(--space-xs); padding: 0 var(--space-sm) var(--space-2xs); }
+/* Itinerary: each day a heading ("Thu 14 · Day 3 · Today"), then where we've been and what's planned, its text on the
+   rows' left edge; a hairline between days, md above and below it (no grey blocks, as on a place's Group page) */
+.tu-day-block { display: flex; flex-direction: column; }
+.tu-day-block__line { padding: var(--space-md) 0; }
+.tu-day { display: flex; align-items: center; gap: var(--space-xs); padding: 0 var(--space-xs) var(--space-2xs); }
 .tu-day h3 { margin: 0; }
-/* The rows, their text in line with the heading */
-.tu-day-block__rows { padding: 0 var(--space-2xs); }
-.tu-day__empty { padding: var(--space-2xs) var(--space-sm) var(--space-sm); color: var(--color-text-muted); }
+.tu-day__empty { padding: var(--space-xs); color: var(--color-text-muted); }
 /* A small brand pill next to a heading */
 .tu-tag { padding: var(--space-3xs) var(--space-xs); border-radius: var(--radius-pill); background: var(--color-bg-brand-subtle); color: var(--color-text-brand); }
 
-/* Money: what I owe, in the one grey block (it's the thing to act on); green once everyone has paid */
-.tu-owe { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-md); border-radius: var(--radius-sheet); background: var(--color-bg-muted); }
+/* Money: what I owe, in the one grey block (it's the thing to act on); green once everyone has paid. Its text on the
+   page's one left edge (xs in, like every row's), the rest of it md */
+.tu-owe { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-md) var(--space-md) var(--space-md) var(--space-xs); border-radius: var(--radius-card); background: var(--color-bg-muted); }
 .tu-owe--square { background: var(--color-bg-success-subtle); }
 .tu-owe__text { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: var(--space-3xs); color: var(--color-text-default); }
 .tu-owe__done { width: var(--size-icon-md); height: var(--size-icon-md); flex: none; color: var(--color-icon-success); }
-/* The tabs under it, from the page's left edge; then one tab's list, with a short line on top. The leaving list
-   fades out over the same spot as the new one. */
-.tu-money-tabs { display: flex; padding: var(--space-lg) var(--space-xs) var(--space-xs); }
+/* The tabs under it (lg below the block), the page's whole width; then one tab's list, under a section title. The
+   leaving list fades out over the same spot as the new one. */
+.tu-money-tabs { display: flex; }
+.tu-money-tabs--under { padding-top: var(--space-lg); }
 .tu-money-list { display: grid; }
 .tu-money-list__tab { grid-area: 1 / 1; min-width: 0; }
-.tu-money-note { padding: var(--space-2xs) var(--space-xs) var(--space-xs); color: var(--color-text-muted); }
 /* Who pays whom: their two faces with an arrow between */
 .tu-pay { display: inline-flex; align-items: center; gap: var(--space-3xs); flex: none; }
 .tu-pay__arrow { width: var(--size-icon-sm); height: var(--size-icon-sm); flex: none; color: var(--color-icon-muted); }
 .tu-amount { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-3xs); flex: none; }
-/* While the dinner is on: the line, and Scan the bill at its end */
-.tu-dinner-on { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-md) var(--space-xs) 0; }
-.tu-dinner-on__text { flex: 1 1 0; min-width: 0; }
+/* The footer, over a hairline: spent so far on the left, the total on the right; Scan the bill under them while the
+   dinner is on */
+.tu-money-footer { display: flex; flex-direction: column; gap: var(--space-md); padding: var(--space-sm) var(--space-xs) var(--space-md); border-top: var(--d-surface-edge-width) solid var(--color-border-default); }
+.tu-money-footer__row { display: flex; align-items: center; gap: var(--space-sm); }
+.tu-money-footer__text { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: var(--space-3xs); color: var(--color-text-default); }
 /* A payment's Why: what they had of each expense, what they paid, and the sum in words, in a muted box under the row */
 .tu-why { overflow: hidden; }
 .tu-why__box { display: flex; flex-direction: column; gap: var(--space-3xs); margin: 0 var(--space-xs) var(--space-sm); padding: var(--space-sm); border-radius: var(--radius-card); background: var(--color-bg-muted); }
