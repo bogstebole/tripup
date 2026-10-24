@@ -91,6 +91,7 @@ class TokColors {
     'c/toast/bg': Color(0xFF1D4ED8),
     'c/toast/fg': Color(0xFFFFFFFF),
     'c/attribution/fg': Color(0xFF71717A),
+    'c/trip-open/wash': Color(0x99FFFFFF),
     'c/poll/bar-track': Color(0xFFE4E4E7),
     'c/poll/bar-track-on-muted': Color(0xFFFFFFFF),
     'c/poll/bar': Color(0xFFD4D4D8),
@@ -183,6 +184,7 @@ class TokColors {
     'c/toast/bg': Color(0xFF1D4ED8),
     'c/toast/fg': Color(0xFFFFFFFF),
     'c/attribution/fg': Color(0xFFA1A1AA),
+    'c/trip-open/wash': Color(0x9918181B),
     'c/poll/bar-track': Color(0xFF27272A),
     'c/poll/bar-track-on-muted': Color(0xFF18181B),
     'c/poll/bar': Color(0xFFD4D4D8),
@@ -274,6 +276,7 @@ class TokColors {
   Color get cToastBg => _m['c/toast/bg']!;
   Color get cToastFg => _m['c/toast/fg']!;
   Color get cAttributionFg => _m['c/attribution/fg']!;
+  Color get cTripOpenWash => _m['c/trip-open/wash']!;
   Color get cPollBarTrack => _m['c/poll/bar-track']!;
   Color get cPollBarTrackOnMuted => _m['c/poll/bar-track-on-muted']!;
   Color get cPollBar => _m['c/poll/bar']!;
@@ -346,6 +349,8 @@ abstract final class TokDim {
   static const double pollLiveDot = 8;
   static const double pollMark = 24;
   static const double homeHeaderGap = 29;
+  static const double planMapHeight = 160;
+  static const double planPickerHeight = 180;
   static const double homeCardHeight = 438;
   static const double homeCardEdge = 5;
   static const double homeMapFadeStart = 0.152;
@@ -465,11 +470,15 @@ abstract final class TokMotion {
   static const springExpand = TokSpring(0.55, 0.08);
   static const springCollapse = TokSpring(0.38, 0);
   static const springSnap = TokSpring(0.35, 0);
+  static const springOpen = TokSpring(0.45, 0);
   static const double crossfadeBlur = 2;
   static const double enterBlur = 4;
   static const double morphEnterScale = 0.9;
   static const double pageZoomScale = 1.04;
   static const stagger = Duration(milliseconds: 40);
+  static const openDelay = Duration(milliseconds: 220);
+  static const openStagger = Duration(milliseconds: 30);
+  static const openItem = Duration(milliseconds: 200);
   static const int staggerMax = 8;
   static const enter = Duration(milliseconds: 260);
   static const pageEnterDelay = Duration(milliseconds: 80);

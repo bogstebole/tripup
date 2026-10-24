@@ -1,7 +1,10 @@
+import 'dart:math' as math;
+
 import 'package:flutter/widgets.dart';
 
 import '../design/theme.dart';
 import '../design/tokens.dart';
+import 'entrance.dart';
 import 'glass.dart';
 
 /// A row of toggles: All, then one per option. Flat when off, primary glass when on (the same tactile blue as
@@ -16,7 +19,11 @@ class ToggleChips<T> extends StatelessWidget {
     required this.labelOf,
     this.allLabel = 'All',
     this.padding = const EdgeInsets.symmetric(horizontal: TokSpace.md),
+    this.enterFrom,
   });
+
+  /// Where its chips come in the trip screen's entrance, one by one (see [EnterOrder]); none elsewhere.
+  final int? enterFrom;
   final List<T> options;
 
   /// The options that are on. Empty means All.
@@ -35,16 +42,22 @@ class ToggleChips<T> extends StatelessWidget {
       padding: padding,
       clipBehavior: Clip.none,
       child: Row(spacing: TokDim.toggleChipGap, children: [
-        ToggleChip(label: allLabel, on: selected.isEmpty, onTap: () => onChanged(<T>{})),
-        for (final o in options)
-          ToggleChip(
-            label: labelOf(o),
-            on: selected.contains(o),
-            onTap: () => onChanged(selected.contains(o) ? ({...selected}..remove(o)) : {...selected, o}),
+        _enter(0, ToggleChip(label: allLabel, on: selected.isEmpty, onTap: () => onChanged(<T>{}))),
+        for (final (i, o) in options.indexed)
+          _enter(
+            i + 1,
+            ToggleChip(
+              label: labelOf(o),
+              on: selected.contains(o),
+              onTap: () => onChanged(selected.contains(o) ? ({...selected}..remove(o)) : {...selected, o}),
+            ),
           ),
       ]),
     );
   }
+
+  Widget _enter(int i, Widget chip) =>
+      enterFrom == null ? chip : EnterItem(index: enterFrom! + math.min(i, EnterOrder.chipsShown - 1), child: chip);
 }
 
 /// One toggle in a [ToggleChips] row.

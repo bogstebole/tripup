@@ -517,6 +517,20 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - The Add pop-up waits for Bogdan's design.
 - **Storybook mirrors 1.30:** wide `SegmentedTabs`, Money's sections and `MoneyFooter`, the itinerary's order and dividers, and `HomeLayer` opening the trip out of the card (one motion value for both layers; the hidden layer keeps its scroll).
 
+### Final UI, iteration 1.31: the opening lands still, Money's pill, and Add rebuilt (branch `feature/add-and-opening-fix`)
+- **Opening the trip:** the wrappers around the trip no longer change when the transition lands, so the map and the Up next card aren't rebuilt and nothing plays twice (checked by logging the card's morphs: one at launch, none on going in, out and in again). New `springOpen` (0.5 s, no bounce).
+- **Money:** "You owe Maya" is a rounded pill (padding 16/8/8/8): the line and amount left, Pay right.
+- **Add:** `AddStep` lives in the trip screen, so `TripSheet` shows a back button (`onBack`) and the step's title, which crossfades. Choices are plain rows with big titles. Invite is centred (`TripSheet.centered`). Plan something: a search over `lisbonPlaces` (20 places, accent-insensitive), "Near you" by walking time, a small still map of the pick (`_mapOf`, with the map's credit), day chips, From/To wheels (`CupertinoDatePicker`, 15 min), "Send to the group" → `addedPlans` with an end time (`Plan.endHour`), the map flies to it, a note at the top. The sheet animates between compact and full height (`AnimatedPositioned`, ease-in-out).
+- Tokens: `spring-open`, `plan/map-height` 160, `plan/picker-height` 180. Icon: search.
+- **Storybook mirrors 1.31:** Money's pill; Add with the step in the header, the centred invite, Plan something (search over the 20 places, a picked place, day chips, From/To with a small custom wheel in 15-minute steps, Send); the itinerary's "until". New stories: Add · plan, Add · plan · search, Add · plan · place picked. No live map in Storybook: the small map is a plain block with the sticker and the credit.
+
+### Final UI, iteration 1.32: the trip opens like an Airbnb listing (branch `feature/add-and-opening-fix`)
+- From Bogdan's recording of Airbnb (`RPReplay_Final1792837535.mov`, frames at 30 fps): the list stays and blurs/washes out (`trip-open/wash`, the sheet's backdrop blur); one rounded surface grows from the card's rect to the screen, holding the card's still (`TripCardStill`) and, for the first quarter, the card's words (`TripCardFace`, at card size); the live trip fades in over 0.45–0.85 of the way with a slight seam blur; the corners square up over the last 30%; a lift shadow while in the air. Back runs it in reverse on `springCollapse`.
+- `springOpen` is now 0.45 s (no bounce). The home card is split into `TripCardStill` and `TripCardFace` so the opening can carry them.
+- Checked at 10× slow motion, opening and closing, on the simulator; nothing moves after it lands.
+- **Orchestrated entrance** (Bogdan's note): `entrance.dart` (`TripEntrance` clock, `EnterItem`, `EnterOrder`): back, title, Demo, six day chips, the footer's three buttons, each 30 ms after the last (`open-delay-ms` 220, `open-stagger-ms` 30, `open-item-ms` 200), then Up next opens from its pin (and the poll card shows only then). Up next waits small while you're on your trips and jumps there unseen (`PlanPin._go` jumps when the trip isn't ticking), so it never shrinks on screen. Whole thing ≈1 s. Checked at 8× slow motion, and in, out and in again.
+- **Storybook mirrors 1.32:** `Entrance.tsx` (the same order and timing), `TripCardStill`/`TripCardFace`, and `HomeLayer` as the Airbnb-style opening, with Up next opening from mini to mid when the last control starts. The opening and closing springs use Flutter's own spring formula so they keep time with the entrance clock.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

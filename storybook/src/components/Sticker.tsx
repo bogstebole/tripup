@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
 import { stickerUrl } from '../data';
 
-export type StickerSize = 'avatar' | 'chip' | 'mini' | 'edge' | 'row';
+export type StickerSize = 'avatar' | 'chip' | 'mini' | 'edge' | 'row' | 'map';
 
 export interface StickerProps {
   /** File name in app/assets/stickers, without .png. */

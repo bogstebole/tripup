@@ -10,6 +10,7 @@ import {
 } from '../data';
 import { Button } from './Button';
 import { useTripNotice } from './Notice';
+import { ENTER_MS, TripEntrance } from './Entrance';
 import { Sticker } from './Sticker';
 import { StaggerIn } from './TripSheet';
 import './Button.css';
@@ -80,15 +81,30 @@ function Section({ title, trips, count }: { title: string; trips: TripSummary[];
 }
 
 /**
- * The trip you're on: the city's still with stickers, fading to white at the bottom, where its name, dates, who's on
- * it and the way in sit. The whole card goes in, the arrow too.
+ * The trip you're on: the city's still with stickers (TripCardStill), fading to white at the bottom, where its name,
+ * dates, who's on it and the way in sit (TripCardFace). The whole card goes in, the arrow too.
  */
 function CurrentTrip({ now, onOpen, cardRef }: { now: Date; onOpen?: () => void; cardRef?: Ref<HTMLButtonElement> }) {
-  const crew = PEOPLE.filter(p => onTrip(p, now));
   return (
     <button ref={cardRef} type="button" className="tu-home-card" aria-label={`Open ${TRIP.title}`} onClick={onOpen}>
-      {/* The city, scaled to fill the card, then white rising from the bottom so the text reads */}
-      <HomeMap />
+      <TripCardStill />
+      <TripCardFace now={now} />
+    </button>
+  );
+}
+
+/** The card's picture: the city's still with its stickers, scaled to cover whatever box it's in (the card, or the
+ *  surface the trip opens in), from the top. */
+export function TripCardStill() {
+  return <span className="tu-card-still"><HomeMap /></span>;
+}
+
+/** The card's words over its picture: white rising from the bottom so they read, "Happening now", the trip's name, the
+ *  city and dates, who's on it, and the arrow in. It fills its box (the card's size). */
+export function TripCardFace({ now = TRIP_NOW }: { now?: Date }) {
+  const crew = PEOPLE.filter(p => onTrip(p, now));
+  return (
+    <>
       <span className="tu-home-card__fade" />
       <span className="tu-home-card__body">
         <span className="tu-home-card__now"><HappeningNow /></span>
@@ -105,14 +121,14 @@ function CurrentTrip({ now, onOpen, cardRef }: { now: Date; onOpen?: () => void;
           </span>
         </span>
       </span>
-    </button>
+    </>
   );
 }
 
 /** A length in the design's frame as a share of the frame, so everything on it scales with it. */
 const share = (v: number, of: number) => `${(v / of) * 100}%`;
 
-/** The still of the city with its stickers, in the design's frame (HOME_MAP_FRAME); the card scales the frame to cover
+/** The still of the city with its stickers, in the design's frame (HOME_MAP_FRAME); its box scales the frame to cover
  *  it from the top, like the app's FittedBox (cover, top centre). */
 function HomeMap() {
   const { width: w, height: h } = HOME_MAP_FRAME;
@@ -178,16 +194,17 @@ const smoothstep = (a: number, b: number, v: number) => {
 };
 const mix = (a: number, b: number, k: number) => a + (b - a) * k;
 
-/**
- * The screen's box, and the card's place in it as laid out: without the list's lean (the scale on `home`, whose box is
- * the screen's) or the card's press (a scale about its centre).
- */
-function measure(screen: HTMLElement | null, home: HTMLElement | null, card: HTMLElement | null): Frame {
+/** A spring token as the app runs it (Flutter's SpringDescription.withDurationAndBounce: the duration is the perceived
+ *  one), so the surface keeps time with the entrance's clock as it does on the phone. */
+const physical = ({ duration, bounce }: { duration: number; bounce: number }) =>
+  ({ type: 'spring' as const, mass: 1, stiffness: (2 * Math.PI / duration) ** 2, damping: (4 * Math.PI * (1 - bounce)) / duration, restDelta: 0.0005, restSpeed: 0.005 });
+
+/** The screen's box, and the card's place in it as laid out: without the card's press (a scale about its centre). */
+function measure(screen: HTMLElement | null, card: HTMLElement | null): Frame {
   const box = { left: 0, top: 0, width: screen?.offsetWidth ?? 0, height: screen?.offsetHeight ?? 0 };
-  if (!home || !card) return { screen: box };
-  const h = home.getBoundingClientRect(), c = card.getBoundingClientRect();
-  const lean = h.width / home.offsetWidth || 1;
-  const x = (c.left + c.width / 2 - h.left) / lean, y = (c.top + c.height / 2 - h.top) / lean;
+  if (!screen || !card) return { screen: box };
+  const s = screen.getBoundingClientRect(), c = card.getBoundingClientRect();
+  const x = c.left + c.width / 2 - s.left, y = c.top + c.height / 2 - s.top;
   return { screen: box, card: { left: x - card.offsetWidth / 2, top: y - card.offsetHeight / 2, width: card.offsetWidth, height: card.offsetHeight } };
 }
 
@@ -200,83 +217,122 @@ export interface HomeLayerProps extends Omit<TripsHomeProps, 'cardRef'> {
 
 /**
  * Your trips, and the trip's screen over them (the app's home layer and its opening trip), with one spring between.
- * Going in, the trip card opens into the trip: the whole trip screen grows out of the card's place, scaled to the
- * card's width and clipped to its rounded rect (the card's corners, d-surface-radius, easing to none), both growing
- * to the whole screen (spring-expand). It fades in over the first 30% of the way, so the card's still of the city
- * gives way to the trip. Behind it your trips fade (over 20–90%) and lean in toward the card (to page-zoom-scale,
- * about the card's centre). The trip's Back closes it into the card again (spring-collapse). Nothing takes taps
- * while it moves. Reduced motion: fades only (fade-ms). Whichever isn't showing isn't drawn, and keeps its place (the
- * list its scroll).
+ * Going in, the trip opens out of its card the way Airbnb opens a listing: your trips stay put and blur and wash out
+ * (c-trip-open-wash and the sheet's backdrop blur, over the first 60% of the way), and one rounded surface grows from
+ * the card's place to the whole screen, lifted by a shadow (elevation-overlay) while it's in the air. It starts as the
+ * card: the card's picture (TripCardStill) grows inside it, and the card's words (TripCardFace, at the card's size)
+ * leave over the first quarter. The live trip, scaled to the surface, fades in over 45–85% of the way, blurred a
+ * little while it and the still both show (up to crossfade-blur × 4 × live × (1 − live)); the corners square up over
+ * the last 30%. Opening is on spring-open (no bounce: a full-screen container shouldn't wobble); the trip's Back runs
+ * it in reverse, quicker (spring-collapse). Nothing takes taps while it moves. Reduced motion: the trip only fades
+ * (fade-ms) while the list blurs and washes out. Whichever isn't showing isn't drawn, and keeps its place (the list its
+ * scroll).
+ *
+ * The trip's entrance runs from the tap (see Entrance.tsx): its controls arrive one by one and Up next opens last. On
+ * your trips its clock waits at 0, so the next way in starts it over; with reduced motion it's at 1 at once.
  */
 export function HomeLayer({ inTrip, trip, ...home }: HomeLayerProps) {
   const reduce = !!useReducedMotion();
-  // 1 on your trips, 0 in the trip (a spring, so it can go a little past either)
+  // 1 on your trips, 0 in the trip
   const t = useMotionValue(inTrip ? 0 : 1);
+  // The trip's entrance clock: 0 at the tap, 1 once every control is in
+  const enter = useMotionValue(inTrip ? 1 : 0);
   const frame = useMotionValue<Frame>({ screen: { left: 0, top: 0, width: 0, height: 0 } });
   const [moving, setMoving] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null), homeRef = useRef<HTMLDivElement>(null), cardRef = useRef<HTMLButtonElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null), cardRef = useRef<HTMLButtonElement>(null);
 
   // In or back: the card's place is taken first (before the first frame), then the spring runs from wherever it is
   useLayoutEffect(() => {
     const to = inTrip ? 0 : 1;
     if (t.get() === to && !t.isAnimating()) return;
-    frame.set(measure(rootRef.current, homeRef.current, cardRef.current));
+    frame.set(measure(rootRef.current, cardRef.current));
     setMoving(true);
-    const done = () => setMoving(false);
-    const spring = inTrip ? m['spring-expand'] : m['spring-collapse'];
+    const done = () => {
+      setMoving(false);
+      // Back on your trips, the entrance waits for the next way in (Up next small again, unseen)
+      if (!inTrip) enter.jump(0);
+    };
     if (reduce) animate(t, to, { duration: m['fade-ms'] / 1000, ease: 'linear', onComplete: done });
-    else animate(t, to, { type: 'spring', duration: spring.duration, bounce: spring.bounce, onComplete: done });
-  }, [inTrip, reduce, t, frame]);
-  useEffect(() => () => t.stop(), [t]);
+    else animate(t, to, { ...physical(inTrip ? m['spring-open'] : m['spring-collapse']), onComplete: done });
+    // Going in, the entrance's clock runs from the tap; with reduced motion it's all in, and fades in with the trip
+    if (inTrip && reduce) enter.jump(1);
+    else if (inTrip) {
+      enter.jump(0);
+      animate(enter, 1, { duration: ENTER_MS / 1000, ease: 'linear' });
+    }
+  }, [inTrip, reduce, t, enter, frame]);
+  useEffect(() => () => { t.stop(); enter.stop(); }, [t, enter]);
 
+  const onHome = !moving && !inTrip, inTheTrip = !moving && inTrip;
   // 0 on the list, 1 in the trip
   const p = () => Math.min(1, Math.max(0, 1 - t.get()));
-  // Your trips: fading, and leaning in toward the card
-  const homeOpacity = useTransform(() => 1 - smoothstep(0.2, 0.9, p()));
-  const homeTransform = useTransform(() => (reduce || p() <= 0 ? 'none' : `scale(${1 + p() * (m['page-zoom-scale'] - 1)})`));
-  const homeOrigin = useTransform(() => {
-    const c = frame.get().card;
-    return c ? `${c.left + c.width / 2}px ${c.top + c.height / 2}px` : '0px 0px';
-  });
-  // The trip: its box goes from the card's (the screen's, if there's no card) to the screen's; the trip is scaled to
-  // the box's width, centred on it, and clipped to it. In the trip, none of it applies.
-  const tripBox = (): Box => {
+  // The surface is a card in the air: not at rest in the trip, and not with reduced motion
+  const air = !inTheTrip && !reduce;
+  // The surface's box: from the card's (the screen's, if there's no card) to the screen's
+  const box = (): Box => {
     const { screen, card = screen } = frame.get(), k = p();
+    if (!air) return screen;
     return { left: mix(card.left, screen.left, k), top: mix(card.top, screen.top, k), width: mix(card.width, screen.width, k), height: mix(card.height, screen.height, k) };
   };
-  const tripClip = useTransform(() => {
-    const { screen } = frame.get(), r = tripBox(), k = p();
-    if (reduce || k >= 1) return 'none';
-    return `inset(${r.top}px ${screen.width - r.left - r.width}px ${screen.height - r.top - r.height}px ${r.left}px round calc(var(--d-surface-radius) * ${1 - k}))`;
+  // Its corners square up over the last 30% of the way
+  const corner = () => (air ? 1 - smoothstep(0.7, 1, p()) : 0);
+  const radius = useTransform(() => `calc(var(--d-surface-radius) * ${corner()})`);
+  const left = useTransform(() => box().left), top = useTransform(() => box().top);
+  const width = useTransform(() => box().width), height = useTransform(() => box().height);
+  // What shows when: the card's words leave first, the live trip arrives near full size
+  const live = () => (inTheTrip ? 1 : reduce ? p() : smoothstep(0.45, 0.85, p()));
+  const behind = () => (inTheTrip ? 0 : smoothstep(0, 0.6, p()));
+
+  // Your trips: blurred and washed out behind the surface
+  const washBlur = useTransform(() => (behind() > 0.01 ? `blur(calc(var(--d-sheet-backdrop-blur) * ${behind()}))` : 'none'));
+  const washOpacity = useTransform(behind);
+  // The surface's lift
+  const lift = useTransform(() => (air && p() < 1 ? 'var(--shadow-elevation-overlay)' : 'none'));
+  // Everything on the surface is clipped to it; in the trip, none of it applies
+  const clip = useTransform(() => {
+    const { screen } = frame.get(), r = box();
+    if (!air || p() >= 1) return 'none';
+    return `inset(${r.top}px ${screen.width - r.left - r.width}px ${screen.height - r.top - r.height}px ${r.left}px round calc(var(--d-surface-radius) * ${corner()}))`;
+  });
+  const stillOpacity = useTransform(() => (air ? 1 : 0));
+  const wordsOpacity = useTransform(() => (air ? 1 - smoothstep(0, 0.25, p()) : 0));
+  const cardWidth = useTransform(() => (frame.get().card ?? frame.get().screen).width);
+  const cardHeight = useTransform(() => (frame.get().card ?? frame.get().screen).height);
+  // The live trip, at its own size, scaled to the surface's width and centred on it
+  const tripOpacity = useTransform(live);
+  const tripFilter = useTransform(() => {
+    const v = live(), seam = air ? m['crossfade-blur'] * 4 * v * (1 - v) : 0;
+    return seam >= 0.05 ? `blur(${seam}px)` : 'none';
   });
   const tripTransform = useTransform(() => {
-    const { screen } = frame.get(), r = tripBox();
-    if (reduce || p() >= 1 || !screen.width) return 'none';
+    const { screen } = frame.get(), r = box();
+    if (!air || p() >= 1 || !screen.width) return 'none';
     const s = r.width / screen.width;
     return `translate(${r.left + r.width / 2 - (screen.width / 2) * s}px, ${r.top + r.height / 2 - (screen.height / 2) * s}px) scale(${s})`;
   });
-  const tripOpacity = useTransform(() => (reduce ? p() : smoothstep(0, 0.3, p())));
 
-  const onHome = !moving && !inTrip, inTheTrip = !moving && inTrip;
+  const surface = { position: 'absolute' as const, left, top, width, height, pointerEvents: 'none' as const };
   return (
     <div ref={rootRef} style={{ position: 'absolute', inset: 0 }}>
-      <motion.div
-        ref={homeRef}
-        style={{
-          position: 'absolute',
-          inset: 0,
-          opacity: homeOpacity,
-          transform: homeTransform,
-          transformOrigin: homeOrigin,
-          visibility: inTheTrip ? 'hidden' : undefined,
-          pointerEvents: moving ? 'none' : undefined,
-        }}
-      >
+      {/* Your trips don't move */}
+      <div style={{ position: 'absolute', inset: 0, visibility: inTheTrip ? 'hidden' : undefined, pointerEvents: moving ? 'none' : undefined }}>
         <TripsHome {...home} cardRef={cardRef} />
-      </motion.div>
-      <motion.div style={{ position: 'absolute', inset: 0, clipPath: tripClip, visibility: onHome ? 'hidden' : undefined, pointerEvents: inTheTrip ? undefined : 'none' }}>
-        <motion.div style={{ position: 'absolute', inset: 0, opacity: tripOpacity, transform: tripTransform, transformOrigin: '0 0' }}>
-          {trip}
+      </div>
+      <div style={{ position: 'absolute', inset: 0, visibility: onHome || inTheTrip ? 'hidden' : undefined, pointerEvents: 'none' }}>
+        <motion.div style={{ position: 'absolute', inset: 0, backdropFilter: washBlur, WebkitBackdropFilter: washBlur }}>
+          <motion.div style={{ position: 'absolute', inset: 0, background: 'var(--c-trip-open-wash)', opacity: washOpacity }} />
+        </motion.div>
+        <motion.div style={{ ...surface, borderRadius: radius, boxShadow: lift }} />
+      </div>
+      <motion.div style={{ position: 'absolute', inset: 0, clipPath: clip, visibility: onHome ? 'hidden' : undefined, pointerEvents: inTheTrip ? undefined : 'none' }}>
+        {/* The card's picture, growing with the surface */}
+        <motion.div style={{ ...surface, opacity: stillOpacity }}><TripCardStill /></motion.div>
+        {/* The card's words, at the card's size, leaving */}
+        <motion.div style={{ ...surface, opacity: wordsOpacity }}>
+          <motion.div style={{ position: 'absolute', left: 0, bottom: 0, width: cardWidth, height: cardHeight }}><TripCardFace now={home.now} /></motion.div>
+        </motion.div>
+        <motion.div style={{ position: 'absolute', inset: 0, opacity: tripOpacity, filter: tripFilter, transform: tripTransform, transformOrigin: '0 0' }}>
+          <TripEntrance clock={enter}>{trip}</TripEntrance>
         </motion.div>
       </motion.div>
     </div>

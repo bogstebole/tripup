@@ -3,15 +3,17 @@ import { AnimatePresence } from 'motion/react';
 import { useState } from 'react';
 import {
   billTotal, euros, EVENT, EVERYONE_THERE, PEOPLE, peopleAt, personById, REN_JOINS, SCANNED_BILL, THE_BILL, TRIP, TRIP_DAYS, TRIP_NOW,
-  YOUR_TRIPS, type Bill, type Person,
+  upNextAt, YOUR_TRIPS, type Bill, type Person,
 } from '../data';
 import { ActionBar, TopBar } from './Bars';
 import { Camera } from './BillScan';
 import { ToggleChips } from './ToggleChips';
 import { DetailSheet, openingTab, type DetailTab } from './DetailSheet';
+import { ENTER_ORDER, useEnteredLast } from './Entrance';
 import { HomeLayer } from './Home';
 import { JoinLayer, type JoinStep } from './Join';
 import { NoticeLayer, useNotice } from './Notice';
+import { UpNextWidget } from './UpNextWidget';
 
 const faces = Object.fromEntries(PEOPLE.map(p => [p.id, p.sticker]));
 const phone = { width: 393, height: 852, position: 'relative' as const, overflow: 'hidden', borderRadius: 'var(--radius-sheet)', background: 'var(--color-bg-canvas)' };
@@ -82,13 +84,29 @@ export const GroupBillIn: Story = {
 
 // ---------- Your trips, and Ren joining
 
-/** The trip's screen, opening out of your trips' card and under Ren's phone: its bars on the canvas (the map isn't
- *  drawn here). Back goes to your trips. */
-function TripScreen({ onBack }: { onBack?: () => void }) {
+/** The trip's screen at `now`, opening out of your trips' card and under Ren's phone: its bars and day filter on the
+ *  canvas (the map isn't drawn here), and Up next a little above the middle, where its place would be. As the trip
+ *  opens, the controls arrive one by one and Up next opens from its pin last (see Entrance.tsx). Back goes to your
+ *  trips. */
+function TripScreen({ onBack, now = TRIP_NOW }: { onBack?: () => void; now?: Date }) {
+  const [days, setDays] = useState<number[]>([]);
+  const upNextIn = useEnteredLast();
   return (
-    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'var(--color-bg-canvas)' }}>
-      <TopBar title={TRIP.title} dates={TRIP.dates} onBack={onBack} />
-      <ActionBar />
+    <div style={{ position: 'absolute', inset: 0, background: 'var(--color-bg-canvas)' }}>
+      <div style={{ position: 'absolute', inset: 'auto 0 45%', display: 'flex', justifyContent: 'center' }}>
+        <UpNextWidget event={upNextAt(now)} state={upNextIn ? 'mid' : 'mini'} />
+      </div>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', pointerEvents: 'none' }}>
+        <div style={{ pointerEvents: 'auto' }}>
+          <TopBar
+            title={TRIP.title}
+            dates={TRIP.dates}
+            onBack={onBack}
+            filter={<ToggleChips label="Filter by day" options={TRIP_DAYS.map(d => ({ id: d.day, label: d.label }))} selected={days} onChange={setDays} enterFrom={ENTER_ORDER.firstChip} />}
+          />
+        </div>
+        <div style={{ pointerEvents: 'auto' }}><ActionBar /></div>
+      </div>
     </div>
   );
 }
@@ -100,7 +118,7 @@ function Home({ now, scrolledToEnd }: { now?: Date; scrolledToEnd?: boolean }) {
   return (
     <div style={phone}>
       <NoticeLayer>
-        <HomeLayer inTrip={inTrip} trip={<TripScreen onBack={() => setInTrip(false)} />} now={now} scrolledToEnd={scrolledToEnd} onOpen={() => setInTrip(true)} />
+        <HomeLayer inTrip={inTrip} trip={<TripScreen onBack={() => setInTrip(false)} now={now} />} now={now} scrolledToEnd={scrolledToEnd} onOpen={() => setInTrip(true)} />
       </NoticeLayer>
     </div>
   );
@@ -119,7 +137,7 @@ function Joining({ start, preview, now = REN_JOINS }: { start?: JoinStep; previe
   return (
     <div style={phone}>
       <NoticeLayer state={notices}>
-        <TripScreen />
+        <TripScreen now={now} />
         <AnimatePresence>
           {joining && <JoinLayer key="join" start={start} preview={preview} now={now} onJoined={() => close(!preview)} onClose={() => close()} />}
         </AnimatePresence>
@@ -130,7 +148,7 @@ function Joining({ start, preview, now = REN_JOINS }: { start?: JoinStep; previe
 
 export const YourTrips: Story = {
   name: 'Your trips',
-  parameters: { docs: { description: { story: 'The app opens here (the Demo moment "Your trips", 2 PM), on the brand blue (Figma 75:5927). At the top, "Your trips" in white, the bell (soft, md: nothing new yet, so "No new notifications" comes down at the top) and me in a soft glass circle as big as the bell. home-header-gap (29) under them, the trip I\'m on as a card 438 high, with the surface\'s corners and shadow and a 5 px white edge over it all: a still of Lisbon placed as in the design and scaled to cover the card from the top, with Belém, the galo, an azulejo and the caravel on it as stickers, and white rising from the bottom (solid up to home-map-fade-start, 15.2 % of the card, clear by the top). On it, "Happening now" (a soft glass pill with a green bead), the trip\'s name (heading-xl, one line, ending in "…" when it\'s long), its dates, who\'s on it (Ren joins at 2:10, so four faces, 39 px, overlapped) and the arrow in (primary, md). Then Coming up (Berlin) and Previous trips 3 (the count softer), as light brand rows: a 48 px sticker, the name (body-lg, medium), the dates, and the faces on the row\'s bottom edge, some tilted. Nothing folds, and there\'s no Demo button here (it\'s in the trip\'s top bar). The list fades into the blue at the bottom (home-bottom-fade, 89). Tapping the card opens it into the trip: the whole trip screen grows out of the card, scaled to the card\'s width and clipped to its rounded rect (the card\'s corners, d-surface-radius, easing to none), both growing to the whole screen on spring-expand. It fades in over the first 30% of the way (eased in and out), so the card gives way to the trip; behind it your trips fade (over 20–90%) and lean in toward the card (to page-zoom-scale 1.04, about the card\'s centre). The trip\'s Back closes it into the card again (spring-collapse), and your trips come back as they were, scroll and all. Nothing takes taps while it moves. Reduced motion: fades only (fade-ms). Here the trip\'s screen is its bars on the canvas (the map isn\'t drawn).' } } },
+  parameters: { docs: { description: { story: 'The app opens here (the Demo moment "Your trips", 2 PM), on the brand blue (Figma 75:5927). At the top, "Your trips" in white, the bell (soft, md: nothing new yet, so "No new notifications" comes down at the top) and me in a soft glass circle as big as the bell. home-header-gap (29) under them, the trip I\'m on as a card 438 high, with the surface\'s corners and shadow and a 5 px white edge over it all: a still of Lisbon placed as in the design and scaled to cover the card from the top, with Belém, the galo, an azulejo and the caravel on it as stickers, and white rising from the bottom (solid up to home-map-fade-start, 15.2 % of the card, clear by the top). On it, "Happening now" (a soft glass pill with a green bead), the trip\'s name (heading-xl, one line, ending in "…" when it\'s long), its dates, who\'s on it (Ren joins at 2:10, so four faces, 39 px, overlapped) and the arrow in (primary, md). Then Coming up (Berlin) and Previous trips 3 (the count softer), as light brand rows: a 48 px sticker, the name (body-lg, medium), the dates, and the faces on the row\'s bottom edge, some tilted. Nothing folds, and there\'s no Demo button here (it\'s in the trip\'s top bar). The list fades into the blue at the bottom (home-bottom-fade, 89). Tapping the card opens the trip the way Airbnb opens a listing (from Bogdan\'s recording). Your trips stay put and blur and wash out behind it (c-trip-open-wash, white at 60%, and the sheet\'s backdrop blur, ramping in over the first 60% of the way). One rounded surface grows from the card\'s place to the whole screen, lifted by a shadow (elevation-overlay) while it\'s in the air. It starts as the card: the card\'s picture (the still and its stickers) grows inside it, covering it from the top, and the card\'s words leave at once (over the first 25%, at the card\'s size). The live trip, scaled to the surface, fades in over 45–85% of the way, a little blurred while it and the still both show (up to crossfade-blur × 4 × live × (1 − live)), and the corners square up over the last 30%. It runs on spring-open (0.45 s, no bounce: a full-screen container shouldn\'t wobble), the way the app runs it; the trip\'s Back runs it in reverse, quicker (spring-collapse, 0.38 s), and your trips come back as they were, scroll and all. Nothing takes taps while it moves. From the tap the trip\'s controls arrive one by one, each fading in and rising space-xs (open-item-ms 200, ease-out), starting open-delay-ms (220) in and open-stagger-ms (30) apart: back, the title, (the app\'s Demo button), the day chips (the six that show; the rest with the sixth), then the footer\'s three. When the last one starts (550 ms), Up next opens from its pin into the card; it all lands in about a second. Reduced motion: the trip only fades (fade-ms) while your trips blur and wash out, with every control already in. Here the trip\'s screen is its bars and day filter on the canvas, with Up next a little above the middle (the map isn\'t drawn).' } } },
   render: () => <Home now={YOUR_TRIPS} />,
 };
 export const YourTripsScrolled: Story = {

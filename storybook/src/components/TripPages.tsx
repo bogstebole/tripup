@@ -1,20 +1,20 @@
 // The pages of the footer's three pop-ups: the itinerary, the group's money, and adding to the trip. Each goes inside
 // a TripSheet, which scrolls it; their notes come down at the top of the screen (see Notice.tsx).
-import { ArrowRight, ChevronLeft, CircleCheck, Copy, MapPin, MapPinPlus, ScanLine, UserPlus } from 'lucide-react';
+import { ArrowRight, CircleCheck, Copy, MapPin, ScanLine, Search, X } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { useState, type ReactElement } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactElement } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import {
-  balanceLeft, clockTime, dayName, DINNER, DINNER_TABLE, dinnerChoice, euros, INVITE_LINK, isPaid, MY_ID, payLine, PEOPLE,
-  personById, PLAN_IDEAS, planStart, plansWith, POLL_OPENS, pollClosed, pollOpen, PRE_DINNER, shareOf, SPENT_SO_FAR, squaredUp, timeUntil,
-  TODAY, tripDate, TRIP_DAYS, TRIP_NOW, VISITED, votesIn, type Money, type Payment, type PollState,
+  balanceLeft, clockTime, dayName, DINNER, DINNER_TABLE, dinnerChoice, euros, INVITE_LINK, isPaid, LISBON_PLACES, MY_ID, payLine, PEOPLE,
+  personById, placeById, placeMatches, planEnd, planStart, plansWith, POLL_OPENS, pollClosed, pollOpen, PRE_DINNER, shareOf, squaredUp,
+  timeUntil, TODAY, tripDate, TRIP_DAYS, TRIP_NOW, VISITED, votesIn, walkLabel, walkMinutes, type Money, type Payment, type PlaceSpot,
+  type Plan, type PollState,
 } from '../data';
-import { AddButton } from './AddButton';
 import { TextButton } from './Button';
-import { KnowRow } from './KnowSection';
 import { Sticker } from './Sticker';
 import { useTripNotice } from './Notice';
 import { SegmentedTabs } from './SegmentedTabs';
+import { ToggleChip } from './ToggleChips';
 import { Hairline, SheetRow, SheetSection, Slot, StaggerIn } from './TripSheet';
 import './TripPages.css';
 
@@ -42,6 +42,8 @@ export interface ItineraryPageProps {
   now?: Date;
   /** The days picked in its filter (the chips under its title); empty or left out means all of them. */
   days?: number[];
+  /** Plans the group added (Add's Plan something), on top of the trip's own. */
+  added?: Plan[];
 }
 
 /**
@@ -49,11 +51,11 @@ export interface ItineraryPageProps {
  * place's Group page): where we've been, what's planned, and today marked. It opens on today. Its filter shows only
  * the days picked. Tapping a stop shows it on the map (the pop-up closes and the map flies there). While the dinner
  * poll hasn't decided, today has a Dinner slot at 5 PM instead of the place ("Poll open · 3 of 5 voted"), which opens
- * the poll.
+ * the poll. A plan with an end says until when ("In 2 hrs · until 8 PM").
  */
-export function ItineraryPage({ onPick, poll, onPoll, now = TRIP_NOW, days = [] }: ItineraryPageProps) {
+export function ItineraryPage({ onPick, poll, onPoll, now = TRIP_NOW, days = [], added = [] }: ItineraryPageProps) {
   const dinner = poll && (dinnerChoice(now, poll) ?? null);
-  const plans = plansWith(dinner);
+  const plans = [...plansWith(dinner), ...added].sort((x, y) => planStart(x).getTime() - planStart(y).getTime());
   const next = plans.find(p => planStart(p) > now);
   // Today first, then the days ahead, then the ones behind us
   const order = [...TRIP_DAYS.filter(d => d.day === TODAY), ...TRIP_DAYS.filter(d => d.day > TODAY), ...TRIP_DAYS.filter(d => d.day < TODAY)];
@@ -90,7 +92,7 @@ export function ItineraryPage({ onPick, poll, onPoll, now = TRIP_NOW, days = [] 
               key={p.id}
               leading={<Slot><Sticker name={p.sticker} size="row" /></Slot>}
               title={p.name}
-              subtitle={p === next ? `Up next · ${timeUntil(planStart(p), now)}` : timeUntil(planStart(p), now)}
+              subtitle={[p === next && 'Up next', timeUntil(planStart(p), now), planEnd(p) && `until ${clockTime(planEnd(p)!)}`].filter(Boolean).join(' · ')}
               tone={p === next ? 'brand' : undefined}
               trailing={<span className="text-label-md weight-semibold tu-pages__strong">{clockTime(planStart(p))}</span>}
               onClick={onPick && (() => onPick(p.name))}
@@ -139,9 +141,10 @@ export interface MoneyPageProps {
  * person's balance after the payments made so far, or the expenses (the list that grows all trip, so it never pushes
  * the rest away). Each tab's list starts with a section title and a line under it. Picking a tab fades its list in
  * (enter-ms) while the last one fades out with a blur (fade-ms; no blur with reduced motion). Tonight's dinner joins
- * once its bill is in, as an expense split by who had what. The top block: what I owe and Pay; "Everyone else has
- * paid"; "You're square with Maya"; and, once everyone has paid, a green "Lisbon is squared up". Every text is on the
- * page's one left edge. What it has cost so far, and Scan the bill, are in the pop-up's footer (MoneyFooter).
+ * once its bill is in, as an expense split by who had what. The top block is a rounded pill, like Invite's link: a muted
+ * line ("You owe Maya", "· Everyone else has paid") over the amount, and Pay; "You're square with Maya" over "Paid
+ * €181.50"; and, once everyone has paid, a green "Lisbon is squared up". What it has cost so far, and Scan the bill,
+ * are in the pop-up's footer (MoneyFooter).
  */
 export function MoneyPage({ money = PRE_DINNER, made: kept, onPay, tab: firstTab = 'Settle up' }: MoneyPageProps) {
   const toast = useTripNotice();
@@ -171,13 +174,12 @@ export function MoneyPage({ money = PRE_DINNER, made: kept, onPay, tab: firstTab
   const key = (p: Payment) => `${p.from}>${p.to}`;
   return (
     <StaggerIn>
-      {/* Its text on the page's one left edge, with the title above and everything under it */}
+      {/* A rounded pill like Invite's link: what I owe and Pay (or that it's settled) */}
       {(mine || square) && (
         <div key="mine" className={square ? 'tu-owe tu-owe--square' : 'tu-owe'}>
           <div className="tu-owe__text">
-            <p className="text-label-lg">{head}</p>
-            {!done && mine && <p className="text-heading-lg">{euros(mine.amount)}</p>}
-            {sub && <p className={`text-body-sm ${done ? 'tu-pages__success' : 'tu-pages__muted'}`}>{sub}</p>}
+            <p className="text-body-sm tu-ellipsis tu-pages__muted">{done ? head : `${head}${sub ? ` · ${sub}` : ''}`}</p>
+            <p className={`text-heading-sm tu-ellipsis ${done ? 'tu-pages__success' : 'tu-pages__strong'}`}>{done ? sub : mine && euros(mine.amount)}</p>
           </div>
           {done
             ? <CircleCheck className="tu-owe__done" strokeWidth={2} absoluteStrokeWidth aria-label="Paid" />
@@ -326,98 +328,129 @@ function Why({ money, p }: { money: Money; p: Payment }) {
 
 // ---------- Add
 
-export const ADD_SUBTITLE = 'A plan, or someone new';
+/** What Add to the trip shows: the two choices, or one of them. */
 export type AddStep = 'choose' | 'plan' | 'invite';
 
+/** The pop-up's title and the line under it, for each step (the app's `AddPage.headerOf`). */
+export const addHeaderOf = (step: AddStep) => ({
+  choose: { title: 'Add to the trip', subtitle: 'A plan, or someone new' },
+  plan: { title: 'Plan something', subtitle: 'Find a place, pick a time, send it' },
+  invite: { title: 'Invite someone', subtitle: 'They join with a link, no account' },
+})[step];
+
 export interface AddPageProps {
-  /** The step it opens on (the choice, by default). */
-  start?: AddStep;
+  /** Where it is: the two choices, or one of them. The step lives with the pop-up, whose header follows it (its title,
+   *  and a way back). */
+  step: AddStep;
+  onStep: (step: AddStep) => void;
   /** Shows what someone invited will see on their phone (Invite's "See what they'll see"). */
   onPreview?: () => void;
+  /** A plan went to the group. */
+  onSent?: (plan: Plan) => void;
+  /** What Plan something's search holds when the page opens on it (for a story; empty by default). */
+  query?: string;
+  /** The place it has picked when the page opens on Plan something (an id in LISBON_PLACES; for a story). */
+  place?: string;
 }
 
+/** The last time a wheel offers: a quarter to midnight, in minutes from midnight. */
+const LAST = 23 * 60 + 45;
+
+/** Tonight from 6 to 8, or from the next hour if it's already later; tomorrow once the evening is gone. A day of the
+ *  trip, and a time range in minutes from midnight. */
+const startWhen = (now: Date) => {
+  const late = now.getHours() >= 21;
+  const day = late && TRIP_DAYS.some(d => d.day === TODAY + 1) ? TODAY + 1 : TODAY;
+  const from = day === TODAY && now.getHours() >= 17 ? (now.getHours() + 1) * 60 : 18 * 60;
+  return { day, from, to: Math.min(from + 120, LAST) };
+};
+type When = ReturnType<typeof startWhen>;
+
 /**
- * Adding to the trip: a plan (a place to go, put in a free slot on everyone's itinerary and map) or someone new (a
- * link: no account, and they only share costs from the day they join; Invite can show what they'll see). A step
- * replaces the page: the old one fades out with a blur while the new one's blocks arrive.
+ * Adding to the trip: a plan (find a place, pick a day and a time, send it to everyone's itinerary and map) or someone
+ * new (a link: no account, and they only share costs from the day they join; Invite can show what they'll see). The
+ * step lives with the pop-up: its header shows the step's title and a back button (see TripSheet `onBack`), and
+ * going back to the choice starts a plan over. One step (or, in Plan something, the search and then the place) at a
+ * time: it fades in (enter-ms) while the last one fades out with a blur (fade-ms; no blur with reduced motion).
  */
-export function AddPage({ start = 'choose', onPreview }: AddPageProps) {
-  const [step, setStep] = useState<AddStep>(start);
+export function AddPage({ step, onStep, onPreview, onSent, query: firstQuery = '', place }: AddPageProps) {
   const reduce = useReducedMotion();
+  const [query, setQuery] = useState(step === 'plan' ? firstQuery : '');
+  const [spot, setSpot] = useState<PlaceSpot | undefined>(step === 'plan' && place ? placeById(place) : undefined);
+  const [when, setWhen] = useState<When>(() => startWhen(TRIP_NOW));
+  // Which time's wheel is open, if any
+  const [editing, setEditing] = useState<'from' | 'to' | null>(null);
+
+  // Back to the choice starts a plan over next time
+  const [lastStep, setLastStep] = useState(step);
+  if (step !== lastStep) {
+    setLastStep(step);
+    if (step === 'choose') {
+      setQuery('');
+      setSpot(undefined);
+      setEditing(null);
+      setWhen(startWhen(TRIP_NOW));
+    }
+  }
+
+  const pick = (s?: PlaceSpot) => {
+    setSpot(s);
+    setEditing(null);
+  };
+  const send = () => {
+    const s = spot!, { day, from, to } = when;
+    onSent?.({ id: `added-${s.id}-${day}-${from}`, name: s.name, sticker: s.sticker, day, hour: Math.floor(from / 60), minute: from % 60, endHour: Math.floor(to / 60), endMinute: to % 60 });
+  };
+
+  const key = `${step}:${spot?.id ?? ''}`;
   return (
     <div className="tu-add-steps">
       <AnimatePresence initial={false}>
         <motion.div
-          key={step}
+          key={key}
           className="tu-add-steps__step"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, transition: { duration: m['enter-ms'] / 1000, ease } }}
           exit={{ opacity: 0, filter: reduce ? 'none' : `blur(${m['enter-blur']}px)`, pointerEvents: 'none', transition: { duration: m['fade-ms'] / 1000, ease } }}
         >
-          {step === 'choose' && <ChooseStep onPick={setStep} />}
-          {step === 'plan' && <PlanStep onBack={() => setStep('choose')} />}
-          {step === 'invite' && <InviteStep onBack={() => setStep('choose')} onPreview={onPreview} />}
+          {step === 'choose' && <ChooseStep onPick={onStep} />}
+          {step === 'invite' && <InviteStep onPreview={onPreview} />}
+          {step === 'plan' && !spot && <PlanSearch query={query} onQuery={setQuery} onPick={pick} />}
+          {step === 'plan' && spot && (
+            <PlanWhen spot={spot} when={when} onWhen={setWhen} editing={editing} onEditing={setEditing} onChange={() => pick(undefined)} onSend={send} />
+          )}
         </motion.div>
       </AnimatePresence>
     </div>
   );
 }
 
+/** The two choices, as plain lines: what it is, a word on it, and an arrow; a hairline between them. */
 function ChooseStep({ onPick }: { onPick: (s: AddStep) => void }) {
   return (
-    <StaggerIn gap="xs">
-      <KnowRow key="plan" leading={<MapPinPlus className="tu-pages__lead" strokeWidth={2} absoluteStrokeWidth aria-hidden />} subtitle="A place to eat, see or do. It goes on everyone's itinerary and map." onClick={() => onPick('plan')}>
-        Plan something
-      </KnowRow>
-      <KnowRow key="invite" leading={<UserPlus className="tu-pages__lead" strokeWidth={2} absoluteStrokeWidth aria-hidden />} subtitle="They join with a link, no account. They only share costs from the day they join." onClick={() => onPick('invite')}>
-        Invite someone
-      </KnowRow>
+    <StaggerIn>
+      <Choice key="plan" title="Plan something" subtitle="A place to eat, see or do. It goes on everyone's itinerary and map." onClick={() => onPick('plan')} />
+      <Hairline key="line" />
+      <Choice key="invite" title="Invite someone" subtitle="They join with a link, no account. They only share costs from the day they join." onClick={() => onPick('invite')} />
     </StaggerIn>
   );
 }
 
-function Back({ onClick }: { onClick: () => void }) {
+/** One of Add's two choices: a big title (heading-sm), a line on it, and an arrow; no icon, no box around it. */
+function Choice({ title, subtitle, onClick }: { title: string; subtitle: string; onClick: () => void }) {
   return (
-    <button type="button" className="tu-back text-label-md weight-semibold" onClick={onClick}>
-      <ChevronLeft className="tu-back__icon" strokeWidth={2} absoluteStrokeWidth aria-hidden />
-      Back
+    <button type="button" className="tu-choice" onClick={onClick}>
+      <span className="tu-choice__text">
+        <span className="text-heading-sm">{title}</span>
+        <span className="text-body-sm tu-pages__muted">{subtitle}</span>
+      </span>
+      <ArrowRight className="tu-choice__arrow" strokeWidth={2} absoluteStrokeWidth aria-hidden />
     </button>
   );
 }
 
-function PlanStep({ onBack }: { onBack: () => void }) {
-  const toast = useTripNotice();
-  const [added, setAdded] = useState<string[]>([]);
-  return (
-    <StaggerIn>
-      <Back key="back" onClick={onBack} />
-      <SheetSection key="title" title="Ideas nearby" top="md" subtitle="Each one goes in a free slot. Everyone sees it on their map." />
-      {withHairlines(PLAN_IDEAS, idea => {
-        const on = added.includes(idea.id);
-        const t = tripDate(idea.day, idea.hour);
-        const slot = `${dayName(t)}, ${clockTime(t)}`;
-        return (
-          <SheetRow
-            key={idea.id}
-            leading={<Slot><Sticker name={idea.sticker} size="row" /></Slot>}
-            title={idea.name}
-            subtitle={`${idea.kind} · ${slot}`}
-            trailing={
-              <AddButton
-                added={on}
-                itemName={idea.name}
-                onToggle={() => {
-                  setAdded(a => (on ? a.filter(id => id !== idea.id) : [...a, idea.id]));
-                  if (!on) toast(`Added for ${slot}`);
-                }}
-              />
-            }
-          />
-        );
-      })}
-    </StaggerIn>
-  );
-}
-
-function InviteStep({ onBack, onPreview }: { onBack: () => void; onPreview?: () => void }) {
+/** The link, in the middle of the sheet (TripSheet `centered`), and the one thing to do with it. */
+function InviteStep({ onPreview }: { onPreview?: () => void }) {
   const toast = useTripNotice();
   const copy = () => {
     // The story's frame may not be allowed the clipboard; the note shows either way, as in the app
@@ -425,22 +458,234 @@ function InviteStep({ onBack, onPreview }: { onBack: () => void; onPreview?: () 
     toast('Link copied');
   };
   return (
-    <StaggerIn>
-      <Back key="back" onClick={onBack} />
-      <SheetSection key="title" title="Invite someone" top="md" subtitle="Send them this link. They type their name and they're in." />
-      <div key="link" className="tu-link">
-        <span className="text-label-lg tu-ellipsis tu-link__text">{INVITE_LINK}</span>
-        <TextButton label="Copy link" icon={Copy} onClick={copy} />
-      </div>
-      <p key="note" className="text-body-sm tu-pages__note">
-        No account needed. They see the trip so far, and only costs from the day they join are theirs: Ren joined today, so the €{SPENT_SO_FAR.toFixed(0)} from before stays with the four of you.
-      </p>
-      {/* A look at their phone: what someone invited will see (see Join.tsx) */}
-      {onPreview && (
-        <div key="preview" className="tu-invite-preview">
-          <TextButton variant="soft" label="See what they'll see" onClick={onPreview} />
+    <div className="tu-invite">
+      <StaggerIn gap="md">
+        <div key="head" className="tu-invite__head">
+          <h3 className="text-heading-sm tu-pages__strong">Send them this link</h3>
+          <p className="text-body-sm tu-pages__muted">Share it with a friend. They type their name and they're in.</p>
         </div>
-      )}
+        <div key="link" className="tu-link">
+          <span className="text-label-lg tu-ellipsis tu-link__text">{INVITE_LINK}</span>
+          <TextButton label="Copy link" icon={Copy} onClick={copy} />
+        </div>
+        {/* A look at their phone: what someone invited will see (see Join.tsx) */}
+        {onPreview && <div key="preview"><TextButton variant="soft" label="See what they'll see" onClick={onPreview} /></div>}
+      </StaggerIn>
+    </div>
+  );
+}
+
+/** "Food hall · Cais do Sodré · 12 min walk" (or "6.1 km away"). */
+const placeLine = (s: PlaceSpot) => `${s.kind} · ${s.area} · ${walkLabel(s.at)}`;
+
+/** Finding a place: a search over Lisbon (by name, kind or neighbourhood; accents don't matter); before you type, the
+ *  five nearest on foot. */
+function PlanSearch({ query, onQuery, onPick }: { query: string; onQuery: (q: string) => void; onPick: (s: PlaceSpot) => void }) {
+  const q = query.trim();
+  const found = LISBON_PLACES.filter(s => placeMatches(s, q));
+  if (!q) found.sort((a, b) => walkMinutes(a.at) - walkMinutes(b.at));
+  const shown = q ? found : found.slice(0, 5);
+  return (
+    <StaggerIn>
+      <div key="search" className="tu-search">
+        <Search className="tu-search__icon" strokeWidth={2} absoluteStrokeWidth aria-hidden />
+        <input
+          type="search"
+          enterKeyHint="search"
+          className="text-label-lg tu-search__input"
+          placeholder="Search places in Lisbon"
+          aria-label="Search places in Lisbon"
+          value={query}
+          onChange={e => onQuery(e.target.value)}
+        />
+        {q && (
+          <button type="button" className="tu-search__clear" aria-label="Clear the search" onClick={() => onQuery('')}>
+            <X className="tu-search__icon" strokeWidth={2} absoluteStrokeWidth aria-hidden />
+          </button>
+        )}
+      </div>
+      <SheetSection
+        key="title"
+        top="lg"
+        title={!q ? 'Near you' : !found.length ? 'Nothing found' : `${found.length} ${found.length === 1 ? 'place' : 'places'}`}
+        subtitle={!q ? 'Or search for anywhere in Lisbon' : !found.length ? 'Try a name, a kind of place or a neighbourhood' : undefined}
+      />
+      {withHairlines(shown, s => (
+        <SheetRow
+          key={s.id}
+          leading={<Slot><Sticker name={s.sticker} size="row" /></Slot>}
+          title={s.name}
+          subtitle={placeLine(s)}
+          trailing={<ArrowRight className="tu-choice__arrow" strokeWidth={2} absoluteStrokeWidth aria-hidden />}
+          onClick={() => onPick(s)}
+        />
+      ))}
     </StaggerIn>
+  );
+}
+
+/**
+ * A small still map of a place, with its sticker on it and the map's credit. The app draws the live map's tiles in it
+ * (`_mapOf`); here a plain block stands in for them, as the trip screen's canvas does for the map.
+ */
+function PlaceMap({ sticker }: { sticker: string }) {
+  return (
+    <div className="tu-place-map" aria-hidden>
+      <Sticker name={sticker} size="map" />
+      <span className="text-caption tu-place-map__credit">© OpenFreeMap © OpenMapTiles © OpenStreetMap</span>
+    </div>
+  );
+}
+
+/** The place you picked, on a small map, then when: a day, from and to; and Send at the end. */
+function PlanWhen({ spot, when, onWhen, editing, onEditing, onChange, onSend }: {
+  spot: PlaceSpot;
+  when: When;
+  onWhen: (w: When) => void;
+  editing: 'from' | 'to' | null;
+  onEditing: (e: 'from' | 'to' | null) => void;
+  onChange: () => void;
+  onSend: () => void;
+}) {
+  const { day, from, to } = when;
+  return (
+    <StaggerIn>
+      <PlaceMap key="map" sticker={spot.sticker} />
+      <SheetRow
+        key="place"
+        leading={<Slot><Sticker name={spot.sticker} size="row" /></Slot>}
+        title={spot.name}
+        subtitle={placeLine(spot)}
+        trailing={<TextButton variant="soft" label="Change" onClick={onChange} />}
+      />
+      <SheetSection key="when" title="When" top="lg" />
+      {/* One day at a time, today on: the same chips as the day filter, without All */}
+      <div key="days" className="tu-toggles" role="group" aria-label="Day" style={{ paddingInline: 'var(--space-xs)' }}>
+        {TRIP_DAYS.filter(d => d.day >= TODAY).map(d => (
+          <ToggleChip key={d.day} label={dayName(tripDate(d.day))} on={d.day === day} onClick={() => onWhen({ ...when, day: d.day })} />
+        ))}
+      </div>
+      <div key="from" className="tu-plan-from">
+        <TimeRow
+          label="From"
+          day={day}
+          minutes={from}
+          open={editing === 'from'}
+          onOpen={open => onEditing(open ? 'from' : null)}
+          onChange={x => onWhen({ day, from: x, to: to <= x ? Math.min(x + 60, LAST) : to })}
+        />
+      </div>
+      <Hairline key="line" />
+      <TimeRow
+        key="to"
+        label="To"
+        day={day}
+        minutes={to}
+        open={editing === 'to'}
+        onOpen={open => onEditing(open ? 'to' : null)}
+        onChange={x => onWhen({ day, from, to: Math.max(x, from + 15) })}
+      />
+      <div key="send" className="tu-plan-send">
+        <TextButton label="Send to the group" size="lg" wide onClick={onSend} />
+      </div>
+      <p key="note" className="text-body-sm tu-pages__muted tu-plan-note">It goes on everyone's itinerary and map.</p>
+    </StaggerIn>
+  );
+}
+
+/** A time: its label and value (brand while its wheel is open); tapping it opens a wheel under it, and closes it
+ *  again. The wheel opens to its height and closes a little quicker (enter-ms / fade-ms; reduced motion, fades). */
+function TimeRow({ label, day, minutes, open, onOpen, onChange }: {
+  label: string;
+  day: number;
+  minutes: number;
+  open: boolean;
+  onOpen: (open: boolean) => void;
+  onChange: (minutes: number) => void;
+}) {
+  const reduce = useReducedMotion();
+  const value = clockTime(tripDate(day, 0, minutes));
+  return (
+    <div className="tu-time">
+      <button type="button" className="tu-time__row" aria-expanded={open} aria-label={`${label} ${value}`} onClick={() => onOpen(!open)}>
+        <span className="text-label-lg">{label}</span>
+        <span className={`text-label-lg weight-semibold ${open ? 'tu-time__value--open' : ''}`}>{value}</span>
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            key="wheel"
+            className="tu-time__wheel"
+            initial={reduce ? { opacity: 0 } : { height: 0 }}
+            animate={reduce ? { opacity: 1, transition: { duration: m['fade-ms'] / 1000, ease } } : { height: 'auto', transition: { duration: m['enter-ms'] / 1000, ease } }}
+            exit={reduce ? { opacity: 0, transition: { duration: m['fade-ms'] / 1000, ease } } : { height: 0, transition: { duration: m['fade-ms'] / 1000, ease } }}
+          >
+            {/* A new day starts the wheel over, on the time it has */}
+            <TimeWheel key={day} label={label} day={day} minutes={minutes} onChange={onChange} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/** Every quarter of an hour in a day, in minutes from midnight. */
+const QUARTERS = Array.from({ length: 96 }, (_, i) => i * 15);
+
+/**
+ * A time wheel in 15-minute steps, plan/picker-height tall. The app's is Cupertino's (three wheels: hour, minute,
+ * AM/PM); here it's one column of times that scrolls and snaps, the one in the middle band picked once it settles.
+ * Tapping a time brings it to the middle; the arrow keys step it.
+ */
+function TimeWheel({ label, day, minutes, onChange }: { label: string; day: number; minutes: number; onChange: (minutes: number) => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const settle = useRef<number | undefined>(undefined);
+  const picked = useRef(minutes);
+  const itemHeight = () => ref.current?.querySelector<HTMLElement>('.tu-wheel__item')?.offsetHeight ?? 1;
+  const indexOf = (x: number) => Math.round(x / 15);
+
+  // Opens on the time it has, in the middle
+  useLayoutEffect(() => {
+    if (ref.current) ref.current.scrollTop = indexOf(picked.current) * itemHeight();
+  }, []);
+  useEffect(() => () => window.clearTimeout(settle.current), []);
+
+  const to = (i: number) => ref.current?.scrollTo({ top: Math.max(0, Math.min(QUARTERS.length - 1, i)) * itemHeight(), behavior: 'smooth' });
+  // Once it has stopped, the time in the middle is picked
+  const onScroll = () => {
+    window.clearTimeout(settle.current);
+    settle.current = window.setTimeout(() => {
+      const el = ref.current;
+      if (!el) return;
+      const x = QUARTERS[Math.max(0, Math.min(QUARTERS.length - 1, Math.round(el.scrollTop / itemHeight())))];
+      if (x !== picked.current) {
+        picked.current = x;
+        onChange(x);
+      }
+    }, m['press-ms']);
+  };
+  return (
+    <div className="tu-wheel">
+      <div className="tu-wheel__band" aria-hidden />
+      <div
+        ref={ref}
+        className="tu-wheel__scroll"
+        role="listbox"
+        aria-label={label}
+        tabIndex={0}
+        onScroll={onScroll}
+        onKeyDown={e => {
+          if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+          e.preventDefault();
+          to(indexOf(picked.current) + (e.key === 'ArrowDown' ? 1 : -1));
+        }}
+      >
+        {QUARTERS.map((x, i) => (
+          <div key={x} className="tu-wheel__item text-label-lg" role="option" aria-selected={x === minutes} onClick={() => to(i)}>
+            {clockTime(tripDate(day, 0, x))}
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

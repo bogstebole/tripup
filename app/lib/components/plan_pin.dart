@@ -215,7 +215,8 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
   bool _isOutside(Offset p, double inset) => !widget.area.contains(p, inset);
 
   void _go(AnimationController c, double target) {
-    if (_reduce) {
+    // Not on screen (the trip behind your trips): jump, so it doesn't play out the next time it shows
+    if (_reduce || !TickerMode.valuesOf(context).enabled) {
       c.value = target;
     } else {
       springTo(c, target, TokMotion.springMorph);

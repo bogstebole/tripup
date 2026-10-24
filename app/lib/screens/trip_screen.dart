@@ -19,6 +19,7 @@ import '../components/bill_scan.dart';
 import '../components/basics.dart';
 import '../components/toggle_chips.dart';
 import '../components/detail_sheet.dart';
+import '../components/entrance.dart';
 import '../components/home.dart';
 import '../components/join.dart';
 import '../components/map_shapes.dart';
@@ -95,7 +96,13 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   Timer? _tick;
   Theme? _theme;
   TileProviders? _tiles;
-  bool _upNextMid = true;
+  bool _upNextMid = false;   // the app opens on your trips; Up next opens last as you go in
+
+  /// The trip's entrance clock (see [EnterOrder]): 0 at the tap, 1 once every control is in. At rest it's 1.
+  late final _enter = AnimationController(vsync: this, duration: EnterOrder.total, value: 1);
+
+  /// Up next (or the poll) has had its turn in the entrance.
+  bool _upNextIn = false;
   bool _meOff = false;
   bool _sheet = false;
   Rect? _from;
@@ -117,6 +124,9 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
 
   /// Days picked in the itinerary's own filter (it opens on all of them).
   Set<int> _planDays = const {};
+
+  /// Where Add to the trip is: its choice, Plan something or Invite someone (it opens on the choice).
+  AddStep _addStep = AddStep.choose;
   bool _shows(int day) => _days.isEmpty || _days.contains(day);
 
   /// Whoever has already got to the Up next place.
@@ -141,7 +151,23 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     demoMoment.addListener(_sceneChanged);
     // The money pop-up estimates tonight's dinner from the menu's picks, so load it now
     brasserieMenu.then((_) => _sceneChanged());
-    _home.addStatusListener((_) => setState(() {}));
+    _home.addStatusListener((_) {
+      // Back on your trips: Up next waits, small, for the next way in (it jumps there unseen; the trip isn't ticking)
+      if (!_home.isAnimating && _home.value > 0.5) {
+        _upNextMid = false;
+        _upNextIn = false;
+      }
+      setState(() {});
+    });
+    // The last control has started: Up next opens now, the end of the entrance
+    _enter.addListener(() {
+      if (!_upNextIn && _enter.value * EnterOrder.total.inMicroseconds >= EnterOrder.last.inMicroseconds) {
+        setState(() {
+          _upNextIn = true;
+          _upNextMid = true;
+        });
+      }
+    });
     _pop.addListener(() {
       if (_popup != null && _popClosing && _pop.value <= 0.002) {
         _pop.stop();
@@ -423,6 +449,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     setState(() {
       _popup = which;
       _planDays = const {};
+      _addStep = AddStep.choose;
     });
     _holdUnder();
     if (_reduce) {
@@ -439,7 +466,8 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     HapticFeedback.selectionClick();
     jumpTo(m);
     setState(() {
-      _upNextMid = true;
+      // From your trips, Up next waits for its turn in the entrance
+      if (!_onHome) _upNextMid = true;
       _pollFolded = false;
       _joining = m.opens == 'join';
       _joinPreview = false;
@@ -456,13 +484,33 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     }
   }
 
-  /// Into the trip's map, from the list.
+  /// Into the trip's map, from the list: the surface grows out of the card (see [_openingTrip]) while the clock of
+  /// the trip's entrance runs: its controls arrive one by one, and Up next opens last. All of it within a second.
   void _goIn() {
-    if (_inTrip) return;
+    if (_inTrip || _home.isAnimating && _home.velocity < 0) return;
     HapticFeedback.selectionClick();
     _homeCard = _cardRect();
-    _reduce ? _home.animateTo(0, duration: TokMotion.fade) : springTo(_home, 0, TokMotion.springExpand);
-    setState(() {});
+    if (_reduce) {
+      setState(() {
+        _upNextIn = true;
+        _upNextMid = true;
+      });
+      _enter.value = 1;
+      _home.animateTo(0, duration: TokMotion.fade);
+      return;
+    }
+    // Up next is small for the start (one frame here, unseen, so it doesn't shrink on screen), then it all begins
+    setState(() {
+      _upNextMid = false;
+      _upNextIn = false;
+    });
+    _enter.value = 0;
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      springTo(_home, 0, TokMotion.springOpen);
+      _enter.forward(from: 0);
+      setState(() {});
+    });
   }
 
   /// Back to your trips.
@@ -484,59 +532,132 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   void _closeJoin({bool joined = false}) {
     setState(() => _joining = false);
     if (!joined) return;
-    setState(() => _home.value = 0);
+    setState(() {
+      _home.value = 0;
+      _enter.value = 1;
+      _upNextIn = true;
+      _upNextMid = true;
+    });
     tripNotice.value = '${personById('ren').name} joined the trip';
   }
 
-  /// Your trips, behind the opening card: it fades and leans in toward the card as you go in, and back out of it.
+  /// A small still map of [at] for Plan something, with the place's sticker on it and the map's credit.
+  Widget _mapOf(LatLng at, String sticker) {
+    final t = context.tok;
+    return IgnorePointer(
+      child: Stack(children: [
+        Positioned.fill(
+          child: FlutterMap(
+            options: MapOptions(initialCenter: at, initialZoom: 15.5, backgroundColor: t.bgCanvas, interactionOptions: const InteractionOptions(flags: InteractiveFlag.none)),
+            children: [
+              if (_theme != null && _tiles != null) VectorTileLayer(theme: _theme!, tileProviders: _tiles!),
+              MarkerLayer(markers: [
+                Marker(point: at, width: TokDim.stickerMap * 2, height: TokDim.stickerMap, child: Center(child: Sticker(sticker, size: StickerSize.map))),
+              ]),
+            ],
+          ),
+        ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: TokSpace.x2xs,
+          child: Text('© OpenFreeMap © OpenMapTiles © OpenStreetMap', textAlign: TextAlign.center, style: TokText.caption.copyWith(color: t.cAttributionFg)),
+        ),
+      ]),
+    );
+  }
+
+  /// Your trips, behind the opening trip (which blurs and washes them out). They don't move.
   Widget _homeLayer(BuildContext context) => AnimatedBuilder(
         animation: _home,
-        builder: (context, child) {
-          final p = (1 - _home.value).clamp(0.0, 1.0);   // 0 on the list, 1 in the trip
-          return IgnorePointer(
-            ignoring: _home.isAnimating,
-            child: Opacity(
-              opacity: 1 - smoothstep(0.2, 0.9, p),
-              child: _reduce
-                  ? child
-                  : Transform.scale(
-                      scale: 1 + p * (TokMotion.pageZoomScale - 1),
-                      alignment: Alignment.topLeft,
-                      origin: _homeCard?.center ?? Offset.zero,
-                      child: child,
-                    ),
-            ),
-          );
-        },
+        builder: (context, child) => IgnorePointer(ignoring: _home.isAnimating, child: child),
         child: TripsHome(key: _homeKey, onOpen: _goIn, cardKey: _homeCardKey),
       );
 
-  /// The trip screen opening out of the trip card (and closing into it): scaled down to the card's width and clipped
-  /// to its rounded rect, then both grow to the whole screen. It fades in over the card's first moments, so the card's
-  /// still of the city gives way to the live map. With reduced motion it only fades.
+  /// The trip opening out of its card, the way Airbnb opens a listing (Bogdan's reference, 24 Oct): the list behind
+  /// blurs and washes out, and one rounded surface grows from the card to the whole screen. It starts as the card (the
+  /// city's still growing with it, the card's words leaving at once); near full size the live map and its bars fade in
+  /// over the still, slightly blurred while the two overlap; the corners square up last. Closing runs it back into the
+  /// card, quicker. With reduced motion it only fades.
+  ///
+  /// The widgets around the trip stay the same at rest and in motion (only their values change): a different wrapper
+  /// on landing would build the map and its pins anew, and the Up next card would play its entrance a second time.
   Widget _openingTrip(BuildContext context, Size size, Widget trip) => AnimatedBuilder(
         animation: _home,
         child: trip,
         builder: (context, child) {
-          final p = (1 - _home.value).clamp(0.0, 1.0);
-          if (_inTrip) return child!;
-          if (_reduce) return IgnorePointer(child: Opacity(opacity: p, child: child));
-          final screen = Offset.zero & size;
-          final rect = Rect.lerp(_homeCard ?? screen, screen, p)!;
+          final t = context.tok;
+          final p = (1 - _home.value).clamp(0.0, 1.0);   // 0 on the list, 1 in the trip
+          final moving = !_inTrip && !_reduce;
+          final screen = Offset.zero & size, card = _homeCard ?? screen;
+          final rect = moving ? Rect.lerp(card, screen, p)! : screen;
+          final radius = BorderRadius.circular(moving ? TokDim.surfaceRadius * (1 - smoothstep(0.7, 1, p)) : 0);
           final scale = rect.width / size.width;
-          return IgnorePointer(
-            child: ClipRRect(
-              clipper: _RRectClip(RRect.fromRectAndRadius(rect, Radius.circular(TokDim.surfaceRadius * (1 - p)))),
-              child: Opacity(
-                opacity: smoothstep(0, 0.3, p),
-                child: Transform(
-                  transform: Matrix4.translationValues(rect.center.dx - size.width / 2 * scale, rect.center.dy - size.height / 2 * scale, 0)
-                    ..multiply(Matrix4.diagonal3Values(scale, scale, 1)),
-                  child: child,
+          // What shows when: the card's words leave first, the live trip arrives near full size
+          final words = moving ? 1 - smoothstep(0, 0.25, p) : 0.0;
+          final live = _inTrip ? 1.0 : _reduce ? p : smoothstep(0.45, 0.85, p);
+          final seam = moving ? TokMotion.crossfadeBlur * 4 * live * (1 - live) : 0.0;
+          final behind = _inTrip ? 0.0 : smoothstep(0, 0.6, p);
+          return Stack(children: [
+            // The list behind blurs and washes out
+            Positioned.fill(
+              child: IgnorePointer(
+                child: BackdropFilter(
+                  enabled: behind > 0.01,
+                  filter: ui.ImageFilter.blur(sigmaX: TokDim.sheetBackdropBlur * behind, sigmaY: TokDim.sheetBackdropBlur * behind),
+                  child: ColoredBox(color: t.cTripOpenWash.withValues(alpha: t.cTripOpenWash.a * behind)),
                 ),
               ),
             ),
-          );
+            // The surface's lift, while it's a card in the air
+            Positioned.fromRect(
+              rect: rect,
+              child: IgnorePointer(child: DecoratedBox(decoration: BoxDecoration(borderRadius: radius, boxShadow: moving ? TokShadow.elevationOverlay : const []))),
+            ),
+            Positioned.fill(
+              child: IgnorePointer(
+                ignoring: !_inTrip,
+                child: ClipRRect(
+                  clipper: _RRectClip(radius.toRRect(rect)),
+                  clipBehavior: moving ? Clip.antiAlias : Clip.none,
+                  child: Stack(children: [
+                    // The card's still, growing with the surface
+                    Positioned.fromRect(rect: rect, child: Opacity(opacity: moving ? 1 : 0, child: const TripCardStill())),
+                    // The card's words, at the card's size, leaving
+                    Positioned.fromRect(
+                      rect: rect,
+                      child: Opacity(
+                        opacity: words,
+                        child: OverflowBox(
+                          alignment: Alignment.bottomLeft,
+                          minWidth: card.width,
+                          maxWidth: card.width,
+                          minHeight: card.height,
+                          maxHeight: card.height,
+                          child: const TripCardFace(),
+                        ),
+                      ),
+                    ),
+                    // The live trip, at its own size, scaled to the surface
+                    Positioned.fill(
+                      child: Opacity(
+                        opacity: live,
+                        child: ImageFiltered(
+                          enabled: seam >= 0.05,
+                          imageFilter: ui.ImageFilter.blur(sigmaX: seam, sigmaY: seam),
+                          child: Transform(
+                            transform: Matrix4.translationValues(rect.center.dx - size.width / 2 * scale, rect.center.dy - size.height / 2 * scale, 0)
+                              ..multiply(Matrix4.diagonal3Values(scale, scale, 1)),
+                            child: child,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ]),
+                ),
+              ),
+            ),
+          ]);
         },
       );
 
@@ -558,8 +679,9 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   /// The open pop-up, in the full view's place, sliding up from below the screen (with reduced motion, fading in).
   Widget _popupSheet(BuildContext context, Size size, EdgeInsets pad) {
     final bottom = size.height - math.max(pad.bottom, TokDim.sheetInset), full = pad.top + TokSpace.xs + TokDim.buttonMd + TokSpace.x3xs;
-    // Add has only a few rows, so it's shorter
-    final to = Rect.fromLTRB(TokDim.sheetInset, _popup == _Popup.add ? math.max(full, bottom - TokDim.sheetCompactHeight) : full, size.width - TokDim.sheetInset, bottom);
+    // Add's choice and its invite are short, so the sheet is too; planning takes the whole height
+    final compact = _popup == _Popup.add && _addStep != AddStep.plan;
+    final to = Rect.fromLTRB(TokDim.sheetInset, compact ? math.max(full, bottom - TokDim.sheetCompactHeight) : full, size.width - TokDim.sheetInset, bottom);
     void dragEnd(DragEndDetails d) {
       final vy = d.velocity.pixelsPerSecond.dy;
       if (_popDrag.value > TokSpace.x5xl * 2 || vy > 900) {
@@ -578,15 +700,33 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           _flyTo(at);
         }) as Widget),
       _Popup.money => ('Money', MoneyPage.subtitle, const MoneyPage()),
-      _Popup.add => ('Add to the trip', AddPage.subtitle, AddPage(onPreview: () => setState(() {
-            _joining = true;
-            _joinPreview = true;
-          }))),
+      _Popup.add => (
+          AddPage.headerOf(_addStep).$1,
+          AddPage.headerOf(_addStep).$2,
+          AddPage(
+            step: _addStep,
+            onStep: (s) => setState(() => _addStep = s),
+            mapOf: _mapOf,
+            onPreview: () => setState(() {
+              _joining = true;
+              _joinPreview = true;
+            }),
+            onSent: (plan) {
+              _closePopup();
+              _flyTo(plan.at);
+              final day = dayName(plan.start, tripNow());
+              tripNotice.value = 'Sent: ${plan.name}, ${day == 'Today' ? '' : '$day '}${clockTime(plan.start)}–${clockTime(plan.end!)}';
+            },
+          )
+        ),
       _Popup.story => ('Story', StoryPage.subtitle, StoryPage(onPick: _jump)),
       _Popup.poll => ('Dinner tonight', PollPage.subtitle(tripNow()), const PollPage()),
     };
-    return Positioned.fromRect(
+    // A change of height (Add going into Plan, or back) is a morph on screen: ease in and out
+    return AnimatedPositioned.fromRect(
       rect: to,
+      duration: TokMotion.enter,
+      curve: TokMotion.easeInOut,
       child: AnimatedBuilder(
         animation: Listenable.merge([_pop, _popDrag]),
         builder: (context, child) {
@@ -602,6 +742,8 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           onHeaderDragUpdate: dragUpdate,
           onHeaderDragEnd: dragEnd,
           focus: _popup == _Popup.itinerary ? _todayKey : null,
+          onBack: _popup == _Popup.add && _addStep != AddStep.choose ? () => setState(() => _addStep = AddStep.choose) : null,
+          centered: _popup == _Popup.add && _addStep == AddStep.invite,
           footer: _popup == _Popup.money ? MoneyFooter(onScan: _scan) : null,
           // The itinerary filters by day, like the map
           top: _popup != _Popup.itinerary
@@ -708,6 +850,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     _drag.dispose();
     _pop.dispose();
     _home.dispose();
+    _enter.dispose();
     _popDrag.dispose();
     addedPlans.removeListener(_sceneChanged);
     tripNotice.removeListener(_showNotice);
@@ -770,7 +913,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
             dates: tripDates,
             onBack: _goHome,
             trailing: DemoButton(time: clockTime(tripNow()), onTap: () => _openPopup(_Popup.story)),
-            filter: ToggleChips<int>(options: tripDays, selected: _days, labelOf: _dayLabel, onChanged: (d) => _setDays(d, size)),
+            filter: ToggleChips<int>(options: tripDays, selected: _days, labelOf: _dayLabel, enterFrom: EnterOrder.firstChip, onChanged: (d) => _setDays(d, size)),
           ),
         ),
         // Slides down past the edge while the map moves (quick), and back up once it settles (a little slower)
@@ -820,7 +963,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       color: t.bgCanvas,
       child: Stack(children: [
         Positioned.fill(child: Offstage(offstage: _inTrip, child: TickerMode(enabled: !_inTrip, child: _homeLayer(context)))),
-        Positioned.fill(child: Offstage(offstage: _onHome, child: TickerMode(enabled: !_onHome, child: _openingTrip(context, size, trip)))),
+        Positioned.fill(child: Offstage(offstage: _onHome, child: TickerMode(enabled: !_onHome, child: _openingTrip(context, size, TripEntrance(clock: _enter, child: trip))))),
       ]),
     );
     final scene = Stack(children: [
@@ -839,7 +982,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           right: 0,
           top: _safe(size).top,
           child: IgnorePointer(
-            ignoring: !pollOpen(tripNow()) || _covered || !_inTrip,
+            ignoring: !pollOpen(tripNow()) || _covered || !_inTrip || !_upNextIn,
             // It comes and goes with a fade and a slight scale from the top; folding is the card's own morph
             child: AnimatedSwitcher(
               duration: TokMotion.enter,
@@ -852,7 +995,8 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
                 child: _reduce ? child : ScaleTransition(scale: Tween(begin: TokMotion.morphEnterScale, end: 1.0).animate(anim), alignment: Alignment.topCenter, child: child),
               ),
               // Only on the map: not over your trips, nor while the trip opens
-              child: !pollOpen(tripNow()) || _covered || !_inTrip
+              // (in the entrance it comes last, in Up next's place)
+              child: !pollOpen(tripNow()) || _covered || !_inTrip || !_upNextIn
                   ? const SizedBox.shrink()
                   : Center(
                       key: const ValueKey('poll'),

@@ -75,6 +75,7 @@
   --c-toast-bg: #1d4ed8;
   --c-toast-fg: #ffffff;
   --c-attribution-fg: #71717a;
+  --c-trip-open-wash: rgb(255 255 255 / 0.6);
   --c-poll-bar-track: #e4e4e7;
   --c-poll-bar-track-on-muted: #ffffff;
   --c-poll-bar: #d4d4d8;
@@ -189,6 +190,8 @@
   --d-poll-live-dot: 8px;
   --d-poll-mark: 24px;
   --d-home-header-gap: 29px;
+  --d-plan-map-height: 160px;
+  --d-plan-picker-height: 180px;
   --d-home-card-height: 438px;
   --d-home-card-edge: 5px;
   --d-home-map-fade-start: 0.152;
@@ -263,6 +266,9 @@
   --morph-enter-scale: 0.9;
   --page-zoom-scale: 1.04;
   --stagger-ms: 40ms;
+  --open-delay-ms: 220ms;
+  --open-stagger-ms: 30ms;
+  --open-item-ms: 200ms;
   --enter-ms: 260ms;
   --page-enter-delay-ms: 80ms;
   --toast-ms: 3000ms;
@@ -351,6 +357,7 @@
   --c-toast-bg: #1d4ed8;
   --c-toast-fg: #ffffff;
   --c-attribution-fg: #a1a1aa;
+  --c-trip-open-wash: rgb(24 24 27 / 0.6);
   --c-poll-bar-track: #27272a;
   --c-poll-bar-track-on-muted: #18181b;
   --c-poll-bar: #d4d4d8;

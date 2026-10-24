@@ -23,7 +23,15 @@ class TripSheet extends StatefulWidget {
     this.focus,
     this.footer,
     this.top,
+    this.onBack,
+    this.centered = false,
   });
+
+  /// A step back inside the pop-up (Add's Plan or Invite back to its choice): a back button before the title.
+  final VoidCallback? onBack;
+
+  /// The page sits in the middle of the sheet when it's shorter than it (Invite's link).
+  final bool centered;
 
   /// Stays put under the title while the page scrolls under it (the itinerary's day filter). One chip row high.
   final Widget? top;
@@ -103,11 +111,21 @@ class _TripSheetState extends State<TripSheet> {
               Positioned.fill(
                 child: _fadeBottom(
                   context,
-                  SingleChildScrollView(
-                    controller: _scroll,
-                    physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-                    padding: EdgeInsets.only(top: header + TokSpace.md, bottom: TokDim.sheetFade + TokSpace.xs),
-                    child: widget.child,
+                  LayoutBuilder(
+                    builder: (context, box) {
+                      final pad = EdgeInsets.only(top: header + TokSpace.md, bottom: TokDim.sheetFade + TokSpace.xs);
+                      return SingleChildScrollView(
+                        controller: _scroll,
+                        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                        padding: pad,
+                        child: !widget.centered
+                            ? widget.child
+                            : ConstrainedBox(
+                                constraints: BoxConstraints(minHeight: math.max(0, box.maxHeight - pad.vertical)),
+                                child: Center(child: widget.child),
+                              ),
+                      );
+                    },
                   ),
                 ),
               ),
@@ -137,13 +155,32 @@ class _TripSheetState extends State<TripSheet> {
                   child: Padding(
                     padding: const EdgeInsets.only(top: TokSpace.xs),
                     child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      // A step back slides in before the title (and out again), the title moving over for it
+                      AnimatedSize(
+                        duration: TokMotion.enter,
+                        curve: TokMotion.easeOut,
+                        child: widget.onBack == null
+                            ? const SizedBox.shrink()
+                            : Padding(
+                                padding: const EdgeInsets.only(right: TokSpace.x2xs),
+                                child: TuButton(icon: TuIcons.back, label: 'Back', size: TuButtonSize.sm, onTap: widget.onBack),
+                              ),
+                      ),
                       Expanded(
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.xs, TokSpace.md, 0),
-                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x2xs, children: [
-                            Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingMd.copyWith(color: t.textDefault)),
-                            Text(widget.subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.bodySm.copyWith(color: t.textMuted)),
-                          ]),
+                          // A new title fades in as the old one leaves (a step inside the pop-up)
+                          child: AnimatedSwitcher(
+                            duration: TokMotion.enter,
+                            reverseDuration: TokMotion.fade,
+                            switchInCurve: TokMotion.easeOut,
+                            switchOutCurve: TokMotion.easeOut,
+                            layoutBuilder: (current, previous) => Stack(alignment: Alignment.topLeft, children: [...previous, ?current]),
+                            child: Column(key: ValueKey(widget.title), crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x2xs, children: [
+                              Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingMd.copyWith(color: t.textDefault)),
+                              Text(widget.subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.bodySm.copyWith(color: t.textMuted)),
+                            ]),
+                          ),
                         ),
                       ),
                       TuButton(icon: TuIcons.close, label: 'Close', size: TuButtonSize.sm, onTap: widget.onClose),

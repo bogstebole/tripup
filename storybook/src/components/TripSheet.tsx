@@ -1,5 +1,5 @@
-import { X } from 'lucide-react';
-import { motion, useReducedMotion } from 'motion/react';
+import { ArrowLeft, X } from 'lucide-react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { Children, isValidElement, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import { Button } from './Button';
@@ -23,8 +23,13 @@ export interface TripSheetProps {
   /** The page, top to bottom. The sheet scrolls it; a block marked `data-sheet-focus` opens scrolled to just under the header. */
   children: ReactNode;
   onClose?: () => void;
-  /** Add's pop-up: only a few rows, so it stops at sheet/compact-height and sits at the bottom of its place. */
+  /** Add's choice and its invite: only a few rows, so it stops at sheet/compact-height and sits at the bottom of its
+   *  place. Planning takes the whole height; a change between the two eases in and out (enter-ms, ease-in-out). */
   compact?: boolean;
+  /** A step back inside the pop-up (Add's Plan or Invite back to its choice): a back button before the title. */
+  onBack?: () => void;
+  /** The page sits in the middle of the sheet when it's shorter than it (Invite's link). */
+  centered?: boolean;
   /** Stays put at the bottom while the page scrolls above it (the scanned bill's totals and its button; Money's spent
    *  so far). */
   footer?: ReactNode;
@@ -38,9 +43,11 @@ export interface TripSheetProps {
  * and close, and a page that scrolls up under the header. It rises from the bottom in the full view's place, from
  * just past the bottom edge (its own height plus the inset), and goes back down quicker than it came; with reduced
  * motion it only fades. Put it in AnimatePresence so it can leave. On the phone, a pull down on the header closes it too.
- * It has no notes of its own: its pages show them at the top of the screen (see Notice.tsx).
+ * It has no notes of its own: its pages show them at the top of the screen (see Notice.tsx). A step inside it (Add's)
+ * shows in the header: a back button slides in before the title (enter-ms, ease-out), and a new title and line fade in
+ * as the old ones fade out (enter-ms in, fade-ms out).
  */
-export function TripSheet({ title, subtitle, children, onClose, compact, footer, top }: TripSheetProps) {
+export function TripSheet({ title, subtitle, children, onClose, compact, footer, top, onBack, centered }: TripSheetProps) {
   const reduce = useReducedMotion();
   const scroll = useRef<HTMLDivElement>(null);
   // How far the page has scrolled under the header, 0–1 over the top fade's height
@@ -70,15 +77,40 @@ export function TripSheet({ title, subtitle, children, onClose, compact, footer,
       animate={reduce ? { opacity: 1, transition: { duration: m['fade-ms'] / 1000, ease } } : { transform: here, transition: { duration: m['enter-ms'] / 1000, ease } }}
       exit={reduce ? { opacity: 0, transition: { duration: m['fade-ms'] / 1000, ease } } : { transform: away, transition: { duration: m['fade-ms'] / 1000, ease } }}
     >
-      <div ref={scroll} className="tu-trip-sheet__scroll" onScroll={e => setUnder(Math.min(1, e.currentTarget.scrollTop / topFade))}>
+      <div ref={scroll} className={centered ? 'tu-trip-sheet__scroll tu-trip-sheet__scroll--centered' : 'tu-trip-sheet__scroll'} onScroll={e => setUnder(Math.min(1, e.currentTarget.scrollTop / topFade))}>
         {children}
       </div>
       {/* The header's white shows once the page goes under it, so a page at rest isn't faded at the top */}
       <div className="tu-trip-sheet__top-fade" aria-hidden style={{ opacity: under, background: easedFade('var(--c-surface-top)', { from: 'var(--header)' }) }} />
       <div className="tu-trip-sheet__head">
+        {/* A step back slides in before the title (and out again), the title moving over for it */}
+        <AnimatePresence initial={false}>
+          {onBack && (
+            <motion.div
+              key="back"
+              className="tu-trip-sheet__back"
+              initial={{ width: 0 }}
+              animate={{ width: 'auto', transition: { duration: m['enter-ms'] / 1000, ease } }}
+              exit={{ width: 0, transition: { duration: m['enter-ms'] / 1000, ease } }}
+            >
+              <Button icon={ArrowLeft} label="Back" size="sm" onClick={onBack} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+        {/* A new title fades in as the old one leaves (a step inside the pop-up) */}
         <div className="tu-trip-sheet__titles">
-          <h2 className="text-heading-md tu-ellipsis">{title}</h2>
-          <p className="text-body-sm tu-ellipsis tu-trip-sheet__subtitle">{subtitle}</p>
+          <AnimatePresence initial={false}>
+            <motion.div
+              key={title}
+              className="tu-trip-sheet__title"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1, transition: { duration: m['enter-ms'] / 1000, ease } }}
+              exit={{ opacity: 0, transition: { duration: m['fade-ms'] / 1000, ease } }}
+            >
+              <h2 className="text-heading-md tu-ellipsis">{title}</h2>
+              <p className="text-body-sm tu-ellipsis tu-trip-sheet__subtitle">{subtitle}</p>
+            </motion.div>
+          </AnimatePresence>
         </div>
         <Button icon={X} label="Close" size="sm" onClick={onClose} />
       </div>
