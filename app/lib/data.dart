@@ -139,6 +139,8 @@ class Plan {
     required this.day,
     required this.hour,
     this.minute = 0,
+    this.endHour,
+    this.endMinute = 0,
     this.rating = '',
     this.cuisine = '',
     this.fan = const [],
@@ -156,7 +158,12 @@ class Plan {
   /// Day of the month it happens on (see [tripDays]), and the time it starts.
   final int day, hour, minute;
 
+  /// When it ends, if whoever planned it said (Plan something asks for a range).
+  final int? endHour;
+  final int endMinute;
+
   DateTime get start => DateTime(tripYear, tripMonth, day, hour, minute);
+  DateTime? get end => endHour == null ? null : DateTime(tripYear, tripMonth, day, endHour!, endMinute);
 
   /// How soon, from now: "In 64 mins", "In 2 hrs", "Tomorrow", "In 3 days".
   String get eta => timeUntil(start, tripNow());
@@ -498,6 +505,61 @@ const planIdeas = [
   PlanIdea('santini', 'Gelados Santini', 'Ice cream', 'ice-cream', LatLng(38.7108, -9.1418), 16, 15),
   PlanIdea('lxfactory', 'LX Factory', 'Shops and street art', 'azulejo', LatLng(38.7034, -9.1786), 20, 11),
 ];
+
+/// A place Plan something can find: Lisbon's well-known spots, where they are, and a sticker for the map.
+class PlaceSpot {
+  const PlaceSpot(this.id, this.name, this.kind, this.area, this.at, this.sticker);
+  final String id, name, kind, area, sticker;
+  final LatLng at;
+
+  /// Whether a search matches it: its name, what it is or where, ignoring case and accents.
+  bool matches(String query) {
+    final q = _plain(query.trim());
+    return q.isEmpty || [name, kind, area].any((s) => _plain(s).contains(q));
+  }
+}
+
+String _plain(String s) {
+  const from = 'áàâãäçéèêëíìîïóòôõöúùûüñ', to = 'aaaaaceeeeiiiiooooouuuun';
+  final lower = s.toLowerCase();
+  return String.fromCharCodes(lower.runes.map((r) {
+    final i = from.indexOf(String.fromCharCode(r));
+    return i < 0 ? r : to.codeUnitAt(i);
+  }));
+}
+
+const lisbonPlaces = [
+  PlaceSpot('timeout', 'Time Out Market', 'Food hall', 'Cais do Sodré', LatLng(38.7069, -9.1459), 'sardine-tin'),
+  PlaceSpot('santini', 'Gelados Santini', 'Ice cream', 'Chiado', LatLng(38.7108, -9.1418), 'ice-cream'),
+  PlaceSpot('lxfactory', 'LX Factory', 'Shops and street art', 'Alcântara', LatLng(38.7034, -9.1786), 'azulejo'),
+  PlaceSpot('pasteis-belem', 'Pastéis de Belém', 'Bakery', 'Belém', LatLng(38.6975, -9.2032), 'nata'),
+  PlaceSpot('jeronimos', 'Mosteiro dos Jerónimos', 'Monastery', 'Belém', LatLng(38.6979, -9.2068), 'padrao'),
+  PlaceSpot('torre-belem', 'Torre de Belém', 'Landmark', 'Belém', LatLng(38.6916, -9.2160), 'belem'),
+  PlaceSpot('maat', 'MAAT', 'Museum', 'Belém', LatLng(38.6957, -9.1946), 'caravel'),
+  PlaceSpot('castelo', 'Castelo de São Jorge', 'Castle', 'Alfama', LatLng(38.7139, -9.1335), 'galo'),
+  PlaceSpot('santa-luzia', 'Miradouro de Santa Luzia', 'Viewpoint', 'Alfama', LatLng(38.7118, -9.1302), 'azulejo'),
+  PlaceSpot('senhora-monte', 'Miradouro da Senhora do Monte', 'Viewpoint', 'Graça', LatLng(38.7192, -9.1328), 'tram'),
+  PlaceSpot('feira-ladra', 'Feira da Ladra', 'Flea market', 'São Vicente', LatLng(38.7158, -9.1268), 'galo'),
+  PlaceSpot('azulejo-museum', 'Museu Nacional do Azulejo', 'Museum', 'Xabregas', LatLng(38.7247, -9.1137), 'azulejo'),
+  PlaceSpot('santa-justa', 'Elevador de Santa Justa', 'Landmark', 'Baixa', LatLng(38.7121, -9.1394), 'tram'),
+  PlaceSpot('comercio', 'Praça do Comércio', 'Square', 'Baixa', LatLng(38.7075, -9.1364), 'caravel'),
+  PlaceSpot('ginjinha', 'A Ginjinha', 'Bar', 'Rossio', LatLng(38.7145, -9.1386), 'wings'),
+  PlaceSpot('manteigaria', 'Manteigaria', 'Bakery', 'Chiado', LatLng(38.7106, -9.1437), 'nata'),
+  PlaceSpot('ramiro', 'Cervejaria Ramiro', 'Seafood', 'Intendente', LatLng(38.7208, -9.1357), 'festival-sardine'),
+  PlaceSpot('tasca-chico', 'Tasca do Chico', 'Fado', 'Bairro Alto', LatLng(38.7119, -9.1443), 'guitar'),
+  PlaceSpot('oceanario', 'Oceanário de Lisboa', 'Aquarium', 'Parque das Nações', LatLng(38.7633, -9.0937), 'festival-sardine'),
+  PlaceSpot('gulbenkian', 'Museu Calouste Gulbenkian', 'Museum', 'Avenidas Novas', LatLng(38.7372, -9.1545), 'padrao'),
+];
+
+/// Walking minutes from where I am to [at], the way the live statuses count them.
+int walkMinutesTo(LatLng at, DateTime now) =>
+    (const Distance().as(LengthUnit.Meter, myPosition(now), at) * streetDetour / walkingMetresPerMinute).ceil();
+
+/// "12 min walk", or for somewhere far, how far: "6.1 km away".
+String walkLabel(LatLng at, DateTime now) {
+  final mins = walkMinutesTo(at, now);
+  return mins <= 45 ? '$mins min walk' : '${(const Distance().as(LengthUnit.Meter, myPosition(now), at) / 1000).toStringAsFixed(1)} km away';
+}
 
 /// Plans the group adds during the trip, on top of [plans].
 final addedPlans = ValueNotifier<List<Plan>>(const []);

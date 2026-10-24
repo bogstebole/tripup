@@ -517,6 +517,12 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - The Add pop-up waits for Bogdan's design.
 - **Storybook mirrors 1.30:** wide `SegmentedTabs`, Money's sections and `MoneyFooter`, the itinerary's order and dividers, and `HomeLayer` opening the trip out of the card (one motion value for both layers; the hidden layer keeps its scroll).
 
+### Final UI, iteration 1.31: the opening lands still, Money's pill, and Add rebuilt (branch `feature/add-and-opening-fix`)
+- **Opening the trip:** the wrappers around the trip no longer change when the transition lands, so the map and the Up next card aren't rebuilt and nothing plays twice (checked by logging the card's morphs: one at launch, none on going in, out and in again). New `springOpen` (0.5 s, no bounce).
+- **Money:** "You owe Maya" is a rounded pill (padding 16/8/8/8): the line and amount left, Pay right.
+- **Add:** `AddStep` lives in the trip screen, so `TripSheet` shows a back button (`onBack`) and the step's title, which crossfades. Choices are plain rows with big titles. Invite is centred (`TripSheet.centered`). Plan something: a search over `lisbonPlaces` (20 places, accent-insensitive), "Near you" by walking time, a small still map of the pick (`_mapOf`, with the map's credit), day chips, From/To wheels (`CupertinoDatePicker`, 15 min), "Send to the group" → `addedPlans` with an end time (`Plan.endHour`), the map flies to it, a note at the top. The sheet animates between compact and full height (`AnimatedPositioned`, ease-in-out).
+- Tokens: `spring-open`, `plan/map-height` 160, `plan/picker-height` 180. Icon: search.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

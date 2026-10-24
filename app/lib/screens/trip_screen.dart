@@ -117,6 +117,9 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
 
   /// Days picked in the itinerary's own filter (it opens on all of them).
   Set<int> _planDays = const {};
+
+  /// Where Add to the trip is: its choice, Plan something or Invite someone (it opens on the choice).
+  AddStep _addStep = AddStep.choose;
   bool _shows(int day) => _days.isEmpty || _days.contains(day);
 
   /// Whoever has already got to the Up next place.
@@ -423,6 +426,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     setState(() {
       _popup = which;
       _planDays = const {};
+      _addStep = AddStep.choose;
     });
     _holdUnder();
     if (_reduce) {
@@ -486,6 +490,32 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     if (!joined) return;
     setState(() => _home.value = 0);
     tripNotice.value = '${personById('ren').name} joined the trip';
+  }
+
+  /// A small still map of [at] for Plan something, with the place's sticker on it and the map's credit.
+  Widget _mapOf(LatLng at, String sticker) {
+    final t = context.tok;
+    return IgnorePointer(
+      child: Stack(children: [
+        Positioned.fill(
+          child: FlutterMap(
+            options: MapOptions(initialCenter: at, initialZoom: 15.5, backgroundColor: t.bgCanvas, interactionOptions: const InteractionOptions(flags: InteractiveFlag.none)),
+            children: [
+              if (_theme != null && _tiles != null) VectorTileLayer(theme: _theme!, tileProviders: _tiles!),
+              MarkerLayer(markers: [
+                Marker(point: at, width: TokDim.stickerMap * 2, height: TokDim.stickerMap, child: Center(child: Sticker(sticker, size: StickerSize.map))),
+              ]),
+            ],
+          ),
+        ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: TokSpace.x2xs,
+          child: Text('© OpenFreeMap © OpenMapTiles © OpenStreetMap', textAlign: TextAlign.center, style: TokText.caption.copyWith(color: t.cAttributionFg)),
+        ),
+      ]),
+    );
   }
 
   /// Your trips, behind the opening card: it fades and leans in toward the card as you go in, and back out of it.
@@ -560,8 +590,9 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   /// The open pop-up, in the full view's place, sliding up from below the screen (with reduced motion, fading in).
   Widget _popupSheet(BuildContext context, Size size, EdgeInsets pad) {
     final bottom = size.height - math.max(pad.bottom, TokDim.sheetInset), full = pad.top + TokSpace.xs + TokDim.buttonMd + TokSpace.x3xs;
-    // Add has only a few rows, so it's shorter
-    final to = Rect.fromLTRB(TokDim.sheetInset, _popup == _Popup.add ? math.max(full, bottom - TokDim.sheetCompactHeight) : full, size.width - TokDim.sheetInset, bottom);
+    // Add's choice and its invite are short, so the sheet is too; planning takes the whole height
+    final compact = _popup == _Popup.add && _addStep != AddStep.plan;
+    final to = Rect.fromLTRB(TokDim.sheetInset, compact ? math.max(full, bottom - TokDim.sheetCompactHeight) : full, size.width - TokDim.sheetInset, bottom);
     void dragEnd(DragEndDetails d) {
       final vy = d.velocity.pixelsPerSecond.dy;
       if (_popDrag.value > TokSpace.x5xl * 2 || vy > 900) {
@@ -580,15 +611,33 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           _flyTo(at);
         }) as Widget),
       _Popup.money => ('Money', MoneyPage.subtitle, const MoneyPage()),
-      _Popup.add => ('Add to the trip', AddPage.subtitle, AddPage(onPreview: () => setState(() {
-            _joining = true;
-            _joinPreview = true;
-          }))),
+      _Popup.add => (
+          AddPage.headerOf(_addStep).$1,
+          AddPage.headerOf(_addStep).$2,
+          AddPage(
+            step: _addStep,
+            onStep: (s) => setState(() => _addStep = s),
+            mapOf: _mapOf,
+            onPreview: () => setState(() {
+              _joining = true;
+              _joinPreview = true;
+            }),
+            onSent: (plan) {
+              _closePopup();
+              _flyTo(plan.at);
+              final day = dayName(plan.start, tripNow());
+              tripNotice.value = 'Sent: ${plan.name}, ${day == 'Today' ? '' : '$day '}${clockTime(plan.start)}–${clockTime(plan.end!)}';
+            },
+          )
+        ),
       _Popup.story => ('Story', StoryPage.subtitle, StoryPage(onPick: _jump)),
       _Popup.poll => ('Dinner tonight', PollPage.subtitle(tripNow()), const PollPage()),
     };
-    return Positioned.fromRect(
+    // A change of height (Add going into Plan, or back) is a morph on screen: ease in and out
+    return AnimatedPositioned.fromRect(
       rect: to,
+      duration: TokMotion.enter,
+      curve: TokMotion.easeInOut,
       child: AnimatedBuilder(
         animation: Listenable.merge([_pop, _popDrag]),
         builder: (context, child) {
@@ -604,6 +653,8 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           onHeaderDragUpdate: dragUpdate,
           onHeaderDragEnd: dragEnd,
           focus: _popup == _Popup.itinerary ? _todayKey : null,
+          onBack: _popup == _Popup.add && _addStep != AddStep.choose ? () => setState(() => _addStep = AddStep.choose) : null,
+          centered: _popup == _Popup.add && _addStep == AddStep.invite,
           footer: _popup == _Popup.money ? MoneyFooter(onScan: _scan) : null,
           // The itinerary filters by day, like the map
           top: _popup != _Popup.itinerary

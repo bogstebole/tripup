@@ -346,6 +346,8 @@ abstract final class TokDim {
   static const double pollLiveDot = 8;
   static const double pollMark = 24;
   static const double homeHeaderGap = 29;
+  static const double planMapHeight = 160;
+  static const double planPickerHeight = 180;
   static const double homeCardHeight = 438;
   static const double homeCardEdge = 5;
   static const double homeMapFadeStart = 0.152;

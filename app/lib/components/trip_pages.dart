@@ -1,4 +1,8 @@
 // The pages of the footer's three pop-ups: the itinerary, the group's money, and adding to the trip.
+import 'dart:math' as math;
+
+import 'package:flutter/cupertino.dart' show CupertinoDatePicker, CupertinoDatePickerMode;
+import 'package:flutter/material.dart' show Material, MaterialType, TextField, InputDecoration;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:latlong2/latlong.dart';
@@ -10,6 +14,7 @@ import 'basics.dart';
 import 'glass.dart';
 import 'segmented_tabs.dart';
 import 'stagger.dart';
+import 'toggle_chips.dart';
 import 'trip_sheet.dart';
 
 /// Every day of the trip, in order: where we've been, what's planned, and today marked. Tapping a stop shows it
@@ -68,7 +73,7 @@ class ItineraryPage extends StatelessWidget {
               SheetRow(
                 leading: _slot(Sticker(p.sticker, size: StickerSize.row)),
                 title: p.name,
-                subtitle: p == next ? 'Up next · ${p.eta}' : p.eta,
+                subtitle: [if (p == next) 'Up next', p.eta, if (p.end case final end?) 'until ${clockTime(end)}'].join(' · '),
                 subtitleColor: p == next ? t.textBrand : null,
                 trailing: Text(clockTime(p.start), style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textDefault)),
                 onTap: onPick == null ? null : () => onPick!(p.at),
@@ -325,147 +330,334 @@ Widget _explain(BuildContext context, Payment p) {
   );
 }
 
-/// Adding to the trip: a plan (a place to go, put in a free slot on everyone's itinerary and map) or someone new
-/// (a link: no account, and they only share costs from the day they join).
+/// What Add to the trip shows: the two choices, or one of them.
+enum AddStep { choose, plan, invite }
+
+/// Adding to the trip: a plan (find a place, pick a day and a time, send it to everyone's itinerary and map) or someone
+/// new (a link: no account, and they only share costs from the day they join). The step lives with the pop-up, whose
+/// header follows it: its title, and a way back.
 class AddPage extends StatefulWidget {
-  const AddPage({super.key, this.onPreview});
+  const AddPage({super.key, required this.step, required this.onStep, this.onPreview, this.onSent, this.mapOf});
+  final AddStep step;
+  final ValueChanged<AddStep> onStep;
 
   /// Shows what someone invited will see on their phone.
   final VoidCallback? onPreview;
 
-  static const subtitle = 'A plan, or someone new';
+  /// A plan went to the group.
+  final ValueChanged<Plan>? onSent;
+
+  /// A small still map of a place, with its sticker on it.
+  final Widget Function(LatLng at, String sticker)? mapOf;
+
+  /// The pop-up's title and the line under it, for each step.
+  static (String, String) headerOf(AddStep step) => switch (step) {
+        AddStep.choose => ('Add to the trip', 'A plan, or someone new'),
+        AddStep.plan => ('Plan something', 'Find a place, pick a time, send it'),
+        AddStep.invite => ('Invite someone', 'They join with a link, no account'),
+      };
 
   @override
   State<AddPage> createState() => _AddPageState();
 }
 
-enum _AddStep { choose, plan, invite }
-
 class _AddPageState extends State<AddPage> {
-  var _step = _AddStep.choose;
-
   static const _link = 'tripup.app/j/lisbon-may';
 
-  void _go(_AddStep s) {
-    HapticFeedback.selectionClick();
-    setState(() => _step = s);
+  final _query = TextEditingController();
+  final _focus = FocusNode();
+
+  /// The place picked from the search, and when: a day, and a time range in minutes from midnight.
+  PlaceSpot? _spot;
+  late int _day, _from, _to;
+
+  /// Which time's wheel is open: 'from', 'to', or none.
+  String? _editing;
+
+  @override
+  void initState() {
+    super.initState();
+    _resetWhen();
   }
 
   @override
+  void didUpdateWidget(AddPage old) {
+    super.didUpdateWidget(old);
+    // Back to the choice starts a plan over next time
+    if (widget.step == AddStep.choose && old.step != AddStep.choose) {
+      _query.clear();
+      _spot = null;
+      _editing = null;
+      _resetWhen();
+    }
+  }
+
+  @override
+  void dispose() {
+    _query.dispose();
+    _focus.dispose();
+    super.dispose();
+  }
+
+  /// Tonight from 6 to 8, or from the next hour if it's already later; tomorrow once the evening is gone.
+  void _resetWhen() {
+    final now = tripNow();
+    final late = now.hour >= 21;
+    _day = late && tripDays.contains(today + 1) ? today + 1 : today;
+    _from = _day == today && now.hour >= 17 ? (now.hour + 1) * 60 : 18 * 60;
+    _to = math.min(_from + 120, 23 * 60 + 45);
+  }
+
+  void _go(AddStep step) {
+    HapticFeedback.selectionClick();
+    widget.onStep(step);
+  }
+
+  void _pick(PlaceSpot? spot) {
+    HapticFeedback.selectionClick();
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _spot = spot;
+      _editing = null;
+    });
+  }
+
+  void _send() {
+    final s = _spot!;
+    final plan = Plan(
+      id: 'added-${s.id}-$_day-$_from',
+      name: s.name,
+      sticker: s.sticker,
+      at: s.at,
+      day: _day,
+      hour: _from ~/ 60,
+      minute: _from % 60,
+      endHour: _to ~/ 60,
+      endMinute: _to % 60,
+    );
+    HapticFeedback.mediumImpact();
+    addedPlans.value = [...addedPlans.value, plan];
+    widget.onSent?.call(plan);
+  }
+
+  // One step (or, in Plan, the search and then the place) at a time: it fades in, the last one fades out with a blur
+  @override
   Widget build(BuildContext context) => AnimatedSwitcher(
-        duration: TokMotion.fade,
+        duration: TokMotion.enter,
+        reverseDuration: TokMotion.fade,
+        switchInCurve: TokMotion.easeOut,
         layoutBuilder: (current, previous) => Stack(alignment: Alignment.topCenter, children: [...previous, ?current]),
-        transitionBuilder: (child, anim) => child.key == ValueKey(_step) ? child : fadeBlurOut(anim, child),
+        transitionBuilder: (child, anim) => child.key == ValueKey((widget.step, _spot?.id)) ? FadeTransition(opacity: anim, child: child) : fadeBlurOut(anim, child),
         child: KeyedSubtree(
-          key: ValueKey(_step),
-          child: switch (_step) {
-            _AddStep.choose => _choose(context),
-            _AddStep.plan => _plan(context),
-            _AddStep.invite => _invite(context),
+          key: ValueKey((widget.step, _spot?.id)),
+          child: switch (widget.step) {
+            AddStep.choose => _choose(context),
+            AddStep.plan => _spot == null ? _search(context) : _when(context, _spot!),
+            AddStep.invite => _invite(context),
           },
         ),
       );
 
-  Widget _choose(BuildContext context) {
-    final t = context.tok;
-    return StaggerIn(spacing: TokSpace.xs, children: [
-      KnowRow(
-        title: 'Plan something',
-        subtitle: "A place to eat, see or do. It goes on everyone's itinerary and map.",
-        leading: LucideIcon(TuIcons.plan, size: TokSize.iconMd, color: t.iconBrand),
-        onTap: () => _go(_AddStep.plan),
-      ),
-      KnowRow(
-        title: 'Invite someone',
-        subtitle: 'They join with a link, no account. They only share costs from the day they join.',
-        leading: LucideIcon(TuIcons.invite, size: TokSize.iconMd, color: t.iconBrand),
-        onTap: () => _go(_AddStep.invite),
-      ),
-    ]);
-  }
+  /// The two choices, as plain lines: what it is, a word on it, and an arrow.
+  Widget _choose(BuildContext context) => StaggerIn(children: [
+        _Choice(title: 'Plan something', subtitle: "A place to eat, see or do. It goes on everyone's itinerary and map.", onTap: () => _go(AddStep.plan)),
+        const Hairline(),
+        _Choice(title: 'Invite someone', subtitle: 'They join with a link, no account. They only share costs from the day they join.', onTap: () => _go(AddStep.invite)),
+      ]);
 
-  Widget _back(BuildContext context) {
-    final t = context.tok;
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Pressable(
-        onTap: () => _go(_AddStep.choose),
-        semanticLabel: 'Back',
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs, vertical: TokSpace.x2xs),
-          child: Row(mainAxisSize: MainAxisSize.min, spacing: TokSpace.x3xs, children: [
-            LucideIcon(TuIcons.backSmall, size: TokSize.iconSm, color: t.textBrand),
-            Text('Back', style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textBrand)),
-          ]),
-        ),
-      ),
-    );
-  }
-
-  Widget _plan(BuildContext context) => ValueListenableBuilder<List<Plan>>(
-        valueListenable: addedPlans,
-        builder: (context, added, _) => StaggerIn(children: [
-          _back(context),
-          const SheetSection('Ideas nearby', top: TokSpace.md, subtitle: 'Each one goes in a free slot. Everyone sees it on their map.'),
-          for (final (i, idea) in planIdeas.indexed) ...[
-            if (i > 0) const Hairline(),
-            () {
-              final on = added.any((p) => p.id == idea.id);
-              final slot = '${dayName(idea.plan.start, tripNow())}, ${clockTime(idea.plan.start)}';
-              return SheetRow(
-                leading: _slot(Sticker(idea.sticker, size: StickerSize.row)),
-                title: idea.name,
-                subtitle: '${idea.kind} · $slot',
-                trailing: AddButton(
-                  added: on,
-                  itemName: idea.name,
-                  onTap: () {
-                    addedPlans.value = on ? [for (final p in added) if (p.id != idea.id) p] : [...added, idea.plan];
-                    if (!on) tripNotice.value = 'Added for $slot';
-                  },
-                ),
-              );
-            }(),
-          ],
-        ]),
-      );
-
+  /// The link, in the middle of the sheet, and the one thing to do with it.
   Widget _invite(BuildContext context) {
     final t = context.tok;
+    return StaggerIn(spacing: TokSpace.md, crossAxisAlignment: CrossAxisAlignment.center, children: [
+      Column(spacing: TokSpace.x2xs, children: [
+        Text('Send them this link', textAlign: TextAlign.center, style: TokText.headingSm.copyWith(color: t.textDefault)),
+        Text("Share it with a friend. They type their name and they're in.", textAlign: TextAlign.center, style: TokText.bodySm.copyWith(color: t.textMuted)),
+      ]),
+      Container(
+        padding: const EdgeInsets.fromLTRB(TokSpace.md, TokSpace.xs, TokSpace.xs, TokSpace.xs),
+        decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.pill)),
+        child: Row(spacing: TokSpace.sm, children: [
+          Expanded(child: Text(_link, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.labelLg.copyWith(color: t.textDefault))),
+          TuTextButton(
+            label: 'Copy link',
+            icon: TuIcons.copy,
+            onTap: () {
+              Clipboard.setData(const ClipboardData(text: 'https://$_link'));
+              tripNotice.value = 'Link copied';
+            },
+          ),
+        ]),
+      ),
+      if (widget.onPreview case final preview?) TuTextButton(label: "See what they'll see", kind: GlassKind.soft, onTap: preview),
+    ]);
+  }
+
+  /// Finding a place: a search over Lisbon (by name, kind or neighbourhood); before you type, what's near you.
+  Widget _search(BuildContext context) {
+    final t = context.tok;
+    final now = tripNow(), q = _query.text.trim();
+    final found = [for (final s in lisbonPlaces) if (s.matches(q)) s];
+    if (q.isEmpty) found.sort((a, b) => walkMinutesTo(a.at, now).compareTo(walkMinutesTo(b.at, now)));
+    final shown = q.isEmpty ? found.take(5).toList() : found;
     return StaggerIn(children: [
-      _back(context),
-      const SheetSection('Invite someone', top: TokSpace.md, subtitle: 'Send them this link. They type their name and they\'re in.'),
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(TokSpace.md, TokSpace.xs, TokSpace.xs, TokSpace.xs),
-          decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.pill)),
-          child: Row(spacing: TokSpace.sm, children: [
-            Expanded(child: Text(_link, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.labelLg.copyWith(color: t.textDefault))),
-            TuTextButton(
-              label: 'Copy link',
-              icon: TuIcons.copy,
-              onTap: () {
-                Clipboard.setData(const ClipboardData(text: 'https://$_link'));
-                tripNotice.value = 'Link copied';
-              },
+      Container(
+        height: TokDim.buttonLg,
+        padding: const EdgeInsets.symmetric(horizontal: TokSpace.md),
+        decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.pill)),
+        child: Row(spacing: TokSpace.xs, children: [
+          LucideIcon(TuIcons.search, size: TokSize.iconSm, color: t.iconMuted),
+          Expanded(
+            child: Material(
+              type: MaterialType.transparency,
+              child: TextField(
+                controller: _query,
+                focusNode: _focus,
+                textInputAction: TextInputAction.search,
+                style: TokText.labelLg.copyWith(color: t.textDefault),
+                decoration: const InputDecoration.collapsed(hintText: 'Search places in Lisbon'),
+                onChanged: (_) => setState(() {}),
+              ),
             ),
+          ),
+          if (q.isNotEmpty)
+            Pressable(
+              onTap: () => setState(_query.clear),
+              semanticLabel: 'Clear the search',
+              child: LucideIcon(TuIcons.close, size: TokSize.iconSm, color: t.iconMuted),
+            ),
+        ]),
+      ),
+      SheetSection(
+        q.isEmpty ? 'Near you' : (found.isEmpty ? 'Nothing found' : '${found.length} ${found.length == 1 ? 'place' : 'places'}'),
+        top: TokSpace.lg,
+        subtitle: q.isEmpty ? 'Or search for anywhere in Lisbon' : (found.isEmpty ? 'Try a name, a kind of place or a neighbourhood' : null),
+      ),
+      for (final (i, s) in shown.indexed) ...[
+        if (i > 0) const Hairline(),
+        SheetRow(
+          leading: _slot(Sticker(s.sticker, size: StickerSize.row)),
+          title: s.name,
+          subtitle: '${s.kind} · ${s.area} · ${walkLabel(s.at, now)}',
+          trailing: LucideIcon(TuIcons.forward, size: TokSize.iconSm, color: t.iconMuted),
+          onTap: () => _pick(s),
+        ),
+      ],
+    ]);
+  }
+
+  /// The place you picked, on a small map, then when: a day, from and to; and Send at the end.
+  Widget _when(BuildContext context, PlaceSpot s) {
+    final t = context.tok;
+    final now = tripNow();
+    final at = DateTime(tripYear, tripMonth, _day);
+    return StaggerIn(children: [
+      ClipRRect(
+        borderRadius: BorderRadius.circular(TokRadius.card),
+        child: SizedBox(height: TokDim.planMapHeight, child: widget.mapOf?.call(s.at, s.sticker) ?? ColoredBox(color: t.bgMuted)),
+      ),
+      SheetRow(
+        leading: _slot(Sticker(s.sticker, size: StickerSize.row)),
+        title: s.name,
+        subtitle: '${s.kind} · ${s.area} · ${walkLabel(s.at, now)}',
+        trailing: TuTextButton(label: 'Change', kind: GlassKind.soft, onTap: () => _pick(null)),
+      ),
+      const SheetSection('When', top: TokSpace.lg),
+      SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
+        clipBehavior: Clip.none,
+        child: Row(spacing: TokDim.toggleChipGap, children: [
+          for (final d in tripDays)
+            if (d >= today)
+              ToggleChip(
+                label: dayName(DateTime(tripYear, tripMonth, d), now),
+                on: d == _day,
+                onTap: () => setState(() => _day = d),
+              ),
+        ]),
+      ),
+      const SizedBox(height: TokSpace.sm),
+      _time(context, 'From', 'from', _from, at, (m) {
+        _from = m;
+        if (_to <= _from) _to = math.min(_from + 60, 23 * 60 + 45);
+      }),
+      const Hairline(),
+      _time(context, 'To', 'to', _to, at, (m) => _to = math.max(m, _from + 15)),
+      const SizedBox(height: TokSpace.xl),
+      TuTextButton(label: 'Send to the group', size: TuButtonSize.lg, wide: true, onTap: _send),
+      Padding(
+        padding: const EdgeInsets.only(top: TokSpace.xs),
+        child: Text("It goes on everyone's itinerary and map.", textAlign: TextAlign.center, style: TokText.bodySm.copyWith(color: t.textMuted)),
+      ),
+    ]);
+  }
+
+  /// A time: its label and value; tapping it opens a wheel under it (15-minute steps), and closes it again.
+  Widget _time(BuildContext context, String label, String key, int minutes, DateTime day, void Function(int) set) {
+    final t = context.tok;
+    final open = _editing == key;
+    final value = day.add(Duration(minutes: minutes));
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Pressable(
+        onTap: () {
+          HapticFeedback.selectionClick();
+          setState(() => _editing = open ? null : key);
+        },
+        semanticLabel: '$label ${clockTime(value)}',
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs, vertical: TokSpace.sm),
+          child: Row(children: [
+            Expanded(child: Text(label, style: TokText.labelLg.copyWith(color: t.textDefault))),
+            Text(clockTime(value), style: TokText.labelLg.copyWith(fontWeight: TokWeight.semibold, color: open ? t.textBrand : t.textDefault)),
           ]),
         ),
       ),
-      Padding(
-        padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.md, TokSpace.xs, 0),
-        child: Text(
-          "No account needed. They see the trip so far, and only costs from the day they join are theirs: Ren joined today, so the €${spentSoFar.toStringAsFixed(0)} from before stays with the four of you.",
-          style: TokText.bodySm.copyWith(color: t.textMuted),
-        ),
+      AnimatedSize(
+        duration: TokMotion.enter,
+        curve: TokMotion.easeOut,
+        alignment: Alignment.topCenter,
+        child: !open
+            ? const SizedBox(width: double.infinity)
+            : SizedBox(
+                height: TokDim.planPickerHeight,
+                child: CupertinoDatePicker(
+                  key: ValueKey('$key-$_day'),
+                  mode: CupertinoDatePickerMode.time,
+                  minuteInterval: 15,
+                  initialDateTime: value,
+                  onDateTimeChanged: (d) => setState(() => set(d.hour * 60 + d.minute)),
+                ),
+              ),
       ),
-      if (widget.onPreview case final preview?)
-        Padding(
-          padding: const EdgeInsets.only(top: TokSpace.sm),
-          child: Align(alignment: Alignment.centerLeft, child: TuTextButton(label: "See what they'll see", kind: GlassKind.soft, onTap: preview)),
-        ),
     ]);
+  }
+}
+
+/// One of Add's two choices: a big title, a line on it, and an arrow; no box around it.
+class _Choice extends StatelessWidget {
+  const _Choice({required this.title, required this.subtitle, required this.onTap});
+  final String title, subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tok;
+    return Pressable(
+      onTap: onTap,
+      semanticLabel: title,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs, vertical: TokSpace.md),
+        child: Row(spacing: TokSpace.md, children: [
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x2xs, children: [
+              Text(title, style: TokText.headingSm.copyWith(color: t.textDefault)),
+              Text(subtitle, style: TokText.bodySm.copyWith(color: t.textMuted)),
+            ]),
+          ),
+          LucideIcon(TuIcons.forward, size: TokSize.iconSm, color: t.iconMuted),
+        ]),
+      ),
+    );
   }
 }
 
