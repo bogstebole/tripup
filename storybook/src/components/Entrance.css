@@ -1,0 +1,3 @@
+/* A control arriving in the trip's entrance: in a row, it keeps its own width (a class of the row's gives it another
+   place, like the top bar's title) */
+.tu-enter { flex: none; }

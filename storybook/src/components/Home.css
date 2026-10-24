@@ -68,13 +68,15 @@
 .tu-home-card:active { transform: scale(var(--press-scale)); }
 .tu-home-card:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: var(--space-3xs); }
 
-/* The design's frame (--frame-w × --frame-h, from HOME_MAP_FRAME) scaled to cover the card from the top: as wide as
-   the card, or wider when the card is too narrow for its height; centred, the rest cut off */
+/* The card's picture fills its box (the card, or the surface the trip opens in), whose size it reads */
+.tu-card-still { position: absolute; inset: 0; overflow: hidden; container-type: size; }
+/* The design's frame (--frame-w × --frame-h, from HOME_MAP_FRAME) scaled to cover that box from the top: as wide as
+   the box, or wider when the box is too narrow for its height; centred, the rest cut off */
 .tu-home-card__map {
   position: absolute;
   top: 0;
   left: 50%;
-  width: max(100%, var(--d-home-card-height) * var(--frame-w) / var(--frame-h));
+  width: max(100cqw, 100cqh * var(--frame-w) / var(--frame-h));
   aspect-ratio: var(--frame-w) / var(--frame-h);
   overflow: hidden;
   translate: -50% 0;
