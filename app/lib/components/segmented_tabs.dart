@@ -8,8 +8,11 @@ import 'basics.dart';
 
 /// Pill tabs on a muted track. The selected pill is a Surface that springs to the tapped tab.
 class SegmentedTabs extends StatefulWidget {
-  const SegmentedTabs({super.key, required this.tabs, required this.index, required this.onChanged});
+  const SegmentedTabs({super.key, required this.tabs, required this.index, required this.onChanged, this.wide = false});
   final List<String> tabs;
+
+  /// Fills the width, the tabs sharing it equally (Money's tabs); otherwise as wide as the labels.
+  final bool wide;
   final int index;
   final ValueChanged<int> onChanged;
 
@@ -80,9 +83,17 @@ class _SegmentedTabsState extends State<SegmentedTabs> with TickerProviderStateM
               child: DecoratedBox(decoration: surfaceDecoration(context, BorderRadius.circular(TokRadius.pill))),
             ),
           ),
-        Row(mainAxisSize: MainAxisSize.min, spacing: TokDim.segmentGap, children: [
+        Row(mainAxisSize: widget.wide ? MainAxisSize.max : MainAxisSize.min, spacing: TokDim.segmentGap, children: [
           for (var i = 0; i < widget.tabs.length; i++)
-            Semantics(
+            if (widget.wide) Expanded(child: _tab(context, i)) else _tab(context, i),
+        ]),
+      ]),
+    );
+  }
+
+  Widget _tab(BuildContext context, int i) {
+    final t = context.tok;
+    return Semantics(
               selected: i == widget.index,
               button: true,
               child: GestureDetector(
@@ -112,9 +123,6 @@ class _SegmentedTabsState extends State<SegmentedTabs> with TickerProviderStateM
                   ]),
                 ),
               ),
-            ),
-        ]),
-      ]),
-    );
+            );
   }
 }

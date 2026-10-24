@@ -13,8 +13,11 @@ import 'stagger.dart';
 /// stickers, "Happening now", its name and dates, who's on it, and the way in. Under it, the trip coming up and the
 /// ones before, as rows. Tapping the current one goes into its map.
 class TripsHome extends StatelessWidget {
-  const TripsHome({super.key, required this.onOpen});
+  const TripsHome({super.key, required this.onOpen, this.cardKey});
   final VoidCallback onOpen;
+
+  /// On the current trip's card, so the trip can open out of it.
+  final GlobalKey? cardKey;
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +54,7 @@ class TripsHome extends StatelessWidget {
                         ),
                       ]),
                       const SizedBox(height: TokDim.homeHeaderGap),
-                      _CurrentTrip(onOpen: onOpen),
+                      _CurrentTrip(key: cardKey, onOpen: onOpen),
                     ]),
                   ),
                   const SizedBox(height: TokSpace.xl),
@@ -102,7 +105,7 @@ class TripsHome extends StatelessWidget {
 /// The trip you're on: the city's still with stickers, fading to white at the bottom, where its name, dates, who's
 /// on it and the way in sit. The whole card goes in, the arrow too.
 class _CurrentTrip extends StatelessWidget {
-  const _CurrentTrip({required this.onOpen});
+  const _CurrentTrip({super.key, required this.onOpen});
   final VoidCallback onOpen;
 
   @override

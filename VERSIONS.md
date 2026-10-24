@@ -510,6 +510,12 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - After Bogdan's look: the trip keeps its own name as the card's title, and the city leads the line under it ("Lisbon · 12 May - 21 May"); `tripCity` in the data.
 - **Storybook mirrors 1.29:** Screens/Trip › Your trips (the bell shows its note) and Your trips · scrolled to the end (replaces "past open"). The card's arrow is drawn, not a separate button (no button in a button on the web). `Sticker` takes its height from CSS when no size is given.
 
+### Final UI, iteration 1.30: Bogdan's notes on Money, the itinerary and going in (branch `feature/money-itinerary-open`)
+- **Money:** tabs fill the width (`SegmentedTabs.wide`); one left edge for every text; each tab's list has a section title; the estimate note is gone; a footer holds "Spent so far" (count, my part, the total) and, while the dinner is on, Scan the bill (`MoneyFooter`). The pop-up's subtitle is "5 people · split by who had what".
+- **Itinerary:** today first, then the days ahead, then the past ones; a hairline between days and no grey blocks (like Group); no check on "Been there".
+- **Going in:** the trip screen opens out of the trip card (scaled to the card's width, clipped to its rounded rect, both growing to the screen on `springExpand`; Back on `springCollapse`), fading in over the first 30%; the list fades and leans in toward the card. The poll card no longer shows over Your trips or mid-transition.
+- The Add pop-up waits for Bogdan's design.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 
