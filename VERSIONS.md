@@ -490,6 +490,7 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - **Fold:** a chevron in the card's corner folds it into a pill under the day filter; tapping the pill unfolds it. Card and pill swap with a fade and a slight scale into the top (260 ms in, 160 ms out; fade only with reduced motion). A poll that opens, or a Demo jump, shows it in full again.
 - **Poll page:** the same bar on each place (on a white track, since the cards are grey), every voter's face, and no "Leading" (Won and Tonight stay once it has closed).
 - Tokens: `poll/width` 345, `poll/bar-height` 6, `poll/live-dot` 8, `poll/live-dim-opacity` 0.35; colours `poll/bar-track`, `poll/bar-track-on-muted`, `poll/bar`, `poll/bar-lead`, `poll/live`. Icons: chevron-down (`TuIcons.unfold`), `TuIcons.fold`.
+- **Storybook mirrors 1.27:** Widget/Up next gets Poll card, Poll pill and Poll card ↔ pill; Pop-ups › Poll · open folds and unfolds on the map. On the web the fold button can't sit inside the card's button, so a transparent open button covers the card and the fold button sits above it.
 
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html

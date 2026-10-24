@@ -1,28 +1,80 @@
-/* The dinner poll: its card on the map and its pop-up's page (see Poll.tsx) */
+/* The dinner poll: its card (or pill) on the map and its pop-up's page (see Poll.tsx) */
 .tu-poll__muted { color: var(--color-text-muted); }
 
-/* A small brand pill: Leading, Won, Tonight */
+/* A small brand pill: Won, Tonight */
 .tu-poll-tag { flex: none; padding: var(--space-3xs) var(--space-xs); border-radius: var(--radius-pill); background: var(--color-bg-brand-subtle); color: var(--color-text-brand); }
 
-/* The card on the map, where the Up next card would be, while the poll is open. Tapping it opens the poll. */
+/* "Live": a red dot that slowly breathes while the poll is open (still, with reduced motion) */
+.tu-live-dot {
+  flex: none;
+  width: var(--d-poll-live-dot);
+  height: var(--d-poll-live-dot);
+  border-radius: var(--radius-pill);
+  background: var(--c-poll-live);
+  animation: tu-live var(--pulse-ms) var(--ease-breathe) infinite alternate;
+}
+@keyframes tu-live { to { opacity: var(--d-poll-live-dim-opacity); } }
+@media (prefers-reduced-motion: reduce) { .tu-live-dot { animation: none; } }
+
+/* A place's share of the votes: the fill slides in from the left inside the rounded track (a transform, not its
+   width, so the rounded end keeps its shape); brand for the one ahead. Reduced motion: it jumps. */
+.tu-vote-bar { display: block; flex: none; height: var(--d-poll-bar-height); border-radius: var(--radius-pill); overflow: hidden; background: var(--c-poll-bar-track); }
+/* On the pop-up's grey cards the track is white */
+.tu-vote-bar--on-muted { background: var(--c-poll-bar-track-on-muted); }
+.tu-vote-bar__fill { display: block; height: 100%; border-radius: var(--radius-pill); background: var(--c-poll-bar); transition: transform var(--enter-ms) var(--ease-out); }
+.tu-vote-bar__fill[data-ahead] { background: var(--c-poll-bar-lead); }
+
+/* Everyone who voted for a place, overlapped, the later ones on top */
+.tu-poll-voters { display: flex; align-items: center; flex: none; }
+.tu-poll-voters > * + * { margin-left: calc(var(--d-chip-face-overlap) * -1); }
+
+/* The card on the map, where the Up next card would be, while the poll is open: poll-width, or the screen less its
+   margins. Its button lies under everything (tapping the card opens the poll); the fold button sits over it. */
 .tu-poll-card {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--space-2xs);
-  width: var(--d-widget-mid-width);
-  padding: var(--space-md) var(--space-md) var(--space-sm);
-  text-align: center;
+  width: min(var(--d-poll-width), 100vw - 2 * var(--space-md));
+  padding: var(--space-sm) var(--space-sm) var(--space-md) var(--space-md);
+  text-align: left;
   transition: transform var(--press-ms) var(--ease-out);
 }
-.tu-poll-card:active { transform: scale(var(--press-scale)); }
-.tu-poll-card:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: var(--space-3xs); }
-.tu-poll-card__label { color: var(--color-text-brand); }
+.tu-poll-card:has(> .tu-poll-card__open:active) { transform: scale(var(--press-scale)); }
+.tu-poll-card__open { position: absolute; inset: 0; border-radius: inherit; }
+.tu-poll-card__open:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: var(--space-3xs); }
+/* Presses on what's drawn land on that button (the dot, the bars and the faces paint over it); only the fold button
+   takes its own */
+.tu-poll-card__head, .tu-poll-card__body { pointer-events: none; }
+.tu-poll-card__head .tu-btn { pointer-events: auto; }
+/* Live sign, "Live poll · closes in N mins", and the fold button in the corner */
+.tu-poll-card__head { display: flex; align-items: center; gap: var(--space-xs); }
+.tu-poll-card__label { flex: 1 1 0; min-width: 0; color: var(--color-text-brand); }
+/* The rest keeps a little clear of the right edge, which the fold button sits closer to */
+.tu-poll-card__body { display: flex; flex-direction: column; gap: var(--space-3xs); padding-right: var(--space-xs); }
 .tu-poll-card__question { color: var(--color-text-default); }
 .tu-poll-card__meta { color: var(--color-text-muted); }
 /* The three places, a little apart from the question */
-.tu-poll-card__rows { display: flex; flex-direction: column; gap: var(--space-2xs); margin-top: calc(var(--space-xs) + var(--space-2xs)); }
-.tu-poll-card__row { display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-3xs) 0; text-align: left; }
+.tu-poll-card__rows { display: flex; flex-direction: column; gap: var(--space-3xs); margin-top: calc(var(--space-xs) + var(--space-3xs)); }
+.tu-poll-card__row { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-2xs) 0; }
+/* Name and faces on one line, the bar under them */
+.tu-poll-card__choice { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: var(--space-2xs); }
+.tu-poll-card__line { display: flex; align-items: center; gap: var(--space-xs); }
 .tu-poll-card__name { flex: 1 1 0; min-width: 0; color: var(--color-text-default); }
+
+/* Folded: a pill as tall as the top bar's buttons. Tapping it unfolds the card. */
+.tu-poll-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  max-width: 100%;
+  height: var(--d-button-md);
+  padding: 0 var(--space-md);
+  transition: transform var(--press-ms) var(--ease-out);
+}
+.tu-poll-pill:active { transform: scale(var(--press-scale)); }
+.tu-poll-pill:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: var(--space-3xs); }
+.tu-poll-pill__text { min-width: 0; color: var(--color-text-default); }
+.tu-poll-pill__chevron { flex: none; width: var(--size-icon-sm); height: var(--size-icon-sm); color: var(--color-icon-muted); }
 
 /* The pop-up: a line on how it works, then a muted card per place */
 .tu-poll__intro { padding: 0 var(--space-xs); color: var(--color-text-muted); }
