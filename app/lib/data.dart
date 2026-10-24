@@ -7,12 +7,12 @@ import 'package:flutter/services.dart';
 import 'package:latlong2/latlong.dart';
 
 class Person {
-  const Person(this.id, this.name, this.sticker, {this.going = true, this.route = const [], this.leaves = 0, this.arrives = 0, this.joined = 12});
+  const Person(this.id, this.name, this.sticker, {this.going = true, this.route = const [], this.leaves = 0, this.arrives = 0, this.joined = 12, this.joinedMinute = 0});
   final String id, name, sticker;
   final bool going;
 
-  /// The day they joined the trip. Costs from before it aren't theirs.
-  final int joined;
+  /// The day they joined the trip, and when that day (minutes after midnight). Costs from before it aren't theirs.
+  final int joined, joinedMinute;
 
   /// Their way to the Up next place, the last point being the place. Empty for me: I'm the blue dot, and my times
   /// come from how far I am (see [timesOf]).
@@ -38,7 +38,7 @@ const people = [
   Person('leo', 'Leo', 'person-02', leaves: 16 * 60 + 16, arrives: 16 * 60 + 36, route: [
     LatLng(38.7570, -9.1590), LatLng(38.7560, -9.1520), LatLng(38.7552, -9.1460), LatLng(38.754444, -9.140476),
   ]),
-  Person('ren', 'Ren', 'person-03', joined: today, leaves: 16 * 60 + 30, arrives: 16 * 60 + 48, route: [   // joined mid-trip, today
+  Person('ren', 'Ren', 'person-03', joined: today, joinedMinute: 14 * 60 + 10, leaves: 16 * 60 + 30, arrives: 16 * 60 + 48, route: [   // joined mid-trip, today
     LatLng(38.7590, -9.1330), LatLng(38.7570, -9.1370), LatLng(38.7555, -9.1395), LatLng(38.754444, -9.140476),
   ]),
 ];
@@ -300,8 +300,8 @@ class StoryMoment {
 }
 
 final storyMoments = [
-  StoryMoment('Your trips', '01', built: false),
-  StoryMoment('Ren joins', '03', at: DateTime(tripYear, tripMonth, today, 14, 10), built: false),
+  StoryMoment('Your trips', '01', at: DateTime(tripYear, tripMonth, today, 14, 0), opens: 'home'),
+  StoryMoment('Ren joins', '03', at: DateTime(tripYear, tripMonth, today, 14, 10), opens: 'join'),
   StoryMoment('Dinner poll', '04–06', at: DateTime(tripYear, tripMonth, today, 14, 30)),
   StoryMoment('The poll closes', '07', at: DateTime(tripYear, tripMonth, today, 15, 0)),
   StoryMoment('On the way', '02', at: DateTime(tripYear, tripMonth, today, 15, 30)),
@@ -749,3 +749,29 @@ void resetPoll() {
   pollUndone.value = false;
   pickedDinner.value = null;
 }
+
+// ── Home: your trips, and joining one ────────────────────────────────────────────────────────────────────────────────
+
+/// My own name, for what others see (in the app I'm "You").
+const myName = 'Ari';
+
+/// Whether [p] is on the trip by [now] (Ren joins today at 2:10 PM).
+bool onTrip(Person p, DateTime now) => p.joined < today || (p.joined == today && _minuteOf(now) >= p.joinedMinute);
+
+/// Another trip on the home list: where, when, a sticker, who, and a line about it.
+class TripSummary {
+  const TripSummary(this.title, this.dates, this.sticker, this.faces, this.note);
+  final String title, dates, sticker, note;
+  final List<String> faces;
+}
+
+const upcomingTrips = [
+  TripSummary('Porto weekend', '19–21 Jun', 'caravel', ['person-04', 'person-01', 'person-02', 'person-05'], 'In 5 weeks · 4 going'),
+];
+
+/// Done and settled; folded away under the others.
+const pastTrips = [
+  TripSummary('Tokyo', 'Oct 2025', 'sushi', ['person-04', 'person-05', 'person-02'], '€1,840 · squared up'),
+  TripSummary('Mallorca', 'Aug 2025', 'ice-cream', ['person-04', 'person-01', 'person-03', 'person-02'], '€960 · squared up'),
+  TripSummary('Hanoi', 'Mar 2025', 'pho', ['person-04', 'person-01'], '€610 · squared up'),
+];

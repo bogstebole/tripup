@@ -468,6 +468,21 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
   - The bill polish, the camera, the payer menu and notes from the top are mirrored; there's a new shared `Notice`.
   - The payer menu renders at the camera's top level rather than through a portal; it looks and behaves the same.
 
+### Final UI, iteration 1.26: your trips and Ren joining (branch `feature/trips-and-joining`)
+- **Your trips (step 01).** The app opens on a list of trips:
+  - the one you're on, big and on top: the places so far as stickers, "Lisbon · 12–21 May · Day 3 of 10", what's on now ("Up next…", "Poll open…", "Now: dinner at…"), who's on it, and what you owe;
+  - Porto, coming up;
+  - three past trips, folded away (each "squared up").
+- **Into the trip and back.** Tapping the current trip zooms the list past you as it fades (160 ms) and the map is there; Back settles the list from that zoom (260 ms, ease-out). With reduced motion it only fades. While the list covers the map, the map isn't drawn and its breathing dot stops.
+- **Ren joins (step 03), on Ren's phone.** The Demo's "Ren joins" (2:10 PM) shows what Ren sees from the link:
+  - "Ari invited you to…", the four faces, his name (no account, no password), Join the trip;
+  - then the trip so far: where they stay, where they've been, what's coming (the dinner poll, with "you can vote"), and the money rule ("the €726 spent before you joined stays with the four of them");
+  - Open the trip goes back to Ari's map, where everyone hears "Ren joined the trip".
+- **Invite → See what they'll see:** the same screens as a preview (empty name, nobody joins).
+- Ren isn't on the map before he joins (`onTrip`).
+- Token: `motion/page-zoom-scale` 1.04. Icons: bed-double (`TuIcons.stay`), vote (`TuIcons.poll`).
+- Checked on the iPhone simulator. A "lost tap" while testing turned out to be the simulator's screenshot arriving before the next frame, not the app.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

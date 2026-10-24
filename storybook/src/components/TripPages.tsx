@@ -268,12 +268,19 @@ function Why({ money, p }: { money: Money; p: Payment }) {
 export const ADD_SUBTITLE = 'A plan, or someone new';
 export type AddStep = 'choose' | 'plan' | 'invite';
 
+export interface AddPageProps {
+  /** The step it opens on (the choice, by default). */
+  start?: AddStep;
+  /** Shows what someone invited will see on their phone (Invite's "See what they'll see"). */
+  onPreview?: () => void;
+}
+
 /**
  * Adding to the trip: a plan (a place to go, put in a free slot on everyone's itinerary and map) or someone new (a
- * link: no account, and they only share costs from the day they join). A step replaces the page: the old one fades
- * out with a blur while the new one's blocks arrive.
+ * link: no account, and they only share costs from the day they join; Invite can show what they'll see). A step
+ * replaces the page: the old one fades out with a blur while the new one's blocks arrive.
  */
-export function AddPage({ start = 'choose' }: { start?: AddStep }) {
+export function AddPage({ start = 'choose', onPreview }: AddPageProps) {
   const [step, setStep] = useState<AddStep>(start);
   const reduce = useReducedMotion();
   return (
@@ -286,7 +293,7 @@ export function AddPage({ start = 'choose' }: { start?: AddStep }) {
         >
           {step === 'choose' && <ChooseStep onPick={setStep} />}
           {step === 'plan' && <PlanStep onBack={() => setStep('choose')} />}
-          {step === 'invite' && <InviteStep onBack={() => setStep('choose')} />}
+          {step === 'invite' && <InviteStep onBack={() => setStep('choose')} onPreview={onPreview} />}
         </motion.div>
       </AnimatePresence>
     </div>
@@ -349,7 +356,7 @@ function PlanStep({ onBack }: { onBack: () => void }) {
   );
 }
 
-function InviteStep({ onBack }: { onBack: () => void }) {
+function InviteStep({ onBack, onPreview }: { onBack: () => void; onPreview?: () => void }) {
   const toast = useTripNotice();
   const copy = () => {
     // The story's frame may not be allowed the clipboard; the note shows either way, as in the app
@@ -367,6 +374,12 @@ function InviteStep({ onBack }: { onBack: () => void }) {
       <p key="note" className="text-body-sm tu-pages__note">
         No account needed. They see the trip so far, and only costs from the day they join are theirs: Ren joined today, so the €{SPENT_SO_FAR.toFixed(0)} from before stays with the four of you.
       </p>
+      {/* A look at their phone: what someone invited will see (see Join.tsx) */}
+      {onPreview && (
+        <div key="preview" className="tu-invite-preview">
+          <TextButton variant="soft" label="See what they'll see" onClick={onPreview} />
+        </div>
+      )}
     </StaggerIn>
   );
 }

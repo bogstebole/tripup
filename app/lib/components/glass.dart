@@ -128,6 +128,8 @@ abstract final class TuIcons {
   static const scan = Lucide.scanLine;
   static const bill = Lucide.receipt;
   static const openUp = Lucide.chevronUp;
+  static const stay = Lucide.bedDouble;
+  static const poll = Lucide.vote;
   static const hours = Lucide.clock;
   static const price = Lucide.banknote;
   static const delivery = Lucide.truck;

@@ -43,10 +43,10 @@ class _PeopleLayerState extends State<PeopleLayer> {
   Widget build(BuildContext context) {
     final cam = MapCamera.of(context);
     final now = tripNow();
-    // Everyone on their way (or about to leave), where they are on screen
+    // Everyone on their way (or about to leave), where they are on screen; not someone who hasn't joined yet
     final dots = [
       for (final p in people)
-        if (p.id != myId && !isHere(p, now))
+        if (p.id != myId && onTrip(p, now) && !isHere(p, now))
           if (whereIs(p, now) case final at?) (p, cam.latLngToScreenOffset(at)),
     ];
     // Merge whoever overlaps on screen: each joins the first pile within a sticker's width of them

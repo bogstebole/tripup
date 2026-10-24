@@ -144,6 +144,17 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 - **After Undo, anyone can pick by hand** ("Add to tonight").
 - **Not built:** pins for the options on the map. All three are on the same street, so their pins would sit on top of each other; the cards say how far each is instead. The rest of the dinner (the bill and so on) is La Brasserie's; picking another place by hand gives it a plain plan.
 
+## Your trips and joining (built 24 Oct)
+
+- **The app opens on your trips, not inside one.** The brief starts there (step 01), and it's where Porto and the past trips live. The trip you're on is big and on top; past ones are folded away, since they're done and settled.
+- **The current trip's card says what's happening now,** in the same words as the map ("Poll open: where for dinner tonight?", "Now: dinner at…", "Up next…"), and what you owe. It's a reason to open the app, not just a title.
+- **Going in zooms; coming back settles.** The list zooms past you (to 1.04) and fades, so the map feels underneath it; Back is the same motion reversed. Going in is an exit for the list, so it's quicker (160 ms) than coming back (260 ms). We didn't slide it sideways like a navigation push: the map isn't a page "next to" the list, it's inside the trip.
+- **Ren's side is shown as Ren's phone.** The demo can't hand over a second phone, so a small "Ren's phone" pill says whose screen it is, and × goes back to Ari's. After joining, the demo returns to Ari's map, where everyone gets "Ren joined the trip": that's what the group would see.
+- **Joining is a name and one button.** No account and no password, as the research found (Splid and Tricount win on this). The name is filled in from the invite, so it's one tap.
+- **Then a catch-up, not a tour.** Where they're staying, where they've been, what's coming (an open poll says he can vote), and the money rule in one sentence. We didn't show the full itinerary or the balance: he hasn't spent anything yet.
+- **Invite can preview it** ("See what they'll see"), so whoever sends the link knows what the other person gets.
+- **Not built:** a real deep link and a second account. It's one app on one phone; the link is a stand-in.
+
 ## Notes from the top, everywhere (24 Oct)
 
 - **Every short note (toast) comes from the top:** payments, squared up, the poll, Pay, "Link copied", "Added for…", and the Menu's "Added" with Undo. Before, some came from the bottom and some from the top. One place, one direction.

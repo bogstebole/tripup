@@ -19,6 +19,8 @@ import '../components/bill_scan.dart';
 import '../components/basics.dart';
 import '../components/toggle_chips.dart';
 import '../components/detail_sheet.dart';
+import '../components/home.dart';
+import '../components/join.dart';
 import '../components/map_shapes.dart';
 import '../components/people_layer.dart';
 import '../components/plan_pin.dart';
@@ -54,6 +56,17 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
 
   /// The camera is up, scanning the dinner's bill.
   bool _scanning = false;
+
+  /// Your trips, over the map: 1 is showing, 0 is gone into the trip. Going in it zooms past you and fades; coming
+  /// back it settles from the same zoom (an exit, so quicker).
+  late final _home = AnimationController(vsync: this, value: 1, duration: TokMotion.enter, reverseDuration: TokMotion.fade);
+  late final _homeCurve = CurvedAnimation(parent: _home, curve: TokMotion.easeOut, reverseCurve: TokMotion.easeOut.flipped);
+
+  /// Fully on the trips list, so the map under it needn't be drawn.
+  bool get _onHome => _home.isCompleted;
+
+  /// Ren's phone, from the invite link: the 'Ren joins' moment, or only a look at what someone invited would see.
+  bool _joining = false, _joinPreview = false;
 
   /// Run once the full view has finished closing (Settle up goes on to Money).
   VoidCallback? _afterSheet;
@@ -117,6 +130,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     demoMoment.addListener(_sceneChanged);
     // The money pop-up estimates tonight's dinner from the menu's picks, so load it now
     brasserieMenu.then((_) => _sceneChanged());
+    _home.addStatusListener((_) => setState(() {}));
     _pop.addListener(() {
       if (_popup != null && _popClosing && _pop.value <= 0.002) {
         _pop.stop();
@@ -404,13 +418,59 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   void _jump(StoryMoment m) {
     HapticFeedback.selectionClick();
     jumpTo(m);
-    setState(() => _upNextMid = true);
+    setState(() {
+      _upNextMid = true;
+      _joining = m.opens == 'join';
+      _joinPreview = false;
+    });
     if (m.opens == 'money') {
       setState(() => _popup = _Popup.money);
     } else {
       _closePopup();
     }
+    if (m.opens == 'home') {
+      _goHome();
+    } else if (m.opens != 'join') {
+      _goIn();
+    }
   }
+
+  /// Into the trip's map, from the list.
+  void _goIn() {
+    if (_home.isDismissed) return;
+    HapticFeedback.selectionClick();
+    _reduce ? _home.value = 0 : _home.reverse();
+  }
+
+  /// Back to your trips.
+  void _goHome() {
+    if (_home.isCompleted) return;
+    _reduce ? _home.value = 1 : _home.forward();
+  }
+
+  /// Off Ren's phone: after joining, back on Ari's map, where everyone hears he's in.
+  void _closeJoin({bool joined = false}) {
+    setState(() => _joining = false);
+    if (!joined) return;
+    _home.value = 0;
+    tripNotice.value = '${personById('ren').name} joined the trip';
+  }
+
+  /// Your trips, zooming past as you go into one (and settling back from that zoom on the way out).
+  Widget _homeLayer(BuildContext context) => AnimatedBuilder(
+        animation: _homeCurve,
+        builder: (context, child) {
+          final v = _homeCurve.value;
+          return IgnorePointer(
+            ignoring: _home.status == AnimationStatus.reverse,
+            child: Opacity(
+              opacity: v.clamp(0.0, 1.0),
+              child: _reduce ? child : Transform.scale(scale: 1 + (1 - v) * (TokMotion.pageZoomScale - 1), child: child),
+            ),
+          );
+        },
+        child: TripsHome(onOpen: _goIn, demo: DemoButton(time: clockTime(tripNow()), onTap: () => _openPopup(_Popup.story))),
+      );
 
   void _closePopup({double velocity = 0}) {
     _popClosing = true;
@@ -450,7 +510,10 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           _flyTo(at);
         }) as Widget),
       _Popup.money => ('Money', MoneyPage.subtitle, MoneyPage(onScan: _scan)),
-      _Popup.add => ('Add to the trip', AddPage.subtitle, const AddPage()),
+      _Popup.add => ('Add to the trip', AddPage.subtitle, AddPage(onPreview: () => setState(() {
+            _joining = true;
+            _joinPreview = true;
+          }))),
       _Popup.story => ('Story', StoryPage.subtitle, StoryPage(onPick: _jump)),
       _Popup.poll => ('Dinner tonight', PollPage.subtitle(tripNow()), const PollPage()),
     };
@@ -565,6 +628,8 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     _open.dispose();
     _drag.dispose();
     _pop.dispose();
+    _homeCurve.dispose();
+    _home.dispose();
     _popDrag.dispose();
     addedPlans.removeListener(_sceneChanged);
     tripNotice.removeListener(_showNotice);
@@ -586,9 +651,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     final size = MediaQuery.sizeOf(context);
     final pad = MediaQuery.paddingOf(context);
     final area = _area(size);
-    final under = ColoredBox(
-      color: t.bgCanvas,
-      child: Stack(children: [
+    final trip = Stack(children: [
         Positioned.fill(
           child: FlutterMap(
             mapController: _map,
@@ -605,7 +668,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
               _VisitedLayer(shows: _shows),
               // Where everyone is right now; they only show for today
               PeopleLayer(shown: _shows(today)),
-              _MeLayer(area: area, breathe: !_covered),
+              _MeLayer(area: area, breathe: !_covered && !_onHome),
               _PlansLayer(
                 area: area,
                 upNextMid: _upNextMid,
@@ -627,6 +690,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           child: TopBar(
             title: tripTitle,
             dates: tripDates,
+            onBack: _goHome,
             trailing: DemoButton(time: clockTime(tripNow()), onTap: () => _openPopup(_Popup.story)),
             filter: ToggleChips<int>(options: tripDays, selected: _days, labelOf: _dayLabel, onChanged: (d) => _setDays(d, size)),
           ),
@@ -672,6 +736,13 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
             ),
           ),
         ),
+      ]);
+    // The map and its bars, with your trips over them (and, fully over, the map isn't drawn or ticking)
+    final under = ColoredBox(
+      color: t.bgCanvas,
+      child: Stack(children: [
+        Positioned.fill(child: Offstage(offstage: _onHome, child: TickerMode(enabled: !_onHome, child: trip))),
+        if (!_home.isDismissed) Positioned.fill(child: _homeLayer(context)),
       ]),
     );
     final scene = Stack(children: [
@@ -736,6 +807,27 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
                       setState(() => _scanning = false);
                       tripNotice.value = 'Dinner added · ${euros(bill.total)}, split by who had what';
                     },
+                  ),
+          ),
+        ),
+        // Ren's phone, over Ari's: it fades in from a slight zoom and fades away
+        Positioned.fill(
+          child: AnimatedSwitcher(
+            duration: TokMotion.enter,
+            reverseDuration: TokMotion.fade,
+            switchInCurve: TokMotion.easeOut,
+            switchOutCurve: TokMotion.easeOut,
+            transitionBuilder: (child, anim) => FadeTransition(
+              opacity: anim,
+              child: _reduce || !_joining ? child : ScaleTransition(scale: Tween(begin: TokMotion.pageZoomScale, end: 1.0).animate(anim), child: child),
+            ),
+            child: !_joining
+                ? const SizedBox.shrink(key: ValueKey('none'))
+                : JoinFlow(
+                    key: ValueKey(_joinPreview),
+                    preview: _joinPreview,
+                    onJoined: () => _closeJoin(joined: !_joinPreview),
+                    onClose: _closeJoin,
                   ),
           ),
         ),

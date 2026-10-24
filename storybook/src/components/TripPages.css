@@ -50,3 +50,5 @@
 /* The invite link in a muted pill, with Copy at its end */
 .tu-link { display: flex; align-items: center; gap: var(--space-sm); margin: 0 var(--space-xs); padding: var(--space-xs) var(--space-xs) var(--space-xs) var(--space-md); border-radius: var(--radius-pill); background: var(--color-bg-muted); }
 .tu-link__text { flex: 1 1 0; min-width: 0; color: var(--color-text-default); }
+/* Under the note, See what they'll see, from the page's left edge */
+.tu-invite-preview { display: flex; padding-top: var(--space-sm); }
