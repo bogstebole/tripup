@@ -246,7 +246,8 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
         future: brasserieMenu,
         initialData: loadedMenu,
         builder: (context, snap) {
-          final sections = snap.data ?? const <MenuSection>[];
+          // Only a place with a menu has picks (a plain plan's Group is just who's coming)
+          final sections = widget.plan.menu.isEmpty ? const <MenuSection>[] : snap.data ?? const <MenuSection>[];
           if (snap.hasData) _mine ??= {...?myPicks.value};
           return build(sections, _mine ?? const {});
         },

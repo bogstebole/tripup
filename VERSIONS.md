@@ -539,6 +539,8 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - **Overview** (Figma 62:4828): `KnowSection` on `bg/subtle`, tips as `KnowTip` (muted block, label-sm brand, no arrow). `KnowRow` removed.
 - **Itinerary → details:** `ItineraryPage.onOpen`; `_openDetails` turns the pop-up into the full view in place (`_sheetPlan`, content from a third in, `springSnap`), closing slides it down. `DetailSheet` takes `mapOf` and handles plain plans (time and distance, a small map, Menu only with a menu).
 - **Landing back on Up next:** the shrinking card copy gets `here`; `PlanPin` no longer hides the tail while the full view is open. Checked at 8× slow motion.
+- A plain plan's Group no longer shows La Brasserie's menu picks (found while mirroring).
+- **Storybook mirrors 1.34:** `PollCard` (compact and open, `PollScrim`), `KnowTip`, details for any plan (Menu only with a menu, a map stand-in for plain plans), itinerary plan rows opening details in place. Stories: Poll · compact, Poll · open, Poll · open · your vote, Full view · a plain plan.
 
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html

@@ -2,8 +2,8 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { AnimatePresence } from 'motion/react';
 import { useState } from 'react';
 import {
-  billTotal, euros, EVENT, EVERYONE_THERE, PEOPLE, peopleAt, personById, REN_JOINS, SCANNED_BILL, THE_BILL, TODAY, TRIP, TRIP_DAYS, TRIP_NOW,
-  upNextAt, YOUR_TRIPS, type Bill, type Person,
+  billTotal, euros, EVENT, EVERYONE_THERE, PEOPLE, peopleAt, personById, planDetails, PLANS, REN_JOINS, SCANNED_BILL, THE_BILL, TODAY, TRIP,
+  TRIP_DAYS, TRIP_NOW, upNextAt, YOUR_TRIPS, type Bill, type Person, type Plan,
 } from '../data';
 import { ActionBar, TopBar } from './Bars';
 import { Camera } from './BillScan';
@@ -36,10 +36,10 @@ export const Bars: Story = {
   },
 };
 
-/** The full view in its place, opening where the app would (`start`, or Group while the plan is on). While the plan
- *  is on, Scan the bill opens the camera over it, and Add brings the bill in and tells everyone at the top. Notes
- *  (a dish added on the Menu, with Undo) come down at the top of the screen. */
-function Sheet({ start, active, bill: scanned, people = PEOPLE, now = TRIP_NOW }: { start?: DetailTab; active?: boolean; bill?: Bill; people?: Person[]; now?: Date }) {
+/** The full view in its place, opening where the app would (`start`, or Group while the plan is on), of La Brasserie or
+ *  of another `plan`. While the plan is on, Scan the bill opens the camera over it, and Add brings the bill in and
+ *  tells everyone at the top. Notes (a dish added on the Menu, with Undo) come down at the top of the screen. */
+function Sheet({ start, active, bill: scanned, people = PEOPLE, now = TRIP_NOW, plan }: { start?: DetailTab; active?: boolean; bill?: Bill; people?: Person[]; now?: Date; plan?: Plan }) {
   const [tab, setTab] = useState<DetailTab>(start ?? openingTab(active));
   const [bill, setBill] = useState(scanned);
   const [scanning, setScanning] = useState(false);
@@ -53,14 +53,23 @@ function Sheet({ start, active, bill: scanned, people = PEOPLE, now = TRIP_NOW }
   return (
     <div style={{ ...phone, padding: 'var(--d-sheet-inset)', paddingTop: 'calc(var(--space-xl) + var(--d-button-md))' }}>
       <NoticeLayer state={notices}>
-        <DetailSheet {...EVENT} people={people} now={now} faces={faces} tab={tab} onTabChange={setTab} active={active} bill={bill} onScan={() => setScanning(true)} />
+        <DetailSheet {...(plan ? planDetails(plan) : EVENT)} people={people} now={now} faces={faces} tab={tab} onTabChange={setTab} active={active} bill={bill} onScan={() => setScanning(true)} />
         <AnimatePresence>{scanning && <Camera key="camera" onAdd={add} onClose={() => setScanning(false)} />}</AnimatePresence>
       </NoticeLayer>
     </div>
   );
 }
 
-export const Overview: Story = { name: 'Full view · Overview', render: () => <Sheet start="Overview" /> };
+export const Overview: Story = {
+  name: 'Full view · Overview',
+  parameters: { docs: { description: { story: 'The place: its name and rating, its photos, what it is, then the one highlighted block, Know before you go (Bogdan\'s, Figma 62:4828): a subtle group (bg-subtle) with a brand heading, each tip a plain line in brand (label-sm) on a muted block (bg-muted, radius-card, at least 56 high), read, not tapped, so no arrow and no glass (see Components › Basics › KnowSection). Then its facts, as on its Google Maps card.' } } },
+  render: () => <Sheet start="Overview" />,
+};
+export const OverviewPlain: Story = {
+  name: 'Full view · a plain plan',
+  parameters: { docs: { description: { story: 'A plan we know little about (Tram 28, tomorrow at 10; one sent from Add, or a poll\'s place picked by hand, is the same): under its name, when and how far ("Tomorrow, 10 AM · 4.3 km away", label-md, muted: the walk, or past 45 min the distance); then a small map of it instead of photos (plan/map-height 160, radius-card, its sticker in the middle and the map\'s credit; the app draws the live map\'s tiles, here a plain block stands in). Nothing else is known, so no about, no Know before you go, no facts. It has no menu, so its tabs are Overview · Group. It opens from its row in the itinerary (see Pop-ups › Itinerary).' } } },
+  render: () => <Sheet start="Overview" plan={PLANS.find(p => p.id === 'tram')} />,
+};
 export const Menu: Story = {
   name: 'Full view · Menu',
   parameters: { docs: { description: { story: 'The restaurant\'s real menu, with who picked what. Add puts a dish on my picks, and "Added for Today, 5 PM" comes down at the top of the screen, like every other note, with Undo for toast-action-ms (Undo takes the dish back off).' } } },

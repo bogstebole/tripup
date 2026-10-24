@@ -31,8 +31,10 @@ const withHairlines = <T,>(items: T[], row: (x: T) => ReactElement) => items.fla
 export const ITINERARY_SUBTITLE = `${TRIP_DAYS[0].day}–${TRIP_DAYS[TRIP_DAYS.length - 1].day} May · Day ${TRIP_DAYS.findIndex(d => d.day === TODAY) + 1} of ${TRIP_DAYS.length}`;
 
 export interface ItineraryPageProps {
-  /** Tapping a stop: show it on the map. */
+  /** Tapping a place we've been: show it on the map. */
   onPick?: (place: string) => void;
+  /** Tapping a plan: open its details, right there. */
+  onOpen?: (plan: Plan) => void;
   /** The dinner poll, while it decides tonight's dinner (my vote, an Undo, a place picked by hand). Leave it out for
    *  the plans as they stand at the demo's start: the poll long closed, La Brasserie at 5 PM. */
   poll?: PollState;
@@ -49,11 +51,12 @@ export interface ItineraryPageProps {
 /**
  * Every day of the trip: today first, then the days ahead, then the ones behind us, a hairline between days (as on a
  * place's Group page): where we've been, what's planned, and today marked. It opens on today. Its filter shows only
- * the days picked. Tapping a stop shows it on the map (the pop-up closes and the map flies there). While the dinner
- * poll hasn't decided, today has a Dinner slot at 5 PM instead of the place ("Poll open · 3 of 5 voted"), which opens
- * the poll. A plan with an end says until when ("In 2 hrs · until 8 PM").
+ * the days picked. Tapping a place we've been shows it on the map (the pop-up closes and the map flies there); tapping
+ * a plan opens its details right there, in the pop-up's place. While the dinner poll hasn't decided, today has a Dinner
+ * slot at 5 PM instead of the place ("Poll open · 3 of 5 voted"), which opens the poll. A plan with an end says until
+ * when ("In 2 hrs · until 8 PM").
  */
-export function ItineraryPage({ onPick, poll, onPoll, now = TRIP_NOW, days = [], added = [] }: ItineraryPageProps) {
+export function ItineraryPage({ onPick, onOpen, poll, onPoll, now = TRIP_NOW, days = [], added = [] }: ItineraryPageProps) {
   const dinner = poll && (dinnerChoice(now, poll) ?? null);
   const plans = [...plansWith(dinner), ...added].sort((x, y) => planStart(x).getTime() - planStart(y).getTime());
   const next = plans.find(p => planStart(p) > now);
@@ -95,7 +98,7 @@ export function ItineraryPage({ onPick, poll, onPoll, now = TRIP_NOW, days = [],
               subtitle={[p === next && 'Up next', timeUntil(planStart(p), now), planEnd(p) && `until ${clockTime(planEnd(p)!)}`].filter(Boolean).join(' · ')}
               tone={p === next ? 'brand' : undefined}
               trailing={<span className="text-label-md weight-semibold tu-pages__strong">{clockTime(planStart(p))}</span>}
-              onClick={onPick && (() => onPick(p.name))}
+              onClick={onOpen && (() => onOpen(p))}
             />
           )),
         ];
@@ -399,7 +402,7 @@ export function AddPage({ step, onStep, onPreview, onSent, query: firstQuery = '
   };
   const send = () => {
     const s = spot!, { day, from, to } = when;
-    onSent?.({ id: `added-${s.id}-${day}-${from}`, name: s.name, sticker: s.sticker, day, hour: Math.floor(from / 60), minute: from % 60, endHour: Math.floor(to / 60), endMinute: to % 60 });
+    onSent?.({ id: `added-${s.id}-${day}-${from}`, name: s.name, sticker: s.sticker, at: s.at, day, hour: Math.floor(from / 60), minute: from % 60, endHour: Math.floor(to / 60), endMinute: to % 60 });
   };
 
   const key = `${step}:${spot?.id ?? ''}`;
@@ -525,10 +528,11 @@ function PlanSearch({ query, onQuery, onPick }: { query: string; onQuery: (q: st
 }
 
 /**
- * A small still map of a place, with its sticker on it and the map's credit. The app draws the live map's tiles in it
- * (`_mapOf`); here a plain block stands in for them, as the trip screen's canvas does for the map.
+ * A small still map of a place, with its sticker on it and the map's credit (Plan something's picked place, a plain
+ * plan's details). The app draws the live map's tiles in it (`_mapOf`); here a plain block stands in for them, as the
+ * trip screen's canvas does for the map.
  */
-function PlaceMap({ sticker }: { sticker: string }) {
+export function PlaceMap({ sticker }: { sticker: string }) {
   return (
     <div className="tu-place-map" aria-hidden>
       <Sticker name={sticker} size="map" />

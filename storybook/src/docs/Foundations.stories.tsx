@@ -49,7 +49,7 @@ const DIMENSION_NOTES: Record<string, string> = {
   'sheet/top-fade': 'How far the page fades under a sheet\'s header',
   'action-bar/fade-start': 'Where the footer\'s white starts fading (0 = at the bottom)',
 };
-const unitless = (k: string) => /(fade-start|scale|tilt)$/.test(k);
+const unitless = (k: string) => /(fade-start|scale|tilt|opacity)$/.test(k);
 // A size token is a number or a reference like "{space.xl}"; read the px it points at
 const px = (v: string | number) => {
   if (typeof v === 'number') return v;

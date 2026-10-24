@@ -1,17 +1,18 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { animate, AnimatePresence, motion, useMotionValue, usePresence, useReducedMotion, useTransform } from 'motion/react';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import {
-  billTotal, BILL_IN, clockTime, dayName, euros, isPaid, moneyWith, MY_ID, payLine, planEnd, planStart, POLL_CLOSES, POLL_OPENS, POLL_VOTES,
-  pollClosed, pollLeader, pollOpen, pollOptionById, pollStartedLine, pollWonLine, SCANNED_BILL, squaredUp, TODAY, TRIP, TRIP_DAYS, type Bill,
-  type Payment, type Plan, type PollState,
+  billTotal, BILL_IN, clockTime, dayName, euros, isPaid, moneyWith, MY_ID, payLine, PEOPLE, planDetails, planEnd, planStart, POLL_CLOSES,
+  POLL_OPENS, POLL_VOTES, pollClosed, pollLeader, pollOpen, pollOptionById, pollStartedLine, pollWonLine, SCANNED_BILL, squaredUp, TODAY, TRIP,
+  TRIP_DAYS, TRIP_NOW, type Bill, type Payment, type Plan, type PollState,
 } from '../data';
 import { ActionBar, TopBar } from './Bars';
 import { Camera } from './BillScan';
+import { DetailSheet } from './DetailSheet';
 import { NoticeLayer, useNotice, type NoticeState } from './Notice';
 import { JoinLayer } from './Join';
-import { PollOnMap, PollPage, pollSubtitle } from './Poll';
+import { PollCard, PollPage, PollScrim, pollSubtitle } from './Poll';
 import { ToggleChips } from './ToggleChips';
 import {
   addHeaderOf, AddPage, ITINERARY_SUBTITLE, ItineraryPage, MONEY_SUBTITLE, MoneyFooter, MoneyPage, type AddPageProps, type AddStep,
@@ -37,24 +38,76 @@ const place = {
 };
 // The map and the bars blur away behind it, under a light scrim
 const backdrop = { position: 'absolute' as const, inset: 0, background: 'var(--c-sheet-scrim)', backdropFilter: 'blur(var(--d-sheet-backdrop-blur))', WebkitBackdropFilter: 'blur(var(--d-sheet-backdrop-blur))' };
-// The dinner poll's card (or pill): where the Up next card would be, under the top bar, centred, grown from its top
+// The dinner poll's card: where the Up next card would be, under the top bar (a little clear of it), the screen less
+// its margins wide, grown from its top. Open, it reaches at most md above the bottom; its places scroll past that.
 const pollCardPlace = {
   position: 'absolute' as const,
-  top: 'calc(var(--space-xl) + var(--d-button-md) + var(--d-widget-edge-inset))',
-  left: 0,
-  right: 0,
+  top: 'calc(var(--space-xl) + var(--d-button-md) + var(--d-widget-edge-inset) + var(--space-xs))',
+  bottom: 'var(--space-md)',
+  left: 'var(--space-md)',
+  right: 'var(--space-md)',
   display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'flex-start',
+  flexDirection: 'column' as const,
+  pointerEvents: 'none' as const,
   transformOrigin: 'top center',
+};
+const faces = Object.fromEntries(PEOPLE.map(p => [p.id, p.sticker]));
+const space = tokens.space as Record<string, number>;
+// A component token is a reference like "{space.xl}"; read the size it points at
+const inset = space[(tokens.component.dimension['sheet/inset'] as string).replace(/^\{space\.|\}$/g, '')];
+/** 0 up to `a`, 1 from `b`, eased in and out between (the app's smoothstep). */
+const smoothstep = (a: number, b: number, v: number) => {
+  const x = Math.min(1, Math.max(0, (v - a) / (b - a)));
+  return x * x * (3 - 2 * x);
 };
 const dayOptions = TRIP_DAYS.map(d => ({ id: d.day, label: d.label }));
 
 type Which = 'itinerary' | 'money' | 'add' | 'poll';
 
-/** The dinner poll on the screen: its pop-up's subtitle and page, and its card on the map while it's open (a
- *  PollOnMap, card or pill). */
-type PollSlot = { subtitle: string; page: ReactNode; card?: ReactNode };
+/** The dinner poll on the screen: its pop-up's subtitle and page, its card on the map while it's open (a PollCard),
+ *  and whether that's opened up (`expanded`: the scrim goes behind it, and a tap there calls `onCollapse`). */
+type PollSlot = { subtitle: string; page: ReactNode; card?: ReactNode; expanded?: boolean; onCollapse?: () => void };
+
+/**
+ * A plan's details, opened from the itinerary. The pop-up and the full view are the same surface in the same place, so
+ * the itinerary gives way to them right there: the surface stays, the pop-up's page goes at once, and the details'
+ * content fades in where the list was. It runs as the app's full view does, on one value for how far open it is: it
+ * starts from 0.45 (a third in already) and springs to 1 (spring-snap), the content showing over 0.3–0.8 of the way.
+ * Closing, it leaves the way pop-ups do: down, past the bottom edge (spring-collapse), its content fading over the same
+ * part of the way. Reduced motion: it's there at once, and gone at once. The backdrop under it stays as it was.
+ */
+function PlanDetails({ plan, now, onClose }: { plan: Plan; now: Date; onClose: () => void }) {
+  const reduce = !!useReducedMotion();
+  const [present, safeToRemove] = usePresence();
+  const open = useMotionValue(reduce ? 1 : 0.45);
+  // 1 once it's leaving: then it slides down as it closes (opening, it stays where the pop-up was)
+  const leaving = useMotionValue(0);
+  // Opening, it springs the rest of the way; leaving, it springs shut and then goes. (Not run again for a new
+  // safeToRemove, which can come with each render while it leaves: the one it had then is enough.)
+  useEffect(() => {
+    if (present) {
+      if (reduce) return;
+      const run = animate(open, 1, { type: 'spring', duration: m['spring-snap'].duration, bounce: m['spring-snap'].bounce });
+      return () => run.stop();
+    }
+    if (reduce) return safeToRemove();
+    leaving.set(1);
+    const run = animate(open, 0, { type: 'spring', duration: m['spring-collapse'].duration, bounce: m['spring-collapse'].bounce });
+    run.then(safeToRemove);
+    return () => run.stop();
+  }, [present, reduce, open, leaving]);
+  const content = useTransform(() => smoothstep(0.3, 0.8, open.get()));
+  // Down by its own height and the inset at most, as a pop-up leaves (full transform strings, for the compositor)
+  const transform = useTransform(() => {
+    const d = leaving.get() * (1 - open.get());
+    return `translate(0px, calc(${d * 100}% + ${d * inset}px))`;
+  });
+  return (
+    <motion.div style={{ position: 'absolute', inset: 0, pointerEvents: 'auto', transform }}>
+      <DetailSheet {...planDetails(plan)} people={PEOPLE} now={now} faces={faces} onClose={onClose} contentOpacity={content} />
+    </motion.div>
+  );
+}
 
 /**
  * The trip screen with one footer pop-up open. The footer's buttons open the others once it's closed. `money` swaps
@@ -63,7 +116,8 @@ type PollSlot = { subtitle: string; page: ReactNode; card?: ReactNode };
  * pop-up, and its card on the map while no pop-up covers it); `children` go over everything (the camera, the invited
  * person's phone). Notes for everyone come down at the top: the pages show theirs, and `notices` lets the story show
  * its own too. `open` and `onOpen` say from outside which pop-up is open. The itinerary has its own day filter, pinned
- * under its title: it opens on All (`planDays` picks days for the story's start). Add's step lives here, as in the
+ * under its title: it opens on All (`planDays` picks days for the story's start). A plan in it opens its details right
+ * there (PlanDetails); a place we've been closes it (in the app the map flies there). Add's step lives here, as in the
  * app, so the pop-up's header can follow it; each time Add opens, it's on the choice. A plan sent from it closes the
  * pop-up with a note, and is on the itinerary from then on.
  */
@@ -72,7 +126,7 @@ function Screen({ start = null, open: shown, onOpen, money, itinerary, add, poll
   open?: Which | null;
   onOpen?: (which: Which | null) => void;
   money?: { page: ReactNode; footer?: ReactNode };
-  itinerary?: Omit<ItineraryPageProps, 'onPick' | 'onPoll' | 'days' | 'added'>;
+  itinerary?: Omit<ItineraryPageProps, 'onPick' | 'onOpen' | 'onPoll' | 'days' | 'added'>;
   add?: Omit<AddPageProps, 'step' | 'onStep' | 'onSent'> & { start?: AddStep };
   poll?: PollSlot;
   notices?: NoticeState;
@@ -92,6 +146,12 @@ function Screen({ start = null, open: shown, onOpen, money, itinerary, add, poll
   const [addStep, setAddStep] = useState<AddStep>(add?.start ?? 'choose');
   // Plans the group added (Plan something's Send)
   const [added, setAdded] = useState<Plan[]>([]);
+  // A plan opened from the itinerary: its details, in the pop-up's place (the pop-up goes as they come)
+  const [details, setDetails] = useState<Plan | null>(null);
+  const openDetails = (plan: Plan) => {
+    setDetails(plan);
+    setOpen(null);
+  };
   const [lastOpen, setLastOpen] = useState(open);
   if (open !== lastOpen) {
     setLastOpen(open);
@@ -109,7 +169,7 @@ function Screen({ start = null, open: shown, onOpen, money, itinerary, add, poll
     itinerary: {
       title: 'Itinerary',
       subtitle: ITINERARY_SUBTITLE,
-      page: <ItineraryPage onPick={close} onPoll={poll && (() => setOpen('poll'))} {...itinerary} days={planDays} added={added} />,
+      page: <ItineraryPage onPick={close} onOpen={openDetails} onPoll={poll && (() => setOpen('poll'))} {...itinerary} days={planDays} added={added} />,
       top: <ToggleChips label="Filter the itinerary by day" options={dayOptions} selected={planDays} onChange={setPlanDays} inset="xs" />,
     },
     money: { title: 'Money', subtitle: MONEY_SUBTITLE, page: money?.page ?? <MoneyPage />, footer: money?.footer ?? <MoneyFooter /> },
@@ -128,11 +188,15 @@ function Screen({ start = null, open: shown, onOpen, money, itinerary, add, poll
           <TopBar title={TRIP.title} dates={TRIP.dates} />
           <ActionBar onItinerary={() => setOpen('itinerary')} onMoney={() => setOpen('money')} onAdd={() => setOpen('add')} />
         </div>
-        {/* While the dinner poll is open its card (or its pill) stands on the map: it fades in and grows a little from its
-            top (morph-enter-scale, enter-ms, ease-out) and goes quicker (fade-ms) as the poll closes or a pop-up covers
-            it; reduced motion, fades only. Folding is the card's own morph (see PollOnMap). */}
+        {/* The poll opened up: the map and its bars behind it tint and blur a little; a tap there closes it */}
         <AnimatePresence>
-          {poll?.card && !current && (
+          {poll?.card && poll.expanded && !current && !details && <PollScrim key="scrim" onClose={poll.onCollapse} />}
+        </AnimatePresence>
+        {/* While the dinner poll is open its card stands on the map: it fades in and grows a little from its top
+            (morph-enter-scale, enter-ms, ease-out) and goes quicker (fade-ms) as the poll closes or a pop-up covers it;
+            reduced motion, fades only. Opening it up is the card's own (see PollCard). */}
+        <AnimatePresence>
+          {poll?.card && !current && !details && (
             <motion.div
               key="poll"
               style={pollCardPlace}
@@ -144,12 +208,13 @@ function Screen({ start = null, open: shown, onOpen, money, itinerary, add, poll
             </motion.div>
           )}
         </AnimatePresence>
+        {/* It stays as it is while a pop-up gives way to a plan's details */}
         <AnimatePresence>
-          {current && (
+          {(current || details) && (
             <motion.div
               key="backdrop"
               style={backdrop}
-              onClick={close}
+              onClick={details ? () => setDetails(null) : close}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1, transition: { duration: (reduce ? m['fade-ms'] : m['enter-ms']) / 1000, ease } }}
               exit={{ opacity: 0, transition: { duration: m['fade-ms'] / 1000, ease } }}
@@ -157,7 +222,8 @@ function Screen({ start = null, open: shown, onOpen, money, itinerary, add, poll
           )}
         </AnimatePresence>
         <div style={place}>
-          <AnimatePresence>
+          {/* A pop-up giving way to a plan's details goes at once: they're the same surface, in the same place */}
+          <AnimatePresence custom={!!details}>
             {open && current && (
               <TripSheet
                 key={open}
@@ -173,6 +239,9 @@ function Screen({ start = null, open: shown, onOpen, money, itinerary, add, poll
                 {current.page}
               </TripSheet>
             )}
+          </AnimatePresence>
+          <AnimatePresence>
+            {details && <PlanDetails key={details.id} plan={details} now={itinerary?.now ?? TRIP_NOW} onClose={() => setDetails(null)} />}
           </AnimatePresence>
         </div>
         {children}
@@ -296,8 +365,8 @@ function LivePoll({ from, start = 'poll' }: { from: 'open' | 'closed' | 'undone'
   const now = usePollClock(from === 'open' ? undefined : POLL_CLOSES);
   const [poll, setPoll] = useState<PollState>(from === 'undone' ? { undone: true } : {});
   const [open, setOpen] = useState<Which | null>(start);
-  // The card folded into its pill, off the map
-  const [folded, setFolded] = useState(false);
+  // The card on the map opened up over the tinted map, or closed to its compact self
+  const [expanded, setExpanded] = useState(false);
   // My vote, from the pop-up or right on the card
   const vote = (option: string) => setPoll(p => ({ ...p, mine: { option, at: now } }));
   const notices = useNotice();
@@ -336,16 +405,21 @@ function LivePoll({ from, start = 'poll' }: { from: 'open' | 'closed' | 'undone'
           <PollPage now={now} poll={poll} onVote={vote} onPick={option => setPoll(p => ({ ...p, picked: option }))} />
         ),
         card: pollOpen(now, poll) && (
-          <PollOnMap
-            folded={folded}
+          <PollCard
+            expanded={expanded}
             now={now}
             poll={poll}
-            onFold={() => setFolded(true)}
-            onUnfold={() => setFolded(false)}
-            onOpen={() => setOpen('poll')}
+            onToggle={() => setExpanded(e => !e)}
+            // A place's Details: the card closes and the poll's pop-up opens, with walking times
+            onDetails={() => {
+              setExpanded(false);
+              setOpen('poll');
+            }}
             onVote={vote}
           />
         ),
+        expanded,
+        onCollapse: () => setExpanded(false),
       }}
       notices={notices}
     />
@@ -390,7 +464,9 @@ const meta = {
           '',
           'Add\'s choice and its invite are shorter (sheet/compact-height), since they have only a few rows; Plan something takes the whole height, and the sheet eases between the two (enter-ms, ease-in-out). A step inside a pop-up shows in its header: a back button (sm) slides in before the title (enter-ms, ease-out) and the title and its line crossfade (the new one in over enter-ms, the old one out over fade-ms). Every note comes down at the top of the screen, where the top bar\'s buttons are, whether it\'s mine ("Link copied", "You paid Maya €181.50") or one for everyone on the trip ("Leo paid Maya €185.92"): the same pill, for toast-ms; one with Undo stays for toast-action-ms, so there\'s time to reach it. The pop-ups have no notes of their own. A line too long for the pill ends in an ellipsis; Undo always shows.',
           '',
-          'The dinner poll is a pop-up of the same family, "Dinner tonight". It opens from its card on the map (in its place while it\'s open), from tonight\'s Dinner slot in the itinerary, and on Undo.',
+          'The dinner poll is a pop-up of the same family, "Dinner tonight". It opens from a place\'s Details on its card on the map (the card stands in Up next\'s place while the poll is open), from tonight\'s Dinner slot in the itinerary, and on Undo.',
+          '',
+          'A plan in the itinerary opens its details right there, not on the map: the pop-up and the full view are the same surface in the same place, so the list gives way to the plan\'s page (see Itinerary).',
         ].join('\n'),
       },
     },
@@ -400,7 +476,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Itinerary: Story = {
-  parameters: { docs: { description: { story: 'Every day of the trip: today first, then the days ahead, then the ones behind us. No grey blocks: a hairline between days, md above and below it (as on a place\'s Group page). Each day has its heading ("Thu 14 · Day 3 · Today", past days muted; the day number is still its place in the trip), then where we\'ve been ("Been there", no check) and what\'s planned (its time); a day with nothing yet says "Nothing planned yet". Headings and rows share the page\'s one left edge. Under the title, pinned while the page scrolls under it, the day filter: the same chips as the map\'s (All, Tue 12…), but its own, so planning ahead doesn\'t change what the map shows. It opens on All, on today, just under the header; picking days shows only those, in the same order (they combine; All brings every day back, at once). The next plan says "Up next" in brand blue. A plan with an end (one sent from Add\'s Plan something) says until when: "In 2 hrs · until 8 PM". Tapping a stop closes the pop-up and shows it on the map.' } } },
+  parameters: { docs: { description: { story: 'Every day of the trip: today first, then the days ahead, then the ones behind us. No grey blocks: a hairline between days, md above and below it (as on a place\'s Group page). Each day has its heading ("Thu 14 · Day 3 · Today", past days muted; the day number is still its place in the trip), then where we\'ve been ("Been there", no check) and what\'s planned (its time); a day with nothing yet says "Nothing planned yet". Headings and rows share the page\'s one left edge. Under the title, pinned while the page scrolls under it, the day filter: the same chips as the map\'s (All, Tue 12…), but its own, so planning ahead doesn\'t change what the map shows. It opens on All, on today, just under the header; picking days shows only those, in the same order (they combine; All brings every day back, at once). The next plan says "Up next" in brand blue. A plan with an end (one sent from Add\'s Plan something) says until when: "In 2 hrs · until 8 PM". Tapping a place we\'ve been closes the pop-up and shows it on the map (the app flies there). Tapping a plan opens its details right there (the full view, as from the Up next card): the pop-up and the full view are the same surface in the same place, so the surface stays, the list goes at once and the plan\'s page fades in where it was (the full view\'s crossfade, already a third in at the start, on spring-snap: 0.35 s, no bounce), the backdrop staying as it is. Closing (its ×, or a tap outside) slides it down past the bottom edge like a pop-up (spring-collapse: 0.38 s, no bounce), its content fading on the way. La Brasserie has its whole place card: photos, about, Know before you go, its facts, and the Menu tab. A plan we know little about (Tram 28, one sent from Add) has its time and how far it is under its name ("Tomorrow, 10 AM · 4.3 km away"), a small map of it with its sticker (plan/map-height 160, radius-card; the app draws the live map\'s tiles, here a plain block stands in), and no Menu tab: Overview · Group. Reduced motion: the details are there at once and gone at once.' } } },
   render: () => <Screen start="itinerary" />,
 };
 
@@ -491,7 +567,7 @@ export const ItineraryPollOpen: Story = {
 
 export const PollOpen: Story = {
   name: 'Poll · open',
-  parameters: { docs: { description: { story: `Maya asks at 2:30 PM and everyone hears it at the top ("Maya started a poll: where for dinner tonight?"). The pop-up: how it works, then a card per place: its sticker, name, rating, food and price, and how far it is on foot from where I am (16, 17 and 17 min: the distance × 1.3 for the streets, at 80 m a minute, rounded up). Under each, a bar of its share of the five votes (brand for the one ahead, grey for the others, on a white track since the card is grey; it slides out from the left as votes come in, enter-ms, ease-out), then who voted (every face), how many, and Vote, which turns to a blue "✓ Your vote"; a tap on another place moves my vote. There's no Leading tag: the bars show it. The subtitle counts down to 3 PM ("closes in 30 mins"). The timing is sped up: in the app the others vote 6, 11 and 17 min in (Leo for Churrasqueira, then Nic and Ren for La Brasserie); here a trip minute passes every ${POLL_MINUTE_MS / 1000} s, and the clock holds after Ren's vote so the poll stays open to look at. The one ahead follows the count, and a tie goes to whichever got to that many first (the time of its latest vote): when Leo votes, Churrasqueira ties La Brasserie 1–1 and La Brasserie, there first, stays ahead. Vote Churrasqueira before Nic does and it takes the lead (2–1); Nic's vote ties it 2–2, and Churrasqueira, which got to 2 first, keeps it; Ren's vote then puts La Brasserie ahead. The countdown only counts votes already in, so it reads to 3 PM until everyone has voted. It closes as soon as all five have, so with my vote in it closes on Ren's (or on my vote, after his): the page turns to the result and "La Brasserie won · added to tonight" comes down with Undo (see Poll · closed). Close the pop-up to see its card on the map, which follows the votes too. Tap a place on it to vote right there (its ring fills with a check, and its bar and faces update at once; it\'s the same vote as the pop-up\'s), "Ratings, prices and walks →" to open the poll again, or its chevron to fold it into a pill under the day filter: one surface changing shape (tap the pill to unfold it; see Widget › Up next · Poll card ↔ pill). Replay starts over.` } } },
+  parameters: { docs: { description: { story: `Maya asks at 2:30 PM and everyone hears it at the top ("Maya started a poll: where for dinner tonight?"). The pop-up: how it works, then a card per place: its sticker, name, rating, food and price, and how far it is on foot from where I am (16, 17 and 17 min: the distance × 1.3 for the streets, at 80 m a minute, rounded up). Under each, a bar of its share of the five votes (brand for the one ahead, grey for the others, on a white track since the card is grey; it slides out from the left as votes come in, enter-ms, ease-out), then who voted (every face), how many, and Vote, which turns to a blue "✓ Your vote"; a tap on another place moves my vote. There's no Leading tag: the bars show it. The subtitle counts down to 3 PM ("closes in 30 mins"). The timing is sped up: in the app the others vote 6, 11 and 17 min in (Leo for Churrasqueira, then Nic and Ren for La Brasserie); here a trip minute passes every ${POLL_MINUTE_MS / 1000} s, and the clock holds after Ren's vote so the poll stays open to look at. The one ahead follows the count, and a tie goes to whichever got to that many first (the time of its latest vote): when Leo votes, Churrasqueira ties La Brasserie 1–1 and La Brasserie, there first, stays ahead. Vote Churrasqueira before Nic does and it takes the lead (2–1); Nic's vote ties it 2–2, and Churrasqueira, which got to 2 first, keeps it; Ren's vote then puts La Brasserie ahead. The countdown only counts votes already in, so it reads to 3 PM until everyone has voted. It closes as soon as all five have, so with my vote in it closes on Ren's (or on my vote, after his): the page turns to the result and "La Brasserie won · added to tonight" comes down with Undo (see Poll · closed). Close the pop-up to see its card on the map, compact, under the top bar (xs clear of it): "Live poll • closes in N mins" with the red dot, the question, and who has voted, following the votes too. Tap it to open it in place: the map and the bars behind it tint blue and blur a little (c-poll-scrim, d-poll-scrim-blur; enter-ms in, fade-ms out) and the card grows down to show each place, where its check votes right there (primary once it\'s mine; the same vote as the pop-up\'s). A place\'s Details closes the card and opens the poll again; its head, or a tap on the scrim, closes it (see Widget › Up next · Poll · open). Replay starts over.` } } },
   render: () => <PollStory />,
 };
 

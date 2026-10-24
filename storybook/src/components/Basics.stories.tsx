@@ -1,16 +1,15 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
-import { EVENT, MENU, PEOPLE, TRIP_DAYS, upNextChips } from '../data';
+import { EVENT, TRIP_DAYS, upNextChips } from '../data';
 import { AddButton } from './AddButton';
 import { Toast } from './Toast';
 import { ToggleChips } from './ToggleChips';
 import { DishSticker } from './DishSticker';
 import { FacePile } from './FacePile';
 import { InfoChips } from './InfoChips';
-import { KnowRow, KnowSection } from './KnowSection';
+import { KnowSection, KnowTip } from './KnowSection';
 import { RatingLine } from './RatingLine';
 import { SegmentedTabs } from './SegmentedTabs';
-import { Sticker } from './Sticker';
 import { Surface } from './Surface';
 
 const meta = { title: 'Components/Basics', parameters: { layout: 'centered' } } satisfies Meta;
@@ -58,16 +57,10 @@ export const Tabs: Story = {
 
 export const Know: Story = {
   name: 'KnowSection',
-  parameters: { docs: { description: { story: 'A muted group with a brand heading and soft rows. The same component holds tips, menu picks and people.' } } },
+  parameters: { docs: { description: { story: 'Know before you go, on a place\'s Overview (Bogdan\'s block, Figma 62:4828): a subtle group (bg-subtle, radius-sheet; md in at the top, xs on the other sides) with a brand heading (heading-sm), then each tip, xs apart, as a plain line in brand (label-sm) on a muted block (bg-muted, radius-card, at least know-row/height 56 tall, sm in from the sides and xs from the top and bottom, the line centred in it top to bottom). Tips are read, not tapped: no arrow, no glass, no press.' } } },
   render: () => (
-    <div style={{ width: 343, display: 'grid', gap: 'var(--space-md)' }}>
-      <KnowSection title="Know before you go">{EVENT.tips.map(t => <KnowRow key={t}>{t}</KnowRow>)}</KnowSection>
-      <KnowSection title="Menu picks" meta="4 of 5 picked">
-        <KnowRow leading={<Sticker name={MENU[0].sticker} size="row" />}>{MENU[0].name}</KnowRow>
-      </KnowSection>
-      <KnowSection title="Who's coming" meta="4 of 5 going">
-        <KnowRow leading={<Sticker name={PEOPLE[1].sticker} size="avatar" />}>{PEOPLE[1].name}</KnowRow>
-      </KnowSection>
+    <div style={{ width: 343 }}>
+      <KnowSection title="Know before you go">{EVENT.tips.map(t => <KnowTip key={t}>{t}</KnowTip>)}</KnowSection>
     </div>
   ),
 };
