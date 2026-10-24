@@ -515,6 +515,7 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - **Itinerary:** today first, then the days ahead, then the past ones; a hairline between days and no grey blocks (like Group); no check on "Been there".
 - **Going in:** the trip screen opens out of the trip card (scaled to the card's width, clipped to its rounded rect, both growing to the screen on `springExpand`; Back on `springCollapse`), fading in over the first 30%; the list fades and leans in toward the card. The poll card no longer shows over Your trips or mid-transition.
 - The Add pop-up waits for Bogdan's design.
+- **Storybook mirrors 1.30:** wide `SegmentedTabs`, Money's sections and `MoneyFooter`, the itinerary's order and dividers, and `HomeLayer` opening the trip out of the card (one motion value for both layers; the hidden layer keeps its scroll).
 
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html

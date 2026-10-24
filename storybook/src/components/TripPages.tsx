@@ -1,11 +1,11 @@
 // The pages of the footer's three pop-ups: the itinerary, the group's money, and adding to the trip. Each goes inside
 // a TripSheet, which scrolls it; their notes come down at the top of the screen (see Notice.tsx).
-import { ArrowRight, Check, ChevronLeft, CircleCheck, Copy, MapPin, MapPinPlus, ScanLine, UserPlus } from 'lucide-react';
+import { ArrowRight, ChevronLeft, CircleCheck, Copy, MapPin, MapPinPlus, ScanLine, UserPlus } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { useState, type ReactElement, type ReactNode } from 'react';
+import { useState, type ReactElement } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import {
-  balanceLeft, clockTime, dayName, DINNER, DINNER_ESTIMATE, DINNER_TABLE, dinnerChoice, euros, INVITE_LINK, isPaid, MY_ID, payLine, PEOPLE,
+  balanceLeft, clockTime, dayName, DINNER, DINNER_TABLE, dinnerChoice, euros, INVITE_LINK, isPaid, MY_ID, payLine, PEOPLE,
   personById, PLAN_IDEAS, planStart, plansWith, POLL_OPENS, pollClosed, pollOpen, PRE_DINNER, shareOf, SPENT_SO_FAR, squaredUp, timeUntil,
   TODAY, tripDate, TRIP_DAYS, TRIP_NOW, VISITED, votesIn, type Money, type Payment, type PollState,
 } from '../data';
@@ -45,19 +45,22 @@ export interface ItineraryPageProps {
 }
 
 /**
- * Every day of the trip, in order, each in its own grey block (so what belongs to which day is plain): where we've
- * been, what's planned, and today marked. It opens on today. Its filter shows only the days picked. Tapping a stop
- * shows it on the map (the pop-up closes and the map flies there). While the dinner poll hasn't decided, today has a
- * Dinner slot at 5 PM instead of the place ("Poll open · 3 of 5 voted"), which opens the poll.
+ * Every day of the trip: today first, then the days ahead, then the ones behind us, a hairline between days (as on a
+ * place's Group page): where we've been, what's planned, and today marked. It opens on today. Its filter shows only
+ * the days picked. Tapping a stop shows it on the map (the pop-up closes and the map flies there). While the dinner
+ * poll hasn't decided, today has a Dinner slot at 5 PM instead of the place ("Poll open · 3 of 5 voted"), which opens
+ * the poll.
  */
 export function ItineraryPage({ onPick, poll, onPoll, now = TRIP_NOW, days = [] }: ItineraryPageProps) {
   const dinner = poll && (dinnerChoice(now, poll) ?? null);
   const plans = plansWith(dinner);
   const next = plans.find(p => planStart(p) > now);
+  // Today first, then the days ahead, then the ones behind us
+  const order = [...TRIP_DAYS.filter(d => d.day === TODAY), ...TRIP_DAYS.filter(d => d.day > TODAY), ...TRIP_DAYS.filter(d => d.day < TODAY)];
+  const shown = order.filter(d => !days.length || days.includes(d.day));
   return (
-    <StaggerIn gap="sm">
-      {TRIP_DAYS.map(({ day, label }, i) => {
-        if (days.length && !days.includes(day)) return null;
+    <StaggerIn>
+      {shown.map(({ day, label }, k) => {
         const rows = [
           ...VISITED.filter(v => v.day === day).map(v => (
             <SheetRow
@@ -65,7 +68,6 @@ export function ItineraryPage({ onPick, poll, onPoll, now = TRIP_NOW, days = [] 
               leading={<Slot><Sticker name={v.sticker} size="row" tilt={v.tilt} /></Slot>}
               title={v.name}
               subtitle="Been there"
-              trailing={<Check className="tu-pages__check" strokeWidth={2} absoluteStrokeWidth aria-label="Visited" />}
               onClick={onPick && (() => onPick(v.name))}
             />
           )),
@@ -97,14 +99,13 @@ export function ItineraryPage({ onPick, poll, onPoll, now = TRIP_NOW, days = [] 
         ];
         return (
           <div key={day} className="tu-day-block" data-sheet-focus={day === TODAY || undefined}>
+            {k > 0 && <div className="tu-day-block__line"><Hairline /></div>}
             <div className="tu-day">
               <h3 className={`text-heading-sm ${day < TODAY ? 'tu-pages__muted' : 'tu-pages__strong'}`}>{label}</h3>
-              <span className="text-body-sm tu-pages__muted">Day {i + 1}</span>
+              <span className="text-body-sm tu-pages__muted">Day {TRIP_DAYS.findIndex(d => d.day === day) + 1}</span>
               {day === TODAY && <span className="tu-tag text-label-md weight-semibold">Today</span>}
             </div>
-            {rows.length
-              ? <div className="tu-day-block__rows">{rows}</div>
-              : <p className="text-body-sm tu-day__empty">Nothing planned yet</p>}
+            {rows.length ? rows : <p className="text-body-sm tu-day__empty">Nothing planned yet</p>}
           </div>
         );
       })}
@@ -114,9 +115,8 @@ export function ItineraryPage({ onPick, poll, onPoll, now = TRIP_NOW, days = [] 
 
 // ---------- Money
 
-/** "€726.00 spent so far · 3 expenses"; with the dinner in, "€954.80 spent so far · 4 expenses". */
-export const moneySubtitle = (money: Money = PRE_DINNER) => `${euros(money.spent)} spent so far · ${money.expenses.length} expenses`;
-export const MONEY_SUBTITLE = moneySubtitle();
+/** "5 people · split by who had what". What it has cost so far is in its footer (see MoneyFooter). */
+export const MONEY_SUBTITLE = `${PEOPLE.length} people · split by who had what`;
 
 /** Money's tabs: one list at a time, Settle up first (it's the one with something to do). */
 export const MONEY_TABS = ['Settle up', 'Balances', 'Expenses'] as const;
@@ -129,23 +129,21 @@ export interface MoneyPageProps {
   made?: Payment[];
   /** My Pay, when the payments are kept outside. */
   onPay?: (p: Payment) => void;
-  /** The dinner is on and its bill isn't in: instead of the estimate, a way to scan the bill. */
-  dinnerOn?: boolean;
-  onScan?: () => void;
   /** The tab it opens on (Settle up, by default). */
   tab?: MoneyTab;
 }
 
 /**
- * The group's money: what I owe (and paying it) on top, then one thing at a time in tabs (Settle up · Balances ·
- * Expenses): the fewest payments that square everyone up (each with a Why that opens), each person's balance after
- * the payments made so far, or the expenses (the list that grows all trip, so it never pushes the rest away). Each
- * tab's list has a short line on top. Picking a tab fades its list in (enter-ms) while the last one fades out with a
- * blur (fade-ms; no blur with reduced motion). Tonight's dinner is an estimate until it's on, then Scan the bill; once
- * the bill is in, it's an expense split by who had what. The top block: what I owe and Pay; "Everyone else has paid";
- * "You're square with Maya"; and, once everyone has paid, a green "Lisbon is squared up".
+ * The group's money: what I owe (and paying it) on top, then one thing at a time in tabs the width of the page
+ * (Settle up · Balances · Expenses): the fewest payments that square everyone up (each with a Why that opens), each
+ * person's balance after the payments made so far, or the expenses (the list that grows all trip, so it never pushes
+ * the rest away). Each tab's list starts with a section title and a line under it. Picking a tab fades its list in
+ * (enter-ms) while the last one fades out with a blur (fade-ms; no blur with reduced motion). Tonight's dinner joins
+ * once its bill is in, as an expense split by who had what. The top block: what I owe and Pay; "Everyone else has
+ * paid"; "You're square with Maya"; and, once everyone has paid, a green "Lisbon is squared up". Every text is on the
+ * page's one left edge. What it has cost so far, and Scan the bill, are in the pop-up's footer (MoneyFooter).
  */
-export function MoneyPage({ money = PRE_DINNER, made: kept, onPay, dinnerOn, onScan, tab: firstTab = 'Settle up' }: MoneyPageProps) {
+export function MoneyPage({ money = PRE_DINNER, made: kept, onPay, tab: firstTab = 'Settle up' }: MoneyPageProps) {
   const toast = useTripNotice();
   const [own, setOwn] = useState<Payment[]>([]);
   const made = kept ?? own;
@@ -173,6 +171,7 @@ export function MoneyPage({ money = PRE_DINNER, made: kept, onPay, dinnerOn, onS
   const key = (p: Payment) => `${p.from}>${p.to}`;
   return (
     <StaggerIn>
+      {/* Its text on the page's one left edge, with the title above and everything under it */}
       {(mine || square) && (
         <div key="mine" className={square ? 'tu-owe tu-owe--square' : 'tu-owe'}>
           <div className="tu-owe__text">
@@ -185,19 +184,8 @@ export function MoneyPage({ money = PRE_DINNER, made: kept, onPay, dinnerOn, onS
             : mine && <TextButton label="Pay" onClick={() => pay(mine)} />}
         </div>
       )}
-      {/* Tonight's dinner: an estimate until it's on, then the way to bring its bill in */}
-      {!money.bill && dinnerOn ? (
-        <div key="dinner-on" className="tu-dinner-on">
-          <p className="text-body-sm tu-pages__muted tu-dinner-on__text">Dinner is on. When the bill comes, scan it: it splits by who had what.</p>
-          <TextButton label="Scan the bill" icon={ScanLine} onClick={onScan} />
-        </div>
-      ) : !money.bill && DINNER_ESTIMATE > 0 ? (
-        <p key="estimate" className="text-body-sm tu-pages__note">
-          Tonight's dinner isn't on it yet: about {euros(DINNER_ESTIMATE)}, from what everyone picked. It splits by who had what.
-        </p>
-      ) : null}
-      <div key="tabs" className="tu-money-tabs">
-        <SegmentedTabs tabs={[...MONEY_TABS]} value={tab} onChange={t => setTab(t as MoneyTab)} />
+      <div key="tabs" className={mine || square ? 'tu-money-tabs tu-money-tabs--under' : 'tu-money-tabs'}>
+        <SegmentedTabs tabs={[...MONEY_TABS]} value={tab} onChange={t => setTab(t as MoneyTab)} wide />
       </div>
       {/* One tab's list at a time: it fades in while the last one fades out with a blur, both from the top */}
       <div key="list" className="tu-money-list">
@@ -211,7 +199,7 @@ export function MoneyPage({ money = PRE_DINNER, made: kept, onPay, dinnerOn, onS
           >
             {tab === 'Settle up' && (
               <>
-                <MoneyNote>{pays.length} payments square everyone, instead of {money.paymentsOneByOne}</MoneyNote>
+                <SheetSection title="Settle up" top="lg" subtitle={`${pays.length} payments square everyone, instead of ${money.paymentsOneByOne}`} />
                 {withHairlines(pays, p => (
                   <div key={`pay-${key(p)}`}>
                     <SheetRow
@@ -242,7 +230,7 @@ export function MoneyPage({ money = PRE_DINNER, made: kept, onPay, dinnerOn, onS
             )}
             {tab === 'Balances' && (
               <>
-                <MoneyNote>Who gets money back, and who owes</MoneyNote>
+                <SheetSection title="Balances" top="lg" subtitle="Who gets money back, and who owes" />
                 {withHairlines(PEOPLE, x => {
                   const b = balanceLeft(money, made, x.id);
                   return (
@@ -262,7 +250,7 @@ export function MoneyPage({ money = PRE_DINNER, made: kept, onPay, dinnerOn, onS
             )}
             {tab === 'Expenses' && (
               <>
-                <MoneyNote>{money.expenses.length} expenses · {euros(money.spent)} · newest first</MoneyNote>
+                <SheetSection title="Expenses" top="lg" subtitle="Newest first" />
                 {withHairlines(money.expenses, e => (
                   <SheetRow
                     key={`expense-${e.title}`}
@@ -286,9 +274,33 @@ export function MoneyPage({ money = PRE_DINNER, made: kept, onPay, dinnerOn, onS
   );
 }
 
-/** A short line under Money's tabs, about the list. */
-function MoneyNote({ children }: { children: ReactNode }) {
-  return <p className="text-body-sm tu-money-note">{children}</p>;
+export interface MoneyFooterProps {
+  /** The money as it stands (`PRE_DINNER`, the default, or with the bill in). */
+  money?: Money;
+  /** The dinner is on: until its bill is in, Scan the bill. */
+  dinnerOn?: boolean;
+  onScan?: () => void;
+}
+
+/**
+ * Money's bottom, in view while the lists scroll (the pop-up's footer, over a hairline): what the trip has cost so far
+ * and my part of it, like the Menu's total: "Spent so far", "3 expenses · yours €181.50", and the total, big. While the
+ * dinner is on and its bill isn't in, Scan the bill under it, the width of the page and 56 px tall (TextButton lg, wide).
+ */
+export function MoneyFooter({ money = PRE_DINNER, dinnerOn, onScan }: MoneyFooterProps) {
+  const mine = money.expenses.reduce((sum, e) => sum + shareOf(e, MY_ID), 0);
+  return (
+    <div className="tu-money-footer">
+      <div className="tu-money-footer__row">
+        <div className="tu-money-footer__text">
+          <p className="text-label-lg">Spent so far</p>
+          <p className="text-body-sm tu-pages__muted">{money.expenses.length} expenses · yours {euros(mine)}</p>
+        </div>
+        <p className="text-heading-lg tu-pages__strong">{euros(money.spent)}</p>
+      </div>
+      {!money.bill && dinnerOn && <TextButton label="Scan the bill" icon={ScanLine} size="lg" wide onClick={onScan} />}
+    </div>
+  );
 }
 
 /** Why a payment is what it is: the payer's share of each expense, what they paid, and why it all goes to one person. */
