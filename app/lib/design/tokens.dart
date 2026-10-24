@@ -355,6 +355,9 @@ abstract final class TokDim {
   static const double pollMetaFace = 16;
   static const double pollMetaFaceOverlap = 5;
   static const double pollNotVotedOpacity = 0.4;
+  static const double pollActivityMark = 20;
+  static const double pollActivityBar = 4;
+  static const double pollActivityTimer = 48;
   static const double pollMark = 24;
   static const double homeHeaderGap = 29;
   static const double planMapHeight = 160;
@@ -487,6 +490,7 @@ abstract final class TokMotion {
   static const openDelay = Duration(milliseconds: 220);
   static const openStagger = Duration(milliseconds: 30);
   static const openItem = Duration(milliseconds: 200);
+  static const fold = Duration(milliseconds: 200);
   static const int staggerMax = 8;
   static const enter = Duration(milliseconds: 260);
   static const pageEnterDelay = Duration(milliseconds: 80);

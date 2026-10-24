@@ -194,6 +194,9 @@
   --d-poll-meta-face: 16px;
   --d-poll-meta-face-overlap: 5px;
   --d-poll-not-voted-opacity: 0.4;
+  --d-poll-activity-mark: 20px;
+  --d-poll-activity-bar: 4px;
+  --d-poll-activity-timer: 48px;
   --d-poll-mark: 24px;
   --d-home-header-gap: 29px;
   --d-plan-map-height: 160px;
@@ -275,6 +278,7 @@
   --open-delay-ms: 220ms;
   --open-stagger-ms: 30ms;
   --open-item-ms: 200ms;
+  --fold-ms: 200ms;
   --enter-ms: 260ms;
   --page-enter-delay-ms: 80ms;
   --toast-ms: 3000ms;

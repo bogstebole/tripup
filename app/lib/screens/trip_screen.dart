@@ -31,6 +31,7 @@ import '../components/toast.dart';
 import '../components/trip_pages.dart';
 import '../components/trip_sheet.dart';
 import '../data.dart';
+import '../platform/poll_activity.dart';
 import '../design/theme.dart';
 import '../design/tokens.dart';
 
@@ -199,6 +200,10 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       }
     });
     tripNotice.addListener(_showNotice);
+    // Votes cast from the lock screen or the notification come back as my vote; mine goes out to them
+    PollActivity.listen(onOpen: _showPoll);
+    myVote.addListener(_pollOutside);
+    pollUndone.addListener(_pollOutside);
     madePayments.addListener(_paymentsChanged);
     // The others' payments come in on their own, a little apart (see addBill)
     _payTick = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -225,9 +230,12 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     _pollVotes = votes;
     // Only a change that just happened is news (not one the demo jumped over)
     bool fresh(DateTime at) => now.difference(at) < const Duration(minutes: 2);
-    if (was != -1 && phase == 1 && was == 0 && fresh(pollOpens)) {
-      tripNotice.value = '${personById(pollAskedBy).name} started a poll: where for dinner tonight?';
-    }
+    final opened = was != -1 && phase == 1 && was == 0 && fresh(pollOpens);
+    // Outside the app too (iOS): the Live Activity follows the poll, and a poll that has just opened sends the
+    // notification with its vote buttons, which then stands in for the note at the top
+    PollActivity.sync(now, fresh: opened).then((posted) {
+      if (opened && !posted && mounted) tripNotice.value = '${personById(pollAskedBy).name} started a poll: where for dinner tonight?';
+    });
     if (was != -1 && phase == 2 && was != 2 && fresh(pollClosedAt(now)) && !pollUndone.value) {
       final winner = pollOptionById(pollLeader(now)!);
       noticeAction = (label: 'Undo', onTap: _undoWinner);
@@ -235,6 +243,34 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       _upNextMid = true;
     }
     _sceneChanged();
+  }
+
+  void _pollOutside() => PollActivity.sync(tripNow());
+
+  /// From the notification or the Live Activity: the poll, open. Whatever was up gives way; from your trips the trip
+  /// opens first, and the poll opens once its entrance is done (it's the last thing in). A poll that has closed shows
+  /// its result in the poll's pop-up instead.
+  void _showPoll() {
+    if (!mounted) return;
+    if (_joining) setState(() => _joining = false);
+    final covered = _covered;
+    if (_sheet) _closeSheet();
+    if (_popup != null) _closePopup();
+    // Wait for the trip's entrance, or for what covered the map to leave
+    final wait = !_inTrip
+        ? EnterOrder.total
+        : covered
+            ? Duration(milliseconds: (TokMotion.springCollapse.duration * 1000).round())
+            : Duration.zero;
+    _goIn();
+    Future.delayed(wait, () {
+      if (!mounted) return;
+      if (pollOpen(tripNow())) {
+        setState(() => _pollExpanded = true);
+      } else {
+        _openPopup(_Popup.poll);
+      }
+    });
   }
 
   void _expandPoll(bool open) {
@@ -906,6 +942,8 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     _popDrag.dispose();
     addedPlans.removeListener(_sceneChanged);
     tripNotice.removeListener(_showNotice);
+    myVote.removeListener(_pollOutside);
+    pollUndone.removeListener(_pollOutside);
     myVote.removeListener(_pollTick);
     pollUndone.removeListener(_dinnerChanged);
     pickedDinner.removeListener(_dinnerChanged);
@@ -1037,7 +1075,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
               onTap: () => _expandPoll(false),
               child: AnimatedOpacity(
                 opacity: _pollExpanded && pollOpen(tripNow()) && !_covered ? 1 : 0,
-                duration: _pollExpanded ? TokMotion.enter : TokMotion.fade,
+                duration: _pollExpanded ? TokMotion.enter : TokMotion.fold,   // in step with the card
                 curve: TokMotion.easeOut,
                 child: BackdropFilter(
                   filter: ui.ImageFilter.blur(sigmaX: TokDim.pollScrimBlur, sigmaY: TokDim.pollScrimBlur),

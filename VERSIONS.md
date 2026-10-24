@@ -542,6 +542,23 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - A plain plan's Group no longer shows La Brasserie's menu picks (found while mirroring).
 - **Storybook mirrors 1.34:** `PollCard` (compact and open, `PollScrim`), `KnowTip`, details for any plan (Menu only with a menu, a map stand-in for plain plans), itinerary plan rows opening details in place. Stories: Poll · compact, Poll · open, Poll · open · your vote, Full view · a plain plan.
 
+### Final UI, iteration 1.35: the poll outside the app on iOS (branch `feature/poll-live-activity`)
+- **Live Activity** (`ios/PollWidget`, a new widget extension, iOS 17): `PollLiveActivity` for the lock screen and the Dynamic Island (compact "● Poll" + countdown, minimal dot, expanded places). Shared with the app: `ios/Shared/PollActivityAttributes.swift` and `PollVote.swift` (`PollVoteIntent`, a `LiveActivityIntent` that runs in the app).
+- **Notification** with a vote action per place (`UNNotificationCategory`), handled in `AppDelegate` → `PollBridge.vote`.
+- **Bridge:** `ios/Runner/PollBridge.swift` (channel `tripup/poll`: start, update, end, clear, takeVote; votes go back as `voted`) and `lib/platform/poll_activity.dart` (`PollActivity.sync` from `_pollTick` and on my vote; the in-app note only when the notification couldn't go out).
+- **Tokens:** `build-tokens.mjs` also writes `ios/PollWidget/Tokens.swift` (colours light and dark, spaces, radii, dims, text sizes). New dims `poll/activity-mark`, `poll/activity-bar`, `poll/activity-timer`.
+- `NSSupportsLiveActivities` in the app's Info.plist. The extension is embedded before Flutter's Thin Binary phase (else Xcode reports a cycle).
+- Checked on the iPhone 16 simulator: the activity on the lock screen and in the Island, voting from the lock screen (the activity updates at once and the app shows the vote), the notification as the poll opens. Not checked there: the notification's buttons (the simulator doesn't open a notification on a long press); same code path as the activity's buttons.
+
+### Final UI, iteration 1.36: the poll's fold and a clearer Live Activity (branch `feature/poll-polish`)
+- **Poll card fold:** `PollCard` is stateful with one controller (`enter` to open, new `fold` 200 ms to close) and an ease-out edge both ways; the places are clipped by `Align.heightFactor` and fade over the first half of the fold; the scrim fades over `fold` too. Checked at 8× slow motion.
+- **Live Activity:** places as three side-by-side cards (sticker 28, ring 20 / filled check, name + count, 4 px bar); whole card is the vote; brand-subtle when picked, 0.6 once another place won; the lock screen follows `colorScheme`; padding and gaps cut to fit the 160 pt height; the Island's expanded view uses the same cards with "2/5 voted". Checked on the simulator in light and dark, voting from the lock screen.
+- Tokens: `fold-ms` 200; `poll/activity-mark` 28 → 20.
+
+### Final UI, iteration 1.37: from outside the app straight to the poll
+- The notification's tap (`UNNotificationDefaultActionIdentifier`) and the Live Activity's tap (`widgetURL` "tripup://poll", lock screen and Island; URL scheme `tripup`, `FlutterDeepLinkingEnabled` off; `PollBridge` is a `FlutterSceneLifeCycleDelegate` added via `registrar.addSceneDelegate`) set a flag Flutter takes at start (`takeOpen`) or hears at once (`openPoll`). `_showPoll` closes what's up, goes into the trip, and opens the poll card after the entrance (`EnterOrder.total`), or the poll pop-up if it has closed.
+- Checked on the simulator: from Your trips, tapping the Live Activity on the lock screen opens the trip with the poll open.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 
