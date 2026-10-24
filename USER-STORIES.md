@@ -1,14 +1,14 @@
 # TripUp: the brief's scenario, step by step, in the final app
 
-The eleven steps from the brief (`process/research/tripup-competitive-research-v3-en.md`, Scenario map), and how far the Flutter app (`app/`) covers each one. Checked on 23 Oct, at iteration 1.22, on the iPhone simulator, the Android emulator and in the code. The earlier HTML prototypes (`prototype/versions/v1`–`v11`) covered the whole flow at low fidelity; this is about the final UI.
+The eleven steps from the brief (`process/research/tripup-competitive-research-v3-en.md`, Scenario map), and how far the Flutter app (`app/`) covers each one. Checked on 23–24 Oct, last at iteration 1.26, on the iPhone simulator, the Android emulator and in the code. The earlier HTML prototypes (`prototype/versions/v1`–`v11`) covered the whole flow at low fidelity; this is about the final UI.
 
 ✅ covered · 🟡 partly · ❌ missing
 
 | # | Step | In the app | Status | What's missing |
 | --- | --- | --- | --- | --- |
-| 01 | Home with all trips | Only the trip screen. Its Back button goes nowhere. | ❌ | A trips list: Lisbon active and on top, past trips folded away. |
+| 01 | Home with all trips | The app opens on Your trips: Lisbon on top with what's on now, who's on it and what you owe; Porto coming up; three past trips folded away. Tapping Lisbon zooms into its map; Back comes out again. | ✅ | |
 | 02 | Group view | The map with Up next (who's coming, who's there, price), live locations, and the footer (itinerary, money, add). An open poll stands where Up next would. When the group gets there, the dinner turns "Now" by itself (geofence), and the full view opens on Group. | ✅ | |
-| 03 | Ren joins mid-trip | Add → Invite someone: a link to copy, "no account", and "only costs from the day they join". In the data, Ren joined today. | 🟡 | Ren's side: opening the link, typing a name, and the recap of the trip so far (stay, decided plans, open poll, the costs rule). |
+| 03 | Ren joins mid-trip | Add → Invite someone: a link to copy, and See what they'll see. On Ren's phone (Demo, 2:10 PM): who invited him, his name (no account), Join; then the trip so far (stay, places, what's coming with the open poll, the costs rule). Back on Ari's map: "Ren joined the trip", and he's on the map from then on. | ✅ | |
 | 04 | Poll: 3 restaurants | Maya asks at 2:30 PM. Three real places on Avenida da Igreja, each a card with its sticker, rating, food, price and walking minutes. | ✅ | |
 | 05 | Everyone notified | A note at the top of the map when the poll opens, and when it closes. | ✅ | |
 | 06 | Leading option, live | On the map card and in the poll: votes arrive on the demo clock, voters' faces, "Leading" on the front-runner, "closes in N mins". It closes early once everyone has voted. | ✅ | |
@@ -18,7 +18,7 @@ The eleven steps from the brief (`process/research/tripup-competitive-research-v
 | 10 | Pay in the app | Money: "You owe Maya €11.82" and Pay. The others pay on their own a little after the bill is in, each arriving as a note on the map. | ✅ | |
 | 11 | "Squared up" to the group | When the last payment lands: "Lisbon is squared up · everyone has paid" as a note for everyone, and Money's top block turns green. | ✅ | |
 
-**Covered: 9 of 11, partly: 1, missing: 1** (after the poll, 24 Oct). Left: the trips list (01) and Ren's side of joining (03).
+**Covered: 11 of 11** (iteration 1.26, 24 Oct).
 
 ## Open decisions
 
