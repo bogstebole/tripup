@@ -17,12 +17,18 @@ abstract final class PollActivity {
   static String? _last;
 
   /// Votes from the activity or the notification come in as my vote; one cast while the app wasn't running waits
-  /// for it here.
-  static Future<void> listen() async {
+  /// for it here. Tapping the notification or the activity itself calls [onOpen] (the app shows the poll, open).
+  static Future<void> listen({required VoidCallback onOpen}) async {
     if (!_on) return;
+    Future<void> open() async {
+      if (await _channel.invokeMethod<bool>('takeOpen') ?? false) onOpen();
+    }
+
     _channel.setMethodCallHandler((call) async {
       if (call.method == 'voted' && call.arguments is String) myVote.value = (option: call.arguments as String, at: tripNow());
+      if (call.method == 'openPoll') await open();
     });
+    await open();   // the app was started by the tap
     // An activity left from an earlier run belongs to a poll this demo hasn't reached yet
     await _channel.invokeMethod('clear');
     final pending = await _channel.invokeMethod<String>('takeVote');

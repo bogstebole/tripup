@@ -17,6 +17,7 @@ import UserNotifications
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "PollBridge") {
       PollBridge.shared.attach(messenger: registrar.messenger())
+      registrar.addSceneDelegate(PollBridge.shared)   // "tripup://poll" from the Live Activity
     }
   }
 

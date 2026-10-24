@@ -201,7 +201,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     });
     tripNotice.addListener(_showNotice);
     // Votes cast from the lock screen or the notification come back as my vote; mine goes out to them
-    PollActivity.listen();
+    PollActivity.listen(onOpen: _showPoll);
     myVote.addListener(_pollOutside);
     pollUndone.addListener(_pollOutside);
     madePayments.addListener(_paymentsChanged);
@@ -246,6 +246,32 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   }
 
   void _pollOutside() => PollActivity.sync(tripNow());
+
+  /// From the notification or the Live Activity: the poll, open. Whatever was up gives way; from your trips the trip
+  /// opens first, and the poll opens once its entrance is done (it's the last thing in). A poll that has closed shows
+  /// its result in the poll's pop-up instead.
+  void _showPoll() {
+    if (!mounted) return;
+    if (_joining) setState(() => _joining = false);
+    final covered = _covered;
+    if (_sheet) _closeSheet();
+    if (_popup != null) _closePopup();
+    // Wait for the trip's entrance, or for what covered the map to leave
+    final wait = !_inTrip
+        ? EnterOrder.total
+        : covered
+            ? Duration(milliseconds: (TokMotion.springCollapse.duration * 1000).round())
+            : Duration.zero;
+    _goIn();
+    Future.delayed(wait, () {
+      if (!mounted) return;
+      if (pollOpen(tripNow())) {
+        setState(() => _pollExpanded = true);
+      } else {
+        _openPopup(_Popup.poll);
+      }
+    });
+  }
 
   void _expandPoll(bool open) {
     HapticFeedback.selectionClick();

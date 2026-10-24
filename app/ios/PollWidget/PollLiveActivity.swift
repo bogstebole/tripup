@@ -10,6 +10,7 @@ struct PollLiveActivity: Widget {
   var body: some WidgetConfiguration {
     ActivityConfiguration(for: PollActivityAttributes.self) { context in
       PollLockScreen(context: context)
+        .widgetURL(pollURL)   // the activity itself (not a vote) opens the poll in the app
     } dynamicIsland: { context in
       let tok = TokColors.dark
       return DynamicIsland {
@@ -37,9 +38,13 @@ struct PollLiveActivity: Widget {
         LiveDot(tok: tok)
       }
       .keylineTint(tok.cPollLive)
+      .widgetURL(pollURL)
     }
   }
 }
+
+/// Opens the app on the poll, open.
+private let pollURL = URL(string: "tripup://poll")
 
 /// The lock screen: the live line and countdown, the question, and the places. Light or dark with the system.
 struct PollLockScreen: View {

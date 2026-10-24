@@ -555,6 +555,10 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - **Live Activity:** places as three side-by-side cards (sticker 28, ring 20 / filled check, name + count, 4 px bar); whole card is the vote; brand-subtle when picked, 0.6 once another place won; the lock screen follows `colorScheme`; padding and gaps cut to fit the 160 pt height; the Island's expanded view uses the same cards with "2/5 voted". Checked on the simulator in light and dark, voting from the lock screen.
 - Tokens: `fold-ms` 200; `poll/activity-mark` 28 → 20.
 
+### Final UI, iteration 1.37: from outside the app straight to the poll
+- The notification's tap (`UNNotificationDefaultActionIdentifier`) and the Live Activity's tap (`widgetURL` "tripup://poll", lock screen and Island; URL scheme `tripup`, `FlutterDeepLinkingEnabled` off; `PollBridge` is a `FlutterSceneLifeCycleDelegate` added via `registrar.addSceneDelegate`) set a flag Flutter takes at start (`takeOpen`) or hears at once (`openPoll`). `_showPoll` closes what's up, goes into the trip, and opens the poll card after the entrance (`EnterOrder.total`), or the poll pop-up if it has closed.
+- Checked on the simulator: from Your trips, tapping the Live Activity on the lock screen opens the trip with the poll open.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

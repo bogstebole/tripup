@@ -1,15 +1,17 @@
 // The dinner poll outside the app, the iOS side. Flutter tells it when the poll opens, when votes come in and when it
 // closes (channel "tripup/poll"); it keeps a Live Activity in step and posts a notification with a button per place.
 // A vote from either comes back here, updates the activity at once, and goes to Flutter (or waits for it to start).
+// Tapping the notification or the activity itself (not a vote) opens the app on the poll: "tripup://poll".
 import ActivityKit
 import Flutter
 import UserNotifications
 
-final class PollBridge: NSObject {
+final class PollBridge: NSObject, FlutterSceneLifeCycleDelegate {
   static let shared = PollBridge()
 
   private var channel: FlutterMethodChannel?
   private static let pendingKey = "tripup.poll.pendingVote"
+  private static let openKey = "tripup.poll.open"
   private static let category = "tripup.poll"
 
   /// Hooks up to Flutter, and takes votes from the Live Activity's buttons.
@@ -48,6 +50,10 @@ final class PollBridge: NSObject {
         for activity in Activity<PollActivityAttributes>.activities { await activity.end(nil, dismissalPolicy: .immediate) }
         result(nil)
       }
+    case "takeOpen":
+      let open = UserDefaults.standard.bool(forKey: Self.openKey)
+      UserDefaults.standard.removeObject(forKey: Self.openKey)
+      result(open)
     case "takeVote":
       let vote = UserDefaults.standard.string(forKey: Self.pendingKey)
       UserDefaults.standard.removeObject(forKey: Self.pendingKey)
@@ -166,11 +172,39 @@ final class PollBridge: NSObject {
     }
   }
 
-  /// A button on the notification: vote, without opening the app.
+  /// A button on the notification votes, without opening the app; tapping the notification itself opens the poll.
   func handleNotification(_ response: UNNotificationResponse) async -> Bool {
     let id = response.actionIdentifier
-    guard id.hasPrefix("vote.") else { return false }
-    await vote(String(id.dropFirst("vote.".count)))
+    if id.hasPrefix("vote.") {
+      await vote(String(id.dropFirst("vote.".count)))
+      return true
+    }
+    guard response.notification.request.content.categoryIdentifier == Self.category, id == UNNotificationDefaultActionIdentifier else { return false }
+    openPoll()
     return true
+  }
+
+  // MARK: Opening the app on the poll
+
+  /// Kept until Flutter takes it (it may not be listening yet, on a cold start), and told now if it is.
+  func openPoll() {
+    UserDefaults.standard.set(true, forKey: Self.openKey)
+    channel?.invokeMethod("openPoll", arguments: nil)
+  }
+
+  private func opensPoll(_ contexts: Set<UIOpenURLContext>) -> Bool {
+    guard contexts.contains(where: { $0.url.scheme == "tripup" && $0.url.host == "poll" }) else { return false }
+    openPoll()
+    return true
+  }
+
+  /// The Live Activity tapped while the app was closed.
+  func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions?) -> Bool {
+    opensPoll(connectionOptions?.urlContexts ?? [])
+  }
+
+  /// The Live Activity tapped while the app was in the background.
+  func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) -> Bool {
+    opensPoll(URLContexts)
   }
 }
