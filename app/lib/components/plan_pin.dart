@@ -303,11 +303,12 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
     final hide = widget.hidden ? 0.0 : 1.0;
 
     return Stack(clipBehavior: Clip.none, children: [
-      // Tail and dash, fading out as the pin goes to the edge
+      // Tail and dash, fading out as the pin goes to the edge. They stay while the card is the full view: the card comes
+      // back down onto them, so nothing pops in when it lands
       Positioned(
         left: widget.anchor.dx - TokDim.pinTailWidth / 2,
         top: widget.anchor.dy - tailH,
-        child: IgnorePointer(child: Opacity(opacity: (1 - eC) * hide, child: PinTail(gap: tailGap))),
+        child: IgnorePointer(child: Opacity(opacity: 1 - eC, child: PinTail(gap: tailGap))),
       ),
       // Edge arrow
       if (eC > 0)

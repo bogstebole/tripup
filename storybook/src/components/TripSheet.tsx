@@ -1,5 +1,5 @@
 import { ArrowLeft, X } from 'lucide-react';
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { AnimatePresence, motion, useReducedMotion, type Variants } from 'motion/react';
 import { Children, isValidElement, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import { Button } from './Button';
@@ -42,7 +42,9 @@ export interface TripSheetProps {
  * One of the footer's pop-ups (itinerary, money, add): the full view's surface, a header with the title, subtitle
  * and close, and a page that scrolls up under the header. It rises from the bottom in the full view's place, from
  * just past the bottom edge (its own height plus the inset), and goes back down quicker than it came; with reduced
- * motion it only fades. Put it in AnimatePresence so it can leave. On the phone, a pull down on the header closes it too.
+ * motion it only fades. Put it in AnimatePresence so it can leave; with `custom` true on that AnimatePresence it goes at
+ * once instead (a plan's details opened from the itinerary take its place: the same surface, in the same place). On the
+ * phone, a pull down on the header closes it too.
  * It has no notes of its own: its pages show them at the top of the screen (see Notice.tsx). A step inside it (Add's)
  * shows in the header: a back button slides in before the title (enter-ms, ease-out), and a new title and line fade in
  * as the old ones fade out (enter-ms in, fade-ms out).
@@ -68,6 +70,13 @@ export function TripSheet({ title, subtitle, children, onClose, compact, footer,
   // Full transform strings, so Motion runs them on the compositor
   const away = `translate(0px, calc(100% + ${inset}px))`;
   const here = 'translate(0px, calc(0% + 0px))';
+  // Leaving: back down, quicker than it came; or at once, when what takes its place is already there
+  const leave: Variants = {
+    leave: (atOnce?: boolean) =>
+      atOnce ? { opacity: 0, transition: { duration: 0 } }
+      : reduce ? { opacity: 0, transition: { duration: m['fade-ms'] / 1000, ease } }
+      : { transform: away, transition: { duration: m['fade-ms'] / 1000, ease } },
+  };
 
   return (
     <motion.article
@@ -75,7 +84,8 @@ export function TripSheet({ title, subtitle, children, onClose, compact, footer,
       aria-label={title}
       initial={reduce ? { opacity: 0 } : { transform: away }}
       animate={reduce ? { opacity: 1, transition: { duration: m['fade-ms'] / 1000, ease } } : { transform: here, transition: { duration: m['enter-ms'] / 1000, ease } }}
-      exit={reduce ? { opacity: 0, transition: { duration: m['fade-ms'] / 1000, ease } } : { transform: away, transition: { duration: m['fade-ms'] / 1000, ease } }}
+      variants={leave}
+      exit="leave"
     >
       <div ref={scroll} className={centered ? 'tu-trip-sheet__scroll tu-trip-sheet__scroll--centered' : 'tu-trip-sheet__scroll'} onScroll={e => setUnder(Math.min(1, e.currentTarget.scrollTop / topFade))}>
         {children}

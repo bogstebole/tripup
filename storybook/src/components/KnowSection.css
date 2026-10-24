@@ -4,7 +4,7 @@
   gap: var(--space-xs);
   padding: var(--space-md) var(--space-xs) var(--space-xs);
   border-radius: var(--radius-sheet);
-  background: var(--color-bg-muted);
+  background: var(--color-bg-subtle);
   width: 100%;
 }
 .tu-know__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-xs); padding: 0 var(--space-sm); }
@@ -12,21 +12,13 @@
 .tu-know__meta { color: var(--color-text-muted); }
 .tu-know__rows { display: flex; flex-direction: column; gap: var(--space-xs); }
 
-.tu-know-row {
+/* A tip: a plain line in brand on a muted block, at least a row's height, its text centred in it top to bottom */
+.tu-know-tip {
   display: flex;
   align-items: center;
-  gap: var(--space-md);
-  width: 100%;
   min-height: var(--d-know-row-height);
   padding: var(--space-xs) var(--space-sm);
   border-radius: var(--radius-card);
-  background: var(--c-button-soft-bg);
-  box-shadow: var(--inset-button-soft), var(--shadow-slightly-raised);
+  background: var(--color-bg-muted);
   color: var(--color-text-brand);
-  text-align: left;
-  transition: transform var(--press-ms) var(--ease-out);
 }
-.tu-know-row:active { transform: scale(var(--press-scale)); }
-.tu-know-row__text { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
-.tu-know-row__sub { color: var(--color-text-muted); }
-.tu-know-row__arrow { width: var(--size-icon-sm); height: var(--size-icon-sm); flex: none; color: var(--color-icon-brand); }

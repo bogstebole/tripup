@@ -92,6 +92,8 @@
 
 /* Group: roughly what each person's picks come to, and everyone's together */
 .tu-sheet__cost { flex: none; color: var(--color-text-default); }
+/* Its own layer, so the footer can fade with the rest of what's on the sheet (opened in place of a pop-up) */
+.tu-sheet__footer-wrap { flex: none; }
 .tu-sheet__footer { flex: none; display: flex; flex-direction: column; gap: var(--space-md); padding: var(--space-xs) var(--space-xs) var(--space-md); }
 .tu-sheet__footer-row { display: flex; align-items: center; gap: var(--space-sm); }
 .tu-sheet__footer-text { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: var(--space-3xs); color: var(--color-text-default); }

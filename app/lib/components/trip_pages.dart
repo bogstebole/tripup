@@ -20,8 +20,13 @@ import 'trip_sheet.dart';
 /// Every day of the trip, in order: where we've been, what's planned, and today marked. Tapping a stop shows it
 /// on the map.
 class ItineraryPage extends StatelessWidget {
-  const ItineraryPage({super.key, this.onPick, this.todayKey, this.onPoll, this.days = const {}});
+  const ItineraryPage({super.key, this.onPick, this.onOpen, this.todayKey, this.onPoll, this.days = const {}});
+
+  /// A place we've been: show it on the map.
   final ValueChanged<LatLng>? onPick;
+
+  /// A plan: open its details.
+  final ValueChanged<Plan>? onOpen;
 
   /// The days picked in its filter; empty means all of them.
   final Set<int> days;
@@ -76,7 +81,7 @@ class ItineraryPage extends StatelessWidget {
                 subtitle: [if (p == next) 'Up next', p.eta, if (p.end case final end?) 'until ${clockTime(end)}'].join(' · '),
                 subtitleColor: p == next ? t.textBrand : null,
                 trailing: Text(clockTime(p.start), style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textDefault)),
-                onTap: onPick == null ? null : () => onPick!(p.at),
+                onTap: onOpen == null ? null : () => onOpen!(p),
               ),
           ];
           return Column(key: day == today ? todayKey : null, crossAxisAlignment: CrossAxisAlignment.stretch, children: [

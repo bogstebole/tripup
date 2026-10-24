@@ -1,19 +1,20 @@
 import { Banknote, Calendar, Check, Clock, Globe, MapPin, Phone, ScanLine, Truck, X, type LucideIcon } from 'lucide-react';
-import { AnimatePresence, motion, useReducedMotion, type Variants } from 'motion/react';
+import { AnimatePresence, motion, useReducedMotion, type MotionValue, type Variants } from 'motion/react';
 import { createContext, useContext, useState, type CSSProperties, type ReactNode } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import realMenu from '../../../app/assets/data/brasserie-menu.json';
-import { billShares, billTotal, euros, eurosIn, isHere, MY_ID, personById, TRIP_NOW, type Bill, type Person, type PlaceDetail } from '../data';
+import { billShares, billTotal, euros, eurosIn, isHere, MY_ID, personById, TRIP_NOW, walkLabel, type Bill, type LatLng, type Person, type PlaceDetail } from '../data';
 import { AddButton } from './AddButton';
 import { Button, TextButton } from './Button';
 import { DishMore, DishSticker } from './DishSticker';
-import { KnowRow, KnowSection } from './KnowSection';
+import { KnowSection, KnowTip } from './KnowSection';
 import { useTripNotice } from './Notice';
 import { PhotoCarousel } from './PhotoCarousel';
 import { RatingLine } from './RatingLine';
 import { SegmentedTabs } from './SegmentedTabs';
 import { ToggleChips } from './ToggleChips';
 import { Sticker } from './Sticker';
+import { PlaceMap } from './TripPages';
 import './Surface.css';
 import './DetailSheet.css';
 
@@ -39,11 +40,18 @@ const SECTIONS = (realMenu as { sections: MenuSection[] }).sections;
 
 export interface DetailSheetProps {
   name: string;
+  /** Left empty for a plain plan (Tram 28, an added one): the line under the name says when and how far instead. */
   rating: string;
   cuisine: string;
+  /** None for a plain plan: a small map of it stands in (see `at`). */
   photos: string[];
   about: string;
   tips: string[];
+  /** It has a menu (La Brasserie's, the real one): only then is there a Menu tab. */
+  menu?: boolean;
+  /** Where it is, and its sticker: a plan without photos shows a small map of it, and without a rating, how far it is. */
+  at?: LatLng;
+  sticker?: string;
   /** Service options and facts, as on the place's Google Maps card. */
   services?: string[];
   details?: PlaceDetail[];
@@ -65,6 +73,9 @@ export interface DetailSheetProps {
   onScan?: () => void;
   /** Once the bill is in: who owes what (in the app, the full view closes and Money opens). */
   onSettle?: () => void;
+  /** Opened in place of a pop-up (a plan from the itinerary): the surface is already there, so only what's on it
+   *  shows by this much, 0–1. */
+  contentOpacity?: MotionValue<number>;
 }
 
 const m = tokens.motion;
@@ -86,10 +97,13 @@ const ease = m['ease-out'] as [number, number, number, number];
 /**
  * The full view of a plan. The tabs and close sit in a header at the top, and each tab replaces the whole page
  * under it, which scrolls up under the header: the new page's blocks arrive one after
- * another (fade, light blur, a few px up), the old page fades out with a blur. Menu is the restaurant's real menu.
+ * another (fade, light blur, a few px up), the old page fades out with a blur. Menu is the restaurant's real menu, and
+ * a tab only for a place with one. A plain plan (no rating, no photos: Tram 28, an added one) shows when and how far
+ * under its name ("Tomorrow, 10 AM · 4.3 km away") and a small map of it; whatever else it lacks (about, tips, facts)
+ * is left out.
  */
 export function DetailSheet(p: DetailSheetProps) {
-  const tabs = [...DETAIL_TABS];
+  const tabs = DETAIL_TABS.filter(t => t !== 'Menu' || p.menu);
   const [own, setOwn] = useState<DetailTab>(openingTab(p.active));
   const tab = p.tab ?? own;
   // How far the page has scrolled under the top edge, 0–1 over the top fade's height
@@ -150,11 +164,11 @@ export function DetailSheet(p: DetailSheetProps) {
 
   return (
     <article className="tu-sheet tu-surface tu-surface--sheet" aria-label={p.name}>
-      <div className="tu-sheet__bar">
+      <motion.div className="tu-sheet__bar" style={{ opacity: p.contentOpacity }}>
         <SegmentedTabs tabs={tabs} value={tab} onChange={t => select(t as DetailTab)} />
         <Button icon={X} label="Close" size="sm" onClick={p.onClose} />
-      </div>
-      <div className="tu-sheet__pages">
+      </motion.div>
+      <motion.div className="tu-sheet__pages" style={{ opacity: p.contentOpacity }}>
         <Stagger.Provider value={block}>
         <AnimatePresence initial={false} custom={dir}>
           <motion.div
@@ -171,12 +185,17 @@ export function DetailSheet(p: DetailSheetProps) {
               <>
                 <Block i={0} className="tu-sheet__info">
                   <h2 className="tu-sheet__name text-heading-md tu-ellipsis">{p.name}</h2>
-                  <RatingLine rating={p.rating} kind={p.cuisine} align="start" />
+                  {p.rating
+                    ? <RatingLine rating={p.rating} kind={p.cuisine} align="start" />
+                    // A plain plan (added, or with nothing more known): when, and how far
+                    : <p className="text-label-md tu-sheet__muted">{[p.whenLong, p.at && walkLabel(p.at)].filter(Boolean).join(' · ')}</p>}
                 </Block>
-                <Block i={1}><PhotoCarousel photos={p.photos} /></Block>
-                <Block i={2}><p className="tu-sheet__about text-body-sm">{p.about}</p></Block>
+                {p.photos.length
+                  ? <Block i={1}><PhotoCarousel photos={p.photos} /></Block>
+                  : p.at && p.sticker && <Block i={1} className="tu-sheet__pad"><PlaceMap sticker={p.sticker} /></Block>}
+                {p.about && <Block i={2}><p className="tu-sheet__about text-body-sm">{p.about}</p></Block>}
                 {/* The one highlighted block: worth knowing before going */}
-                <Block i={3}><KnowSection title="Know before you go">{p.tips.map(t => <KnowRow key={t}>{t}</KnowRow>)}</KnowSection></Block>
+                {p.tips.length > 0 && <Block i={3}><KnowSection title="Know before you go">{p.tips.map(t => <KnowTip key={t}>{t}</KnowTip>)}</KnowSection></Block>}
                 {!!(p.services?.length || p.details?.length) && (
                   <Block i={4} className="tu-facts">
                     <h3 className="tu-sheet__title text-heading-sm tu-sheet__pad">Details</h3>
@@ -319,10 +338,11 @@ export function DetailSheet(p: DetailSheetProps) {
         </Stagger.Provider>
         {/* Content scrolling up passes under a blur and the surface's white instead of being cut at the edge */}
         <div className="tu-sheet__top-fade" aria-hidden style={{ '--under': under } as CSSProperties} />
-      </div>
+      </motion.div>
       {/* Group: the bottom stays put while the list scrolls above it: the estimate, then (while the plan is on) Scan
           the bill; once it's in, the bill's total and who owes what */}
       {tab === 'Group' && total > 0 && (
+        <motion.div className="tu-sheet__footer-wrap" style={{ opacity: p.contentOpacity }}>
         <motion.div className="tu-sheet__footer" variants={block} custom={1} initial="hidden" animate="shown">
           <div className="tu-sheet__footer-row">
             <div className="tu-sheet__footer-text">
@@ -336,6 +356,7 @@ export function DetailSheet(p: DetailSheetProps) {
           {p.bill
             ? <TextButton variant="soft" label="See who owes what" size="lg" wide onClick={p.onSettle} />
             : p.active && <TextButton label="Scan the bill" icon={ScanLine} size="lg" wide onClick={p.onScan} />}
+        </motion.div>
         </motion.div>
       )}
     </article>

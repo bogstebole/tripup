@@ -149,6 +149,8 @@ export const EVENT = {
     'Reviewers say the crisp fries are unlimited so you can ask for more refills',
     'Some say dining room can be quite noisy during busy hours',
   ],
+  /** It has a menu (the restaurant's real one, brasserie-menu.json), so the full view has a Menu tab. */
+  menu: true,
 };
 
 export const TRIP = { title: 'Schmedeswurtherwesterdeich', city: 'Lisbon', dates: '12 May - 21 May' };
@@ -217,21 +219,37 @@ export const UP_NEXT_NOW = upNextAt(EVERYONE_THERE);
 /** A day of the trip at a time of day. */
 export const tripDate = (day: number, hour = 0, minute = 0) => new Date(2026, 4, day, hour, minute);
 
-/** Planned, in order. The first one is Up next. `endHour` and `endMinute`: when it ends, if whoever planned it said
- *  (Plan something asks for a range). */
-export type Plan = { id: string; name: string; sticker: string; day: number; hour: number; minute?: number; endHour?: number; endMinute?: number };
+/** Planned, in order. The first one is Up next. `at`: where it is. `endHour` and `endMinute`: when it ends, if whoever
+ *  planned it said (Plan something asks for a range). `rating` and `cuisine`: what we know of a place picked from the
+ *  poll by hand. */
+export type Plan = {
+  id: string; name: string; sticker: string; at: LatLng; day: number; hour: number; minute?: number; endHour?: number; endMinute?: number;
+  rating?: string; cuisine?: string;
+};
 export const PLANS: Plan[] = [
-  { id: 'brasserie', name: EVENT.name, sticker: EVENT.sticker, day: TODAY, hour: 17 },
-  { id: 'croissants', name: 'Sam Croissants', sticker: 'nata', day: TODAY, hour: 18 },
-  { id: 'tram', name: 'Tram 28 ride', sticker: 'tram', day: 15, hour: 10 },
-  { id: 'sail', name: 'Sail on the Tagus', sticker: 'caravel', day: 16, hour: 18 },
-  { id: 'fado', name: 'Fado at Tasca do Chico', sticker: 'guitar', day: 17, hour: 21 },
-  { id: 'oceanario', name: 'Oceanário', sticker: 'festival-sardine', day: 18, hour: 11 },
-  { id: 'tiles', name: 'Tile Museum', sticker: 'azulejo', day: 19, hour: 10 },
+  { id: 'brasserie', name: EVENT.name, sticker: EVENT.sticker, at: [38.754444, -9.140476], day: TODAY, hour: 17 },   // Av. da Igreja 12B, Alvalade
+  { id: 'croissants', name: 'Sam Croissants', sticker: 'nata', at: [38.6975, -9.2032], day: TODAY, hour: 18 },
+  { id: 'tram', name: 'Tram 28 ride', sticker: 'tram', at: [38.7114, -9.1296], day: 15, hour: 10 },
+  { id: 'sail', name: 'Sail on the Tagus', sticker: 'caravel', at: [38.77, -9.0935], day: 16, hour: 18 },   // Doca dos Olivais
+  { id: 'fado', name: 'Fado at Tasca do Chico', sticker: 'guitar', at: [38.7123, -9.145], day: 17, hour: 21 },
+  { id: 'oceanario', name: 'Oceanário', sticker: 'festival-sardine', at: [38.7635, -9.0937], day: 18, hour: 11 },
+  { id: 'tiles', name: 'Tile Museum', sticker: 'azulejo', at: [38.7247, -9.1136], day: 19, hour: 10 },
 ];
 export const planStart = (p: Plan) => tripDate(p.day, p.hour, p.minute ?? 0);
 /** When it ends, if it says. */
 export const planEnd = (p: Plan) => (p.endHour === undefined ? undefined : tripDate(p.day, p.endHour, p.endMinute ?? 0));
+/** "Today, 5 PM", "Tomorrow, 10 AM": when, in running text (the app's `Plan.whenLong`). */
+export const whenLong = (t: Date, now = TRIP_NOW) => `${dayName(t, now)}, ${clockTime(t)}`;
+
+/**
+ * What a plan's full view shows: La Brasserie's place card (EVENT: its photos, tips and facts, and its menu), or for a
+ * plan we know little about (Tram 28, one sent from Plan something, a poll's place picked by hand) its name, when and
+ * where, and whatever rating it has. The app's `DetailSheet` reads the same from its `Plan`.
+ */
+export const planDetails = (p: Plan) =>
+  p.id === PLANS[0].id   // La Brasserie, whose card EVENT is
+    ? { ...EVENT, at: p.at }
+    : { name: p.name, sticker: p.sticker, at: p.at, rating: p.rating ?? '', cuisine: p.cuisine ?? '', photos: [], about: '', tips: [], whenLong: whenLong(planStart(p)) };
 
 /** Places already visited: stickers on the map, the trip's history (tilt in degrees). */
 export type Visited = { name: string; sticker: string; tilt: number; day: number };
@@ -579,7 +597,8 @@ export const pollStartedLine = () => `${personById(POLL_ASKED_BY).name} started 
 export const pollWonLine = (o: PollOption) => `${o.short} won · added to tonight`;
 
 /** A place as tonight's plan: La Brasserie's own plan, a plain one for the others. */
-export const pollOptionPlan = (o: PollOption): Plan => PLANS.find(p => p.id === o.id) ?? { id: o.id, name: o.name, sticker: o.sticker, day: TODAY, hour: DINNER.getHours() };
+export const pollOptionPlan = (o: PollOption): Plan =>
+  PLANS.find(p => p.id === o.id) ?? { id: o.id, name: o.name, sticker: o.sticker, at: o.at, day: TODAY, hour: DINNER.getHours(), rating: o.rating, cuisine: o.cuisine };
 
 /** Every plan, in order, with tonight's dinner as decided: `undefined` leaves the plans as they stand at the demo's
  *  start (La Brasserie, as the poll chose); `null` takes tonight's slot out while it's undecided; an id puts that place

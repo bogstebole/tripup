@@ -81,6 +81,7 @@
   --c-poll-bar: #d4d4d8;
   --c-poll-bar-lead: #2563eb;
   --c-poll-live: #dc2626;
+  --c-poll-scrim: rgb(0 30 129 / 0.23);
   --c-home-bg: #2563eb;
   --c-home-fg: #ffffff;
   --c-home-count-fg: rgb(255 255 255 / 0.7);
@@ -186,8 +187,13 @@
   --d-scan-off-opacity: 0.3;
   --d-poll-lost-opacity: 0.6;
   --d-poll-width: 345px;
-  --d-poll-bar-height: 6px;
-  --d-poll-live-dot: 8px;
+  --d-poll-bar-height: 8px;
+  --d-poll-live-dot: 9px;
+  --d-poll-scrim-blur: 2.5px;
+  --d-poll-option-sticker: 48px;
+  --d-poll-meta-face: 16px;
+  --d-poll-meta-face-overlap: 5px;
+  --d-poll-not-voted-opacity: 0.4;
   --d-poll-mark: 24px;
   --d-home-header-gap: 29px;
   --d-plan-map-height: 160px;
@@ -363,6 +369,7 @@
   --c-poll-bar: #d4d4d8;
   --c-poll-bar-lead: #2563eb;
   --c-poll-live: #dc2626;
+  --c-poll-scrim: rgb(0 30 129 / 0.23);
   --c-home-bg: #2563eb;
   --c-home-fg: #ffffff;
   --c-home-count-fg: rgb(255 255 255 / 0.7);

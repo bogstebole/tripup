@@ -1,31 +1,10 @@
-import { ArrowRight } from 'lucide-react';
 import type { ReactNode } from 'react';
 import './KnowSection.css';
 
-export interface KnowRowProps {
-  children: ReactNode;
-  /** A muted line under the text, e.g. what a choice does. */
-  subtitle?: string;
-  onClick?: () => void;
-  /** Shown on the left of the text, e.g. a dish sticker. */
-  leading?: ReactNode;
-  /** Shown before the arrow, e.g. avatars of who picked it. */
-  trailing?: ReactNode;
-}
-
-/** A tappable row inside a section: soft glass row, brand text, arrow. */
-export function KnowRow({ children, subtitle, onClick, leading, trailing }: KnowRowProps) {
-  return (
-    <button type="button" className="tu-know-row" onClick={onClick}>
-      {leading}
-      <span className="tu-know-row__text text-label-md">
-        {children}
-        {subtitle && <span className="tu-know-row__sub">{subtitle}</span>}
-      </span>
-      {trailing}
-      <ArrowRight className="tu-know-row__arrow" strokeWidth={2} absoluteStrokeWidth aria-hidden />
-    </button>
-  );
+/** A tip inside a section (Bogdan's Overview, Figma 62:4828): a short line in brand on a muted block. Read, not
+ *  tapped, so no arrow and no glass. */
+export function KnowTip({ children }: { children: ReactNode }) {
+  return <p className="tu-know-tip text-label-sm">{children}</p>;
 }
 
 export interface KnowSectionProps {
@@ -35,7 +14,7 @@ export interface KnowSectionProps {
   children: ReactNode;
 }
 
-/** A muted, rounded group with a brand heading and rows. Used for "Know before you go", menu picks and people. */
+/** A subtle, rounded group with a brand heading and rows: the place's tips ("Know before you go"). */
 export function KnowSection({ title, meta, children }: KnowSectionProps) {
   return (
     <section className="tu-know">

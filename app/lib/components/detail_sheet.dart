@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart' show CarouselView;
 import 'package:flutter/widgets.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../data.dart';
 import '../design/theme.dart';
@@ -46,8 +47,11 @@ enum MenuFilter {
 /// one fades out. Every page scrolls up under the header; pulling the header, or a page past its top, pulls the
 /// sheet down ([onHeaderDragUpdate] / [onHeaderDragEnd]).
 class DetailSheet extends StatefulWidget {
-  const DetailSheet({super.key, required this.plan, this.onClose, this.onHeaderDragUpdate, this.onHeaderDragEnd, this.onScan, this.onSettle});
+  const DetailSheet({super.key, required this.plan, this.onClose, this.onHeaderDragUpdate, this.onHeaderDragEnd, this.onScan, this.onSettle, this.mapOf});
   final Plan plan;
+
+  /// A small still map of a place with its sticker, for plans without photos.
+  final Widget Function(LatLng at, String sticker)? mapOf;
   final VoidCallback? onClose;
 
   /// Scan the bill (offered only while the dinner is on), and see who owes what once it's in.
@@ -61,7 +65,8 @@ class DetailSheet extends StatefulWidget {
 
 class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStateMixin {
   late int _tab = _pages.indexOf(DetailPage.openingFor(widget.plan, tripNow()));
-  static const _pages = DetailPage.order;
+  /// Overview, the menu (for a place with one) and the group.
+  late final _pages = [for (final p in DetailPage.order) if (p != DetailPage.menu || widget.plan.menu.isNotEmpty) p];
 
   /// Which way the last tab change went: 1 to the right, -1 to the left, 0 for the page the sheet opened on.
   int _dir = 0;
@@ -241,7 +246,8 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
         future: brasserieMenu,
         initialData: loadedMenu,
         builder: (context, snap) {
-          final sections = snap.data ?? const <MenuSection>[];
+          // Only a place with a menu has picks (a plain plan's Group is just who's coming)
+          final sections = widget.plan.menu.isEmpty ? const <MenuSection>[] : snap.data ?? const <MenuSection>[];
           if (snap.hasData) _mine ??= {...?myPicks.value};
           return build(sections, _mine ?? const {});
         },
@@ -257,13 +263,23 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
         padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x2xs, children: [
           Text(p.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingMd.copyWith(color: t.textDefault)),
-          RatingLine(rating: p.rating, kind: p.cuisine, center: false),
+          if (p.rating.isNotEmpty)
+            RatingLine(rating: p.rating, kind: p.cuisine, center: false)
+          else
+            // A plain plan (added, or with nothing more known): when, and how far
+            Text('${p.whenLong} · ${walkLabel(p.at, tripNow())}', style: TokText.labelMd.copyWith(color: t.textMuted)),
         ]),
       ),
-      _PhotoCarousel(photos: p.photos),
-      Padding(padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs), child: Text(p.about, style: TokText.bodySm.copyWith(color: t.textMuted))),
+      if (p.photos.isNotEmpty)
+        _PhotoCarousel(photos: p.photos)
+      else if (widget.mapOf case final mapOf?)
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
+          child: ClipRRect(borderRadius: BorderRadius.circular(TokRadius.card), child: SizedBox(height: TokDim.planMapHeight, child: mapOf(p.at, p.sticker))),
+        ),
+      if (p.about.isNotEmpty) Padding(padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs), child: Text(p.about, style: TokText.bodySm.copyWith(color: t.textMuted))),
       // The one highlighted block: worth knowing before going
-      KnowSection(title: 'Know before you go', children: [for (final tip in p.tips) KnowRow(title: tip)]),
+      if (p.tips.isNotEmpty) KnowSection(title: 'Know before you go', children: [for (final tip in p.tips) KnowTip(tip)]),
       if (p.services.isNotEmpty || p.details.isNotEmpty) _PlaceFacts(plan: p),
     ]));
   }

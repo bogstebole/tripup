@@ -1,8 +1,7 @@
 // The dinner poll: where to eat tonight, decided by the group (see the poll section of data.ts). The app has the same
 // in lib/components/poll.dart.
-import { ArrowRight, Check, ChevronDown, ChevronUp } from 'lucide-react';
-import { animate, motion, useMotionValue, useReducedMotion, useTransform } from 'motion/react';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Check, ChevronDown, Star } from 'lucide-react';
+import { AnimatePresence, motion, useIsPresent, useReducedMotion } from 'motion/react';
 import tokens from '../../../design-system/tokens.json';
 import {
   clockTime, DINNER, DINNER_TABLE, dinnerChoice, personById, POLL_ASKED_BY, POLL_CLOSES, POLL_OPTIONS, pollClosed, pollCountdown,
@@ -18,7 +17,7 @@ import './Poll.css';
 
 const m = tokens.motion;
 const ease = m['ease-out'] as [number, number, number, number];
-const morph = m['spring-morph'];
+const easeInOut = m['ease-in-out'] as [number, number, number, number];
 const names = (ids: string[]) => ids.map(id => personById(id).name).join(', ');
 /** "5 PM · Maya asked". */
 const asked = () => `${clockTime(DINNER)} · ${personById(POLL_ASKED_BY).name} asked`;
@@ -64,172 +63,155 @@ function Voters({ ids }: { ids: string[] }) {
   );
 }
 
-/** A place on the card: its sticker, name, voters and bar, and the round mark that is the vote. Tapping the row votes
- *  for it (or moves my vote to it). */
-function VoteRow({ option: o, now, poll, ahead, onVote }: PollProps & { option: PollOption; ahead: boolean; onVote?: (option: string) => void }) {
-  const voters = votersOf(o.id, now, poll), mine = poll.mine?.option === o.id;
+/** Everyone at the table, small (poll/meta-face 16, overlapping poll/meta-face-overlap 5): the ones who have voted
+ *  first, then the ones the poll is still waiting for, faded (poll/not-voted-opacity). */
+function Table({ now, poll, hidden }: PollProps & { hidden: boolean }) {
+  const voted = new Set(POLL_OPTIONS.flatMap(o => votersOf(o.id, now, poll)));
+  const order = [...DINNER_TABLE.filter(id => voted.has(id)), ...DINNER_TABLE.filter(id => !voted.has(id))];
   return (
-    <button type="button" className="tu-vote-row" aria-label={mine ? `Your vote: ${o.name}` : `Vote for ${o.name}`} onClick={() => onVote?.(o.id)}>
-      <Slot size="avatar"><Sticker name={o.sticker} size="avatar" /></Slot>
-      <span className="tu-vote-row__choice">
-        <span className="tu-vote-row__line">
-          <span className="text-label-md weight-semibold tu-ellipsis tu-vote-row__name">{o.name}</span>
-          <Voters ids={voters} />
-        </span>
-        <VoteBar votes={voters.length} ahead={ahead} />
-      </span>
-      <VoteMark on={mine} />
-    </button>
-  );
-}
-
-/**
- * The vote itself: an empty ring (poll-mark 24, ring poll-mark-ring 2), or filled in brand with a check once it's
- * mine. The fill comes in quickly with a small scale (from morph-enter-scale, press-ms, ease-out) and goes at fade-ms;
- * with reduced motion it only fades.
- */
-export function VoteMark({ on }: { on: boolean }) {
-  return (
-    <span className="tu-vote-mark" data-on={on || undefined} aria-hidden>
-      <span className="tu-vote-mark__fill"><Check className="tu-vote-mark__check" strokeWidth={2} absoluteStrokeWidth /></span>
+    <span className="tu-poll-table" data-hidden={hidden || undefined} aria-hidden>
+      {order.map(id => <Sticker key={id} name={personById(id).sticker} className={voted.has(id) ? 'tu-poll-table__face' : 'tu-poll-table__face tu-poll-table__face--waiting'} />)}
     </span>
   );
 }
 
-export interface PollCardProps extends PollProps {
-  /** "Ratings, prices and walks": opens the poll. */
-  onOpen?: () => void;
-  /** The corner button: folds it into the pill. */
-  onFold?: () => void;
-  /** A tap on a place: my vote, or my vote moved to it. */
-  onVote?: (option: string) => void;
-}
-
 /**
- * The card's content (PollOnMap gives it its surface): a live sign and the countdown, with the fold button, in a row
- * as tall as the pill; the question; then each place with everyone who voted for it, a bar of its votes (the one
- * ahead in brand) and a ring that is the vote. Tapping a place votes for it, right there; the poll itself (ratings,
- * prices, walks) is the link at the bottom. The card is no longer one big button.
+ * One place in the open poll, on bg-subtle (radius-card, xs in): its name (body-md, medium, one line), a brand star
+ * with its rating • food • price (label-md, muted; the dots label-sm), its sticker (poll/option-sticker 48); md under
+ * them a bar of its share of the five votes (poll/bar-height 8, brand for every place here, on the white track); md
+ * under that, Details (body-md, medium, muted; 44 high), everyone who voted for it (24, overlapping 10) and the vote: a
+ * round check (Button sm, 40), soft, or primary once it's mine. Tapping another place's check moves my vote there.
  */
-export function PollCard({ now, poll, onOpen, onFold, onVote }: PollCardProps) {
-  const leader = pollLeader(now, poll), countdown = pollCountdown(now, poll), n = votesIn(now, poll);
+function Place({ option: o, now, poll, onDetails, onVote }: PollProps & { option: PollOption; onDetails?: (option: string) => void; onVote?: (option: string) => void }) {
+  const voters = votersOf(o.id, now, poll), mine = poll.mine?.option === o.id;
   return (
-    <div className="tu-poll-card">
-      {/* As tall as the pill, so the live dot and its line stay put as it folds */}
-      <div className="tu-poll-card__head">
-        <LiveDot />
-        <span className="text-label-md weight-bold tu-ellipsis tu-poll-card__label">Live poll · {countdown}</span>
-        <Button size="sm" icon={ChevronUp} label="Fold the poll away" onClick={onFold} />
+    <div className="tu-poll-option">
+      <div className="tu-poll-option__head">
+        <div className="tu-poll-option__text">
+          <p className="text-body-md weight-medium tu-ellipsis tu-poll-option__name">{o.name}</p>
+          <p className="tu-poll-option__facts">
+            <Star className="tu-poll-option__star" fill="currentColor" strokeWidth={2} absoluteStrokeWidth aria-hidden />
+            <span className="text-label-md">{o.rating}</span>
+            <span className="text-label-sm" aria-hidden>•</span>
+            <span className="text-label-md tu-ellipsis tu-poll-option__kind">{o.cuisine}</span>
+            <span className="text-label-sm" aria-hidden>•</span>
+            <span className="text-label-md">{o.price}</span>
+          </p>
+        </div>
+        <Sticker name={o.sticker} className="tu-poll-option__sticker" />
       </div>
-      <div className="tu-poll-card__body">
-        <p className="text-heading-sm tu-poll-card__question">Where for dinner tonight?</p>
-        <p className="text-body-sm tu-poll-card__meta">{asked()} · {n} of {DINNER_TABLE.length} voted</p>
+      <div className="tu-poll-option__bar"><VoteBar votes={voters.length} ahead onMuted /></div>
+      <div className="tu-poll-option__foot">
+        <button type="button" className="text-body-md weight-medium tu-poll-option__details" aria-label={`Details: ${o.name}`} onClick={() => onDetails?.(o.id)}>Details</button>
+        <Voters ids={voters} />
+        <Button
+          size="sm"
+          variant={mine ? 'primary' : 'soft'}
+          icon={Check}
+          label={mine ? `Your vote: ${o.name}` : `Vote for ${o.name}`}
+          onClick={() => onVote?.(o.id)}
+        />
       </div>
-      {POLL_OPTIONS.map(o => <VoteRow key={o.id} option={o} now={now} poll={poll} ahead={o.id === leader} onVote={onVote} />)}
-      {/* The places in full */}
-      <button type="button" className="tu-poll-card__more" aria-label="See the places: ratings, prices and walks" onClick={onOpen}>
-        <span className="text-label-md weight-semibold">Ratings, prices and walks</span>
-        <ArrowRight className="tu-poll-card__more-icon" strokeWidth={2} absoluteStrokeWidth aria-hidden />
-      </button>
     </div>
   );
 }
 
+export interface PollCardProps extends PollProps {
+  /** Opened up, in place: each place under the head, to vote on. */
+  expanded: boolean;
+  /** A tap on the head: open it, or close it. */
+  onToggle?: () => void;
+  /** A place's Details: the poll's pop-up, with walking times. */
+  onDetails?: (option: string) => void;
+  /** A place's check: my vote, or my vote moved to it. */
+  onVote?: (option: string) => void;
+}
+
 /**
- * The pill's content (PollOnMap gives it its surface): the live sign, "Dinner poll · 3 of 5 · closes in 19 mins" (one
- * line, ellipsized) and a chevron down, as tall as the top bar's buttons. Tapping it unfolds the card.
+ * The poll on the map (Bogdan's design, Figma 82:3), the screen less its margins wide (whoever places it gives the
+ * width), its text left-aligned on the surface (md in at the top, xs on the other sides). Closed, it's a compact card
+ * under the day filter: "Live poll • closes in 19 mins" (label-md, semibold, brand) with the red dot after it and a
+ * chevron at the end, the question (heading-md), and "5 PM • Maya asked • 3 of 5 voted" (label-sm, muted) with everyone
+ * at the table as tiny faces. The head (md in from the sides, sm between its lines) is one button: it opens the poll in
+ * place, over a tinted map (PollScrim, the trip screen's). The same card grows down (its height, enter-ms, ease-in-out:
+ * it moves on screen) while the places arrive under the head, sm apart, one after another; the chevron turns over
+ * (enter-ms, ease-out) and the faces in the meta line fade out (fade-ms; each place shows its own voters). The head
+ * again closes it: the places fade out with a blur first (fade-ms), then the card folds up after them, and the faces
+ * come back (enter-ms). If the screen is too short for it, the places scroll. Reduced motion: the height jumps, the
+ * places only fade. Leaving the map (the poll closing, a pop-up covering it), it takes no more taps.
  */
-export function PollPill({ now, poll, onUnfold }: PollProps & { onUnfold?: () => void }) {
-  const countdown = pollCountdown(now, poll), n = votesIn(now, poll);
+export function PollCard({ now, poll, expanded, onToggle, onDetails, onVote }: PollCardProps) {
+  const reduce = !!useReducedMotion();
+  const present = useIsPresent();
+  const n = votesIn(now, poll), countdown = pollCountdown(now, poll);
+  const blur = reduce ? 'none' : `blur(${m['enter-blur']}px)`;
   return (
-    <button type="button" className="tu-poll-pill" onClick={onUnfold} aria-label={`Dinner poll: ${n} of ${DINNER_TABLE.length} voted, ${countdown}. Unfold`}>
-      <LiveDot />
-      <span className="text-label-md weight-semibold tu-ellipsis tu-poll-pill__text">Dinner poll · {n} of {DINNER_TABLE.length} · {countdown}</span>
-      <ChevronDown className="tu-poll-pill__chevron" strokeWidth={2} absoluteStrokeWidth aria-hidden />
-    </button>
+    <section className="tu-poll-card tu-surface tu-surface--sheet" aria-label="Dinner poll" inert={!present}>
+      {/* The head: tapping it opens the poll, or closes it */}
+      <button
+        type="button"
+        className="tu-poll-card__head"
+        aria-expanded={expanded}
+        aria-label={`${expanded ? 'Close' : 'Open'} the dinner poll: ${n} of ${DINNER_TABLE.length} voted, ${countdown}`}
+        onClick={onToggle}
+      >
+        <span className="tu-poll-card__live">
+          <span className="text-label-md weight-semibold tu-ellipsis tu-poll-card__live-text">Live poll • {countdown}</span>
+          <LiveDot />
+          <ChevronDown className="tu-poll-card__chevron" data-open={expanded || undefined} strokeWidth={2} absoluteStrokeWidth aria-hidden />
+        </span>
+        <span className="tu-poll-card__text">
+          <span className="text-heading-md tu-ellipsis tu-poll-card__question">Where for dinner tonight?</span>
+          <span className="tu-poll-card__meta">
+            <span className="text-label-sm tu-ellipsis tu-poll-card__meta-text">{clockTime(DINNER)} • {personById(POLL_ASKED_BY).name} asked • {n} of {DINNER_TABLE.length} voted</span>
+            {/* Who has voted: the faces say it closed; open, each place shows its own */}
+            <Table now={now} poll={poll} hidden={expanded} />
+          </span>
+        </span>
+      </button>
+      {/* The places, open: the card grows to hold them (an on-screen morph, so ease in and out), and they arrive one
+          by one; closing, they fade away first and the card folds up after them */}
+      <motion.div
+        className="tu-poll-card__places"
+        initial={false}
+        animate={{ height: expanded ? 'auto' : 0 }}
+        transition={reduce ? { duration: 0 } : { duration: m['enter-ms'] / 1000, ease: easeInOut, delay: expanded ? 0 : m['fade-ms'] / 1000 }}
+      >
+        <AnimatePresence initial={false}>
+          {expanded && (
+            <motion.div
+              key="places"
+              className="tu-poll-card__list"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1, transition: { duration: m['enter-ms'] / 1000, ease } }}
+              exit={{ opacity: 0, filter: blur, transition: { duration: m['fade-ms'] / 1000, ease } }}
+            >
+              <StaggerIn gap="sm">
+                {POLL_OPTIONS.map(o => <Place key={o.id} option={o} now={now} poll={poll} onDetails={onDetails} onVote={onVote} />)}
+              </StaggerIn>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </section>
   );
 }
 
-type Size = { width: number; height: number };
-/** Its layout size (transforms, like a press or the poll arriving, don't count). */
-const sizeOf = (el: HTMLElement): Size => ({ width: el.offsetWidth, height: el.offsetHeight });
-const sameSize = (a: Size, b: Size) => a.width === b.width && a.height === b.height;
-/** 0 up to `a`, 1 from `b`, eased in and out between (the app's smoothstep). */
-const smoothstep = (a: number, b: number, v: number) => {
-  const x = Math.min(1, Math.max(0, (v - a) / (b - a)));
-  return x * x * (3 - 2 * x);
-};
-
-export interface PollOnMapProps extends PollCardProps {
-  /** Folded into the pill. */
-  folded: boolean;
-  /** A tap on the pill: unfold the card. */
-  onUnfold?: () => void;
-}
-
 /**
- * The poll on the map, as one surface that folds between the card and the pill. Its box springs between their two
- * measured sizes (spring-morph) while one's content fades out and the other's fades in (the pill over 0.05–0.55 of
- * the way, the card over 0.3–0.8, eased in and out), slightly blurred where they overlap (crossfade-blur); both are
- * pinned to the box's top-left, so the live dot and the line beside it travel with it. It reads as the same thing
- * changing shape, not two things swapping. With reduced motion the box jumps and the contents only fade (fade-ms).
- * Coming and going on the map (the poll opening and closing, a pop-up covering it) is up to whoever places it.
+ * Behind the open poll, over the whole screen (the map and its bars): a blue tint (c-poll-scrim, blue 975 at 23%) and
+ * a slight blur (d-poll-scrim-blur 2.5). It fades in as the poll opens (enter-ms, ease-out) and out quicker (fade-ms);
+ * a tap on it closes the poll. Put it in AnimatePresence, under the card.
  */
-export function PollOnMap({ folded, now, poll, onFold, onUnfold, onOpen, onVote }: PollOnMapProps) {
-  const reduce = !!useReducedMotion();
-  // 0 = the pill, 1 = the card (a spring, so it can go a little past either)
-  const t = useMotionValue(folded ? 0 : 1);
-  const pillRef = useRef<HTMLDivElement>(null), cardRef = useRef<HTMLDivElement>(null);
-  const [sizes, setSizes] = useState<{ pill: Size; card: Size }>();
-
-  // Each content at its own size, whatever the box is doing: measured before the first paint, and again whenever it
-  // changes (the pill's line follows the count and the countdown)
-  useLayoutEffect(() => {
-    const pill = pillRef.current, card = cardRef.current;
-    if (!pill || !card) return;
-    const measure = () => setSizes(s => {
-      const next = { pill: sizeOf(pill), card: sizeOf(card) };
-      return s && sameSize(s.pill, next.pill) && sameSize(s.card, next.card) ? s : next;
-    });
-    measure();
-    const watch = new ResizeObserver(measure);
-    watch.observe(pill);
-    watch.observe(card);
-    return () => watch.disconnect();
-  }, []);
-
-  // Fold or unfold: from wherever it is, so a tap mid-way turns it around
-  useEffect(() => {
-    const to = folded ? 0 : 1;
-    if (t.get() !== to) animate(t, to, reduce ? { duration: m['fade-ms'] / 1000, ease } : { type: 'spring', duration: morph.duration, bounce: morph.bounce });
-  }, [folded, reduce, t]);
-  useEffect(() => () => t.stop(), [t]);
-
-  const p = () => Math.min(1, Math.max(0, t.get()));
-  const pillOpacity = useTransform(() => (reduce ? 1 - p() : 1 - smoothstep(0.05, 0.55, p())));
-  const cardOpacity = useTransform(() => (reduce ? p() : smoothstep(0.3, 0.8, p())));
-  // The seam: blurred most where both are half there
-  const seam = useTransform(() => {
-    const sigma = reduce ? 0 : m['crossfade-blur'] * 4 * pillOpacity.get() * cardOpacity.get();
-    return sigma < 0.05 ? 'none' : `blur(${sigma}px)`;
-  });
-  const side = (k: keyof Size) => (!sizes ? 0 : reduce ? sizes[folded ? 'pill' : 'card'][k] : sizes.pill[k] + (sizes.card[k] - sizes.pill[k]) * t.get());
-  const width = useTransform(() => side('width'));
-  const height = useTransform(() => side('height'));
-
+export function PollScrim({ onClose }: { onClose?: () => void }) {
   return (
-    // Until both are measured (before the first paint), it lays them out unseen
-    <motion.div className="tu-poll-morph tu-surface tu-surface--sheet" style={{ width, height, visibility: sizes ? undefined : 'hidden' }}>
-      <motion.div className="tu-poll-morph__seam" style={{ filter: seam }}>
-        {/* Only the one it is takes taps (and focus) */}
-        <motion.div ref={pillRef} className="tu-poll-morph__pill" style={{ opacity: pillOpacity }} inert={!folded}>
-          <PollPill now={now} poll={poll} onUnfold={onUnfold} />
-        </motion.div>
-        <motion.div ref={cardRef} className="tu-poll-morph__card" style={{ opacity: cardOpacity }} inert={folded}>
-          <PollCard now={now} poll={poll} onOpen={onOpen} onFold={onFold} onVote={onVote} />
-        </motion.div>
-      </motion.div>
-    </motion.div>
+    <motion.div
+      className="tu-poll-scrim"
+      aria-hidden
+      onClick={onClose}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1, transition: { duration: m['enter-ms'] / 1000, ease } }}
+      exit={{ opacity: 0, pointerEvents: 'none', transition: { duration: m['fade-ms'] / 1000, ease } }}
+    />
   );
 }
 
