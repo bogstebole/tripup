@@ -3,8 +3,9 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import {
-  billTotal, BILL_IN, euros, isPaid, moneyWith, MY_ID, payLine, POLL_CLOSES, POLL_OPENS, POLL_VOTES, pollClosed, pollLeader, pollOpen,
-  pollOptionById, pollStartedLine, pollWonLine, SCANNED_BILL, squaredUp, TODAY, TRIP, TRIP_DAYS, type Bill, type Payment, type PollState,
+  billTotal, BILL_IN, clockTime, dayName, euros, isPaid, moneyWith, MY_ID, payLine, planEnd, planStart, POLL_CLOSES, POLL_OPENS, POLL_VOTES,
+  pollClosed, pollLeader, pollOpen, pollOptionById, pollStartedLine, pollWonLine, SCANNED_BILL, squaredUp, TODAY, TRIP, TRIP_DAYS, type Bill,
+  type Payment, type Plan, type PollState,
 } from '../data';
 import { ActionBar, TopBar } from './Bars';
 import { Camera } from './BillScan';
@@ -13,7 +14,7 @@ import { JoinLayer } from './Join';
 import { PollOnMap, PollPage, pollSubtitle } from './Poll';
 import { ToggleChips } from './ToggleChips';
 import {
-  ADD_SUBTITLE, AddPage, ITINERARY_SUBTITLE, ItineraryPage, MONEY_SUBTITLE, MoneyFooter, MoneyPage, type AddPageProps, type AddStep,
+  addHeaderOf, AddPage, ITINERARY_SUBTITLE, ItineraryPage, MONEY_SUBTITLE, MoneyFooter, MoneyPage, type AddPageProps, type AddStep,
   type ItineraryPageProps, type MoneyTab,
 } from './TripPages';
 import { TripSheet } from './TripSheet';
@@ -22,7 +23,7 @@ const m = tokens.motion;
 const ease = m['ease-out'] as [number, number, number, number];
 const phone = { width: 393, height: 852, position: 'relative' as const, overflow: 'hidden', borderRadius: 'var(--radius-sheet)', background: 'var(--color-bg-canvas)' };
 // The full view's place: under the top bar's buttons, the sheet inset from the other edges. The pop-up lines up at
-// its bottom, so Add's shorter one sits low.
+// its bottom, so Add's shorter one (its choice and its invite) sits low.
 const place = {
   position: 'absolute' as const,
   top: 'calc(var(--space-xl) + var(--d-button-md))',
@@ -58,19 +59,21 @@ type PollSlot = { subtitle: string; page: ReactNode; card?: ReactNode };
 /**
  * The trip screen with one footer pop-up open. The footer's buttons open the others once it's closed. `money` swaps
  * in another state of the money pop-up (its page and its footer), `itinerary` sets the itinerary's page (the poll, now), `add` the add page's
- * (its step, and Invite's preview); `poll` is the dinner poll (its pop-up, and its card on the map while no pop-up
- * covers it); `children` go over everything (the camera, the invited person's phone). Notes for everyone come down at
- * the top: the pages show theirs, and `notices` lets the story show its own too. `open` and `onOpen` say from outside
- * which pop-up is open. The itinerary has its own day filter, pinned under its title: it opens on All (`planDays`
- * picks days for the story's start).
+ * (the step it starts on, a search or a place already picked, and Invite's preview); `poll` is the dinner poll (its
+ * pop-up, and its card on the map while no pop-up covers it); `children` go over everything (the camera, the invited
+ * person's phone). Notes for everyone come down at the top: the pages show theirs, and `notices` lets the story show
+ * its own too. `open` and `onOpen` say from outside which pop-up is open. The itinerary has its own day filter, pinned
+ * under its title: it opens on All (`planDays` picks days for the story's start). Add's step lives here, as in the
+ * app, so the pop-up's header can follow it; each time Add opens, it's on the choice. A plan sent from it closes the
+ * pop-up with a note, and is on the itinerary from then on.
  */
-function Screen({ start = null, open: shown, onOpen, money, itinerary, add, poll, notices, planDays: firstDays = [], children }: {
+function Screen({ start = null, open: shown, onOpen, money, itinerary, add, poll, notices: shared, planDays: firstDays = [], children }: {
   start?: Which | null;
   open?: Which | null;
   onOpen?: (which: Which | null) => void;
   money?: { page: ReactNode; footer?: ReactNode };
-  itinerary?: Omit<ItineraryPageProps, 'onPick' | 'onPoll' | 'days'>;
-  add?: AddPageProps;
+  itinerary?: Omit<ItineraryPageProps, 'onPick' | 'onPoll' | 'days' | 'added'>;
+  add?: Omit<AddPageProps, 'step' | 'onStep' | 'onSent'> & { start?: AddStep };
   poll?: PollSlot;
   notices?: NoticeState;
   planDays?: number[];
@@ -81,22 +84,40 @@ function Screen({ start = null, open: shown, onOpen, money, itinerary, add, poll
   const setOpen = onOpen ?? setOwn;
   const reduce = useReducedMotion();
   const close = () => setOpen(null);
+  const ownNotices = useNotice();
+  const notices = shared ?? ownNotices;
   // The itinerary's own filter (not the map's, so planning ahead doesn't change the map); each time it opens, on All
   const [planDays, setPlanDays] = useState<number[]>(firstDays);
+  // Where Add to the trip is: its choice, Plan something or Invite someone
+  const [addStep, setAddStep] = useState<AddStep>(add?.start ?? 'choose');
+  // Plans the group added (Plan something's Send)
+  const [added, setAdded] = useState<Plan[]>([]);
   const [lastOpen, setLastOpen] = useState(open);
   if (open !== lastOpen) {
     setLastOpen(open);
     if (open === 'itinerary') setPlanDays([]);
+    if (open === 'add') setAddStep('choose');
   }
-  const sheet: Record<Which, { title: string; subtitle: string; page: ReactNode; top?: ReactNode; footer?: ReactNode } | undefined> = {
+  const sent = (plan: Plan) => {
+    setAdded(a => [...a, plan]);
+    close();
+    const day = dayName(planStart(plan));
+    notices[1](`Sent: ${plan.name}, ${day === 'Today' ? '' : `${day} `}${clockTime(planStart(plan))}–${clockTime(planEnd(plan)!)}`);
+  };
+  const addHeader = addHeaderOf(addStep);
+  const sheet: Record<Which, { title: string; subtitle: string; page: ReactNode; top?: ReactNode; footer?: ReactNode; onBack?: () => void } | undefined> = {
     itinerary: {
       title: 'Itinerary',
       subtitle: ITINERARY_SUBTITLE,
-      page: <ItineraryPage onPick={close} onPoll={poll && (() => setOpen('poll'))} {...itinerary} days={planDays} />,
+      page: <ItineraryPage onPick={close} onPoll={poll && (() => setOpen('poll'))} {...itinerary} days={planDays} added={added} />,
       top: <ToggleChips label="Filter the itinerary by day" options={dayOptions} selected={planDays} onChange={setPlanDays} inset="xs" />,
     },
     money: { title: 'Money', subtitle: MONEY_SUBTITLE, page: money?.page ?? <MoneyPage />, footer: money?.footer ?? <MoneyFooter /> },
-    add: { title: 'Add to the trip', subtitle: ADD_SUBTITLE, page: <AddPage {...add} /> },
+    add: {
+      ...addHeader,
+      page: <AddPage step={addStep} onStep={setAddStep} onSent={sent} onPreview={add?.onPreview} query={add?.query} place={add?.place} />,
+      onBack: addStep === 'choose' ? undefined : () => setAddStep('choose'),
+    },
     poll: poll && { title: 'Dinner tonight', subtitle: poll.subtitle, page: poll.page },
   };
   const current = open ? sheet[open] : undefined;
@@ -138,7 +159,17 @@ function Screen({ start = null, open: shown, onOpen, money, itinerary, add, poll
         <div style={place}>
           <AnimatePresence>
             {open && current && (
-              <TripSheet key={open} title={current.title} subtitle={current.subtitle} compact={open === 'add'} top={current.top} footer={current.footer} onClose={close}>
+              <TripSheet
+                key={open}
+                title={current.title}
+                subtitle={current.subtitle}
+                compact={open === 'add' && addStep !== 'plan'}
+                centered={open === 'add' && addStep === 'invite'}
+                onBack={current.onBack}
+                top={current.top}
+                footer={current.footer}
+                onClose={close}
+              >
                 {current.page}
               </TripSheet>
             )}
@@ -334,12 +365,13 @@ function PollStory({ start }: { start?: Which }) {
 
 // ---------- Add: a plan, or someone new
 
-/** The add pop-up, on `start`. Invite's See what they'll see opens the invited person's phone over everything (as in
- *  Screens · Invite preview); its × or Close the preview goes back to Invite. */
-function AddStory({ start }: { start?: AddStep }) {
+/** The add pop-up, on `start` (Plan something's search holding `query`, or with `place` picked). Invite's See what
+ *  they'll see opens the invited person's phone over everything (as in Screens · Invite preview); its × or Close the
+ *  preview goes back to Invite. */
+function AddStory({ start, query, place }: { start?: AddStep; query?: string; place?: string }) {
   const [preview, setPreview] = useState(false);
   return (
-    <Screen start="add" add={{ start, onPreview: () => setPreview(true) }}>
+    <Screen start="add" add={{ start, query, place, onPreview: () => setPreview(true) }}>
       <AnimatePresence>{preview && <JoinLayer key="preview" preview onJoined={() => setPreview(false)} onClose={() => setPreview(false)} />}</AnimatePresence>
     </Screen>
   );
@@ -356,7 +388,7 @@ const meta = {
           '',
           'Motion: the pop-up rises from just past the bottom edge (enter-ms, ease-out) while the map and bars blur away under a light scrim, and goes back down quicker (fade-ms). The page\'s blocks arrive one after another (fade, light blur, a few px up, stagger-ms apart). They close with the ×, a tap outside, or (on the phone) a pull down on the header. Reduced motion: fades only.',
           '',
-          'Add is shorter (sheet/compact-height) since it has only a few rows. Every note comes down at the top of the screen, where the top bar\'s buttons are, whether it\'s mine ("Link copied", "You paid Maya €181.50") or one for everyone on the trip ("Leo paid Maya €185.92"): the same pill, for toast-ms; one with Undo stays for toast-action-ms, so there\'s time to reach it. The pop-ups have no notes of their own. A line too long for the pill ends in an ellipsis; Undo always shows.',
+          'Add\'s choice and its invite are shorter (sheet/compact-height), since they have only a few rows; Plan something takes the whole height, and the sheet eases between the two (enter-ms, ease-in-out). A step inside a pop-up shows in its header: a back button (sm) slides in before the title (enter-ms, ease-out) and the title and its line crossfade (the new one in over enter-ms, the old one out over fade-ms). Every note comes down at the top of the screen, where the top bar\'s buttons are, whether it\'s mine ("Link copied", "You paid Maya €181.50") or one for everyone on the trip ("Leo paid Maya €185.92"): the same pill, for toast-ms; one with Undo stays for toast-action-ms, so there\'s time to reach it. The pop-ups have no notes of their own. A line too long for the pill ends in an ellipsis; Undo always shows.',
           '',
           'The dinner poll is a pop-up of the same family, "Dinner tonight". It opens from its card on the map (in its place while it\'s open), from tonight\'s Dinner slot in the itinerary, and on Undo.',
         ].join('\n'),
@@ -368,7 +400,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Itinerary: Story = {
-  parameters: { docs: { description: { story: 'Every day of the trip: today first, then the days ahead, then the ones behind us. No grey blocks: a hairline between days, md above and below it (as on a place\'s Group page). Each day has its heading ("Thu 14 · Day 3 · Today", past days muted; the day number is still its place in the trip), then where we\'ve been ("Been there", no check) and what\'s planned (its time); a day with nothing yet says "Nothing planned yet". Headings and rows share the page\'s one left edge. Under the title, pinned while the page scrolls under it, the day filter: the same chips as the map\'s (All, Tue 12…), but its own, so planning ahead doesn\'t change what the map shows. It opens on All, on today, just under the header; picking days shows only those, in the same order (they combine; All brings every day back, at once). The next plan says "Up next" in brand blue. Tapping a stop closes the pop-up and shows it on the map.' } } },
+  parameters: { docs: { description: { story: 'Every day of the trip: today first, then the days ahead, then the ones behind us. No grey blocks: a hairline between days, md above and below it (as on a place\'s Group page). Each day has its heading ("Thu 14 · Day 3 · Today", past days muted; the day number is still its place in the trip), then where we\'ve been ("Been there", no check) and what\'s planned (its time); a day with nothing yet says "Nothing planned yet". Headings and rows share the page\'s one left edge. Under the title, pinned while the page scrolls under it, the day filter: the same chips as the map\'s (All, Tue 12…), but its own, so planning ahead doesn\'t change what the map shows. It opens on All, on today, just under the header; picking days shows only those, in the same order (they combine; All brings every day back, at once). The next plan says "Up next" in brand blue. A plan with an end (one sent from Add\'s Plan something) says until when: "In 2 hrs · until 8 PM". Tapping a stop closes the pop-up and shows it on the map.' } } },
   render: () => <Screen start="itinerary" />,
 };
 
@@ -379,7 +411,7 @@ export const ItineraryOneDay: Story = {
 };
 
 export const Money: Story = {
-  parameters: { docs: { description: { story: 'Before dinner. The subtitle: "5 people · split by who had what". Every text sits on the page\'s one left edge. On top, what I owe and Pay, in the one grey block (it\'s the thing to act on; bg-muted, radius-card, its text xs in like every row\'s, md everywhere else). Then tabs the width of the page, Settle up · Balances · Expenses (SegmentedTabs wide: the three share it equally; lg above), one list at a time, each under a section title with a line under it (lg above); so the expenses, the list that grows all trip, never push the rest away. Settle up comes first, as it\'s the one with something to do: "3 payments square everyone, instead of 9" (one expense at a time), each with its Why (tap it). Balances: "Who gets money back, and who owes", in plain words (see Money · balances). Expenses: "Newest first" (see Money · expenses). The footer stays put while the lists scroll, over a hairline: "Spent so far", "3 expenses · yours €181.50", and €726.00 (heading-lg) on the right, like the Menu\'s total. There\'s no estimate for tonight\'s dinner: it joins once its bill is in. Picking a tab slides the pill to it (spring-snap) and fades its list in (enter-ms, ease-out) while the last one fades out with a blur (fade-ms, enter-blur; reduced motion, no blur). Pay flips the block to "You\'re square with Maya" and a note comes down at the top; my payment row turns to Paid and the balances follow. Costs from before someone joined stay with the people who were there (Ren joined today).' } } },
+  parameters: { docs: { description: { story: 'Before dinner. The subtitle: "5 people · split by who had what". On top, what I owe, in a rounded pill like Invite\'s link (bg-muted, radius-pill; md in on the left, xs on the other sides): a muted "You owe Maya" (body-sm) over €181.50 (heading-sm), each one line, and Pay at its end. Then tabs the width of the page, Settle up · Balances · Expenses (SegmentedTabs wide: the three share it equally; lg above), one list at a time, each under a section title with a line under it (lg above); so the expenses, the list that grows all trip, never push the rest away. Settle up comes first, as it\'s the one with something to do: "3 payments square everyone, instead of 9" (one expense at a time), each with its Why (tap it). Balances: "Who gets money back, and who owes", in plain words (see Money · balances). Expenses: "Newest first" (see Money · expenses). The footer stays put while the lists scroll, over a hairline: "Spent so far", "3 expenses · yours €181.50", and €726.00 (heading-lg) on the right, like the Menu\'s total. There\'s no estimate for tonight\'s dinner: it joins once its bill is in. Picking a tab slides the pill to it (spring-snap) and fades its list in (enter-ms, ease-out) while the last one fades out with a blur (fade-ms, enter-blur; reduced motion, no blur). Pay flips the pill to "You\'re square with Maya" over a green "Paid €181.50", with the done mark at its end (xs in), and a note comes down at the top; my payment row turns to Paid and the balances follow. Costs from before someone joined stay with the people who were there (Ren joined today).' } } },
   render: () => <Screen start="money" />,
 };
 
@@ -406,13 +438,13 @@ export const MoneyDinnerOn: Story = {
 
 export const MoneyBillIn: Story = {
   name: 'Money · bill in',
-  parameters: { docs: { description: { story: `The bill was just added (€228.80, paid by me, split by who had what): the footer says 4 expenses, yours €240.62, €954.80 spent (no Scan the bill now); 4 payments instead of 13, all to Maya (Leo €185.92, Nic €136.72, Ren €30.72, me €11.82). Each payment (Settle up) has a Why that opens under it: what they had of each expense, what they paid, and why it goes to one person. The others pay on their own: in the app 30 s apart, here ${OTHERS_PAY_EVERY / 1000} s apart, each with a note for everyone at the top ("Leo paid Maya €185.92"). Once they have, the top block says "Everyone else has paid" over my €11.82; my Pay makes it "You\'re square with Maya", and when the last payment lands, the block turns green and everyone hears "Lisbon is squared up".` } } },
+  parameters: { docs: { description: { story: `The bill was just added (€228.80, paid by me, split by who had what): the footer says 4 expenses, yours €240.62, €954.80 spent (no Scan the bill now); 4 payments instead of 13, all to Maya (Leo €185.92, Nic €136.72, Ren €30.72, me €11.82). Each payment (Settle up) has a Why that opens under it: what they had of each expense, what they paid, and why it goes to one person. The others pay on their own: in the app 30 s apart, here ${OTHERS_PAY_EVERY / 1000} s apart, each with a note for everyone at the top ("Leo paid Maya €185.92"). Once they have, the pill\'s line says "You owe Maya · Everyone else has paid" over my €11.82; my Pay makes it "You\'re square with Maya", and when the last payment lands, the pill turns green and everyone hears "Lisbon is squared up".` } } },
   render: () => <LiveMoney from="bill-in" />,
 };
 
 export const MoneySquaredUp: Story = {
   name: 'Money · squared up',
-  parameters: { docs: { description: { story: 'Everyone has paid: the top block is green, "Lisbon is squared up", 4 payments, €365.18 in all. Under the tabs, every payment is Paid (each still has its Why); every balance is Square (Balances); and the dinner sits on top of the expenses, by who had what (Expenses). The footer: "Spent so far", "4 expenses · yours €240.62", €954.80.' } } },
+  parameters: { docs: { description: { story: 'Everyone has paid: the pill is green (bg-success-subtle), a muted "Lisbon is squared up" over "Everyone has paid: 4 payments, €365.18 in all" in green (one line, so it ends in "…"), and the done mark. Under the tabs, every payment is Paid (each still has its Why); every balance is Square (Balances); and the dinner sits on top of the expenses, by who had what (Expenses). The footer: "Spent so far", "4 expenses · yours €240.62", €954.80.' } } },
   render: () => <LiveMoney from="squared-up" />,
 };
 
@@ -423,14 +455,32 @@ export const ScanTheBill: Story = {
 };
 
 export const Add: Story = {
-  parameters: { docs: { description: { story: 'Two choices: plan something, or invite someone. Plan shows ideas nearby, each with the free slot it would go in, and an Add button (a note confirms the slot). Invite shows the link with Copy link (a note confirms), says what joining costs, and can show what they\'ll see (see Add · invite). Back returns to the choice; a step fades out with a blur while the next one arrives.' } } },
+  parameters: { docs: { description: { story: '"Add to the trip", "A plan, or someone new", in the compact sheet (sheet/compact-height): two plain choices, Plan something and Invite someone, each a big title (heading-sm) with a line under it (body-sm, muted) and an arrow, md above and below, a hairline between; no icons and no boxes. Picking one changes the header, not the page: a back button (sm) slides in before the title (enter-ms, ease-out) and the title and its line crossfade to the step\'s ("Plan something · Find a place, pick a time, send it", "Invite someone · They join with a link, no account"). The step fades in (enter-ms), its blocks arriving one after another, while the choice fades out with a blur (fade-ms). Plan something grows the sheet to the full height (enter-ms, ease-in-out); Back shrinks it again and starts a plan over. Every time Add opens, it\'s on the choice.' } } },
   render: () => <AddStory />,
 };
 
 export const AddInvite: Story = {
   name: 'Add · invite',
-  parameters: { docs: { description: { story: 'Invite, as it opens from Invite someone: the link with Copy link, the note on what joining costs, and under it, from the page\'s left edge, a soft "See what they\'ll see" (TextButton soft, 44 px). It opens the invited person\'s phone over everything, the way Ren\'s phone opens (it fades in from page-zoom-scale, enter-ms, and fades away, fade-ms; reduced motion, fades only): "What they\'ll see" at the top, the name field empty, and the trip as anyone joining now would see it (see Screens · Invite preview). Nobody joins; × or Close the preview goes back to Invite, the pop-up still open.' } } },
+  parameters: { docs: { description: { story: 'Invite, as it opens from Invite someone, in the middle of the compact sheet (TripSheet centered), md between its blocks: "Send them this link" (heading-sm) and "Share it with a friend. They type their name and they\'re in." (body-sm, muted), centred; the link in a muted pill with Copy link ("Link copied" comes down at the top); and a soft "See what they\'ll see" (TextButton soft, 44 px). It opens the invited person\'s phone over everything, the way Ren\'s phone opens (it fades in from page-zoom-scale, enter-ms, and fades away, fade-ms; reduced motion, fades only): "What they\'ll see" at the top, the name field empty, and the trip as anyone joining now would see it (see Screens · Invite preview). Nobody joins; × or Close the preview goes back to Invite, the pop-up still open.' } } },
   render: () => <AddStory start="invite" />,
+};
+
+export const AddPlan: Story = {
+  name: 'Add · plan',
+  parameters: { docs: { description: { story: 'Plan something, before anything is typed, with the sheet at its full height: a search pill as tall as a big button (bg-muted, radius-pill: the search icon, "Search places in Lisbon"), then "Near you" (lg above), "Or search for anywhere in Lisbon", and the five nearest of 20 well-known Lisbon places, by walking time from where I am (the distance × 1.3 for the streets, at 80 m a minute, rounded up; past 45 min, how far it is instead): Museu Calouste Gulbenkian (22 min walk), Cervejaria Ramiro (3.2 km away), Miradouro da Senhora do Monte, A Ginjinha, Museu Nacional do Azulejo. Each row: its sticker, its name, "kind · area · walk" and an arrow; tapping one picks it, and the page fades over to it (see Add · plan · place picked). Not built: searching beyond the 20 (a real places API), and asking the group before it goes in.' } } },
+  render: () => <AddStory start="plan" />,
+};
+
+export const AddPlanSearch: Story = {
+  name: 'Add · plan · search',
+  parameters: { docs: { description: { story: 'Searching "belem": a search matches a place\'s name, what it is or its neighbourhood, ignoring case and accents, so Belém counts. "4 places" (no line under it), in the list\'s order: Pastéis de Belém, Mosteiro dos Jerónimos, Torre de Belém and MAAT, each "7.4 km away" and so on. × clears it, back to Near you. With nothing found: "Nothing found", "Try a name, a kind of place or a neighbourhood".' } } },
+  render: () => <AddStory start="plan" query="belem" />,
+};
+
+export const AddPlanPicked: Story = {
+  name: 'Add · plan · place picked',
+  parameters: { docs: { description: { story: 'Time Out Market picked. On top, a small still map of it, plan/map-height (160) tall with radius-card corners, its sticker in the middle and the map\'s credit at the bottom (the app draws the live map\'s tiles; here a plain bg-subtle block stands in for them). Then its row with a soft Change, back to the search as it was. "When" (lg above): one day at a time, as chips (Today on, then Tomorrow, Sat 16…), and From and To: tonight 6 PM to 8 PM (from the next hour once it\'s past 5; tomorrow once it\'s past 9 PM). Tapping a time opens a wheel under it (plan/picker-height, 180; it opens over enter-ms and closes quicker), the time in brand while it\'s open; tapping it again closes it. The app\'s wheel is Cupertino\'s (hour, minute and AM/PM, 15-minute steps); here it\'s one column of times 15 minutes apart that scrolls and snaps, the one in the middle band picked once it settles (tap a time, or step with the arrow keys). A From at or past To moves To an hour after it; To stays at least 15 min after From. Then Send to the group (TextButton lg, wide; xl above) and, centred under it, "It goes on everyone\'s itinerary and map." Send closes the pop-up and everyone hears "Sent: Time Out Market, 6 PM–8 PM" at the top (with the day when it isn\'t today); the itinerary has it, "In 2 hrs · until 8 PM". In the app the map also flies to it.' } } },
+  render: () => <AddStory start="plan" place="timeout" />,
 };
 
 export const ItineraryPollOpen: Story = {

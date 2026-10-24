@@ -202,11 +202,11 @@ export interface HomeLayerProps extends Omit<TripsHomeProps, 'cardRef'> {
  * Your trips, and the trip's screen over them (the app's home layer and its opening trip), with one spring between.
  * Going in, the trip card opens into the trip: the whole trip screen grows out of the card's place, scaled to the
  * card's width and clipped to its rounded rect (the card's corners, d-surface-radius, easing to none), both growing
- * to the whole screen (spring-expand). It fades in over the first 30% of the way, so the card's still of the city
- * gives way to the trip. Behind it your trips fade (over 20–90%) and lean in toward the card (to page-zoom-scale,
- * about the card's centre). The trip's Back closes it into the card again (spring-collapse). Nothing takes taps
- * while it moves. Reduced motion: fades only (fade-ms). Whichever isn't showing isn't drawn, and keeps its place (the
- * list its scroll).
+ * to the whole screen (spring-open: no bounce, as a full-screen container shouldn't wobble). It fades in over the
+ * first 30% of the way, so the card's still of the city gives way to the trip. Behind it your trips fade (over 20–90%)
+ * and lean in toward the card (to page-zoom-scale, about the card's centre). The trip's Back closes it into the card
+ * again (spring-collapse). Nothing takes taps while it moves. Reduced motion: fades only (fade-ms). Whichever isn't
+ * showing isn't drawn, and keeps its place (the list its scroll).
  */
 export function HomeLayer({ inTrip, trip, ...home }: HomeLayerProps) {
   const reduce = !!useReducedMotion();
@@ -223,7 +223,7 @@ export function HomeLayer({ inTrip, trip, ...home }: HomeLayerProps) {
     frame.set(measure(rootRef.current, homeRef.current, cardRef.current));
     setMoving(true);
     const done = () => setMoving(false);
-    const spring = inTrip ? m['spring-expand'] : m['spring-collapse'];
+    const spring = inTrip ? m['spring-open'] : m['spring-collapse'];
     if (reduce) animate(t, to, { duration: m['fade-ms'] / 1000, ease: 'linear', onComplete: done });
     else animate(t, to, { type: 'spring', duration: spring.duration, bounce: spring.bounce, onComplete: done });
   }, [inTrip, reduce, t, frame]);

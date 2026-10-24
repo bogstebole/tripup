@@ -12,6 +12,9 @@
   /* clip, not hidden: nothing past the edge may make the sheet itself scrollable */
   overflow: clip;
   pointer-events: auto;
+  /* A change of height (Add going into Plan something, or back) is a morph on screen: ease in and out */
+  max-height: 100%;
+  transition: max-height var(--enter-ms) var(--ease-in-out);
 }
 /* With a footer: the page above it, the footer in its own row under it (it doesn't scroll) */
 .tu-trip-sheet--footer { grid-template: minmax(0, 1fr) auto / minmax(0, 1fr); }
@@ -19,7 +22,7 @@
 /* A row that stays under the title (the itinerary's day filter): sm under it, one chip row high */
 .tu-trip-sheet--top { --header: calc(var(--title-head) + var(--space-sm) + var(--d-toggle-chip-height)); }
 .tu-trip-sheet__top { grid-area: 1 / 1; align-self: start; z-index: 2; min-width: 0; height: var(--d-toggle-chip-height); margin-top: calc(var(--title-head) + var(--space-sm)); }
-/* Add has only a few rows, so it's shorter */
+/* Add's choice and its invite are short, so the sheet is too; planning takes the whole height */
 .tu-trip-sheet--compact { max-height: var(--d-sheet-compact-height); }
 
 .tu-trip-sheet__scroll {
@@ -36,13 +39,23 @@
   mask-image: linear-gradient(to bottom, black calc(100% - var(--d-sheet-fade)), transparent);
 }
 .tu-trip-sheet__scroll::-webkit-scrollbar { display: none; }
+/* The page in the middle of the room under the header when it's shorter than that (Invite's link); at the top
+   otherwise */
+.tu-trip-sheet__scroll--centered { display: flex; flex-direction: column; }
+.tu-trip-sheet__scroll--centered > * { margin-block: auto; }
 
 /* The surface's white behind the header, solid to the header's bottom, then an eased fade (opacity follows the scroll) */
 .tu-trip-sheet__top-fade { grid-area: 1 / 1; align-self: start; z-index: 1; height: calc(var(--header) + var(--d-sheet-top-fade)); pointer-events: none; }
 
 .tu-trip-sheet__head { grid-area: 1 / 1; align-self: start; z-index: 2; display: flex; align-items: flex-start; padding-top: var(--space-xs); }
-.tu-trip-sheet__titles { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: var(--space-2xs); padding: var(--space-xs) var(--space-md) 0 var(--space-xs); color: var(--color-text-default); }
-.tu-trip-sheet__titles h2 { margin: 0; }
+/* The back button's slot: cut at its right edge, so the button shows as the slot opens; room for its shadow
+   everywhere else */
+.tu-trip-sheet__back { display: flex; flex: none; clip-path: inset(calc(var(--space-xl) * -1) 0 calc(var(--space-xl) * -1) calc(var(--space-xl) * -1)); }
+.tu-trip-sheet__back > .tu-btn { margin-right: var(--space-2xs); }
+/* The title and its line; while a step changes them, the old and the new share the spot */
+.tu-trip-sheet__titles { flex: 1 1 0; min-width: 0; display: grid; padding: var(--space-xs) var(--space-md) 0 var(--space-xs); color: var(--color-text-default); }
+.tu-trip-sheet__title { grid-area: 1 / 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-2xs); }
+.tu-trip-sheet__title h2 { margin: 0; }
 .tu-trip-sheet__subtitle { color: var(--color-text-muted); }
 
 /* Blocks of the page, top to bottom */

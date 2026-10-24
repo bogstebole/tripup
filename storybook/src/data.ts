@@ -217,8 +217,9 @@ export const UP_NEXT_NOW = upNextAt(EVERYONE_THERE);
 /** A day of the trip at a time of day. */
 export const tripDate = (day: number, hour = 0, minute = 0) => new Date(2026, 4, day, hour, minute);
 
-/** Planned, in order. The first one is Up next. */
-export type Plan = { id: string; name: string; sticker: string; day: number; hour: number };
+/** Planned, in order. The first one is Up next. `endHour` and `endMinute`: when it ends, if whoever planned it said
+ *  (Plan something asks for a range). */
+export type Plan = { id: string; name: string; sticker: string; day: number; hour: number; minute?: number; endHour?: number; endMinute?: number };
 export const PLANS: Plan[] = [
   { id: 'brasserie', name: EVENT.name, sticker: EVENT.sticker, day: TODAY, hour: 17 },
   { id: 'croissants', name: 'Sam Croissants', sticker: 'nata', day: TODAY, hour: 18 },
@@ -228,7 +229,9 @@ export const PLANS: Plan[] = [
   { id: 'oceanario', name: 'Oceanário', sticker: 'festival-sardine', day: 18, hour: 11 },
   { id: 'tiles', name: 'Tile Museum', sticker: 'azulejo', day: 19, hour: 10 },
 ];
-export const planStart = (p: Plan) => tripDate(p.day, p.hour);
+export const planStart = (p: Plan) => tripDate(p.day, p.hour, p.minute ?? 0);
+/** When it ends, if it says. */
+export const planEnd = (p: Plan) => (p.endHour === undefined ? undefined : tripDate(p.day, p.endHour, p.endMinute ?? 0));
 
 /** Places already visited: stickers on the map, the trip's history (tilt in degrees). */
 export type Visited = { name: string; sticker: string; tilt: number; day: number };
@@ -395,6 +398,48 @@ export const PLAN_IDEAS: PlanIdea[] = [
   { id: 'santini', name: 'Gelados Santini', kind: 'Ice cream', sticker: 'ice-cream', day: 16, hour: 15 },
   { id: 'lxfactory', name: 'LX Factory', kind: 'Shops and street art', sticker: 'azulejo', day: 20, hour: 11 },
 ];
+
+/** A place Plan something can find: Lisbon's well-known spots, where they are, and a sticker for the map. */
+export type PlaceSpot = { id: string; name: string; kind: string; area: string; at: LatLng; sticker: string };
+
+/** Lower case, without accents ("Belém" → "belem"). */
+const plain = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+
+/** Whether a search matches it: its name, what it is or where, ignoring case and accents. */
+export const placeMatches = (s: PlaceSpot, query: string) => {
+  const q = plain(query.trim());
+  return !q || [s.name, s.kind, s.area].some(x => plain(x).includes(q));
+};
+
+export const LISBON_PLACES: PlaceSpot[] = [
+  { id: 'timeout', name: 'Time Out Market', kind: 'Food hall', area: 'Cais do Sodré', at: [38.7069, -9.1459], sticker: 'sardine-tin' },
+  { id: 'santini', name: 'Gelados Santini', kind: 'Ice cream', area: 'Chiado', at: [38.7108, -9.1418], sticker: 'ice-cream' },
+  { id: 'lxfactory', name: 'LX Factory', kind: 'Shops and street art', area: 'Alcântara', at: [38.7034, -9.1786], sticker: 'azulejo' },
+  { id: 'pasteis-belem', name: 'Pastéis de Belém', kind: 'Bakery', area: 'Belém', at: [38.6975, -9.2032], sticker: 'nata' },
+  { id: 'jeronimos', name: 'Mosteiro dos Jerónimos', kind: 'Monastery', area: 'Belém', at: [38.6979, -9.2068], sticker: 'padrao' },
+  { id: 'torre-belem', name: 'Torre de Belém', kind: 'Landmark', area: 'Belém', at: [38.6916, -9.216], sticker: 'belem' },
+  { id: 'maat', name: 'MAAT', kind: 'Museum', area: 'Belém', at: [38.6957, -9.1946], sticker: 'caravel' },
+  { id: 'castelo', name: 'Castelo de São Jorge', kind: 'Castle', area: 'Alfama', at: [38.7139, -9.1335], sticker: 'galo' },
+  { id: 'santa-luzia', name: 'Miradouro de Santa Luzia', kind: 'Viewpoint', area: 'Alfama', at: [38.7118, -9.1302], sticker: 'azulejo' },
+  { id: 'senhora-monte', name: 'Miradouro da Senhora do Monte', kind: 'Viewpoint', area: 'Graça', at: [38.7192, -9.1328], sticker: 'tram' },
+  { id: 'feira-ladra', name: 'Feira da Ladra', kind: 'Flea market', area: 'São Vicente', at: [38.7158, -9.1268], sticker: 'galo' },
+  { id: 'azulejo-museum', name: 'Museu Nacional do Azulejo', kind: 'Museum', area: 'Xabregas', at: [38.7247, -9.1137], sticker: 'azulejo' },
+  { id: 'santa-justa', name: 'Elevador de Santa Justa', kind: 'Landmark', area: 'Baixa', at: [38.7121, -9.1394], sticker: 'tram' },
+  { id: 'comercio', name: 'Praça do Comércio', kind: 'Square', area: 'Baixa', at: [38.7075, -9.1364], sticker: 'caravel' },
+  { id: 'ginjinha', name: 'A Ginjinha', kind: 'Bar', area: 'Rossio', at: [38.7145, -9.1386], sticker: 'wings' },
+  { id: 'manteigaria', name: 'Manteigaria', kind: 'Bakery', area: 'Chiado', at: [38.7106, -9.1437], sticker: 'nata' },
+  { id: 'ramiro', name: 'Cervejaria Ramiro', kind: 'Seafood', area: 'Intendente', at: [38.7208, -9.1357], sticker: 'festival-sardine' },
+  { id: 'tasca-chico', name: 'Tasca do Chico', kind: 'Fado', area: 'Bairro Alto', at: [38.7119, -9.1443], sticker: 'guitar' },
+  { id: 'oceanario', name: 'Oceanário de Lisboa', kind: 'Aquarium', area: 'Parque das Nações', at: [38.7633, -9.0937], sticker: 'festival-sardine' },
+  { id: 'gulbenkian', name: 'Museu Calouste Gulbenkian', kind: 'Museum', area: 'Avenidas Novas', at: [38.7372, -9.1545], sticker: 'padrao' },
+];
+export const placeById = (id: string) => LISBON_PLACES.find(s => s.id === id);
+
+/** "12 min walk" from where I am, or for somewhere far (past 45 min), how far: "6.1 km away". */
+export const walkLabel = (at: LatLng) => {
+  const mins = walkMinutes(at);
+  return mins <= 45 ? `${mins} min walk` : `${(metresBetween(ME_START, at) / 1000).toFixed(1)} km away`;
+};
 
 /** The trip's invite link: no account, they type a name and they're in. */
 export const INVITE_LINK = 'tripup.app/j/lisbon-may';
