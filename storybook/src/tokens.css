@@ -75,6 +75,7 @@
   --c-toast-bg: #1d4ed8;
   --c-toast-fg: #ffffff;
   --c-attribution-fg: #71717a;
+  --c-trip-open-wash: rgb(255 255 255 / 0.6);
   --c-poll-bar-track: #e4e4e7;
   --c-poll-bar-track-on-muted: #ffffff;
   --c-poll-bar: #d4d4d8;
@@ -353,6 +354,7 @@
   --c-toast-bg: #1d4ed8;
   --c-toast-fg: #ffffff;
   --c-attribution-fg: #a1a1aa;
+  --c-trip-open-wash: rgb(24 24 27 / 0.6);
   --c-poll-bar-track: #27272a;
   --c-poll-bar-track-on-muted: #18181b;
   --c-poll-bar: #d4d4d8;

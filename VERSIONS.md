@@ -523,6 +523,11 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - **Add:** `AddStep` lives in the trip screen, so `TripSheet` shows a back button (`onBack`) and the step's title, which crossfades. Choices are plain rows with big titles. Invite is centred (`TripSheet.centered`). Plan something: a search over `lisbonPlaces` (20 places, accent-insensitive), "Near you" by walking time, a small still map of the pick (`_mapOf`, with the map's credit), day chips, From/To wheels (`CupertinoDatePicker`, 15 min), "Send to the group" → `addedPlans` with an end time (`Plan.endHour`), the map flies to it, a note at the top. The sheet animates between compact and full height (`AnimatedPositioned`, ease-in-out).
 - Tokens: `spring-open`, `plan/map-height` 160, `plan/picker-height` 180. Icon: search.
 
+### Final UI, iteration 1.32: the trip opens like an Airbnb listing (branch `feature/add-and-opening-fix`)
+- From Bogdan's recording of Airbnb (`RPReplay_Final1792837535.mov`, frames at 30 fps): the list stays and blurs/washes out (`trip-open/wash`, the sheet's backdrop blur); one rounded surface grows from the card's rect to the screen, holding the card's still (`TripCardStill`) and, for the first quarter, the card's words (`TripCardFace`, at card size); the live trip fades in over 0.45–0.85 of the way with a slight seam blur; the corners square up over the last 30%; a lift shadow while in the air. Back runs it in reverse on `springCollapse`.
+- `springOpen` is now 0.45 s (no bounce). The home card is split into `TripCardStill` and `TripCardFace` so the opening can carry them.
+- Checked at 10× slow motion, opening and closing, on the simulator; nothing moves after it lands.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

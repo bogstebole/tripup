@@ -91,6 +91,7 @@ class TokColors {
     'c/toast/bg': Color(0xFF1D4ED8),
     'c/toast/fg': Color(0xFFFFFFFF),
     'c/attribution/fg': Color(0xFF71717A),
+    'c/trip-open/wash': Color(0x99FFFFFF),
     'c/poll/bar-track': Color(0xFFE4E4E7),
     'c/poll/bar-track-on-muted': Color(0xFFFFFFFF),
     'c/poll/bar': Color(0xFFD4D4D8),
@@ -183,6 +184,7 @@ class TokColors {
     'c/toast/bg': Color(0xFF1D4ED8),
     'c/toast/fg': Color(0xFFFFFFFF),
     'c/attribution/fg': Color(0xFFA1A1AA),
+    'c/trip-open/wash': Color(0x9918181B),
     'c/poll/bar-track': Color(0xFF27272A),
     'c/poll/bar-track-on-muted': Color(0xFF18181B),
     'c/poll/bar': Color(0xFFD4D4D8),
@@ -274,6 +276,7 @@ class TokColors {
   Color get cToastBg => _m['c/toast/bg']!;
   Color get cToastFg => _m['c/toast/fg']!;
   Color get cAttributionFg => _m['c/attribution/fg']!;
+  Color get cTripOpenWash => _m['c/trip-open/wash']!;
   Color get cPollBarTrack => _m['c/poll/bar-track']!;
   Color get cPollBarTrackOnMuted => _m['c/poll/bar-track-on-muted']!;
   Color get cPollBar => _m['c/poll/bar']!;
@@ -467,7 +470,7 @@ abstract final class TokMotion {
   static const springExpand = TokSpring(0.55, 0.08);
   static const springCollapse = TokSpring(0.38, 0);
   static const springSnap = TokSpring(0.35, 0);
-  static const springOpen = TokSpring(0.5, 0);
+  static const springOpen = TokSpring(0.45, 0);
   static const double crossfadeBlur = 2;
   static const double enterBlur = 4;
   static const double morphEnterScale = 0.9;

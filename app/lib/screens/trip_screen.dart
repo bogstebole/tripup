@@ -518,30 +518,18 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     );
   }
 
-  /// Your trips, behind the opening card: it fades and leans in toward the card as you go in, and back out of it.
+  /// Your trips, behind the opening trip (which blurs and washes them out). They don't move.
   Widget _homeLayer(BuildContext context) => AnimatedBuilder(
         animation: _home,
-        builder: (context, child) {
-          final p = (1 - _home.value).clamp(0.0, 1.0);   // 0 on the list, 1 in the trip
-          return IgnorePointer(
-            ignoring: _home.isAnimating,
-            child: Opacity(
-              opacity: 1 - smoothstep(0.2, 0.9, p),
-              child: Transform.scale(
-                scale: _reduce ? 1 : 1 + p * (TokMotion.pageZoomScale - 1),
-                alignment: Alignment.topLeft,
-                origin: _homeCard?.center ?? Offset.zero,
-                child: child,
-              ),
-            ),
-          );
-        },
+        builder: (context, child) => IgnorePointer(ignoring: _home.isAnimating, child: child),
         child: TripsHome(key: _homeKey, onOpen: _goIn, cardKey: _homeCardKey),
       );
 
-  /// The trip screen opening out of the trip card (and closing into it), as one container: scaled down to the card's
-  /// width and clipped to its rounded rect, then both grow to the whole screen. It fades in over the card's first
-  /// moments, so the card's still of the city gives way to the live map. With reduced motion it only fades.
+  /// The trip opening out of its card, the way Airbnb opens a listing (Bogdan's reference, 24 Oct): the list behind
+  /// blurs and washes out, and one rounded surface grows from the card to the whole screen. It starts as the card (the
+  /// city's still growing with it, the card's words leaving at once); near full size the live map and its bars fade in
+  /// over the still, slightly blurred while the two overlap; the corners square up last. Closing runs it back into the
+  /// card, quicker. With reduced motion it only fades.
   ///
   /// The widgets around the trip stay the same at rest and in motion (only their values change): a different wrapper
   /// on landing would build the map and its pins anew, and the Up next card would play its entrance a second time.
@@ -549,26 +537,78 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
         animation: _home,
         child: trip,
         builder: (context, child) {
-          final p = (1 - _home.value).clamp(0.0, 1.0);
+          final t = context.tok;
+          final p = (1 - _home.value).clamp(0.0, 1.0);   // 0 on the list, 1 in the trip
           final moving = !_inTrip && !_reduce;
-          final screen = Offset.zero & size;
-          final rect = moving ? Rect.lerp(_homeCard ?? screen, screen, p)! : screen;
+          final screen = Offset.zero & size, card = _homeCard ?? screen;
+          final rect = moving ? Rect.lerp(card, screen, p)! : screen;
+          final radius = BorderRadius.circular(moving ? TokDim.surfaceRadius * (1 - smoothstep(0.7, 1, p)) : 0);
           final scale = rect.width / size.width;
-          return IgnorePointer(
-            ignoring: !_inTrip,
-            child: ClipRRect(
-              clipper: _RRectClip(RRect.fromRectAndRadius(rect, Radius.circular(moving ? TokDim.surfaceRadius * (1 - p) : 0))),
-              clipBehavior: moving ? Clip.antiAlias : Clip.none,
-              child: Opacity(
-                opacity: _inTrip ? 1 : _reduce ? p : smoothstep(0, 0.3, p),
-                child: Transform(
-                  transform: Matrix4.translationValues(rect.center.dx - size.width / 2 * scale, rect.center.dy - size.height / 2 * scale, 0)
-                    ..multiply(Matrix4.diagonal3Values(scale, scale, 1)),
-                  child: child,
+          // What shows when: the card's words leave first, the live trip arrives near full size
+          final words = moving ? 1 - smoothstep(0, 0.25, p) : 0.0;
+          final live = _inTrip ? 1.0 : _reduce ? p : smoothstep(0.45, 0.85, p);
+          final seam = moving ? TokMotion.crossfadeBlur * 4 * live * (1 - live) : 0.0;
+          final behind = _inTrip ? 0.0 : smoothstep(0, 0.6, p);
+          return Stack(children: [
+            // The list behind blurs and washes out
+            Positioned.fill(
+              child: IgnorePointer(
+                child: BackdropFilter(
+                  enabled: behind > 0.01,
+                  filter: ui.ImageFilter.blur(sigmaX: TokDim.sheetBackdropBlur * behind, sigmaY: TokDim.sheetBackdropBlur * behind),
+                  child: ColoredBox(color: t.cTripOpenWash.withValues(alpha: t.cTripOpenWash.a * behind)),
                 ),
               ),
             ),
-          );
+            // The surface's lift, while it's a card in the air
+            Positioned.fromRect(
+              rect: rect,
+              child: IgnorePointer(child: DecoratedBox(decoration: BoxDecoration(borderRadius: radius, boxShadow: moving ? TokShadow.elevationOverlay : const []))),
+            ),
+            Positioned.fill(
+              child: IgnorePointer(
+                ignoring: !_inTrip,
+                child: ClipRRect(
+                  clipper: _RRectClip(radius.toRRect(rect)),
+                  clipBehavior: moving ? Clip.antiAlias : Clip.none,
+                  child: Stack(children: [
+                    // The card's still, growing with the surface
+                    Positioned.fromRect(rect: rect, child: Opacity(opacity: moving ? 1 : 0, child: const TripCardStill())),
+                    // The card's words, at the card's size, leaving
+                    Positioned.fromRect(
+                      rect: rect,
+                      child: Opacity(
+                        opacity: words,
+                        child: OverflowBox(
+                          alignment: Alignment.bottomLeft,
+                          minWidth: card.width,
+                          maxWidth: card.width,
+                          minHeight: card.height,
+                          maxHeight: card.height,
+                          child: const TripCardFace(),
+                        ),
+                      ),
+                    ),
+                    // The live trip, at its own size, scaled to the surface
+                    Positioned.fill(
+                      child: Opacity(
+                        opacity: live,
+                        child: ImageFiltered(
+                          enabled: seam >= 0.05,
+                          imageFilter: ui.ImageFilter.blur(sigmaX: seam, sigmaY: seam),
+                          child: Transform(
+                            transform: Matrix4.translationValues(rect.center.dx - size.width / 2 * scale, rect.center.dy - size.height / 2 * scale, 0)
+                              ..multiply(Matrix4.diagonal3Values(scale, scale, 1)),
+                            child: child,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ]),
+                ),
+              ),
+            ),
+          ]);
         },
       );
 

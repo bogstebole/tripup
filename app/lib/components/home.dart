@@ -111,7 +111,6 @@ class _CurrentTrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tok;
-    final crew = [for (final p in people) if (onTrip(p, tripNow())) p];
     final radius = BorderRadius.circular(TokDim.surfaceRadius);
     return Pressable(
       onTap: onOpen,
@@ -123,46 +122,70 @@ class _CurrentTrip extends StatelessWidget {
         child: ClipRRect(
           borderRadius: radius,
           child: Stack(children: [
-            // The city, scaled to fill the card, then white rising from the bottom so the text reads
-            const Positioned.fill(child: FittedBox(fit: BoxFit.cover, alignment: Alignment.topCenter, child: _HomeMap())),
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [t.cHomeMapFade, t.cHomeMapFade, t.cHomeMapFade.withValues(alpha: 0)],
-                    stops: const [0, TokDim.homeMapFadeStart, 1],
-                  ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(TokSpace.xl + TokDim.homeCardEdge),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.md, children: [
-                const Expanded(child: Align(alignment: Alignment.topLeft, child: _HappeningNow())),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(tripTitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingXl.copyWith(color: t.textDefault)),
-                  Text('$tripCity · $tripDates', style: TokText.labelMd.copyWith(color: t.textMuted)),
-                ]),
-                Row(children: [
-                  Expanded(
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Overlapped(
-                        overlap: TokDim.homeHeroFaceOverlap,
-                        children: [for (final p in crew) Sticker(p.sticker, height: TokDim.homeHeroFace)],
-                      ),
-                    ),
-                  ),
-                  TuButton(icon: TuIcons.forward, label: 'Open $tripTitle', kind: GlassKind.primary, onTap: onOpen),
-                ]),
-              ]),
-            ),
+            const Positioned.fill(child: TripCardStill()),
+            Positioned.fill(child: TripCardFace(onOpen: onOpen)),
           ]),
         ),
       ),
     );
+  }
+}
+
+/// The card's picture: the city's still with its stickers, scaled to fill whatever box it's in (the card, or the
+/// surface the trip opens in).
+class TripCardStill extends StatelessWidget {
+  const TripCardStill({super.key});
+
+  @override
+  Widget build(BuildContext context) => const FittedBox(fit: BoxFit.cover, alignment: Alignment.topCenter, child: _HomeMap());
+}
+
+/// The card's words over its picture: white rising from the bottom, "Happening now", the trip's name, the city and
+/// dates, who's on it, and the arrow in.
+class TripCardFace extends StatelessWidget {
+  const TripCardFace({super.key, this.onOpen});
+  final VoidCallback? onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tok;
+    final crew = [for (final p in people) if (onTrip(p, tripNow())) p];
+    return Stack(children: [
+      Positioned.fill(
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.bottomCenter,
+              end: Alignment.topCenter,
+              colors: [t.cHomeMapFade, t.cHomeMapFade, t.cHomeMapFade.withValues(alpha: 0)],
+              stops: const [0, TokDim.homeMapFadeStart, 1],
+            ),
+          ),
+        ),
+      ),
+      Padding(
+        padding: const EdgeInsets.all(TokSpace.xl + TokDim.homeCardEdge),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.md, children: [
+          const Expanded(child: Align(alignment: Alignment.topLeft, child: _HappeningNow())),
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(tripTitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingXl.copyWith(color: t.textDefault)),
+            Text('$tripCity · $tripDates', style: TokText.labelMd.copyWith(color: t.textMuted)),
+          ]),
+          Row(children: [
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Overlapped(
+                  overlap: TokDim.homeHeroFaceOverlap,
+                  children: [for (final p in crew) Sticker(p.sticker, height: TokDim.homeHeroFace)],
+                ),
+              ),
+            ),
+            TuButton(icon: TuIcons.forward, label: 'Open $tripTitle', kind: GlassKind.primary, onTap: onOpen),
+          ]),
+        ]),
+      ),
+    ]);
   }
 }
 
