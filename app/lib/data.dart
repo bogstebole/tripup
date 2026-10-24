@@ -848,8 +848,11 @@ const pastTrips = [
 /// the neighbourhoods we've been in show, with a few of the places on it as stickers. In the design's units: the card
 /// covers a [homeMapFrame] box (scaled to fill the real card).
 const homeMapFrame = Size(361, 438);
+
+/// Only the part of the still the card shows (and 2 units around it), at the same 2 px a unit: the design placed the
+/// whole 3584 × 2048 still at (-634, -343, 1792 × 1024), 30 MB decoded for a card (original: Assets/map/home-lisbon-full.png).
 const homeMapImage = 'assets/map/home-lisbon.png';
-const homeMapImageRect = Rect.fromLTWH(-634, -343, 1792, 1024);
+const homeMapImageRect = Rect.fromLTWH(-2, -2, 365, 442);
 const homeMapStickers = [
   (sticker: 'belem', center: Offset(324.5, 29), height: 38.0, tilt: 0.0),
   (sticker: 'galo', center: Offset(236.26, 65.85), height: 26.25, tilt: 11.86),

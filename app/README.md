@@ -27,11 +27,20 @@ After changing `design-system/tokens.json`, run `node ../design-system/build-tok
 
 If a build hangs with no error, check for files iCloud has moved off the disk to save space (`find . -flags +dataless`): reading one waits for it to download. `brctl download <file>` brings it back; Finder → Keep Downloaded on the project folder stops it happening.
 
+### Android: speed, and checking it on testers' phones
+
+- **Baked map tiles:** on Android the map's tiles around Lisbon come with the app, already drawn (`assets/map/tiles/`), because drawing them on a budget phone takes about half a second each. After changing `assets/map/style-google.json`, run `tools/bake_map_tiles.sh` with the emulator running (then reinstall the app); until then the app notices the style changed and draws every tile itself. See `lib/components/map_tiles.dart`.
+- **Startup timings:** long-press "Your trips" for a hidden panel with each startup step in ms, the phone, the renderer and the frame times of the launch and of opening the trip; a screenshot of it is the report. The same lines are in the log: `adb logcat -s flutter | grep "TripUp startup"`.
+- **Frame times** on Android: `flutter run --profile -t perf/trip_perf.dart -d <id> --dart-define=PERF_ONLY=launch,trip_open` and read the `PERF` lines (see the top of the file).
+- **A slow phone on the Mac:** an Android 8.1 emulator set up like a budget phone (`system-images;android-27;default;arm64-v8a`, 720 × 1520 at 320 dpi, 2 GB, `-cores 4`), started with `taskpolicy -b` to keep it on the Mac's efficiency cores. Its CPU timings point the right way; its frame times don't (its graphics emulation is slow at everything).
+- **Edge to edge:** the app draws under see-through system bars on Android 8+ (`MainActivity` for 8-9, Flutter from 10), with icons set per screen (`systemBarsOver` in `lib/design/theme.dart`). The launch screen's blue comes from the tokens (`res/values/tokens.xml`, written by `build-tokens.mjs`).
+
 ## What's where
 
 - `lib/design/tokens.dart`: generated tokens. `theme.dart`: `context.tok` colors, springs from tokens, inner-shadow painter, press feedback.
 - `lib/components/`: `glass.dart` (button glass, `TuButton`), `basics.dart` (surface, sticker, rating, chips, face pile, rows, sections, hairline), `segmented_tabs.dart`, `map_shapes.dart` (pin tail, edge arrow, my location), `bars.dart`, `toggle_chips.dart` (toggles: the days under the top bar, the menu's courses), `plan_pin.dart` (the morphing pin), `people_layer.dart` (the group's live locations, piled when close), `detail_sheet.dart`, `trip_sheet.dart` (the footer's pop-ups: surface, header, rows), `trip_pages.dart` (Itinerary, Money, Add), `stagger.dart`, `toast.dart`, `progressive_blur.dart`.
-- `lib/screens/trip_screen.dart`: the map (flutter_map + vector tiles in the Google-like style from `assets/map/style-google.json`), pin layers, and the card-to-full-view morph.
+- `lib/screens/trip_screen.dart`: the map (flutter_map + vector tiles in the Google-like style from `assets/map/style-google.json`, through `lib/components/map_tiles.dart`), pin layers, and the card-to-full-view morph.
+- `lib/startup_timings.dart`: the startup log and its hidden panel.
 - `lib/data.dart`: demo content. The restaurant's rating, address and whole menu are real: `assets/data/brasserie-menu.json` (shared with Storybook), from the restaurant's own English menu.
 
 ## Motion

@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import '../data.dart';
@@ -69,12 +72,33 @@ class ActionBar extends StatelessWidget {
   /// The buttons' row, side to side: pins pass beside it, never under it.
   static const double width = TokDim.buttonLg * 3 + TokSpace.xs * 2;
 
+  /// The map's credit: one line of small text (OpenStreetMap's licence asks for it to be readable).
+  static const creditStyle = TokText.bodySm;
+  static final double creditHeight = creditStyle.fontSize! * creditStyle.height!;
+
+  /// Under the buttons, where pins never go, sits the map's credit. On iOS it's inside the home indicator's inset, as
+  /// designed. Android's system bar there is real UI (three buttons, or a gesture handle the credit ran into), so on
+  /// Android the credit sits just above it, and the buttons above the credit.
+  static bool get _android => defaultTargetPlatform == TargetPlatform.android;
+
+  /// From the bottom of the screen to the bottom of the buttons.
+  static double rowInset(BuildContext context) {
+    final bottom = MediaQuery.paddingOf(context).bottom;
+    return _android ? math.max(bottom + creditHeight + TokSpace.x3xs * 2, TokSpace.x2xl) : math.max(bottom, TokSpace.x2xl);
+  }
+
+  /// From the bottom of the screen to the bottom of the map's credit.
+  static double creditInset(BuildContext context) {
+    final bottom = MediaQuery.paddingOf(context).bottom;
+    return _android ? bottom + TokSpace.x3xs : math.max(bottom, TokSpace.x2xl) - creditHeight - TokSpace.x3xs;
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.tok;
     final bottom = MediaQuery.paddingOf(context).bottom;
     return Container(
-      padding: EdgeInsets.fromLTRB(TokSpace.md, TokSpace.md, TokSpace.md, bottom > 0 ? bottom : TokSpace.x2xl),
+      padding: EdgeInsets.fromLTRB(TokSpace.md, TokSpace.md, TokSpace.md, _android ? rowInset(context) : (bottom > 0 ? bottom : TokSpace.x2xl)),
       decoration: BoxDecoration(gradient: easedFade(t.cActionBarBg, from: TokDim.actionBarFadeStart, up: true)),
       child: Row(mainAxisAlignment: MainAxisAlignment.center, spacing: TokSpace.xs, children: [
         EnterItem(index: EnterOrder.footer, child: TuButton(icon: TuIcons.places, label: 'Itinerary', size: TuButtonSize.lg, onTap: onItinerary)),

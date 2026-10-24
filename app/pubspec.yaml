@@ -36,7 +36,10 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_map: ^8.3.2
   latlong2: ^0.10.1
-  vector_map_tiles: ^9.0.0-beta.13
+  # Exact: lib/components/map_tiles.dart builds its tile layer from this version's parts (src/ imports)
+  vector_map_tiles: 9.0.0-beta.13
+  executor_lib: ^1.1.2
+  path_provider: ^2.1.6
   http: ^1.6.0
   vector_tile_renderer: ^6.1.0
   flutter_svg: ^2.3.0
@@ -63,6 +66,7 @@ flutter:
     - assets/photos/
     - assets/photos/menu/
     - assets/map/
+    - assets/map/tiles/
     - assets/data/
   fonts:
     - family: Geist

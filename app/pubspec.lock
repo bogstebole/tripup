@@ -98,7 +98,7 @@ packages:
     source: hosted
     version: "1.0.0"
   executor_lib:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: executor_lib
       sha256: "95ddf2957d9942d9702855b38dd49677f0ee6a8b77d7b16c0e509c7669d17386"
@@ -340,7 +340,7 @@ packages:
     source: hosted
     version: "1.1.0"
   path_provider:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: path_provider
       sha256: a7f4874f987173da295a61c181b8ee71dab59b332a486b391babf26a1b884825

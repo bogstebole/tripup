@@ -632,7 +632,9 @@ export const PAST_TRIPS: TripSummary[] = [
  *  tilt (degrees) are placed in it. */
 export const HOME_MAP_FRAME = { width: 361, height: 438 };
 export const HOME_MAP_IMAGE = '/assets/map/home-lisbon.png';
-export const HOME_MAP_IMAGE_RECT = { left: -634, top: -343, width: 1792, height: 1024 };
+/** Only the part of the still the card shows (and 2 px around it), as in the app: the design placed the whole
+ *  3584 × 2048 still at (-634, -343, 1792 × 1024) (original: Assets/map/home-lisbon-full.png). */
+export const HOME_MAP_IMAGE_RECT = { left: -2, top: -2, width: 365, height: 442 };
 export const HOME_MAP_STICKERS = [
   { sticker: 'belem', x: 324.5, y: 29, height: 38, tilt: 0 },
   { sticker: 'galo', x: 236.26, y: 65.85, height: 26.25, tilt: 11.86 },
