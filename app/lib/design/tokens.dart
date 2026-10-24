@@ -97,6 +97,7 @@ class TokColors {
     'c/poll/bar': Color(0xFFD4D4D8),
     'c/poll/bar-lead': Color(0xFF2563EB),
     'c/poll/live': Color(0xFFDC2626),
+    'c/poll/scrim': Color(0x3B001E81),
     'c/home/bg': Color(0xFF2563EB),
     'c/home/fg': Color(0xFFFFFFFF),
     'c/home/count-fg': Color(0xB3FFFFFF),
@@ -190,6 +191,7 @@ class TokColors {
     'c/poll/bar': Color(0xFFD4D4D8),
     'c/poll/bar-lead': Color(0xFF2563EB),
     'c/poll/live': Color(0xFFDC2626),
+    'c/poll/scrim': Color(0x3B001E81),
     'c/home/bg': Color(0xFF2563EB),
     'c/home/fg': Color(0xFFFFFFFF),
     'c/home/count-fg': Color(0xB3FFFFFF),
@@ -282,6 +284,7 @@ class TokColors {
   Color get cPollBar => _m['c/poll/bar']!;
   Color get cPollBarLead => _m['c/poll/bar-lead']!;
   Color get cPollLive => _m['c/poll/live']!;
+  Color get cPollScrim => _m['c/poll/scrim']!;
   Color get cHomeBg => _m['c/home/bg']!;
   Color get cHomeFg => _m['c/home/fg']!;
   Color get cHomeCountFg => _m['c/home/count-fg']!;
@@ -345,8 +348,13 @@ abstract final class TokDim {
   static const double scanOffOpacity = 0.3;
   static const double pollLostOpacity = 0.6;
   static const double pollWidth = 345;
-  static const double pollBarHeight = 6;
-  static const double pollLiveDot = 8;
+  static const double pollBarHeight = 8;
+  static const double pollLiveDot = 9;
+  static const double pollScrimBlur = 2.5;
+  static const double pollOptionSticker = 48;
+  static const double pollMetaFace = 16;
+  static const double pollMetaFaceOverlap = 5;
+  static const double pollNotVotedOpacity = 0.4;
   static const double pollMark = 24;
   static const double homeHeaderGap = 29;
   static const double planMapHeight = 160;

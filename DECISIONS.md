@@ -148,6 +148,8 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 - **A red dot that slowly breathes says it's live,** on the card and the pill ("Live poll · closes in…"). Red is what "live" looks like everywhere. With reduced motion it stays still.
 - **Folding is one surface changing shape** (Bogdan: the first version swapped two things). The box springs between the card's size and the pill's while one content fades out and the other in, slightly blurred where they overlap. Both are pinned to the box's left edge, so the live dot and its line ride along. We didn't use a crossfade of two separate widgets: it read as a swap.
 - **You vote on the card itself.** Tapping a place votes for it (a ring on the right fills with a check), and its bar and faces update at once. Before, the card only opened the poll, so voting took two taps. Ratings, prices and walks are a link at the bottom ("Ratings, prices and walks →").
+- **The poll is Bogdan's widget now** (Figma 82:3, 24 Oct). On the map it's a compact card under the day filter: "Live poll • closes in 30 mins" with the red dot, the question, "5 PM • Maya asked • 2 of 5 voted" and everyone at the table as tiny faces, the ones yet to vote faded. Tapping it opens it in place over a blue-tinted, slightly blurred map: the same card grows down and each place arrives in turn (name, rating, food and price, its sticker, a bar of its votes, Details, who voted for it, and a round vote button that turns brand once it's yours). The chevron or a tap outside closes it. This replaces the earlier fold into a pill and voting on rows with rings. All bars are brand here, as in the design (the poll page still marks the leader).
+- **Details** on a place opens the poll page, with walking times.
 - **Not built:** pins for the options on the map. All three are on the same street, so their pins would sit on top of each other; the cards say how far each is instead. The rest of the dinner (the bill and so on) is La Brasserie's; picking another place by hand gives it a plain plan.
 
 ## Your trips and joining (built 24 Oct)
@@ -194,6 +196,12 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 ## The trip opens on today (24 Oct)
 
 - **Going into a trip picks today in the day filter,** every time, and the map starts where it does. Bogdan: the focus should be on today, not on everything at once. Past days' places (the stickers of where we've been) show again under All or their own day. Up next stays open with today picked; picking another day still folds it into its pin.
+
+## Details from anywhere, and landing back cleanly (24 Oct)
+
+- **Know before you go is Bogdan's block** (Figma 62:4828): a subtle grey group with a brand title, and each tip as a plain muted line in brand. Tips are read, not tapped, so no arrows and no glass.
+- **A plan in the itinerary opens its details right there,** not the map: the itinerary's sheet and the details are the same surface in the same place, so the details' content fades in where the list was, and closing slides it down like a pop-up. A plan we know little about (Tram 28, an added one) shows its time, how far it is and a small map; the Menu tab appears only for a place with a menu. Places we've been still show on the map.
+- **Coming back from the details lands without a change** (Bogdan: the chips changed and the pin blinked at the end). The card that shrinks back is now exactly the card on the map, who's there included (it showed "N coming" until it landed), and the pin's tail stays under it the whole time instead of popping in when the card arrived.
 
 ## Notes from the top, everywhere (24 Oct)
 

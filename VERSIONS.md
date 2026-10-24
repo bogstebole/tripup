@@ -534,6 +534,12 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 ### Final UI, iteration 1.33: the trip opens on today
 - `_days` starts as `{today}` and `_goIn` resets it (and the camera) before the opening, unseen. `_setDays` keeps Up next open when the picked days include its day. Storybook's trip screen opens on today too.
 
+### Final UI, iteration 1.34: Bogdan's poll widget and Overview, details from the itinerary, a clean landing (branch `feature/poll-widget-design`)
+- **Poll** (Figma 82:3): `PollCard(expanded, onToggle, onDetails)` replaces `PollOnMap`/`PollPill`/`VoteMark`. Compact: live line + dot, the question, the meta line with the table's faces (not yet voted at 0.4). Open: a scrim (`poll/scrim` = #001e81 at 23%, blur 2.5) behind the same card, which grows (`AnimatedSize`, ease-in-out; folding: the places blur out first) while `_Place` cards stagger in: name, star + rating • food • price, sticker 48, an 8 px brand bar on white, Details, voters, and a 40 px check button (soft, or primary once yours). Tokens: `poll/scrim`, `poll/scrim-blur`, `poll/option-sticker`, `poll/meta-face`, `poll/meta-face-overlap`, `poll/not-voted-opacity`; `poll/bar-height` 6 → 8, `poll/live-dot` 8 → 9; primitive `blue.975`.
+- **Overview** (Figma 62:4828): `KnowSection` on `bg/subtle`, tips as `KnowTip` (muted block, label-sm brand, no arrow). `KnowRow` removed.
+- **Itinerary → details:** `ItineraryPage.onOpen`; `_openDetails` turns the pop-up into the full view in place (`_sheetPlan`, content from a third in, `springSnap`), closing slides it down. `DetailSheet` takes `mapOf` and handles plain plans (time and distance, a small map, Menu only with a menu).
+- **Landing back on Up next:** the shrinking card copy gets `here`; `PlanPin` no longer hides the tail while the full view is open. Checked at 8× slow motion.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

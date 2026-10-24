@@ -82,8 +82,8 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   ({String label, VoidCallback onTap})? _noticeAction;
   bool _noticeShown = false;
 
-  /// The open poll folded into a pill, off the map.
-  bool _pollFolded = false;
+  /// The poll on the map opened up (over a tinted map), or closed to its compact card.
+  bool _pollExpanded = false;
 
   /// The poll as last seen (0 not open yet, 1 open, 2 closed) and its vote count, to notice when either changes.
   int _pollPhase = -1, _pollVotes = -1;
@@ -133,6 +133,11 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   List<String> get _here => [for (final p in people) if (p.id != myId && isHere(p, tripNow())) p.sticker];
 
   Plan get _upNext => tripPlans.first;
+
+  /// A plan opened from the itinerary, whose details show in the full view instead of Up next's.
+  Plan? _sheetPlan;
+  Plan get _detailPlan => _sheetPlan ?? _upNext;
+
   bool get _reduce => MediaQuery.maybeDisableAnimationsOf(context) ?? false;
 
   @override
@@ -184,7 +189,10 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       if (_sheet && _closing && _open.value <= 0.002) {
         _open.stop();
         _release(_under);
-        setState(() => _sheet = _closing = false);
+        setState(() {
+          _sheet = _closing = false;
+          _sheetPlan = null;
+        });
         final then = _afterSheet;
         _afterSheet = null;
         then?.call();
@@ -212,7 +220,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     final phase = pollClosed(now) ? 2 : pollOpen(now) ? 1 : 0, votes = votesIn(now);
     if (phase == _pollPhase && votes == _pollVotes) return;
     final was = _pollPhase;
-    if (phase != was) _pollFolded = false;   // a poll that opens shows in full
+    if (phase != was) _pollExpanded = false;   // a poll that opens shows as its compact card
     _pollPhase = phase;
     _pollVotes = votes;
     // Only a change that just happened is news (not one the demo jumped over)
@@ -229,9 +237,9 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     _sceneChanged();
   }
 
-  void _foldPoll(bool fold) {
+  void _expandPoll(bool open) {
     HapticFeedback.selectionClick();
-    setState(() => _pollFolded = fold);
+    setState(() => _pollExpanded = open);
   }
 
   /// Tonight's place changed by hand (Undo, or picked in the poll): the map and the Up next card follow at once.
@@ -468,7 +476,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     setState(() {
       // From your trips, Up next waits for its turn in the entrance
       if (!_onHome) _upNextMid = true;
-      _pollFolded = false;
+      _pollExpanded = false;
       _joining = m.opens == 'join';
       _joinPreview = false;
     });
@@ -704,7 +712,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
 
     void dragUpdate(DragUpdateDetails d) => _popDrag.value = math.max(0, _popDrag.value + d.delta.dy);
     final (title, subtitle, page) = switch (_popup!) {
-      _Popup.itinerary => ('Itinerary', ItineraryPage.subtitle, ItineraryPage(todayKey: _todayKey, days: _planDays, onPoll: () => setState(() => _popup = _Popup.poll), onPick: (at) {
+      _Popup.itinerary => ('Itinerary', ItineraryPage.subtitle, ItineraryPage(todayKey: _todayKey, days: _planDays, onOpen: _openDetails, onPoll: () => setState(() => _popup = _Popup.poll), onPick: (at) {
           _closePopup();
           _flyTo(at);
         }) as Widget),
@@ -773,6 +781,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   void _openSheet() {
     final box = _cardKey.currentContext?.findRenderObject() as RenderBox?;
     if (box == null) return;
+    _sheetPlan = null;
     _from = box.localToGlobal(Offset.zero) & box.size;
     _drag.value = 0;
     _closing = false;
@@ -786,13 +795,47 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     }
   }
 
+  /// A plan's details, from the itinerary: the pop-up and the full view are the same surface in the same place, so
+  /// the itinerary gives way to the plan's page right there (its content fading in), no detour to the map.
+  void _openDetails(Plan p) {
+    final to = _fullRect(MediaQuery.sizeOf(context), MediaQuery.paddingOf(context));
+    HapticFeedback.selectionClick();
+    setState(() {
+      _sheetPlan = p;
+      _from = to;
+      _drag.value = 0;
+      _closing = false;
+      _sheet = true;
+      // The pop-up goes at once; the backdrop stays as it is ([_pop] holds it until the details rest open)
+      _popup = null;
+      _popClosing = false;
+    });
+    if (_reduce) {
+      _open.value = 1;
+      _pop.value = 0;
+      return;
+    }
+    _open.value = 0.45;   // the details' content a third in already (see the crossfade in [_expanded]); it fades the rest
+    springTo(_open, 1, TokMotion.springSnap).whenCompleteOrCancel(() {
+      if (mounted && _sheet) _pop.value = 0;
+    });
+  }
+
   void _closeSheet({double velocity = 0}) {
     _closing = true;
     _release(_still);
+    // Details opened in place (from the itinerary) leave the way pop-ups do: down, off the screen
+    if (_sheetPlan != null) {
+      final size = MediaQuery.sizeOf(context), to = _fullRect(size, MediaQuery.paddingOf(context));
+      _from = to.shift(Offset(0, size.height - to.top));
+    }
     if (_reduce) {
       _open.value = 0;
       _release(_under);
-      setState(() => _sheet = _closing = false);
+      setState(() {
+        _sheet = _closing = false;
+        _sheetPlan = null;
+      });
       return;
     }
     springTo(_open, 0, TokMotion.springCollapse, velocity: velocity);   // the system's answer: quicker than opening, no bounce
@@ -985,11 +1028,31 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       onPointerCancel: (_) => _touches--,
       child: Stack(children: [
         Positioned.fill(child: _still.build(context, scene)),
+        // The poll opened up: the map and its bars behind it tint and blur a little; a tap there closes it
+        Positioned.fill(
+          child: IgnorePointer(
+            ignoring: !_pollExpanded || !pollOpen(tripNow()) || _covered,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => _expandPoll(false),
+              child: AnimatedOpacity(
+                opacity: _pollExpanded && pollOpen(tripNow()) && !_covered ? 1 : 0,
+                duration: _pollExpanded ? TokMotion.enter : TokMotion.fade,
+                curve: TokMotion.easeOut,
+                child: BackdropFilter(
+                  filter: ui.ImageFilter.blur(sigmaX: TokDim.pollScrimBlur, sigmaY: TokDim.pollScrimBlur),
+                  child: ColoredBox(color: t.cPollScrim),
+                ),
+              ),
+            ),
+          ),
+        ),
         // While the dinner poll is open it stands where the Up next card would, under the day filter
         Positioned(
           left: 0,
           right: 0,
-          top: _safe(size).top,
+          top: _safe(size).top + TokSpace.xs,   // a little clear of the day filter
+          bottom: math.max(pad.bottom, TokSpace.md),
           child: IgnorePointer(
             ignoring: !pollOpen(tripNow()) || _covered || !_inTrip || !_upNextIn,
             // It comes and goes with a fade and a slight scale from the top; folding is the card's own morph
@@ -1007,9 +1070,17 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
               // (in the entrance it comes last, in Up next's place)
               child: !pollOpen(tripNow()) || _covered || !_inTrip || !_upNextIn
                   ? const SizedBox.shrink()
-                  : Center(
+                  : Align(
                       key: const ValueKey('poll'),
-                      child: PollOnMap(folded: _pollFolded, onFold: () => _foldPoll(true), onUnfold: () => _foldPoll(false), onOpen: () => _openPopup(_Popup.poll)),
+                      alignment: Alignment.topCenter,
+                      child: PollCard(
+                        expanded: _pollExpanded,
+                        onToggle: () => _expandPoll(!_pollExpanded),
+                        onDetails: (_) {
+                          setState(() => _pollExpanded = false);
+                          _openPopup(_Popup.poll);
+                        },
+                      ),
                     ),
             ),
           ),
@@ -1114,13 +1185,16 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   }
 
   /// The card growing into the full view: one surface whose rect and content follow [_open] (the backdrop is in [_backdrop]).
+  /// Where the full view (and a full-height pop-up) rests: under the top bar's buttons, inset from the edges.
+  Rect _fullRect(Size size, EdgeInsets pad) => Rect.fromLTRB(
+        TokDim.sheetInset,
+        pad.top + TokSpace.xs + TokDim.buttonMd + TokSpace.x3xs,
+        size.width - TokDim.sheetInset,
+        size.height - math.max(pad.bottom, TokDim.sheetInset),
+      );
+
   Widget _expanded(BuildContext context, Size size, EdgeInsets pad) {
-    final to = Rect.fromLTRB(
-      TokDim.sheetInset,
-      pad.top + TokSpace.xs + TokDim.buttonMd + TokSpace.x3xs,
-      size.width - TokDim.sheetInset,
-      size.height - math.max(pad.bottom, TokDim.sheetInset),
-    );
+    final to = _fullRect(size, pad);
     return AnimatedBuilder(
       animation: Listenable.merge([_open, _drag]),
       builder: (context, _) {
@@ -1131,7 +1205,8 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
         final shrink = 1 - (pull / to.height) * (1 - TokMotion.pressScale) * 4;
         // Overlapping crossfade: the card's content leaves over the first half of the way, the sheet's
         // arrives over the second, both are partly there in the middle (blurred slightly), never neither
-        final midOp = 1 - smoothstep(0.05, 0.55, p);
+        // (Details opened from the itinerary have no card to come from)
+        final midOp = _sheetPlan != null ? 0.0 : 1 - smoothstep(0.05, 0.55, p);
         final sheetOp = smoothstep(0.3, 0.8, p);
         final seam = TokMotion.crossfadeBlur * 4 * midOp * sheetOp;
         final sx = rect.width / to.width;
@@ -1162,7 +1237,8 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
                                 maxWidth: _from!.width,
                                 minHeight: 0,
                                 maxHeight: double.infinity,
-                                child: UpNextMid(plan: _upNext),
+                                // The very card that's on the map, who's there included, so nothing changes as it lands
+                                child: UpNextMid(plan: _upNext, here: _here),
                               ),
                             ),
                           ),
@@ -1185,7 +1261,9 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
                                 minHeight: to.height,
                                 maxHeight: to.height,
                                 child: DetailSheet(
-                                  plan: _upNext,
+                                  key: ValueKey(_detailPlan.id),
+                                  plan: _detailPlan,
+                                  mapOf: _mapOf,
                                   onClose: () => _closeSheet(),
                                   onScan: _scan,
                                   onSettle: _settleUp,

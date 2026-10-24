@@ -1,6 +1,4 @@
 // The dinner poll: where to eat tonight, decided by the group (see the poll section of data.dart).
-import 'dart:math' as math;
-
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:latlong2/latlong.dart';
@@ -10,7 +8,6 @@ import '../design/theme.dart';
 import '../design/tokens.dart';
 import 'basics.dart';
 import 'glass.dart';
-import 'plan_pin.dart' show crossfadeSeam, reportSize, smoothstep;
 import 'stagger.dart';
 
 String _countdown(DateTime now) {
@@ -22,90 +19,16 @@ String _countdown(DateTime now) {
 int walkMinutes(PollOption o, DateTime now) =>
     (const Distance().as(LengthUnit.Meter, myPosition(now), o.at) * streetDetour / walkingMetresPerMinute).ceil();
 
-/// The poll on the map, as one surface that folds between the card and the pill. Its box springs between their two
-/// sizes while one's content fades out and the other's fades in, slightly blurred where they overlap; both are
-/// pinned to the box's left edge, so the live dot and the line beside it travel with it. It reads as the same thing
-/// changing shape, not two things swapping. With reduced motion the box jumps and the contents only fade.
-class PollOnMap extends StatefulWidget {
-  const PollOnMap({super.key, required this.folded, required this.onFold, required this.onUnfold, required this.onOpen});
-  final bool folded;
-  final VoidCallback onFold, onUnfold, onOpen;
-
-  @override
-  State<PollOnMap> createState() => _PollOnMapState();
-}
-
-class _PollOnMapState extends State<PollOnMap> with SingleTickerProviderStateMixin {
-  /// 0 = the pill, 1 = the card.
-  late final _t = AnimationController.unbounded(vsync: this, value: widget.folded ? 0 : 1);
-  Size? _pill, _card;
-
-  bool get _reduce => MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-
-  @override
-  void didUpdateWidget(PollOnMap old) {
-    super.didUpdateWidget(old);
-    if (old.folded == widget.folded) return;
-    final to = widget.folded ? 0.0 : 1.0;
-    _reduce ? _t.animateTo(to, duration: TokMotion.fade) : springTo(_t, to, TokMotion.springMorph);
-  }
-
-  @override
-  void dispose() {
-    _t.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final maxWidth = MediaQuery.sizeOf(context).width - 2 * TokSpace.md;
-    final radius = BorderRadius.circular(TokDim.surfaceRadius);
-    // Each content at its own size, whatever the box is doing; the box clips them
-    Widget sized(Widget child, Size? known, void Function(Size) keep) => OverflowBox(
-          alignment: Alignment.topLeft,
-          minWidth: 0,
-          maxWidth: maxWidth,
-          minHeight: 0,
-          maxHeight: double.infinity,
-          child: reportSize(onSize: (s) => s == known ? null : setState(() => keep(s)), child: child),
-        );
-    final pill = sized(PollPill(onUnfold: widget.onUnfold), _pill, (s) => _pill = s);
-    final card = sized(PollCard(onOpen: widget.onOpen, onFold: widget.onFold), _card, (s) => _card = s);
-    return AnimatedBuilder(
-      animation: _t,
-      builder: (context, _) {
-        final v = _t.value, p = v.clamp(0.0, 1.0);
-        // Until both are measured (the first frame), lay them out unseen
-        if (_pill == null || _card == null) return Opacity(opacity: 0, child: SizedBox.shrink(child: Stack(clipBehavior: Clip.none, children: [pill, card])));
-        final box = _reduce ? (widget.folded ? _pill! : _card!) : Size.lerp(_pill, _card, v)!;
-        final cardOp = _reduce ? p : smoothstep(0.3, 0.8, p), pillOp = _reduce ? 1 - p : 1 - smoothstep(0.05, 0.55, p);
-        return SizedBox.fromSize(
-          size: box,
-          child: DecoratedBox(
-            decoration: surfaceDecoration(context, radius),
-            child: ClipRRect(
-              borderRadius: radius,
-              child: crossfadeSeam(
-                sigma: _reduce ? 0 : TokMotion.crossfadeBlur * 4 * cardOp * pillOp,
-                child: Stack(children: [
-                  Positioned.fill(child: IgnorePointer(ignoring: !widget.folded, child: Opacity(opacity: pillOp, child: pill))),
-                  Positioned.fill(child: IgnorePointer(ignoring: widget.folded, child: Opacity(opacity: cardOp, child: card))),
-                ]),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-/// The card's content: a live sign and the countdown (and the fold button), the question, then each place with
-/// everyone who voted for it and a bar of its votes (the one ahead in brand). Tapping a place votes for it, right
-/// there; the poll itself (ratings, prices, walks) is a tap further, at the bottom.
+/// The poll on the map (Bogdan's design, Figma 82:3). Closed, it's a compact card under the day filter: the live
+/// sign and the countdown, the question, and who has voted (everyone at the table, the ones yet to vote faded).
+/// Tapping it opens it in place, over a tinted, blurred map: the same card grows down to show each place, with its
+/// rating, food and price, a bar of its votes, Details, who voted for it, and the vote itself. One element: the head
+/// stays put, the places arrive under it one by one, and closing folds them away again.
 class PollCard extends StatelessWidget {
-  const PollCard({super.key, required this.onOpen, required this.onFold});
-  final VoidCallback onOpen, onFold;
+  const PollCard({super.key, required this.expanded, required this.onToggle, required this.onDetails});
+  final bool expanded;
+  final VoidCallback onToggle;
+  final ValueChanged<PollOption> onDetails;
 
   // A vote shows at once (the rest of the poll moves on the demo's clock)
   @override
@@ -114,114 +37,76 @@ class PollCard extends StatelessWidget {
   Widget _card(BuildContext context) {
     final t = context.tok;
     final now = tripNow();
-    final leader = pollLeader(now);
-    return Container(
-      width: math.min(TokDim.pollWidth, MediaQuery.sizeOf(context).width - 2 * TokSpace.md),
-      padding: const EdgeInsets.fromLTRB(TokSpace.md, TokSpace.x2xs, TokSpace.x2xs, TokSpace.xs),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        // The same height as the pill, so the live dot and its line stay put as it folds
-        SizedBox(
-          height: TokDim.buttonMd,
-          child: Row(spacing: TokSpace.xs, children: [
-            const LiveDot(),
-            Expanded(child: Text('Live poll · ${_countdown(now)}', maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.labelMd.copyWith(fontWeight: TokWeight.bold, color: t.textBrand))),
-            TuButton(icon: TuIcons.fold, label: 'Fold the poll away', size: TuButtonSize.sm, onTap: onFold),
-          ]),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(right: TokSpace.sm),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: TokSpace.x3xs, children: [
-            Text('Where for dinner tonight?', style: TokText.headingSm.copyWith(color: t.textDefault)),
-            Text('5 PM · ${personById(pollAskedBy).name} asked · ${votesIn(now)} of ${dinnerTable.length} voted', style: TokText.bodySm.copyWith(color: t.textMuted)),
-            const SizedBox(height: TokSpace.x2xs),
-          ]),
-        ),
-        for (final o in pollOptions) _VoteRow(option: o, now: now, ahead: o.id == leader),
-        // The places in full
-        Pressable(
-          onTap: onOpen,
-          semanticLabel: 'See the places: ratings, prices and walks',
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(0, TokSpace.xs, TokSpace.sm, TokSpace.xs),
-            child: Row(spacing: TokSpace.x2xs, children: [
-              Text('Ratings, prices and walks', style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textBrand)),
-              LucideIcon(TuIcons.forward, size: TokSize.iconSm, color: t.iconBrand),
-            ]),
-          ),
-        ),
-      ]),
-    );
-  }
-}
-
-/// A place on the card: its sticker, name, voters and bar, and a round mark that is the vote. Tapping the row votes
-/// for it (or moves your vote to it).
-class _VoteRow extends StatelessWidget {
-  const _VoteRow({required this.option, required this.now, required this.ahead});
-  final PollOption option;
-  final DateTime now;
-  final bool ahead;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tok;
-    final voters = votersOf(option.id, now);
-    final mine = myVote.value?.option == option.id;
-    return Pressable(
-      onTap: () {
-        HapticFeedback.selectionClick();
-        myVote.value = (option: option.id, at: tripNow());
-      },
-      semanticLabel: mine ? 'Your vote: ${option.name}' : 'Vote for ${option.name}',
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(0, TokSpace.x2xs, TokSpace.sm, TokSpace.x2xs),
-        child: Row(spacing: TokSpace.sm, children: [
-          SizedBox(width: TokDim.stickerAvatar, child: Center(child: Sticker(option.sticker, size: StickerSize.avatar))),
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: TokSpace.x2xs, children: [
-              Row(spacing: TokSpace.xs, children: [
-                Expanded(child: Text(option.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textDefault))),
-                Voters(voters),
-              ]),
-              VoteBar(votes: voters.length, ahead: ahead),
-            ]),
-          ),
-          VoteMark(on: mine),
-        ]),
-      ),
-    );
-  }
-}
-
-/// The vote itself: an empty ring, or filled in brand with a check once it's yours. It fills with a quick scale.
-class VoteMark extends StatelessWidget {
-  const VoteMark({super.key, required this.on});
-  final bool on;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tok;
     final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-    return SizedBox(
-      width: TokDim.pollMark,
-      height: TokDim.pollMark,
-      child: Stack(children: [
-        Positioned.fill(
-          child: DecoratedBox(decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: t.borderStrong, width: TokDim.pollMarkRing))),
+    final width = MediaQuery.sizeOf(context).width - 2 * TokSpace.md;
+    return Container(
+      width: width,
+      padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.md, TokSpace.xs, TokSpace.xs),
+      decoration: surfaceDecoration(context, BorderRadius.circular(TokDim.surfaceRadius)),
+      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        // The head: tapping it opens the poll, or closes it
+        Pressable(
+          onTap: onToggle,
+          semanticLabel: '${expanded ? 'Close' : 'Open'} the dinner poll: ${votesIn(now)} of ${dinnerTable.length} voted, ${_countdown(now)}',
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: TokSpace.sm, children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: TokSpace.md),
+              child: Row(spacing: TokSpace.xs, children: [
+                Expanded(
+                  child: Row(spacing: TokSpace.xs, children: [
+                    Flexible(
+                      child: Text('Live poll • ${_countdown(now)}',
+                          maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textBrand)),
+                    ),
+                    const LiveDot(),
+                  ]),
+                ),
+                AnimatedRotation(
+                  turns: expanded ? 0.5 : 0,
+                  duration: TokMotion.enter,
+                  curve: TokMotion.easeOut,
+                  child: LucideIcon(TuIcons.unfold, size: TokSize.iconSm, color: t.iconDefault),
+                ),
+              ]),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: TokSpace.md),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x2xs, children: [
+                Text('Where for dinner tonight?', maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingMd.copyWith(color: t.textDefault)),
+                Row(spacing: TokSpace.x2xs, children: [
+                  Flexible(
+                    child: Text('5 PM • ${personById(pollAskedBy).name} asked • ${votesIn(now)} of ${dinnerTable.length} voted',
+                        maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.labelSm.copyWith(color: t.textMuted)),
+                  ),
+                  // Who has voted: the faces say it closed; open, each place shows its own
+                  AnimatedOpacity(opacity: expanded ? 0 : 1, duration: expanded ? TokMotion.fade : TokMotion.enter, curve: TokMotion.easeOut, child: _Table(now: now)),
+                ]),
+              ]),
+            ),
+          ]),
         ),
-        Positioned.fill(
-          child: AnimatedOpacity(
-            opacity: on ? 1 : 0,
-            duration: on ? TokMotion.press : TokMotion.fade,
-            curve: TokMotion.easeOut,
-            child: AnimatedScale(
-              scale: on || reduce ? 1 : TokMotion.morphEnterScale,
-              duration: on ? TokMotion.press : TokMotion.fade,
-              curve: TokMotion.easeOut,
-              child: DecoratedBox(
-                decoration: BoxDecoration(shape: BoxShape.circle, color: t.cPollBarLead),
-                child: Center(child: LucideIcon(TuIcons.check, size: TokSize.iconSm, color: t.iconOnBrand)),
-              ),
+        // The places, open: the card grows to hold them (an on-screen morph, so ease in and out), and they arrive one
+        // by one; closing, they fade away first and the card folds up after them
+        Flexible(
+          child: AnimatedSize(
+            duration: reduce ? Duration.zero : TokMotion.enter,
+            reverseDuration: reduce ? Duration.zero : TokMotion.fade,
+            curve: TokMotion.easeInOut,
+            alignment: Alignment.topCenter,
+            child: AnimatedSwitcher(
+              duration: TokMotion.enter,
+              reverseDuration: TokMotion.fade,
+              layoutBuilder: (current, previous) => Stack(alignment: Alignment.topCenter, children: [...previous, ?current]),
+              transitionBuilder: (child, anim) => child.key == const ValueKey('places') && !expanded ? fadeBlurOut(anim, child) : FadeTransition(opacity: anim, child: child),
+              child: !expanded
+                  ? const SizedBox(key: ValueKey('none'), width: double.infinity)
+                  : SingleChildScrollView(
+                      key: const ValueKey('places'),
+                      padding: const EdgeInsets.only(top: TokSpace.sm),
+                      child: StaggerIn(spacing: TokSpace.sm, children: [
+                        for (final o in pollOptions) _Place(option: o, now: now, onDetails: () => onDetails(o)),
+                      ]),
+                    ),
             ),
           ),
         ),
@@ -230,32 +115,89 @@ class VoteMark extends StatelessWidget {
   }
 }
 
-/// The pill's content: the live sign, how many voted, the countdown. Tapping it unfolds the card.
-class PollPill extends StatelessWidget {
-  const PollPill({super.key, required this.onUnfold});
-  final VoidCallback onUnfold;
+/// Everyone at the table, small, the ones who haven't voted yet faded: who the poll is still waiting for.
+class _Table extends StatelessWidget {
+  const _Table({required this.now});
+  final DateTime now;
 
   @override
-  Widget build(BuildContext context) => ListenableBuilder(listenable: myVote, builder: (context, _) => _pill(context));
+  Widget build(BuildContext context) {
+    final voted = {for (final o in pollOptions) ...votersOf(o.id, now)};
+    final order = [...dinnerTable.where(voted.contains), ...dinnerTable.where((id) => !voted.contains(id))];
+    return Overlapped(overlap: TokDim.pollMetaFaceOverlap, children: [
+      for (final id in order)
+        Opacity(opacity: voted.contains(id) ? 1 : TokDim.pollNotVotedOpacity, child: Sticker(personById(id).sticker, height: TokDim.pollMetaFace)),
+    ]);
+  }
+}
 
-  Widget _pill(BuildContext context) {
+/// One place in the open poll: its name, rating, food and price, its sticker, a bar of its votes, Details, who voted
+/// for it, and the vote (in brand once it's yours; tapping another moves it).
+class _Place extends StatelessWidget {
+  const _Place({required this.option, required this.now, required this.onDetails});
+  final PollOption option;
+  final DateTime now;
+  final VoidCallback onDetails;
+
+  @override
+  Widget build(BuildContext context) {
     final t = context.tok;
-    final now = tripNow();
-    return Pressable(
-      onTap: onUnfold,
-      semanticLabel: 'Dinner poll: ${votesIn(now)} of ${dinnerTable.length} voted, ${_countdown(now)}. Unfold',
-      child: Container(
-        height: TokDim.buttonMd,
-        padding: const EdgeInsets.symmetric(horizontal: TokSpace.md),
-        child: Row(mainAxisSize: MainAxisSize.min, spacing: TokSpace.xs, children: [
-          const LiveDot(),
-          Flexible(
-            child: Text('Dinner poll · ${votesIn(now)} of ${dinnerTable.length} · ${_countdown(now)}',
-                maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textDefault)),
-          ),
-          LucideIcon(TuIcons.unfold, size: TokSize.iconSm, color: t.iconMuted),
-        ]),
-      ),
+    final o = option;
+    final voters = votersOf(o.id, now);
+    final mine = myVote.value?.option == o.id;
+    final muted = TokText.labelMd.copyWith(color: t.textMuted), dot = TokText.labelSm.copyWith(color: t.textMuted);
+    return Container(
+      padding: const EdgeInsets.all(TokSpace.xs),
+      decoration: BoxDecoration(color: t.bgSubtle, borderRadius: BorderRadius.circular(TokRadius.card)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: TokSpace.md, children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.xs, TokSpace.xs, 0),
+          child: Row(spacing: TokSpace.xs, children: [
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x2xs, children: [
+                Text(o.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.bodyMd.copyWith(fontWeight: TokWeight.medium, color: t.textDefault)),
+                Row(spacing: TokSpace.x2xs, children: [
+                  LucideIcon(TuIcons.star, size: TokSize.iconSm, color: t.iconBrand, filled: true),
+                  Text(o.rating, style: muted),
+                  Text('•', style: dot),
+                  Flexible(child: Text(o.cuisine, maxLines: 1, overflow: TextOverflow.ellipsis, style: muted)),
+                  Text('•', style: dot),
+                  Text(o.price, style: muted),
+                ]),
+              ]),
+            ),
+            Sticker(o.sticker, height: TokDim.pollOptionSticker),
+          ]),
+        ),
+        Padding(padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs), child: VoteBar(votes: voters.length, ahead: true, onMuted: true)),
+        Padding(
+          padding: const EdgeInsets.only(right: TokSpace.xs),
+          child: Row(children: [
+            Pressable(
+              onTap: onDetails,
+              semanticLabel: 'Details: ${o.name}',
+              child: Container(
+                height: TokDim.buttonMd,
+                padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
+                alignment: Alignment.center,
+                child: Text('Details', style: TokText.bodyMd.copyWith(fontWeight: TokWeight.medium, color: t.textMuted)),
+              ),
+            ),
+            const Spacer(),
+            if (voters.isNotEmpty) Padding(padding: const EdgeInsets.only(right: TokSpace.sm), child: Voters(voters)),
+            TuButton(
+              icon: TuIcons.check,
+              label: mine ? 'Your vote: ${o.name}' : 'Vote for ${o.name}',
+              kind: mine ? GlassKind.primary : GlassKind.soft,
+              size: TuButtonSize.sm,
+              onTap: () {
+                HapticFeedback.selectionClick();
+                myVote.value = (option: o.id, at: tripNow());
+              },
+            ),
+          ]),
+        ),
+      ]),
     );
   }
 }

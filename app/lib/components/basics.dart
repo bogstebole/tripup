@@ -219,45 +219,26 @@ class FacePile extends StatelessWidget {
   }
 }
 
-/// A tappable soft row inside a section: brand text and an arrow.
-class KnowRow extends StatelessWidget {
-  const KnowRow({super.key, required this.title, this.subtitle, this.leading, this.trailing, this.onTap});
-  final String title;
-  final String? subtitle;
-  final Widget? leading;
-  final Widget? trailing;
-  final VoidCallback? onTap;
+/// A tip inside a section (Bogdan's Overview, Figma 62:4828): a short line in brand on a muted block. Read, not
+/// tapped, so no arrow and no glass.
+class KnowTip extends StatelessWidget {
+  const KnowTip(this.text, {super.key});
+  final String text;
 
   @override
   Widget build(BuildContext context) {
     final t = context.tok;
-    return Pressable(
-      onTap: onTap,
-      semanticLabel: title,
-      child: Glass(
-        kind: GlassKind.soft,
-        radius: BorderRadius.circular(TokRadius.card),
-        padding: const EdgeInsets.symmetric(horizontal: TokSpace.sm, vertical: TokSpace.xs),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: TokDim.knowRowHeight - 2 * TokSpace.xs),
-          child: Row(spacing: TokSpace.md, children: [
-            ?leading,
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                Text(title, style: TokText.labelMd.copyWith(color: t.textBrand)),
-                if (subtitle != null) Text(subtitle!, style: TokText.labelMd.copyWith(color: t.textMuted)),
-              ]),
-            ),
-            ?trailing,
-            LucideIcon(TuIcons.forward, size: TokSize.iconSm, color: t.iconBrand),
-          ]),
-        ),
-      ),
+    return Container(
+      constraints: const BoxConstraints(minHeight: TokDim.knowRowHeight),
+      padding: const EdgeInsets.symmetric(horizontal: TokSpace.sm, vertical: TokSpace.xs),
+      alignment: Alignment.centerLeft,
+      decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.card)),
+      child: Text(text, style: TokText.labelSm.copyWith(color: t.textBrand)),
     );
   }
 }
 
-/// A muted group with a brand heading and rows: tips, menu picks, people.
+/// A subtle group with a brand heading and rows: the place's tips.
 class KnowSection extends StatelessWidget {
   const KnowSection({super.key, required this.title, this.meta, required this.children});
   final String title;
@@ -270,7 +251,7 @@ class KnowSection extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.md, TokSpace.xs, TokSpace.xs),
-      decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.sheet)),
+      decoration: BoxDecoration(color: t.bgSubtle, borderRadius: BorderRadius.circular(TokRadius.sheet)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: TokSpace.xs, children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: TokSpace.sm),
