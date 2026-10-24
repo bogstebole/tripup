@@ -73,6 +73,7 @@ struct TokColors {
   let cMeRing: Color
   let cMeCone: Color
   let cSheetScrim: Color
+  let cSheetScrimFlat: Color
   let cTopBarBg: Color
   let cActionBarBg: Color
   let cToastBg: Color
@@ -166,6 +167,7 @@ struct TokColors {
     cMeRing: Color(.sRGB, red: 0.5765, green: 0.7725, blue: 0.9922, opacity: 1),
     cMeCone: Color(.sRGB, red: 0.3765, green: 0.6471, blue: 0.9804, opacity: 1),
     cSheetScrim: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.2),
+    cSheetScrimFlat: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.55),
     cTopBarBg: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 0.7),
     cActionBarBg: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1),
     cToastBg: Color(.sRGB, red: 0.1137, green: 0.3059, blue: 0.8471, opacity: 1),
@@ -260,6 +262,7 @@ struct TokColors {
     cMeRing: Color(.sRGB, red: 0.5765, green: 0.7725, blue: 0.9922, opacity: 1),
     cMeCone: Color(.sRGB, red: 0.3765, green: 0.6471, blue: 0.9804, opacity: 1),
     cSheetScrim: Color(.sRGB, red: 0.0941, green: 0.0941, blue: 0.1059, opacity: 0.2),
+    cSheetScrimFlat: Color(.sRGB, red: 0.0941, green: 0.0941, blue: 0.1059, opacity: 0.55),
     cTopBarBg: Color(.sRGB, red: 0.0941, green: 0.0941, blue: 0.1059, opacity: 0.7),
     cActionBarBg: Color(.sRGB, red: 0.0941, green: 0.0941, blue: 0.1059, opacity: 1),
     cToastBg: Color(.sRGB, red: 0.1137, green: 0.3059, blue: 0.8471, opacity: 1),

@@ -590,6 +590,11 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - **Checked** on both emulators with screenshots: Your trips, the map, Money; the credit clear of the 3-button bar and of the gesture handle. The web build still compiles; iOS not rebuilt here (no iOS-only code changed; `flutter analyze` clean).
 - `app/perf/trip_perf.dart` runs on Android too, with new scenarios (`launch`, `trip_open`, `popup_itinerary`, `popup_money`) and `--dart-define=PERF_ONLY=…`.
 
+### Final UI, iteration 1.39: light effects on weak Android phones (branch `fix/android-light-effects`)
+- From the Y7's timings panel (two photos, 24 Oct): startup 0.73 s to Your trips, 0.95 s to the whole map; frames 351 ms average at launch and 184 ms while opening the trip, from the blurs.
+- `lightEffects` (`lib/design/theme.dart`), set before the first frame from Android's API level (`StartupTimings.weakGraphics`, MainActivity's `sdk`): below 29 it turns off the blur in `StaggerIn` and `fadeBlurOut`, the pin's part blur and `crossfadeSeam`, `ProgressiveBlur`, the sheet backdrop (with the flatter `sheet/scrim-flat` wash), the poll scrim, and the opening's wash and seam.
+- On the Y7-like emulator it looks right (map, Money); its GPU is the Mac's, so the frame times there don't tell. The real check is the Y7's panel again.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

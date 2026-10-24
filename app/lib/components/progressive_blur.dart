@@ -3,6 +3,8 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/widgets.dart';
 
+import '../design/theme.dart';
+
 /// A backdrop blur that is strongest at the top (or the bottom, with [fromBottom]) and fades out toward the
 /// other edge: full [sigma] for [solidUntil] of the height, then less in each band, easing off to nothing so
 /// its far edge never shows as a line. A masked blur doesn't render on iOS, so it's built from bands, all
@@ -23,7 +25,7 @@ class ProgressiveBlur extends StatelessWidget {
   static const _least = 0.25;
 
   @override
-  Widget build(BuildContext context) => LayoutBuilder(builder: (context, box) {
+  Widget build(BuildContext context) => lightEffects ? const SizedBox.shrink() : LayoutBuilder(builder: (context, box) {
         final h = box.maxHeight, start = solidUntil * h;
         // [near] and [far] are distances from the strong edge
         Widget band(double near, double far, double s) => Positioned(

@@ -213,6 +213,11 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 - **Tapping the notification or the activity opens the poll, open** (not Your trips): whatever was up gives way, the trip opens if you were on your trips, and once its entrance is done the poll card opens over the map. A vote button still votes without opening the app; tapping anywhere else on the activity, or on the Island, opens it. A poll that has already closed opens the poll's pop-up with the result instead.
 - **What a real build needs on top:** a server sending ActivityKit pushes, so votes from the others reach the activity while the app is asleep (here the app updates it while it's running).
 
+## Light effects on weak Android phones (24 Oct)
+
+- **The first real numbers from the Huawei Y7 2019** (Android 8.1, Skia), after the Android fixes: Your trips on screen at 0.73 s and the whole map at 0.95 s (it used to take about 10 s). But the GPU was the next wall: 4 frames in the first 3 s at 351 ms each (999 at worst), and the opening 7 frames at 184 ms (357 at worst), where smooth needs 16 ms. The blurs were the cost: every entrance sharpens from a blur, the backdrops behind sheets and the poll are blurred, and crossfades hide their seam with one; on Skia with that GPU each is redrawn every frame.
+- **On Android before 10 (Skia), no blurs anywhere.** The motion, fades, order and timing stay the same; behind sheets the map gets a stronger white wash instead of a blur (`sheet/scrim-flat`, 55%), the poll's scrim is its tint alone, and the opening's wash is plain. iPhones and newer Androids (Impeller) are unchanged. We didn't make a separate "lite" design or cut the animations: the problem was one effect, so only that effect goes.
+
 ## Notes from the top, everywhere (24 Oct)
 
 - **Every short note (toast) comes from the top:** payments, squared up, the poll, Pay, "Link copied", "Added for…", and the Menu's "Added" with Undo. Before, some came from the bottom and some from the top. One place, one direction.

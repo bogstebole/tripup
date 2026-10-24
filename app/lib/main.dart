@@ -6,9 +6,10 @@ import 'design/tokens.dart';
 import 'screens/trip_screen.dart';
 import 'startup_timings.dart';
 
-void main() {
+Future<void> main() async {
   StartupTimings.begin();
   WidgetsFlutterBinding.ensureInitialized();
+  lightEffects = await StartupTimings.weakGraphics();
   WidgetsBinding.instance.waitUntilFirstFrameRasterized.then((_) => StartupTimings.mark('Your trips drawn (first frame)'));
   // Edge to edge, as on iOS: the app draws under see-through system bars (Android 8-9: MainActivity does the layout)
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);

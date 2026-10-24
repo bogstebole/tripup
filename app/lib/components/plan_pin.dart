@@ -465,7 +465,7 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
 Widget _move(Widget child, {required Rect rect, required Offset pivot, Offset shift = Offset.zero, double scale = 1, double opacity = 1, bool blur = true}) {
   if (opacity <= 0.001) return Opacity(opacity: 0, child: child);
   var w = child;
-  final sigma = blur ? TokMotion.enterBlur * (1 - opacity) : 0.0;
+  final sigma = blur && !lightEffects ? TokMotion.enterBlur * (1 - opacity) : 0.0;
   if (sigma > 0.05) w = ImageFiltered(imageFilter: ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma), child: w);
   if (shift != Offset.zero || scale != 1) {
     final local = pivot - rect.topLeft;
@@ -549,7 +549,7 @@ class _Seam extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) =>
-      sigma < 0.05 ? child : ImageFiltered(imageFilter: ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma), child: child);
+      sigma < 0.05 || lightEffects ? child : ImageFiltered(imageFilter: ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma), child: child);
 }
 
 /// The same seam blur, for other files.

@@ -86,6 +86,7 @@ class TokColors {
     'c/me/ring': Color(0xFF93C5FD),
     'c/me/cone': Color(0xFF60A5FA),
     'c/sheet/scrim': Color(0x33FFFFFF),
+    'c/sheet/scrim-flat': Color(0x8CFFFFFF),
     'c/top-bar/bg': Color(0xB3FFFFFF),
     'c/action-bar/bg': Color(0xFFFFFFFF),
     'c/toast/bg': Color(0xFF1D4ED8),
@@ -180,6 +181,7 @@ class TokColors {
     'c/me/ring': Color(0xFF93C5FD),
     'c/me/cone': Color(0xFF60A5FA),
     'c/sheet/scrim': Color(0x3318181B),
+    'c/sheet/scrim-flat': Color(0x8C18181B),
     'c/top-bar/bg': Color(0xB318181B),
     'c/action-bar/bg': Color(0xFF18181B),
     'c/toast/bg': Color(0xFF1D4ED8),
@@ -273,6 +275,7 @@ class TokColors {
   Color get cMeRing => _m['c/me/ring']!;
   Color get cMeCone => _m['c/me/cone']!;
   Color get cSheetScrim => _m['c/sheet/scrim']!;
+  Color get cSheetScrimFlat => _m['c/sheet/scrim-flat']!;
   Color get cTopBarBg => _m['c/top-bar/bg']!;
   Color get cActionBarBg => _m['c/action-bar/bg']!;
   Color get cToastBg => _m['c/toast/bg']!;

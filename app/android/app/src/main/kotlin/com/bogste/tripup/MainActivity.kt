@@ -54,6 +54,8 @@ class MainActivity : FlutterActivity() {
                     )
                 }
                 "renderer" -> result.success(renderer())
+                // Before Android 10 Flutter draws with Skia: the app turns its blurs off (lib/design/theme.dart)
+                "sdk" -> result.success(Build.VERSION.SDK_INT)
                 else -> result.notImplemented()
             }
         }

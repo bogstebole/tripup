@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/widgets.dart';
 
+import '../design/theme.dart';
 import '../design/tokens.dart';
 
 /// Children arrive one after another: each fades in, sharpens from a light blur and settles into place from
@@ -68,7 +69,7 @@ class _StaggerInState extends State<StaggerIn> with SingleTickerProviderStateMix
               animation: anim,
               child: widget.children[i],
               builder: (context, child) {
-                final t = anim.value, blur = TokMotion.enterBlur * (1 - t);
+                final t = anim.value, blur = lightEffects ? 0.0 : TokMotion.enterBlur * (1 - t);
                 final moved = Transform.translate(offset: widget.from * (1 - t), child: child);
                 // The filter stays in the tree, only switched off once sharp: taking it out would rebuild the block
                 return Opacity(
@@ -90,7 +91,7 @@ Widget fadeBlurOut(Animation<double> anim, Widget child, {Offset to = Offset.zer
       builder: (context, child) {
         // The switcher runs this from 1 down to 0; ease the leaving itself out, so it starts quick
         final v = 1 - TokMotion.easeOut.transform(1 - anim.value.clamp(0.0, 1.0));
-        final blur = TokMotion.enterBlur * (1 - v);
+        final blur = lightEffects ? 0.0 : TokMotion.enterBlur * (1 - v);
         final moved = Transform.translate(offset: to * (1 - v), child: child);
         return Opacity(
           opacity: v,

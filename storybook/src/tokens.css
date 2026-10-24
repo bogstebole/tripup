@@ -70,6 +70,7 @@
   --c-me-ring: #93c5fd;
   --c-me-cone: #60a5fa;
   --c-sheet-scrim: rgb(255 255 255 / 0.2);
+  --c-sheet-scrim-flat: rgb(255 255 255 / 0.55);
   --c-top-bar-bg: rgb(255 255 255 / 0.7);
   --c-action-bar-bg: #ffffff;
   --c-toast-bg: #1d4ed8;
@@ -362,6 +363,7 @@
   --c-me-ring: #93c5fd;
   --c-me-cone: #60a5fa;
   --c-sheet-scrim: rgb(24 24 27 / 0.2);
+  --c-sheet-scrim-flat: rgb(24 24 27 / 0.55);
   --c-top-bar-bg: rgb(24 24 27 / 0.7);
   --c-action-bar-bg: #18181b;
   --c-toast-bg: #1d4ed8;
