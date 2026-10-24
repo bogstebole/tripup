@@ -212,3 +212,19 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 - **Not done yet:**
   - On a tab change, the old page vanishes instead of fading out as 1.12 describes, because it gets rebuilt. Fixing it changes the motion, so it waits for a decision.
   - Opening Menu builds all 118 rows at once, about 50 ms. A list that only builds what's on screen would fix it.
+
+## Android: speed and edge to edge (24 Oct)
+
+- **The map around Lisbon comes with the app, already drawn (Android).** Drawing vector tiles on a budget phone is the slow part (about half a second a tile on an emulator set up like the Huawei Y7), and it blocks everything else, the trip's opening included. 111 tiles cover where the demo goes; they're drawn by the app's own code on the emulator (`tools/bake_map_tiles.sh`), so they look the same. On an emulator like the Y7 the map went from 28 s to 1.5 s, the opening from 9 s to 1 s.
+  - Only on Android: iOS draws map labels in its own system font, and it's fast enough to draw them itself.
+  - Only while the style hasn't changed: a new `style-google.json` needs a new bake (the app checks the style's hash and otherwise draws every tile, slowly but correctly).
+  - We didn't ship all of Lisbon or more zooms, or lossless tiles: the 111 tiles are 13 MB as lossless WebP and 5.1 MB at quality 95 (about 1/255 off on average, not visible). Zooming in past 14 and the small map in Add → Plan something still draw on the phone.
+  - We didn't switch vector_map_tiles to its vector mode (redraws the vectors every frame: worse on a weak GPU), or to bigger tiles drawn at a lower zoom (blurry labels).
+- **Bitmaps the size the screen shows.** The card's Lisbon still is cut to the part the card shows, at the same resolution; stickers are 320 px on their long side. Same pixels on screen, a tenth of the memory for the still, a quarter for the stickers. The originals stay in `Assets/`.
+- **The renderer stays Flutter's choice.** On Android 8 and 9 (the Y7) Flutter 3.47 draws with Skia; from Android 10 with Impeller on Vulkan, falling back to OpenGL ES on GPUs it knows are bad. We didn't force OpenGL ES or Skia in the manifest: there's no phone data that says it's better, it would apply to every phone, and Skia is on its way out. The timings panel names the renderer, so testers' screenshots will tell.
+- **A hidden timings panel instead of guessing.** Long-press "Your trips" for each startup step in ms, the phone, the renderer and the frame times of the launch and of opening the trip. Testers send a screenshot. Nothing shows otherwise.
+- **The blurs stay.** On the Android 8.1 emulator every frame is slow (its graphics emulation), and turning off both of the opening's blurs saved little; there's no evidence they're what hurts on a real phone. If the Y7's panel says the opening's frames are slow, the first thing to try is the list's blur as a picture blurred once.
+- **Edge to edge, like iOS:** the app draws under see-through status and navigation bars, no scrim, white icons on the blue and the camera, dark ones on the map and the white pages. We didn't hide the bars (immersive mode): the time, battery and the way home matter in a travel app, and Android would show them on every swipe anyway.
+  - Below Android 8 the navigation bar's icons can't turn dark, so there it stays the system's opaque bar.
+- **On Android the map's credit sits above the navigation bar, and the buttons one line higher.** The credit (required by OpenStreetMap's licence) was on top of the gesture handle, and with three-button navigation under the buttons. iOS keeps it in the home indicator's inset as designed.
+- **The launch screen is Your trips' blue** (a token, written into Android's resources), so the app opens without a white flash.
