@@ -31,6 +31,7 @@ import '../components/toast.dart';
 import '../components/trip_pages.dart';
 import '../components/trip_sheet.dart';
 import '../data.dart';
+import '../platform/poll_activity.dart';
 import '../design/theme.dart';
 import '../design/tokens.dart';
 
@@ -199,6 +200,10 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       }
     });
     tripNotice.addListener(_showNotice);
+    // Votes cast from the lock screen or the notification come back as my vote; mine goes out to them
+    PollActivity.listen();
+    myVote.addListener(_pollOutside);
+    pollUndone.addListener(_pollOutside);
     madePayments.addListener(_paymentsChanged);
     // The others' payments come in on their own, a little apart (see addBill)
     _payTick = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -225,9 +230,12 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     _pollVotes = votes;
     // Only a change that just happened is news (not one the demo jumped over)
     bool fresh(DateTime at) => now.difference(at) < const Duration(minutes: 2);
-    if (was != -1 && phase == 1 && was == 0 && fresh(pollOpens)) {
-      tripNotice.value = '${personById(pollAskedBy).name} started a poll: where for dinner tonight?';
-    }
+    final opened = was != -1 && phase == 1 && was == 0 && fresh(pollOpens);
+    // Outside the app too (iOS): the Live Activity follows the poll, and a poll that has just opened sends the
+    // notification with its vote buttons, which then stands in for the note at the top
+    PollActivity.sync(now, fresh: opened).then((posted) {
+      if (opened && !posted && mounted) tripNotice.value = '${personById(pollAskedBy).name} started a poll: where for dinner tonight?';
+    });
     if (was != -1 && phase == 2 && was != 2 && fresh(pollClosedAt(now)) && !pollUndone.value) {
       final winner = pollOptionById(pollLeader(now)!);
       noticeAction = (label: 'Undo', onTap: _undoWinner);
@@ -236,6 +244,8 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     }
     _sceneChanged();
   }
+
+  void _pollOutside() => PollActivity.sync(tripNow());
 
   void _expandPoll(bool open) {
     HapticFeedback.selectionClick();
@@ -906,6 +916,8 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     _popDrag.dispose();
     addedPlans.removeListener(_sceneChanged);
     tripNotice.removeListener(_showNotice);
+    myVote.removeListener(_pollOutside);
+    pollUndone.removeListener(_pollOutside);
     myVote.removeListener(_pollTick);
     pollUndone.removeListener(_dinnerChanged);
     pickedDinner.removeListener(_dinnerChanged);

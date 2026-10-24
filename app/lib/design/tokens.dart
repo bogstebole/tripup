@@ -355,6 +355,9 @@ abstract final class TokDim {
   static const double pollMetaFace = 16;
   static const double pollMetaFaceOverlap = 5;
   static const double pollNotVotedOpacity = 0.4;
+  static const double pollActivityMark = 28;
+  static const double pollActivityBar = 4;
+  static const double pollActivityTimer = 48;
   static const double pollMark = 24;
   static const double homeHeaderGap = 29;
   static const double planMapHeight = 160;

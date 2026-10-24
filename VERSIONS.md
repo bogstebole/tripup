@@ -542,6 +542,14 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - A plain plan's Group no longer shows La Brasserie's menu picks (found while mirroring).
 - **Storybook mirrors 1.34:** `PollCard` (compact and open, `PollScrim`), `KnowTip`, details for any plan (Menu only with a menu, a map stand-in for plain plans), itinerary plan rows opening details in place. Stories: Poll · compact, Poll · open, Poll · open · your vote, Full view · a plain plan.
 
+### Final UI, iteration 1.35: the poll outside the app on iOS (branch `feature/poll-live-activity`)
+- **Live Activity** (`ios/PollWidget`, a new widget extension, iOS 17): `PollLiveActivity` for the lock screen and the Dynamic Island (compact "● Poll" + countdown, minimal dot, expanded places). Shared with the app: `ios/Shared/PollActivityAttributes.swift` and `PollVote.swift` (`PollVoteIntent`, a `LiveActivityIntent` that runs in the app).
+- **Notification** with a vote action per place (`UNNotificationCategory`), handled in `AppDelegate` → `PollBridge.vote`.
+- **Bridge:** `ios/Runner/PollBridge.swift` (channel `tripup/poll`: start, update, end, clear, takeVote; votes go back as `voted`) and `lib/platform/poll_activity.dart` (`PollActivity.sync` from `_pollTick` and on my vote; the in-app note only when the notification couldn't go out).
+- **Tokens:** `build-tokens.mjs` also writes `ios/PollWidget/Tokens.swift` (colours light and dark, spaces, radii, dims, text sizes). New dims `poll/activity-mark`, `poll/activity-bar`, `poll/activity-timer`.
+- `NSSupportsLiveActivities` in the app's Info.plist. The extension is embedded before Flutter's Thin Binary phase (else Xcode reports a cycle).
+- Checked on the iPhone 16 simulator: the activity on the lock screen and in the Island, voting from the lock screen (the activity updates at once and the app shows the vote), the notification as the poll opens. Not checked there: the notification's buttons (the simulator doesn't open a notification on a long press); same code path as the activity's buttons.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

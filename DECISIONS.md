@@ -203,6 +203,14 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 - **A plan in the itinerary opens its details right there,** not the map: the itinerary's sheet and the details are the same surface in the same place, so the details' content fades in where the list was, and closing slides it down like a pop-up. A plan we know little about (Tram 28, an added one) shows its time, how far it is and a small map; the Menu tab appears only for a place with a menu. Places we've been still show on the map.
 - **Coming back from the details lands without a change** (Bogdan: the chips changed and the pin blinked at the end). The card that shrinks back is now exactly the card on the map, who's there included (it showed "N coming" until it landed), and the pin's tail stays under it the whole time instead of popping in when the card arrived.
 
+## Voting from outside the app (24 Oct)
+
+- **A Live Activity, not a home-screen widget.** The poll lasts half an hour and is about "now", which is what Live Activities are for: it appears on the lock screen and in the Dynamic Island as the poll opens, with the countdown, how many have voted, each place with a bar and its count, and a vote button per place (filled in brand once it's yours). Tapping a button votes without opening the app; the vote shows on the activity at once and in the app. A home-screen widget suits something that lasts (the trip's Up next), so we didn't build one.
+- **The poll's notification carries a button per place** ("La Brasserie", "Dote", "Churrasqueira"): hold it and vote. It's sent as the poll opens and stands in for the note at the top; it says "closes in 30 min" rather than a clock time, since the demo's clock isn't the phone's.
+- **Same look as the app's poll card,** from the same tokens (the token build now writes Swift too): light on the lock screen, dark in the Island. The places keep their order whatever the count, so nothing jumps; counts change with a numeric transition and bars grow from the left. The Island's expanded view drops the question to fit the three places.
+- **Once the poll closes** the activity shows "Tonight: La Brasserie, 5 PM" for 15 minutes, then goes. A demo jump away from the poll ends it at once.
+- **What a real build needs on top:** a server sending ActivityKit pushes, so votes from the others reach the activity while the app is asleep (here the app updates it while it's running).
+
 ## Notes from the top, everywhere (24 Oct)
 
 - **Every short note (toast) comes from the top:** payments, squared up, the poll, Pay, "Link copied", "Added for…", and the Menu's "Added" with Undo. Before, some came from the bottom and some from the top. One place, one direction.
