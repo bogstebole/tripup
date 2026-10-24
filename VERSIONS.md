@@ -502,6 +502,13 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - Home screen: waiting for Bogdan's design.
 - **Storybook mirrors 1.28:** the poll's one-surface fold (Motion spring between measured sizes), voting on the card (new story Widget › Poll card · your vote), the itinerary's filter and day blocks (Pop-ups › Itinerary · one day), Money's tabs (Money · balances, Money · expenses) and the centred invite. No hairlines inside the itinerary's grey day blocks, in either: they didn't show on the grey.
 
+### Final UI, iteration 1.29: Your trips, from Bogdan's design (branch `feature/home-design`)
+- Built from Figma 75:5927: brand blue background with a white status bar; "Your trips" with a bell (no notifications yet: it says so) and my avatar; the current trip as a 438-high card with a white 5 px edge, the Lisbon still (`assets/map/home-lisbon.png`, placed as in the design and scaled to the card), four place stickers on it, a white fade from the bottom, "Happening now" with a green bead, the trip's name and dates, the faces of everyone on it, and the arrow in. Then Coming up and Previous trips (3) as light brand rows: sticker, name, dates, faces on the bottom edge. The list fades into the blue at the bottom.
+- Data: Berlin (23 June - 23 July) replaces Porto; Mallorca gets the windmill sticker. New stickers: `brandenburg`, `windmill`. Icon: bell.
+- Tokens: `home/*` colours and sizes, `now-dot/*`.
+- The Demo button is off the home screen (it's in the trip's top bar).
+- **Storybook mirrors 1.29:** Screens/Trip › Your trips (the bell shows its note) and Your trips · scrolled to the end (replaces "past open"). The card's arrow is drawn, not a separate button (no button in a button on the web). `Sticker` takes its height from CSS when no size is given.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

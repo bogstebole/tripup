@@ -6,8 +6,9 @@ export type StickerSize = 'avatar' | 'chip' | 'mini' | 'edge' | 'row';
 export interface StickerProps {
   /** File name in app/assets/stickers, without .png. */
   name: string;
-  /** A sticker size token (height; width follows the image), or an exact height for hand-placed compositions. */
-  size: StickerSize | number;
+  /** A sticker size token (height; width follows the image), or an exact height for hand-placed compositions. Left out,
+   *  its height comes from `className` or `style`: a component's own size token, or a share of a frame that scales. */
+  size?: StickerSize | number;
   /** Tilt in degrees; stickers look hand-placed, not aligned. */
   tilt?: number;
   className?: string;
@@ -16,7 +17,7 @@ export interface StickerProps {
 
 /** A die-cut photo sticker (white outline baked into the image). */
 export function Sticker({ name, size, tilt = 0, className, style }: StickerProps) {
-  const height = typeof size === 'number' ? size : `var(--d-sticker-${size})`;
+  const height = typeof size === 'number' || size === undefined ? size : `var(--d-sticker-${size})`;
   return (
     <img
       src={stickerUrl(name)}

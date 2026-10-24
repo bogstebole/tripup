@@ -96,6 +96,16 @@ class TokColors {
     'c/poll/bar': Color(0xFFD4D4D8),
     'c/poll/bar-lead': Color(0xFF2563EB),
     'c/poll/live': Color(0xFFDC2626),
+    'c/home/bg': Color(0xFF2563EB),
+    'c/home/fg': Color(0xFFFFFFFF),
+    'c/home/count-fg': Color(0xB3FFFFFF),
+    'c/home/row-bg': Color(0xFFEFF6FF),
+    'c/home/card-edge': Color(0xFFFFFFFF),
+    'c/home/map-fade': Color(0xFFFFFFFF),
+    'c/now-dot/top': Color(0xFF22C55E),
+    'c/now-dot/bottom': Color(0xFF15803D),
+    'c/now-dot/edge': Color(0xFF4ADE80),
+    'c/now-dot/glow': Color(0x3322C55E),
   });
   static const dark = TokColors._({
     'bg/canvas': Color(0xFF09090B),
@@ -178,6 +188,16 @@ class TokColors {
     'c/poll/bar': Color(0xFFD4D4D8),
     'c/poll/bar-lead': Color(0xFF2563EB),
     'c/poll/live': Color(0xFFDC2626),
+    'c/home/bg': Color(0xFF2563EB),
+    'c/home/fg': Color(0xFFFFFFFF),
+    'c/home/count-fg': Color(0xB3FFFFFF),
+    'c/home/row-bg': Color(0xFF172554),
+    'c/home/card-edge': Color(0xFFFFFFFF),
+    'c/home/map-fade': Color(0xFFFFFFFF),
+    'c/now-dot/top': Color(0xFF22C55E),
+    'c/now-dot/bottom': Color(0xFF15803D),
+    'c/now-dot/edge': Color(0xFF4ADE80),
+    'c/now-dot/glow': Color(0x3322C55E),
   });
   Color get bgCanvas => _m['bg/canvas']!;
   Color get bgDefault => _m['bg/default']!;
@@ -259,6 +279,16 @@ class TokColors {
   Color get cPollBar => _m['c/poll/bar']!;
   Color get cPollBarLead => _m['c/poll/bar-lead']!;
   Color get cPollLive => _m['c/poll/live']!;
+  Color get cHomeBg => _m['c/home/bg']!;
+  Color get cHomeFg => _m['c/home/fg']!;
+  Color get cHomeCountFg => _m['c/home/count-fg']!;
+  Color get cHomeRowBg => _m['c/home/row-bg']!;
+  Color get cHomeCardEdge => _m['c/home/card-edge']!;
+  Color get cHomeMapFade => _m['c/home/map-fade']!;
+  Color get cNowDotTop => _m['c/now-dot/top']!;
+  Color get cNowDotBottom => _m['c/now-dot/bottom']!;
+  Color get cNowDotEdge => _m['c/now-dot/edge']!;
+  Color get cNowDotGlow => _m['c/now-dot/glow']!;
 }
 
 abstract final class TokSpace {
@@ -315,6 +345,18 @@ abstract final class TokDim {
   static const double pollBarHeight = 6;
   static const double pollLiveDot = 8;
   static const double pollMark = 24;
+  static const double homeHeaderGap = 29;
+  static const double homeCardHeight = 438;
+  static const double homeCardEdge = 5;
+  static const double homeMapFadeStart = 0.152;
+  static const double homeNowPillHeight = 36;
+  static const double homeNowDot = 10;
+  static const double homeNowDotGlow = 2;
+  static const double homeHeroFace = 39;
+  static const double homeHeroFaceOverlap = 22;
+  static const double homeRowSticker = 48;
+  static const double homeRowFaceOverlap = 18;
+  static const double homeBottomFade = 89;
   static const double pollMarkRing = 2;
   static const double pollLiveDimOpacity = 0.35;
   static const double toggleChipHeight = 32;
