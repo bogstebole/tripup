@@ -22,7 +22,11 @@ class TripSheet extends StatefulWidget {
     this.onHeaderDragEnd,
     this.focus,
     this.footer,
+    this.top,
   });
+
+  /// Stays put under the title while the page scrolls under it (the itinerary's day filter). One chip row high.
+  final Widget? top;
 
   /// Stays put at the bottom while the page scrolls above it (the bill's totals and its button).
   final Widget? footer;
@@ -38,6 +42,9 @@ class TripSheet extends StatefulWidget {
   final GestureDragUpdateCallback? onHeaderDragUpdate;
   final GestureDragEndCallback? onHeaderDragEnd;
 
+
+  /// What [top] adds to the header: a gap, then a row of toggle chips.
+  static const double topHeight = TokSpace.sm + TokDim.toggleChipHeight;
 
   /// The header's height: its top inset, then the taller of the title block and the close button.
   static double get headerHeight =>
@@ -61,9 +68,11 @@ class _TripSheetState extends State<TripSheet> {
       if (!mounted || at == null || !_scroll.hasClients) return;
       Scrollable.ensureVisible(at);   // its top at the top of the view…
       final pos = _scroll.position;   // …then back down by the header, so it sits just under it
-      _scroll.jumpTo((pos.pixels - TripSheet.headerHeight - TokSpace.md).clamp(pos.minScrollExtent, pos.maxScrollExtent));
+      _scroll.jumpTo((pos.pixels - _header - TokSpace.md).clamp(pos.minScrollExtent, pos.maxScrollExtent));
     });
   }
+
+  double get _header => TripSheet.headerHeight + (widget.top != null ? TripSheet.topHeight : 0);
 
   @override
   void dispose() {
@@ -75,7 +84,7 @@ class _TripSheetState extends State<TripSheet> {
   @override
   Widget build(BuildContext context) {
     final t = context.tok;
-    final header = TripSheet.headerHeight, solid = header / (header + TokDim.sheetTopFade);
+    final header = _header, solid = header / (header + TokDim.sheetTopFade);
     return DecoratedBox(
       decoration: surfaceDecoration(context, BorderRadius.circular(TokDim.surfaceRadius)),
       child: ClipRRect(
@@ -142,6 +151,8 @@ class _TripSheetState extends State<TripSheet> {
                   ),
                 ),
               ),
+              if (widget.top != null)
+                Positioned(left: 0, right: 0, top: TripSheet.headerHeight + TokSpace.sm, height: TokDim.toggleChipHeight, child: widget.top!),
             ]),
           )),
             ?widget.footer,

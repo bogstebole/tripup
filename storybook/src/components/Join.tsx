@@ -77,7 +77,8 @@ export function JoinFlow({ preview = false, start = 'invite', now = TRIP_NOW, po
   );
 }
 
-/** The invite: who's there, who invited you to what, then the one thing to do: your name, and Join. */
+/** The invite, in the middle of the screen: who's there, who invited you to what, then the one thing to do: your name,
+ *  and Join. */
 function Invite({ preview, now, name, onName, onJoin }: { preview: boolean; now: Date; name: string; onName: (name: string) => void; onJoin: () => void }) {
   const field = useRef<HTMLInputElement>(null);
   const crew = PEOPLE.filter(p => onTrip(p, now) && (preview || p.id !== REN));

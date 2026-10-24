@@ -1,14 +1,30 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { AnimatePresence } from 'motion/react';
 import { useState } from 'react';
-import { TODAY, tripDate, UP_NEXT, UP_NEXT_NOW, upNextChips } from '../data';
+import { TODAY, tripDate, UP_NEXT, UP_NEXT_NOW, upNextChips, type PollState } from '../data';
 import { EdgeArrow, MeEdge, MeMarker, PinTail } from './MapShapes';
 import { RecenterButton } from './Bars';
-import { PollCard as PollCardView, PollOnMap, PollPill as PollPillView } from './Poll';
+import { PollOnMap } from './Poll';
 import { UpNextWidget, type WidgetState } from './UpNextWidget';
 
 /** Halfway through the dinner poll: 2:41 PM and a half, Maya, Leo and Nic have voted. */
 const MID_POLL = new Date(tripDate(TODAY, 14, 41).getTime() + 30 * 1000);
+
+/** The poll on the map at MID_POLL, as the card or (`folded`) the pill. Tapping a place votes, or moves my vote
+ *  (`mine`: where it starts). With `foldable`, the chevron folds it and the pill unfolds it. */
+function PollStory({ folded: startFolded = false, foldable, mine }: { folded?: boolean; foldable?: boolean; mine?: string }) {
+  const [folded, setFolded] = useState(startFolded);
+  const [poll, setPoll] = useState<PollState>(mine ? { mine: { option: mine, at: MID_POLL } } : {});
+  return (
+    <PollOnMap
+      folded={folded}
+      now={MID_POLL}
+      poll={poll}
+      onFold={foldable ? () => setFolded(true) : undefined}
+      onUnfold={foldable ? () => setFolded(false) : undefined}
+      onVote={option => setPoll({ mine: { option, at: MID_POLL } })}
+    />
+  );
+}
 
 const meta = {
   title: 'Widget/Up next',
@@ -93,18 +109,27 @@ export const PollCard: Story = {
   name: 'Poll card',
   parameters: {
     controls: { disable: true },
-    docs: { description: { story: 'While the dinner poll is open (2:30 to 3 PM, or until everyone has voted) this card stands where the Up next card would, under the day filter, with no pin: poll-width (345), or the screen less its margins, its text left-aligned. A red dot breathing (opacity 1 to poll-live-dim-opacity 0.35 and back, pulse-ms, ease-breathe; still with reduced motion) and, in brand blue, "Live poll · closes in 19 mins", with a round fold button (chevron up) in the corner; the question; "5 PM · Maya asked · 3 of 5 voted"; then the three places, each with its sticker, its name (one line, ellipsized), every voter\'s face (five at most, so no "+N"), and under the name a bar of its share of the five votes, brand for the one ahead and grey for the others (no Leading tag: the bars say it). As votes come in a bar\'s fill slides out from the left inside its rounded track (a transform, enter-ms, ease-out); with reduced motion it jumps. Here it\'s 2:41 PM: Maya and Nic for La Brasserie, Leo for Churrasqueira, nobody yet for Dote. Tapping it opens the poll (see Pop-ups › Poll · open, where it follows the votes live once the pop-up is closed); the chevron folds it into a pill (see Poll card ↔ pill). It fades in and grows from its top (morph-enter-scale, enter-ms, ease-out), and goes quicker (fade-ms) once the poll closes or a pop-up covers it. Reduced motion: fades only.' } },
+    docs: { description: { story: 'While the dinner poll is open (2:30 to 3 PM, or until everyone has voted) this card stands where the Up next card would, under the day filter, with no pin: poll-width (345), or the screen less its margins, its text left-aligned. On top, a row as tall as the pill (button-md 44): a red dot breathing (opacity 1 to poll-live-dim-opacity 0.35 and back, pulse-ms, ease-breathe; still with reduced motion), "Live poll · closes in 19 mins" in brand blue, and a round fold button (chevron up) in the corner. Then the question; "5 PM · Maya asked · 3 of 5 voted"; then the three places, each a row you tap to vote: its sticker, its name (one line, ellipsized), every voter\'s face (five at most, so no "+N"), under the name a bar of its share of the five votes (brand for the one ahead, grey for the others; no Leading tag: the bars say it), and at the end a ring that is the vote (poll-mark 24, poll-mark-ring 2, border-strong). Tapping a place votes for it, or moves my vote to it: its ring fills in brand with a check (quickly, from morph-enter-scale, press-ms, ease-out; it empties at fade-ms; reduced motion, it only fades), and its bar and faces update at once (see Poll card · your vote). As votes come in a bar\'s fill slides out from the left inside its rounded track (a transform, enter-ms, ease-out); with reduced motion it jumps. Here it\'s 2:41 PM: Maya and Nic for La Brasserie, Leo for Churrasqueira, nobody yet for Dote. At the bottom, "Ratings, prices and walks →" in brand opens the poll (see Pop-ups › Poll · open; here it does nothing): the card itself is no longer one big button. The chevron folds it into a pill (see Poll card ↔ pill). On the map it fades in and grows from its top (morph-enter-scale, enter-ms, ease-out), and goes quicker (fade-ms) once the poll closes or a pop-up covers it. Reduced motion: fades only.' } },
   },
-  render: () => <PollCardView now={MID_POLL} poll={{}} />,
+  render: () => <PollStory />,
+};
+
+export const PollCardVoted: Story = {
+  name: 'Poll card · your vote',
+  parameters: {
+    controls: { disable: true },
+    docs: { description: { story: 'I voted for Dote, on the card: its ring is filled in brand with a white check (c-poll-bar-lead, icon-on-brand), my face joins its voters and its bar has one of the five votes; "4 of 5 voted". Tap another place to move the vote there: one ring empties as the other fills, and the bars and faces follow at once. In the app a vote on the card is the same vote as in the poll\'s pop-up (a light haptic on the phone).' } },
+  },
+  render: () => <PollStory mine="dote" />,
 };
 
 export const PollPill: Story = {
   name: 'Poll pill',
   parameters: {
     controls: { disable: true },
-    docs: { description: { story: 'The poll card folded away: a pill under the day filter, as tall as the top bar\'s buttons (button-md), on the surface, that keeps the poll in sight: the breathing red dot, "Dinner poll · 3 of 5 · closes in 19 mins" (one line, ellipsized) and a chevron down. Tapping it unfolds the card. A poll that opens shows the card in full again.' } },
+    docs: { description: { story: 'The poll card folded away: a pill under the day filter, as tall as the top bar\'s buttons (button-md), on the same surface, that keeps the poll in sight: the breathing red dot, "Dinner poll · 3 of 5 · closes in 19 mins" (one line, ellipsized, at most the screen less its margins) and a chevron down. Tapping it unfolds the card (here it stays folded; see Poll card ↔ pill). A poll that opens shows the card in full again.' } },
   },
-  render: () => <PollPillView now={MID_POLL} poll={{}} />,
+  render: () => <PollStory folded />,
 };
 
 export const PollFold: Story = {
@@ -112,21 +137,12 @@ export const PollFold: Story = {
   parameters: {
     layout: 'padded',
     controls: { disable: true },
-    docs: { description: { story: 'The card\'s chevron folds it into the pill and the pill unfolds it. They swap in place, anchored at the top centre: the new one fades in and grows from morph-enter-scale (enter-ms 260, ease-out) while the one leaving shrinks a little into the top as it fades (fade-ms 160). Reduced motion: fades only. Tapping the card itself would open the poll (here it does nothing).' } },
+    docs: { description: { story: 'The card\'s chevron folds it into the pill and the pill unfolds it, as one surface changing shape (PollOnMap): its box springs between the card\'s size and the pill\'s, both measured (spring-morph: 0.45 s, bounce 0.12, so it can go a little past either), centred where it stands. Inside the clipped box both contents sit at its top-left at their own size, so the live dot and the line beside it travel with it, and they crossfade with an overlap: the pill fades out over 0.05–0.55 of the way, the card in over 0.3–0.8 (both eased in and out), blurred where both are half there (up to crossfade-blur, 2 px). A tap mid-way turns it around from where it is. Only the one it is takes taps. Reduced motion: the box jumps to its new size and the contents only fade (fade-ms). Votes work here too; "Ratings, prices and walks" would open the poll (here it does nothing).' } },
   },
-  render: function Render() {
-    const [folded, setFolded] = useState(false);
-    return (
-      // Both in one cell, at its top centre, so the swap happens in place
-      <div style={{ display: 'grid', justifyItems: 'center', alignItems: 'start', width: 'calc(var(--d-poll-width) + 2 * var(--space-md))' }}>
-        <AnimatePresence initial={false}>
-          <PollOnMap key={folded ? 'pill' : 'card'} style={{ gridArea: '1 / 1' }}>
-            {folded
-              ? <PollPillView now={MID_POLL} poll={{}} onUnfold={() => setFolded(false)} />
-              : <PollCardView now={MID_POLL} poll={{}} onFold={() => setFolded(true)} />}
-          </PollOnMap>
-        </AnimatePresence>
-      </div>
-    );
-  },
+  render: () => (
+    // Centred at the top, as on the map, so it grows and shrinks from there
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', width: 'calc(var(--d-poll-width) + 2 * var(--space-md))' }}>
+      <PollStory foldable />
+    </div>
+  ),
 };

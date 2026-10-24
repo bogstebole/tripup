@@ -2,7 +2,7 @@
 // a TripSheet, which scrolls it; their notes come down at the top of the screen (see Notice.tsx).
 import { ArrowRight, Check, ChevronLeft, CircleCheck, Copy, MapPin, MapPinPlus, ScanLine, UserPlus } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { useState, type ReactElement } from 'react';
+import { useState, type ReactElement, type ReactNode } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import {
   balanceLeft, clockTime, dayName, DINNER, DINNER_ESTIMATE, DINNER_TABLE, dinnerChoice, euros, INVITE_LINK, isPaid, MY_ID, payLine, PEOPLE,
@@ -14,6 +14,7 @@ import { TextButton } from './Button';
 import { KnowRow } from './KnowSection';
 import { Sticker } from './Sticker';
 import { useTripNotice } from './Notice';
+import { SegmentedTabs } from './SegmentedTabs';
 import { Hairline, SheetRow, SheetSection, Slot, StaggerIn } from './TripSheet';
 import './TripPages.css';
 
@@ -39,20 +40,24 @@ export interface ItineraryPageProps {
   onPoll?: () => void;
   /** Now, in the trip (the demo's start, 3:56 PM, by default). */
   now?: Date;
+  /** The days picked in its filter (the chips under its title); empty or left out means all of them. */
+  days?: number[];
 }
 
 /**
- * Every day of the trip, in order: where we've been, what's planned, and today marked. It opens on today. Tapping a
- * stop shows it on the map (the pop-up closes and the map flies there). While the dinner poll hasn't decided, today
- * has a Dinner slot at 5 PM instead of the place ("Poll open · 3 of 5 voted"), which opens the poll.
+ * Every day of the trip, in order, each in its own grey block (so what belongs to which day is plain): where we've
+ * been, what's planned, and today marked. It opens on today. Its filter shows only the days picked. Tapping a stop
+ * shows it on the map (the pop-up closes and the map flies there). While the dinner poll hasn't decided, today has a
+ * Dinner slot at 5 PM instead of the place ("Poll open · 3 of 5 voted"), which opens the poll.
  */
-export function ItineraryPage({ onPick, poll, onPoll, now = TRIP_NOW }: ItineraryPageProps) {
+export function ItineraryPage({ onPick, poll, onPoll, now = TRIP_NOW, days = [] }: ItineraryPageProps) {
   const dinner = poll && (dinnerChoice(now, poll) ?? null);
   const plans = plansWith(dinner);
   const next = plans.find(p => planStart(p) > now);
   return (
-    <StaggerIn>
+    <StaggerIn gap="sm">
       {TRIP_DAYS.map(({ day, label }, i) => {
+        if (days.length && !days.includes(day)) return null;
         const rows = [
           ...VISITED.filter(v => v.day === day).map(v => (
             <SheetRow
@@ -91,13 +96,15 @@ export function ItineraryPage({ onPick, poll, onPoll, now = TRIP_NOW }: Itinerar
           )),
         ];
         return (
-          <div key={day} data-sheet-focus={day === TODAY || undefined}>
-            <div className={i ? 'tu-day' : 'tu-day tu-day--first'}>
+          <div key={day} className="tu-day-block" data-sheet-focus={day === TODAY || undefined}>
+            <div className="tu-day">
               <h3 className={`text-heading-sm ${day < TODAY ? 'tu-pages__muted' : 'tu-pages__strong'}`}>{label}</h3>
               <span className="text-body-sm tu-pages__muted">Day {i + 1}</span>
               {day === TODAY && <span className="tu-tag text-label-md weight-semibold">Today</span>}
             </div>
-            {rows.length ? rows.flatMap((r, j) => (j ? [<Hairline key={`line-${j}`} />, r] : [r])) : <p className="text-body-sm tu-day__empty">Nothing planned yet</p>}
+            {rows.length
+              ? <div className="tu-day-block__rows">{rows}</div>
+              : <p className="text-body-sm tu-day__empty">Nothing planned yet</p>}
           </div>
         );
       })}
@@ -111,6 +118,10 @@ export function ItineraryPage({ onPick, poll, onPoll, now = TRIP_NOW }: Itinerar
 export const moneySubtitle = (money: Money = PRE_DINNER) => `${euros(money.spent)} spent so far · ${money.expenses.length} expenses`;
 export const MONEY_SUBTITLE = moneySubtitle();
 
+/** Money's tabs: one list at a time, Settle up first (it's the one with something to do). */
+export const MONEY_TABS = ['Settle up', 'Balances', 'Expenses'] as const;
+export type MoneyTab = (typeof MONEY_TABS)[number];
+
 export interface MoneyPageProps {
   /** The money as it stands: before the dinner's bill (`PRE_DINNER`, the default) or with it in (`BILL_IN`). */
   money?: Money;
@@ -121,19 +132,24 @@ export interface MoneyPageProps {
   /** The dinner is on and its bill isn't in: instead of the estimate, a way to scan the bill. */
   dinnerOn?: boolean;
   onScan?: () => void;
+  /** The tab it opens on (Settle up, by default). */
+  tab?: MoneyTab;
 }
 
 /**
- * The group's money: what I owe (and paying it), what's been spent, the fewest payments that square everyone up
- * (each with a Why that opens), each person's balance after the payments made so far, and the expenses. Tonight's
- * dinner is an estimate until it's on, then Scan the bill; once the bill is in, it's an expense split by who had what.
- * The top block: what I owe and Pay; "Everyone else has paid"; "You're square with Maya"; and, once everyone has
- * paid, a green "Lisbon is squared up".
+ * The group's money: what I owe (and paying it) on top, then one thing at a time in tabs (Settle up · Balances ·
+ * Expenses): the fewest payments that square everyone up (each with a Why that opens), each person's balance after
+ * the payments made so far, or the expenses (the list that grows all trip, so it never pushes the rest away). Each
+ * tab's list has a short line on top. Picking a tab fades its list in (enter-ms) while the last one fades out with a
+ * blur (fade-ms; no blur with reduced motion). Tonight's dinner is an estimate until it's on, then Scan the bill; once
+ * the bill is in, it's an expense split by who had what. The top block: what I owe and Pay; "Everyone else has paid";
+ * "You're square with Maya"; and, once everyone has paid, a green "Lisbon is squared up".
  */
-export function MoneyPage({ money = PRE_DINNER, made: kept, onPay, dinnerOn, onScan }: MoneyPageProps) {
+export function MoneyPage({ money = PRE_DINNER, made: kept, onPay, dinnerOn, onScan, tab: firstTab = 'Settle up' }: MoneyPageProps) {
   const toast = useTripNotice();
   const [own, setOwn] = useState<Payment[]>([]);
   const made = kept ?? own;
+  const [tab, setTab] = useState<MoneyTab>(firstTab);
   // The payment whose "why" is open, if any
   const [why, setWhy] = useState<string | null>(null);
   const reduce = useReducedMotion();
@@ -180,66 +196,99 @@ export function MoneyPage({ money = PRE_DINNER, made: kept, onPay, dinnerOn, onS
           Tonight's dinner isn't on it yet: about {euros(DINNER_ESTIMATE)}, from what everyone picked. It splits by who had what.
         </p>
       ) : null}
-      <SheetSection key="settle" title="Settle up" subtitle={`${pays.length} payments square everyone, instead of ${money.paymentsOneByOne}`} />
-      {withHairlines(pays, p => (
-        <div key={`pay-${key(p)}`}>
-          <SheetRow
-            leading={<span className="tu-pay">{face(p.from)}<ArrowRight className="tu-pay__arrow" strokeWidth={2} absoluteStrokeWidth aria-hidden />{face(p.to)}</span>}
-            title={p.from === MY_ID ? `You pay ${name(p.to)}` : `${name(p.from)} pays ${name(p.to)}`}
-            subtitle={`${paid(p) ? 'Paid' : 'Pending'} · ${why === key(p) ? 'Hide why' : 'Why'}`}
-            tone={paid(p) ? 'success' : undefined}
-            trailing={<span className="text-label-lg tu-pages__strong">{euros(p.amount)}</span>}
-            onClick={() => setWhy(w => (w === key(p) ? null : key(p)))}
-          />
-          {/* Where the amount comes from: it opens under the row, and closes a little quicker */}
-          <AnimatePresence initial={false}>
-            {why === key(p) && (
-              <motion.div
-                key="why"
-                className="tu-why"
-                initial={reduce ? { opacity: 0 } : { height: 0, opacity: 0 }}
-                animate={reduce ? { opacity: 1, transition: { duration: m['fade-ms'] / 1000, ease } } : { height: 'auto', opacity: 1, transition: { duration: m['enter-ms'] / 1000, ease } }}
-                exit={reduce ? { opacity: 0, transition: { duration: m['fade-ms'] / 1000, ease } } : { height: 0, opacity: 0, transition: { duration: m['fade-ms'] / 1000, ease } }}
-              >
-                <Why money={money} p={p} />
-              </motion.div>
+      <div key="tabs" className="tu-money-tabs">
+        <SegmentedTabs tabs={[...MONEY_TABS]} value={tab} onChange={t => setTab(t as MoneyTab)} />
+      </div>
+      {/* One tab's list at a time: it fades in while the last one fades out with a blur, both from the top */}
+      <div key="list" className="tu-money-list">
+        <AnimatePresence initial={false}>
+          <motion.div
+            key={tab}
+            className="tu-money-list__tab"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: { duration: m['enter-ms'] / 1000, ease } }}
+            exit={{ opacity: 0, filter: reduce ? 'none' : `blur(${m['enter-blur']}px)`, pointerEvents: 'none', transition: { duration: m['fade-ms'] / 1000, ease } }}
+          >
+            {tab === 'Settle up' && (
+              <>
+                <MoneyNote>{pays.length} payments square everyone, instead of {money.paymentsOneByOne}</MoneyNote>
+                {withHairlines(pays, p => (
+                  <div key={`pay-${key(p)}`}>
+                    <SheetRow
+                      leading={<span className="tu-pay">{face(p.from)}<ArrowRight className="tu-pay__arrow" strokeWidth={2} absoluteStrokeWidth aria-hidden />{face(p.to)}</span>}
+                      title={p.from === MY_ID ? `You pay ${name(p.to)}` : `${name(p.from)} pays ${name(p.to)}`}
+                      subtitle={`${paid(p) ? 'Paid' : 'Pending'} · ${why === key(p) ? 'Hide why' : 'Why'}`}
+                      tone={paid(p) ? 'success' : undefined}
+                      trailing={<span className="text-label-lg tu-pages__strong">{euros(p.amount)}</span>}
+                      onClick={() => setWhy(w => (w === key(p) ? null : key(p)))}
+                    />
+                    {/* Where the amount comes from: it opens under the row, and closes a little quicker */}
+                    <AnimatePresence initial={false}>
+                      {why === key(p) && (
+                        <motion.div
+                          key="why"
+                          className="tu-why"
+                          initial={reduce ? { opacity: 0 } : { height: 0, opacity: 0 }}
+                          animate={reduce ? { opacity: 1, transition: { duration: m['fade-ms'] / 1000, ease } } : { height: 'auto', opacity: 1, transition: { duration: m['enter-ms'] / 1000, ease } }}
+                          exit={reduce ? { opacity: 0, transition: { duration: m['fade-ms'] / 1000, ease } } : { height: 0, opacity: 0, transition: { duration: m['fade-ms'] / 1000, ease } }}
+                        >
+                          <Why money={money} p={p} />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                ))}
+              </>
             )}
-          </AnimatePresence>
-        </div>
-      ))}
-      <SheetSection key="balances" title="Balances" />
-      {withHairlines(PEOPLE, x => {
-        const b = balanceLeft(money, made, x.id);
-        return (
-          <SheetRow
-            key={`balance-${x.id}`}
-            leading={face(x.id)}
-            title={x.name}
-            subtitle={b > 0.005 ? 'Gets back'
-              : b < -0.005 ? (x.id === MY_ID ? 'You owe' : 'Owes')
-              : joinedLate(x.joined) && Math.abs(money.balanceOf(x.id)) < 0.005 ? `Joined ${dayName(tripDate(x.joined)).toLowerCase()} · shares costs from then on`
-              : 'Square'}
-            trailing={Math.abs(b) > 0.005 ? <span className={`text-label-lg ${b > 0 ? 'tu-pages__success' : 'tu-pages__strong'}`}>{euros(Math.abs(b))}</span> : undefined}
-          />
-        );
-      })}
-      <SheetSection key="expenses" title="Expenses" subtitle="Newest first" />
-      {withHairlines(money.expenses, e => (
-        <SheetRow
-          key={`expense-${e.title}`}
-          leading={face(e.paidBy)}
-          title={e.title}
-          subtitle={`${e.paidBy === MY_ID ? 'You' : name(e.paidBy)} paid · ${dayName(tripDate(e.day))} · ${e.split.length} people${e.shares ? ', by who had what' : ''}`}
-          trailing={
-            <span className="tu-amount">
-              <span className="text-label-lg tu-pages__strong">{euros(e.amount)}</span>
-              {shareOf(e, MY_ID) > 0 && <span className="text-body-sm tu-pages__muted">yours {euros(shareOf(e, MY_ID))}</span>}
-            </span>
-          }
-        />
-      ))}
+            {tab === 'Balances' && (
+              <>
+                <MoneyNote>Who gets money back, and who owes</MoneyNote>
+                {withHairlines(PEOPLE, x => {
+                  const b = balanceLeft(money, made, x.id);
+                  return (
+                    <SheetRow
+                      key={`balance-${x.id}`}
+                      leading={face(x.id)}
+                      title={x.name}
+                      subtitle={b > 0.005 ? 'Gets back'
+                        : b < -0.005 ? (x.id === MY_ID ? 'You owe' : 'Owes')
+                        : joinedLate(x.joined) && Math.abs(money.balanceOf(x.id)) < 0.005 ? `Joined ${dayName(tripDate(x.joined)).toLowerCase()} · shares costs from then on`
+                        : 'Square'}
+                      trailing={Math.abs(b) > 0.005 ? <span className={`text-label-lg ${b > 0 ? 'tu-pages__success' : 'tu-pages__strong'}`}>{euros(Math.abs(b))}</span> : undefined}
+                    />
+                  );
+                })}
+              </>
+            )}
+            {tab === 'Expenses' && (
+              <>
+                <MoneyNote>{money.expenses.length} expenses · {euros(money.spent)} · newest first</MoneyNote>
+                {withHairlines(money.expenses, e => (
+                  <SheetRow
+                    key={`expense-${e.title}`}
+                    leading={face(e.paidBy)}
+                    title={e.title}
+                    subtitle={`${e.paidBy === MY_ID ? 'You' : name(e.paidBy)} paid · ${dayName(tripDate(e.day))} · ${e.split.length} people${e.shares ? ', by who had what' : ''}`}
+                    trailing={
+                      <span className="tu-amount">
+                        <span className="text-label-lg tu-pages__strong">{euros(e.amount)}</span>
+                        {shareOf(e, MY_ID) > 0 && <span className="text-body-sm tu-pages__muted">yours {euros(shareOf(e, MY_ID))}</span>}
+                      </span>
+                    }
+                  />
+                ))}
+              </>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
     </StaggerIn>
   );
+}
+
+/** A short line under Money's tabs, about the list. */
+function MoneyNote({ children }: { children: ReactNode }) {
+  return <p className="text-body-sm tu-money-note">{children}</p>;
 }
 
 /** Why a payment is what it is: the payer's share of each expense, what they paid, and why it all goes to one person. */

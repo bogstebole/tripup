@@ -314,6 +314,8 @@ abstract final class TokDim {
   static const double pollWidth = 345;
   static const double pollBarHeight = 6;
   static const double pollLiveDot = 8;
+  static const double pollMark = 24;
+  static const double pollMarkRing = 2;
   static const double pollLiveDimOpacity = 0.35;
   static const double toggleChipHeight = 32;
   static const double toggleChipPaddingX = 12;

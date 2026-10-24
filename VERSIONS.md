@@ -492,6 +492,16 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - Tokens: `poll/width` 345, `poll/bar-height` 6, `poll/live-dot` 8, `poll/live-dim-opacity` 0.35; colours `poll/bar-track`, `poll/bar-track-on-muted`, `poll/bar`, `poll/bar-lead`, `poll/live`. Icons: chevron-down (`TuIcons.unfold`), `TuIcons.fold`.
 - **Storybook mirrors 1.27:** Widget/Up next gets Poll card, Poll pill and Poll card ↔ pill; Pop-ups › Poll · open folds and unfolds on the map. On the web the fold button can't sit inside the card's button, so a transparent open button covers the card and the fold button sits above it.
 
+### Final UI, iteration 1.28: Bogdan's notes on the poll, itinerary, money and joining (branch `feature/poll-vote-itinerary`)
+- **Poll card ↔ pill is one surface:** `PollOnMap` springs its box (`springMorph`) between the two measured sizes, crossfading the contents with a slight blur where they overlap; both contents are anchored to the box's left edge. Reduced motion: the box jumps, the contents fade.
+- **Vote on the card:** each place is a row you tap to vote, with a ring (`VoteMark`) that fills with a check; bars and faces update at once. "Ratings, prices and walks →" opens the poll.
+- **Itinerary:** a grey block per day, and a day filter pinned under the title (`TripSheet.top`). Opens on All, scrolled to today.
+- **Money:** the top block stays; under it, `SegmentedTabs` Settle up · Balances · Expenses, one list at a time (fades in, blurs out).
+- **Ren's phone:** the invite is centred on the screen.
+- Tokens: `poll/mark` 24, `poll/mark-ring` 2.
+- Home screen: waiting for Bogdan's design.
+- **Storybook mirrors 1.28:** the poll's one-surface fold (Motion spring between measured sizes), voting on the card (new story Widget › Poll card · your vote), the itinerary's filter and day blocks (Pop-ups › Itinerary · one day), Money's tabs (Money · balances, Money · expenses) and the centred invite. No hairlines inside the itinerary's grey day blocks, in either: they didn't show on the grey.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

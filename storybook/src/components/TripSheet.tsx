@@ -1,6 +1,6 @@
 import { X } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
-import { Children, isValidElement, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { Children, isValidElement, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import { Button } from './Button';
 import { easedFade } from './easedFade';
@@ -27,6 +27,9 @@ export interface TripSheetProps {
   compact?: boolean;
   /** Stays put at the bottom while the page scrolls above it (the scanned bill's totals and its button). */
   footer?: ReactNode;
+  /** Stays put under the title while the page scrolls under it (the itinerary's day filter): one chip row high
+   *  (toggle-chip-height), sm under the title, and the header grows by as much. */
+  top?: ReactNode;
 }
 
 /**
@@ -36,7 +39,7 @@ export interface TripSheetProps {
  * motion it only fades. Put it in AnimatePresence so it can leave. On the phone, a pull down on the header closes it too.
  * It has no notes of its own: its pages show them at the top of the screen (see Notice.tsx).
  */
-export function TripSheet({ title, subtitle, children, onClose, compact, footer }: TripSheetProps) {
+export function TripSheet({ title, subtitle, children, onClose, compact, footer, top }: TripSheetProps) {
   const reduce = useReducedMotion();
   const scroll = useRef<HTMLDivElement>(null);
   // How far the page has scrolled under the header, 0–1 over the top fade's height
@@ -60,7 +63,7 @@ export function TripSheet({ title, subtitle, children, onClose, compact, footer 
 
   return (
     <motion.article
-      className={['tu-trip-sheet', 'tu-surface', 'tu-surface--sheet', compact && 'tu-trip-sheet--compact', footer != null && 'tu-trip-sheet--footer'].filter(Boolean).join(' ')}
+      className={['tu-trip-sheet', 'tu-surface', 'tu-surface--sheet', compact && 'tu-trip-sheet--compact', footer != null && 'tu-trip-sheet--footer', top != null && 'tu-trip-sheet--top'].filter(Boolean).join(' ')}
       aria-label={title}
       initial={reduce ? { opacity: 0 } : { transform: away }}
       animate={reduce ? { opacity: 1, transition: { duration: m['fade-ms'] / 1000, ease } } : { transform: here, transition: { duration: m['enter-ms'] / 1000, ease } }}
@@ -78,6 +81,7 @@ export function TripSheet({ title, subtitle, children, onClose, compact, footer 
         </div>
         <Button icon={X} label="Close" size="sm" onClick={onClose} />
       </div>
+      {top != null && <div className="tu-trip-sheet__top">{top}</div>}
       {footer != null && <div className="tu-trip-sheet__footer">{footer}</div>}
     </motion.article>
   );
@@ -86,16 +90,19 @@ export function TripSheet({ title, subtitle, children, onClose, compact, footer 
 /**
  * The page's blocks arrive one after another: each fades in, sharpens from a light blur and settles a few px up
  * (enter-ms, ease-out, stagger-ms apart; past stagger-max the rest come in with the last one, so a long list
- * doesn't drag). With reduced motion they only fade in.
+ * doesn't drag). With reduced motion they only fade in. It runs once, as it's built (as in the app): a block that
+ * comes later, like a day the itinerary's filter brings back, is simply there.
  */
 export function StaggerIn({ children, gap }: { children: ReactNode; gap?: 'xs' | 'sm' | 'md' }) {
   const reduce = useReducedMotion();
+  const [built, setBuilt] = useState(false);
+  useEffect(() => setBuilt(true), []);
   return (
     <div className="tu-stagger" style={gap ? { gap: `var(--space-${gap})` } : undefined}>
       {Children.toArray(children).map((child, i) => (
         <motion.div
           key={isValidElement(child) && child.key != null ? child.key : i}
-          initial={reduce ? { opacity: 0 } : { opacity: 0, transform: `translate(0px, ${rise}px)`, filter: blur }}
+          initial={built ? false : reduce ? { opacity: 0 } : { opacity: 0, transform: `translate(0px, ${rise}px)`, filter: blur }}
           animate={reduce ? { opacity: 1 } : { opacity: 1, transform: 'translate(0px, 0px)', filter: 'blur(0px)' }}
           transition={reduce ? { duration: m['fade-ms'] / 1000, ease } : { duration: m['enter-ms'] / 1000, ease, delay: (Math.min(i, m['stagger-max'] - 1) * m['stagger-ms']) / 1000 }}
         >

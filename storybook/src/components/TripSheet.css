@@ -1,7 +1,9 @@
 /* The pop-up: the full view's surface. Page, header fade and header share one cell; the page scrolls up under the
    header. Its parent gives it its place (the full view's) and lines it up at the bottom, so a compact one sits low. */
 .tu-trip-sheet {
-  --header: calc(var(--space-md) + max(calc(var(--text-heading-md--line-height) + var(--space-2xs) + var(--text-body-sm--line-height)), var(--d-button-sm)));
+  /* The title block's height; --header is all the header holds (with a row under the title, that too) */
+  --title-head: calc(var(--space-md) + max(calc(var(--text-heading-md--line-height) + var(--space-2xs) + var(--text-body-sm--line-height)), var(--d-button-sm)));
+  --header: var(--title-head);
   position: relative;
   display: grid;
   grid-template: minmax(0, 1fr) / minmax(0, 1fr);
@@ -14,6 +16,9 @@
 /* With a footer: the page above it, the footer in its own row under it (it doesn't scroll) */
 .tu-trip-sheet--footer { grid-template: minmax(0, 1fr) auto / minmax(0, 1fr); }
 .tu-trip-sheet__footer { grid-area: 2 / 1; min-width: 0; }
+/* A row that stays under the title (the itinerary's day filter): sm under it, one chip row high */
+.tu-trip-sheet--top { --header: calc(var(--title-head) + var(--space-sm) + var(--d-toggle-chip-height)); }
+.tu-trip-sheet__top { grid-area: 1 / 1; align-self: start; z-index: 2; min-width: 0; height: var(--d-toggle-chip-height); margin-top: calc(var(--title-head) + var(--space-sm)); }
 /* Add has only a few rows, so it's shorter */
 .tu-trip-sheet--compact { max-height: var(--d-sheet-compact-height); }
 

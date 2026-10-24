@@ -11,8 +11,10 @@
   padding: var(--space-5xl) var(--space-md) var(--space-xl);
 }
 .tu-join__page::-webkit-scrollbar { display: none; }
-/* The invite is narrower: lg each side */
-.tu-join__page--invite { padding-inline: var(--space-lg); }
+/* The invite is narrower (lg each side) and sits in the middle of the screen, as clear of the bottom as of the pill;
+   it scrolls only if it doesn't fit (auto margins, so a tall one still starts at the top) */
+.tu-join__page--invite { display: flex; flex-direction: column; padding: var(--space-5xl) var(--space-lg); }
+.tu-join__page--invite > * { margin-block: auto; }
 .tu-join__fade { position: absolute; top: 0; left: 0; right: 0; height: calc(var(--space-xs) + var(--d-button-sm) + var(--space-xl)); pointer-events: none; }
 /* The pill in the middle, the × at the end, and room for a button's width at the start so the pill stays centred */
 .tu-join__top {

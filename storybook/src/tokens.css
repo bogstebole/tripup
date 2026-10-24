@@ -177,6 +177,8 @@
   --d-poll-width: 345px;
   --d-poll-bar-height: 6px;
   --d-poll-live-dot: 8px;
+  --d-poll-mark: 24px;
+  --d-poll-mark-ring: 2px;
   --d-poll-live-dim-opacity: 0.35;
   --d-toggle-chip-height: 32px;
   --d-toggle-chip-padding-x: 12px;
