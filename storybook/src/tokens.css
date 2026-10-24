@@ -169,6 +169,7 @@
   --d-scan-stroke: 3px;
   --d-scan-photo-opacity: 0.4;
   --d-scan-off-opacity: 0.3;
+  --d-poll-lost-opacity: 0.6;
   --d-toggle-chip-height: 32px;
   --d-toggle-chip-padding-x: 12px;
   --d-toggle-chip-gap: 8px;
@@ -232,6 +233,7 @@
   --enter-ms: 260ms;
   --page-enter-delay-ms: 80ms;
   --toast-ms: 3000ms;
+  --toast-action-ms: 6000ms;
   --settle-ms: 800ms;
   --pulse-ms: 1200ms;
   --scan-find-ms: 600ms;

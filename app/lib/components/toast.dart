@@ -25,7 +25,7 @@ class Toast extends StatelessWidget {
         decoration: BoxDecoration(color: t.cToastBg, borderRadius: BorderRadius.circular(TokRadius.pill)),
         child: Row(mainAxisSize: MainAxisSize.min, spacing: TokSpace.xs, children: [
           LucideIcon(TuIcons.check, size: TokSize.iconSm, color: fg),
-          Text(label, maxLines: 1, style: TokText.labelMd.copyWith(color: fg)),
+          Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.labelMd.copyWith(color: fg))),
           if (actionLabel != null)
             Pressable(
               onTap: onAction,

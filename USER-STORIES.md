@@ -7,18 +7,18 @@ The eleven steps from the brief (`process/research/tripup-competitive-research-v
 | # | Step | In the app | Status | What's missing |
 | --- | --- | --- | --- | --- |
 | 01 | Home with all trips | Only the trip screen. Its Back button goes nowhere. | ❌ | A trips list: Lisbon active and on top, past trips folded away. |
-| 02 | Group view | The map with Up next (who's coming, who's there, price), live locations, and the footer (itinerary, money, add). When the group gets there, the dinner turns "Now" by itself (geofence), and the full view opens on Group. | 🟡 | An open poll isn't on the screen yet (it comes with the poll). |
+| 02 | Group view | The map with Up next (who's coming, who's there, price), live locations, and the footer (itinerary, money, add). An open poll stands where Up next would. When the group gets there, the dinner turns "Now" by itself (geofence), and the full view opens on Group. | ✅ | |
 | 03 | Ren joins mid-trip | Add → Invite someone: a link to copy, "no account", and "only costs from the day they join". In the data, Ren joined today. | 🟡 | Ren's side: opening the link, typing a name, and the recap of the trip so far (stay, decided plans, open poll, the costs rule). |
-| 04 | Poll: 3 restaurants | Nothing. | ❌ | A poll with three place cards (photo, rating, price, walking minutes). |
-| 05 | Everyone notified | Nothing. | ❌ | A notification when the poll opens and when it closes. |
-| 06 | Leading option, live | Nothing. | ❌ | "Leading" on the front option, voters' faces, a countdown. |
-| 07 | Winner into the itinerary | La Brasserie is already in the itinerary and on the map as Up next, but no poll put it there. Add → Plan something drops an idea into a free slot. | 🟡 | The poll's winner going into the itinerary by itself, with Undo (no app does this). |
+| 04 | Poll: 3 restaurants | Maya asks at 2:30 PM. Three real places on Avenida da Igreja, each a card with its sticker, rating, food, price and walking minutes. | ✅ | |
+| 05 | Everyone notified | A note at the top of the map when the poll opens, and when it closes. | ✅ | |
+| 06 | Leading option, live | On the map card and in the poll: votes arrive on the demo clock, voters' faces, "Leading" on the front-runner, "closes in N mins". It closes early once everyone has voted. | ✅ | |
+| 07 | Winner into the itinerary | At close the winner goes into tonight's 5 PM slot by itself: its card and pin appear, and it's in the itinerary. The note offers Undo (6 s); after Undo, anyone picks by hand. | ✅ | |
 | 08 | Ren and Nic skip the wine | Scan the bill (only while the dinner is on): every line lands on whoever picked it on the Menu. The wine goes to the three who picked it, so Ren and Nic skip it with nothing special; any line can be changed by tapping faces. | ✅ | |
 | 09 | Fewest transfers | Money: "4 payments square everyone, instead of 13", each with a Why: what that person had, what they paid, and why it's one payment. | ✅ | |
 | 10 | Pay in the app | Money: "You owe Maya €11.82" and Pay. The others pay on their own a little after the bill is in, each arriving as a note on the map. | ✅ | |
 | 11 | "Squared up" to the group | When the last payment lands: "Lisbon is squared up · everyone has paid" as a note for everyone, and Money's top block turns green. | ✅ | |
 
-**Covered: 4 of 11, partly: 3, missing: 4** (after the dinner flow, 24 Oct). Left: the trips list (01), Ren's side of joining (03), and the poll (04–07).
+**Covered: 9 of 11, partly: 1, missing: 1** (after the poll, 24 Oct). Left: the trips list (01) and Ren's side of joining (03).
 
 ## Open decisions
 

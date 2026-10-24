@@ -14,8 +14,11 @@ import 'trip_sheet.dart';
 /// Every day of the trip, in order: where we've been, what's planned, and today marked. Tapping a stop shows it
 /// on the map.
 class ItineraryPage extends StatelessWidget {
-  const ItineraryPage({super.key, this.onPick, this.todayKey});
+  const ItineraryPage({super.key, this.onPick, this.todayKey, this.onPoll});
   final ValueChanged<LatLng>? onPick;
+
+  /// Opens the dinner poll (from tonight's slot, while it isn't decided).
+  final VoidCallback? onPoll;
 
   /// Put on today's block, so the pop-up can open there.
   final GlobalKey? todayKey;
@@ -40,6 +43,20 @@ class ItineraryPage extends StatelessWidget {
                 subtitle: 'Been there',
                 trailing: LucideIcon(TuIcons.check, size: TokSize.iconSm, color: t.iconSuccess),
                 onTap: onPick == null ? null : () => onPick!(v.at),
+              ),
+            // Tonight's slot, until the poll has picked a place
+            if (day == today && dinnerChoice(now) == null)
+              SheetRow(
+                leading: _slot(LucideIcon(TuIcons.places, size: TokSize.iconMd, color: t.iconBrand)),
+                title: 'Dinner',
+                subtitle: pollOpen(now)
+                    ? 'Poll open · ${votesIn(now)} of ${dinnerTable.length} voted'
+                    : pollClosed(now)
+                        ? 'No place yet: pick one'
+                        : 'Poll at ${clockTime(pollOpens)}',
+                subtitleColor: t.textBrand,
+                trailing: Text(clockTime(DateTime(tripYear, tripMonth, today, 17)), style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textDefault)),
+                onTap: onPoll,
               ),
             for (final p in planned)
               SheetRow(

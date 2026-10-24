@@ -296,6 +296,7 @@ abstract final class TokDim {
   static const double scanStroke = 3;
   static const double scanPhotoOpacity = 0.4;
   static const double scanOffOpacity = 0.3;
+  static const double pollLostOpacity = 0.6;
   static const double toggleChipHeight = 32;
   static const double toggleChipPaddingX = 12;
   static const double toggleChipGap = 8;
@@ -410,6 +411,7 @@ abstract final class TokMotion {
   static const enter = Duration(milliseconds: 260);
   static const pageEnterDelay = Duration(milliseconds: 80);
   static const toast = Duration(milliseconds: 3000);
+  static const toastAction = Duration(milliseconds: 6000);
   static const settle = Duration(milliseconds: 800);
   static const pulse = Duration(milliseconds: 1200);
   static const scanFind = Duration(milliseconds: 600);

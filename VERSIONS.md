@@ -432,6 +432,21 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
   - `pop-ups--scan-the-bill` (with Replay), `pop-ups--money-dinner-on`, `pop-ups--money-bill-in`, `pop-ups--money-squared-up`.
   - In Storybook the others pay 6 s apart (30 s in the app), and "See who owes what" doesn't navigate.
 
+### Final UI, iteration 1.24: the dinner poll (branch `feature/dinner-poll`)
+- **Poll data** (`data.dart`, poll section):
+  - three options with real ratings and prices;
+  - the others' votes on the demo clock (Maya 2:30, Leo 2:36, Nic 2:41, Ren 2:47), plus my vote;
+  - it closes at 3 PM or when all five have voted; the leader wins (a tie goes to whoever got there first);
+  - `dinnerChoice` decides whether tonight's plan exists, with `pollUndone` and `pickedDinner` for Undo and the hand pick.
+- **`lib/components/poll.dart`:**
+  - `PollCard` on the map while the poll is open;
+  - `PollPage` in a pop-up: place cards (sticker, rating · food · price, walking minutes), voters' faces and count, Leading / Won / Tonight, and Vote / Your vote;
+  - after Undo, Add to tonight.
+- **Notes:** "Maya started a poll…" when it opens, and "La Brasserie won · added to tonight" with Undo when it closes. Only changes that just happened make a note; a demo jump over them doesn't. The Toast label now shortens with an ellipsis when it's too long.
+- **Demo moments** Dinner poll (2:30 PM) and The poll closes (3 PM) are built; every jump resets the poll.
+- Tokens: `poll/lost-opacity` 0.6, `motion.toast-action-ms` 6000.
+- Checked on the simulator: open, vote, leading, close, the winner on the map, Undo, the hand pick.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 

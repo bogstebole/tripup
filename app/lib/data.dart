@@ -302,8 +302,8 @@ class StoryMoment {
 final storyMoments = [
   StoryMoment('Your trips', '01', built: false),
   StoryMoment('Ren joins', '03', at: DateTime(tripYear, tripMonth, today, 14, 10), built: false),
-  StoryMoment('Dinner poll', '04–06', at: DateTime(tripYear, tripMonth, today, 14, 30), built: false),
-  StoryMoment('The poll closes', '07', at: DateTime(tripYear, tripMonth, today, 15, 0), built: false),
+  StoryMoment('Dinner poll', '04–06', at: DateTime(tripYear, tripMonth, today, 14, 30)),
+  StoryMoment('The poll closes', '07', at: DateTime(tripYear, tripMonth, today, 15, 0)),
   StoryMoment('On the way', '02', at: DateTime(tripYear, tripMonth, today, 15, 30)),
   StoryMoment('Before dinner', '02, 07', at: tripNowAtLaunch),
   StoryMoment("Everyone's there", '02', at: DateTime(tripYear, tripMonth, today, 17, 0)),
@@ -319,6 +319,7 @@ final demoMoment = ValueNotifier<StoryMoment?>(null);
 /// scanned; at Settle up the bill is in and the others start paying; at Squared up everyone has paid.
 void jumpTo(StoryMoment m) {
   _launch = DateTime.now();
+  resetPoll();
   demoMoment.value = m;
   if (!m.bill) {
     dinnerBill.value = null;
@@ -499,7 +500,11 @@ const planIdeas = [
 final addedPlans = ValueNotifier<List<Plan>>(const []);
 
 /// Every plan, in the order they happen.
-List<Plan> get tripPlans => [...plans, ...addedPlans.value]..sort((a, b) => a.start.compareTo(b.start));
+List<Plan> get tripPlans => [
+      for (final p in plans) if (p.id != dinnerSlotId || dinnerChoice(tripNow()) == p.id) p,
+      if (dinnerChoice(tripNow()) case final id? when id != dinnerSlotId) pollOptionById(id).plan,
+      ...addedPlans.value,
+    ]..sort((a, b) => a.start.compareTo(b.start));
 
 // ── Tonight: the dinner turning active, its bill, and settling up ────────────────────────────────────────────────────
 
@@ -636,4 +641,100 @@ List<Payment> takeDuePayments(DateTime now) {
 /// A short note for everyone on the trip, shown at the top of the map ("Leo paid Maya €185.92").
 final tripNotice = ValueNotifier<String?>(null);
 
+/// What the next notice offers to do about itself ("Undo"), if anything. Set it just before [tripNotice].
+({String label, VoidCallback onTap})? noticeAction;
+
 String payLine(Payment p) => '${p.from == myId ? 'You' : personById(p.from).name} paid ${p.to == myId ? 'you' : personById(p.to).name} ${euros(p.amount)}';
+
+// ── The dinner poll: where to eat tonight ────────────────────────────────────────────────────────────────────────────
+// Maya asks at 2:30 PM; everyone votes from wherever they are. It closes at 3 PM, or as soon as everyone has voted,
+// and the winner goes into tonight's 5 PM slot by itself (with Undo). Votes arrive on the demo clock, as they would
+// from everyone's phones. All three are real places on Avenida da Igreja, with their public ratings and prices.
+
+/// The plan the poll decides: tonight's dinner, 5 PM. It isn't on the map or the itinerary until the poll has chosen.
+const dinnerSlotId = 'brasserie';
+
+class PollOption {
+  const PollOption(this.id, this.name, this.short, this.sticker, this.rating, this.cuisine, this.price, this.at);
+
+  /// [short] is what people call it, for notes ("La Brasserie").
+  final String id, name, short, sticker, rating, cuisine, price;
+  final LatLng at;
+
+  /// As a plan for tonight's slot: the full plan for La Brasserie, a plain one for the others.
+  Plan get plan => plans.where((p) => p.id == id).firstOrNull ?? Plan(id: id, name: name, sticker: sticker, at: at, day: today, hour: 17, rating: rating, cuisine: cuisine, priceRange: price);
+}
+
+const pollOptions = [
+  PollOption('brasserie', "La Brasserie de L'Entrecôte", 'La Brasserie', 'wings', '4.2 (173)', 'French', '€20–40', LatLng(38.754444, -9.140476)),
+  PollOption('dote', 'Dote Alvalade', 'Dote', 'sardine-tin', '3.9 (3,096)', 'Portuguese', '€15–20', LatLng(38.75460, -9.13985)),   // Av. da Igreja 24
+  PollOption('churrasqueira', 'Churrasqueira de Alvalade', 'Churrasqueira', 'galo', '4.2 (156)', 'Grill', '€5–10', LatLng(38.75470, -9.13930)),   // Av. da Igreja 23D
+];
+
+PollOption pollOptionById(String id) => pollOptions.firstWhere((o) => o.id == id);
+
+DateTime _todayAt(int h, int m) => DateTime(tripYear, tripMonth, today, h, m);
+final pollOpens = _todayAt(14, 30), pollCloses = _todayAt(15, 0);
+const pollAskedBy = 'maya';
+
+/// The others' votes, as they come in.
+final pollVotes = [
+  (who: 'maya', option: 'brasserie', at: _todayAt(14, 30)),
+  (who: 'leo', option: 'churrasqueira', at: _todayAt(14, 36)),
+  (who: 'nic', option: 'brasserie', at: _todayAt(14, 41)),
+  (who: 'ren', option: 'brasserie', at: _todayAt(14, 47)),
+];
+
+/// My vote, and when I cast it (it can change until the poll closes).
+final myVote = ValueNotifier<({String option, DateTime at})?>(null);
+
+/// Who has voted for [option] by [now].
+List<String> votersOf(String option, DateTime now) => [
+      for (final v in pollVotes) if (v.option == option && !v.at.isAfter(now)) v.who,
+      if (myVote.value case final mine? when mine.option == option && !mine.at.isAfter(now)) myId,
+    ];
+
+int votesIn(DateTime now) => [for (final o in pollOptions) ...votersOf(o.id, now)].length;
+
+/// When the poll closed: at its deadline, or the moment the last person voted.
+DateTime get pollClosedAt {
+  final last = [for (final v in pollVotes) v.at, if (myVote.value case final mine?) mine.at]..sort();
+  return last.length >= dinnerTable.length && last.last.isBefore(pollCloses) ? last.last : pollCloses;
+}
+
+bool pollOpen(DateTime now) => !now.isBefore(pollOpens) && now.isBefore(pollClosedAt);
+bool pollClosed(DateTime now) => !now.isBefore(pollClosedAt);
+
+/// The option with the most votes (a tie goes to whichever got there first).
+String? pollLeader(DateTime now) {
+  String? best;
+  var most = 0;
+  for (final o in pollOptions) {
+    final n = votersOf(o.id, now).length;
+    if (n > most) (best, most) = (o.id, n);
+  }
+  return best;
+}
+
+/// Whether the person undid the winner going into tonight; then they pick by hand ([pickedDinner]).
+final pollUndone = ValueNotifier<bool>(false);
+final pickedDinner = ValueNotifier<String?>(null);
+
+/// What tonight's dinner is, once decided: the poll's winner, unless that was undone and another picked by hand.
+String? dinnerChoice(DateTime now) {
+  if (!pollClosed(now)) return null;
+  return pollUndone.value ? pickedDinner.value : pollLeader(now);
+}
+
+/// "3 votes to 1", for the result.
+String pollScore(DateTime now) {
+  final counts = [for (final o in pollOptions) votersOf(o.id, now).length]..sort((a, b) => b.compareTo(a));
+  return counts.length > 1 ? '${counts[0]} votes to ${counts[1]}' : '${counts[0]} votes';
+}
+
+/// Back to the poll as it was, for a demo jump.
+void resetPoll() {
+  myVote.value = null;
+  pollUndone.value = false;
+  pickedDinner.value = null;
+}

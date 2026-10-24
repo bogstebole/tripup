@@ -22,6 +22,7 @@ import '../components/detail_sheet.dart';
 import '../components/map_shapes.dart';
 import '../components/people_layer.dart';
 import '../components/plan_pin.dart';
+import '../components/poll.dart';
 import '../components/toast.dart';
 import '../components/trip_pages.dart';
 import '../components/trip_sheet.dart';
@@ -59,7 +60,11 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
 
   /// The note at the top of the map, and whether it's showing.
   String? _notice;
+  ({String label, VoidCallback onTap})? _noticeAction;
   bool _noticeShown = false;
+
+  /// The poll as last seen (0 not open yet, 1 open, 2 closed) and its vote count, to notice when either changes.
+  int _pollPhase = -1, _pollVotes = -1;
   Timer? _noticeTimer, _payTick;
   bool _wasSquare = false;
 
@@ -141,19 +146,66 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       for (final p in takeDuePayments(tripNow())) {
         tripNotice.value = payLine(p);
       }
+      _pollTick();
     });
+    myVote.addListener(_pollTick);
+    pollUndone.addListener(_dinnerChanged);
+    pickedDinner.addListener(_dinnerChanged);
+  }
+
+  /// The poll on the demo clock: everyone hears when it opens and when it closes (the winner going into tonight,
+  /// with Undo), and the card follows the votes as they come in.
+  void _pollTick() {
+    if (!mounted) return;
+    final now = tripNow();
+    final phase = pollClosed(now) ? 2 : pollOpen(now) ? 1 : 0, votes = votesIn(now);
+    if (phase == _pollPhase && votes == _pollVotes) return;
+    final was = _pollPhase;
+    _pollPhase = phase;
+    _pollVotes = votes;
+    // Only a change that just happened is news (not one the demo jumped over)
+    bool fresh(DateTime at) => now.difference(at) < const Duration(minutes: 2);
+    if (was != -1 && phase == 1 && was == 0 && fresh(pollOpens)) {
+      tripNotice.value = '${personById(pollAskedBy).name} started a poll: where for dinner tonight?';
+    }
+    if (was != -1 && phase == 2 && was != 2 && fresh(pollClosedAt) && !pollUndone.value) {
+      final winner = pollOptionById(pollLeader(now)!);
+      noticeAction = (label: 'Undo', onTap: _undoWinner);
+      tripNotice.value = '${winner.short} won · added to tonight';
+      _upNextMid = true;
+    }
+    _sceneChanged();
+  }
+
+  /// Tonight's place changed by hand (Undo, or picked in the poll): the map and the Up next card follow at once.
+  void _dinnerChanged() {
+    if (!mounted) return;
+    setState(() => _upNextMid = true);
+    _sceneChanged();
+  }
+
+  /// Takes the poll's winner back out of tonight; the poll then lets anyone pick by hand.
+  void _undoWinner() {
+    pollUndone.value = true;
+    _noticeTimer?.cancel();
+    setState(() => _noticeShown = false);
+    _openPopup(_Popup.poll);
   }
 
   void _showNotice() {
     final text = tripNotice.value;
     if (text == null || !mounted) return;
     HapticFeedback.lightImpact();
+    final action = noticeAction;
+    noticeAction = null;
     setState(() {
       _notice = text;
+      _noticeAction = action;
       _noticeShown = true;
     });
     _noticeTimer?.cancel();
-    _noticeTimer = Timer(TokMotion.toast, () {
+    // A note you can act on (Undo) stays twice as long, so there's time to reach it
+    _noticeTimer = Timer(action != null ? TokMotion.toastAction : TokMotion.toast, () {
       if (mounted) setState(() => _noticeShown = false);
       tripNotice.value = null;
     });
@@ -387,13 +439,14 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
 
     void dragUpdate(DragUpdateDetails d) => _popDrag.value = math.max(0, _popDrag.value + d.delta.dy);
     final (title, subtitle, page) = switch (_popup!) {
-      _Popup.itinerary => ('Itinerary', ItineraryPage.subtitle, ItineraryPage(todayKey: _todayKey, onPick: (at) {
+      _Popup.itinerary => ('Itinerary', ItineraryPage.subtitle, ItineraryPage(todayKey: _todayKey, onPoll: () => setState(() => _popup = _Popup.poll), onPick: (at) {
           _closePopup();
           _flyTo(at);
         }) as Widget),
       _Popup.money => ('Money', MoneyPage.subtitle, MoneyPage(toast: _popToast, onScan: _scan)),
       _Popup.add => ('Add to the trip', AddPage.subtitle, AddPage(toast: _popToast)),
       _Popup.story => ('Story', StoryPage.subtitle, StoryPage(onPick: _jump)),
+      _Popup.poll => ('Dinner tonight', PollPage.subtitle(tripNow()), PollPage(toast: _popToast)),
     };
     return Positioned.fromRect(
       rect: to,
@@ -511,6 +564,9 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     _popToast.dispose();
     addedPlans.removeListener(_sceneChanged);
     tripNotice.removeListener(_showNotice);
+    myVote.removeListener(_pollTick);
+    pollUndone.removeListener(_dinnerChanged);
+    pickedDinner.removeListener(_dinnerChanged);
     madePayments.removeListener(_paymentsChanged);
     _noticeTimer?.cancel();
     _payTick?.cancel();
@@ -624,6 +680,26 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       onPointerCancel: (_) => _touches--,
       child: Stack(children: [
         Positioned.fill(child: _still.build(context, scene)),
+        // While the dinner poll is open it stands where the Up next card would, under the day filter
+        Positioned(
+          left: 0,
+          right: 0,
+          top: _safe(size).top,
+          child: IgnorePointer(
+            ignoring: !pollOpen(tripNow()) || _covered,
+            child: AnimatedSwitcher(
+              duration: TokMotion.enter,
+              reverseDuration: TokMotion.fade,
+              switchInCurve: TokMotion.easeOut,
+              switchOutCurve: TokMotion.easeOut,
+              transitionBuilder: (child, anim) => FadeTransition(
+                opacity: anim,
+                child: ScaleTransition(scale: Tween(begin: TokMotion.morphEnterScale, end: 1.0).animate(anim), alignment: Alignment.topCenter, child: child),
+              ),
+              child: pollOpen(tripNow()) && !_covered ? Center(key: const ValueKey('poll'), child: PollCard(onOpen: () => _openPopup(_Popup.poll))) : const SizedBox.shrink(),
+            ),
+          ),
+        ),
         if (_sheet) ...[
           // A tap outside the full view closes it
           Positioned.fill(child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: () => _closeSheet())),
@@ -657,6 +733,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           right: TokSpace.md,
           top: pad.top + TokSpace.xs,
           child: IgnorePointer(
+            ignoring: !_noticeShown || _noticeAction == null,
             child: AnimatedSlide(
               offset: _noticeShown || _reduce ? Offset.zero : const Offset(0, -1.5),
               duration: _noticeShown ? TokMotion.enter : TokMotion.fade,
@@ -665,7 +742,9 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
                 opacity: _noticeShown ? 1 : 0,
                 duration: _noticeShown ? TokMotion.enter : TokMotion.fade,
                 curve: TokMotion.easeOut,
-                child: Center(child: _notice == null ? const SizedBox.shrink() : Toast(label: _notice!)),
+                child: Center(
+                  child: _notice == null ? const SizedBox.shrink() : Toast(label: _notice!, actionLabel: _noticeAction?.label, onAction: _noticeAction?.onTap),
+                ),
               ),
             ),
           ),
@@ -915,7 +994,7 @@ class _PlansLayer extends StatelessWidget {
               plan: p,
               anchor: cam.latLngToScreenOffset(p.at),
               area: area,
-              wantMid: p == all.first && upNextMid,
+              wantMid: p == all.first && upNextMid && p.fan.isNotEmpty,   // only a plan with its own card
               cardKey: p == all.first ? cardKey : null,
               hidden: p == all.first && sheetOpen,
               onOpen: onOpen,
@@ -930,4 +1009,4 @@ class _PlansLayer extends StatelessWidget {
 }
 
 /// The footer's pop-ups.
-enum _Popup { itinerary, money, add, story }
+enum _Popup { itinerary, money, add, story, poll }

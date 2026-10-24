@@ -126,6 +126,17 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 - **Each payment has a Why:** what that person had, what they paid, and why it goes to one person in one payment. Answers the research's "I don't trust a number I can't trace".
 - **Squared up is a moment for everyone:** a note on the map, and Money's top block turns green with the total of the payments.
 
+## The dinner poll (built 24 Oct)
+
+- **Real places for the options.** La Brasserie, Dote Alvalade and Churrasqueira de Alvalade are all on Avenida da Igreja, with their public ratings and prices (Intravel and Google for the two new ones). Each has a sticker, as places do everywhere in the app.
+- **The poll is tied to a slot,** "Dinner tonight · 5 PM", as the research suggested. Until it's decided, tonight's dinner isn't on the map or the itinerary; the itinerary shows the slot with "Poll open · 3 of 5 voted".
+- **While it's open, the poll stands where Up next would,** under the day filter: the question, the three places with who voted for each, "Leading", and the countdown.
+- **Everyone hears when it opens and when it closes.** Votes don't each make a note; the card updates live.
+- **It closes at 3 PM, or as soon as everyone has voted.** The winner goes into tonight by itself (nobody else does this). Its card and pin appear, and the note offers Undo.
+- **A note with an action stays twice as long (6 s),** so there's time to reach Undo.
+- **After Undo, anyone can pick by hand** ("Add to tonight").
+- **Not built:** pins for the options on the map. All three are on the same street, so their pins would sit on top of each other; the cards say how far each is instead. The rest of the dinner (the bill and so on) is La Brasserie's; picking another place by hand gives it a plain plan.
+
 ## Sharing with testers (decided 23 Oct)
 
 - **iPhone: TestFlight.** It's the easiest install for people with iPhones, and we have a paid Apple developer account.
