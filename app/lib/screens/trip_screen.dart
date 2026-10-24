@@ -485,7 +485,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
             ),
           );
         },
-        child: TripsHome(onOpen: _goIn, demo: DemoButton(time: clockTime(tripNow()), onTap: () => _openPopup(_Popup.story))),
+        child: TripsHome(onOpen: _goIn),
       );
 
   void _closePopup({double velocity = 0}) {

@@ -760,18 +760,34 @@ bool onTrip(Person p, DateTime now) => p.joined < today || (p.joined == today &&
 
 /// Another trip on the home list: where, when, a sticker, who, and a line about it.
 class TripSummary {
-  const TripSummary(this.title, this.dates, this.sticker, this.faces, this.note);
+  const TripSummary(this.title, this.dates, this.sticker, this.faces, this.note, {this.faceTilts = const []});
   final String title, dates, sticker, note;
   final List<String> faces;
+
+  /// How much each face leans, in degrees, by its place in [faces] (as they're placed in the design).
+  final List<double> faceTilts;
 }
 
 const upcomingTrips = [
-  TripSummary('Porto weekend', '19–21 Jun', 'caravel', ['person-04', 'person-01', 'person-02', 'person-05'], 'In 5 weeks · 4 going'),
+  TripSummary('Berlin', '23 June - 23 July', 'brandenburg', ['person-03', 'person-05'], 'In 6 weeks · 3 going', faceTilts: [0, -6.22]),
 ];
 
-/// Done and settled; folded away under the others.
+/// Done and settled.
 const pastTrips = [
-  TripSummary('Tokyo', 'Oct 2025', 'sushi', ['person-04', 'person-05', 'person-02'], '€1,840 · squared up'),
-  TripSummary('Mallorca', 'Aug 2025', 'ice-cream', ['person-04', 'person-01', 'person-03', 'person-02'], '€960 · squared up'),
-  TripSummary('Hanoi', 'Mar 2025', 'pho', ['person-04', 'person-01'], '€610 · squared up'),
+  TripSummary('Mallorca', 'Jan 24 - Feb 12', 'windmill', ['person-02', 'person-03', 'person-04'], '€960 · squared up'),
+  TripSummary('Tokyo', 'Oct 3 - Oct 14', 'sushi', ['person-04', 'person-05', 'person-02'], '€1,840 · squared up'),
+  TripSummary('Hanoi', 'Mar 8 - Mar 15', 'pho', ['person-04', 'person-01'], '€610 · squared up'),
+];
+
+/// The current trip's card on Your trips (Figma 75:5927): a still of Lisbon, far bigger than the card and placed so
+/// the neighbourhoods we've been in show, with a few of the places on it as stickers. In the design's units: the card
+/// covers a [homeMapFrame] box (scaled to fill the real card).
+const homeMapFrame = Size(361, 438);
+const homeMapImage = 'assets/map/home-lisbon.png';
+const homeMapImageRect = Rect.fromLTWH(-634, -343, 1792, 1024);
+const homeMapStickers = [
+  (sticker: 'belem', center: Offset(324.5, 29), height: 38.0, tilt: 0.0),
+  (sticker: 'galo', center: Offset(236.26, 65.85), height: 26.25, tilt: 11.86),
+  (sticker: 'azulejo', center: Offset(330, 90), height: 16.0, tilt: 0.0),
+  (sticker: 'caravel', center: Offset(228.07, 129.65), height: 23.55, tilt: 0.0),
 ];
