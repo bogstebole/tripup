@@ -405,6 +405,7 @@ abstract final class TokMotion {
   static const double crossfadeBlur = 2;
   static const double enterBlur = 4;
   static const double morphEnterScale = 0.9;
+  static const double pageZoomScale = 1.04;
   static const stagger = Duration(milliseconds: 40);
   static const int staggerMax = 8;
   static const enter = Duration(milliseconds: 260);

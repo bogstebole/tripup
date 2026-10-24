@@ -264,7 +264,10 @@ Widget _explain(BuildContext context, Payment p) {
 /// Adding to the trip: a plan (a place to go, put in a free slot on everyone's itinerary and map) or someone new
 /// (a link: no account, and they only share costs from the day they join).
 class AddPage extends StatefulWidget {
-  const AddPage({super.key});
+  const AddPage({super.key, this.onPreview});
+
+  /// Shows what someone invited will see on their phone.
+  final VoidCallback? onPreview;
 
   static const subtitle = 'A plan, or someone new';
 
@@ -393,6 +396,11 @@ class _AddPageState extends State<AddPage> {
           style: TokText.bodySm.copyWith(color: t.textMuted),
         ),
       ),
+      if (widget.onPreview case final preview?)
+        Padding(
+          padding: const EdgeInsets.only(top: TokSpace.sm),
+          child: Align(alignment: Alignment.centerLeft, child: TuTextButton(label: "See what they'll see", kind: GlassKind.soft, onTap: preview)),
+        ),
     ]);
   }
 }
