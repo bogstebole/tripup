@@ -507,6 +507,7 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - Data: Berlin (23 June - 23 July) replaces Porto; Mallorca gets the windmill sticker. New stickers: `brandenburg`, `windmill`. Icon: bell.
 - Tokens: `home/*` colours and sizes, `now-dot/*`.
 - The Demo button is off the home screen (it's in the trip's top bar).
+- After Bogdan's look: the trip keeps its own name as the card's title, and the city leads the line under it ("Lisbon · 12 May - 21 May"); `tripCity` in the data.
 - **Storybook mirrors 1.29:** Screens/Trip › Your trips (the bell shows its note) and Your trips · scrolled to the end (replaces "past open"). The card's arrow is drawn, not a separate button (no button in a button on the web). `Sticker` takes its height from CSS when no size is given.
 
 ### One link to the latest prototype

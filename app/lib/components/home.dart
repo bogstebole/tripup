@@ -140,7 +140,7 @@ class _CurrentTrip extends StatelessWidget {
                 const Expanded(child: Align(alignment: Alignment.topLeft, child: _HappeningNow())),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(tripTitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingXl.copyWith(color: t.textDefault)),
-                  Text(tripDates, style: TokText.labelMd.copyWith(color: t.textMuted)),
+                  Text('$tripCity · $tripDates', style: TokText.labelMd.copyWith(color: t.textMuted)),
                 ]),
                 Row(children: [
                   Expanded(

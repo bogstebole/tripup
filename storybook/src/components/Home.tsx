@@ -95,7 +95,7 @@ function CurrentTrip({ now, onOpen }: { now: Date; onOpen?: () => void }) {
         <span className="tu-home-card__now"><HappeningNow /></span>
         <span className="tu-home-card__titles">
           <span className="text-heading-xl tu-ellipsis tu-home-card__title">{TRIP.title}</span>
-          <span className="text-label-md tu-home-card__dates">{TRIP.dates}</span>
+          <span className="text-label-md tu-home-card__dates">{TRIP.city} · {TRIP.dates}</span>
         </span>
         <span className="tu-home-card__crew">
           <span className="tu-home-card__faces">{crew.map(p => <Sticker key={p.id} name={p.sticker} className="tu-home-card__face" />)}</span>

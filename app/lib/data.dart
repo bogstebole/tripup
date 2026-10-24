@@ -270,6 +270,9 @@ const meHeadingDegrees = -40.0;
 const tripTitle = 'Schmedeswurtherwesterdeich';
 const tripDates = '12 May - 21 May';
 
+/// Where the trip is: under its name, since a trip has its own name.
+const tripCity = 'Lisbon';
+
 /// The trip's days, as days of the month (May 2026), and today in the demo.
 const tripYear = 2026, tripMonth = 5;
 const tripDays = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
