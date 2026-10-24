@@ -130,6 +130,8 @@ abstract final class TuIcons {
   static const openUp = Lucide.chevronUp;
   static const stay = Lucide.bedDouble;
   static const poll = Lucide.vote;
+  static const fold = Lucide.chevronUp;
+  static const unfold = Lucide.chevronDown;
   static const hours = Lucide.clock;
   static const price = Lucide.banknote;
   static const delivery = Lucide.truck;

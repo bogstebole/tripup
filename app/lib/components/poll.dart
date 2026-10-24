@@ -1,4 +1,6 @@
 // The dinner poll: where to eat tonight, decided by the group (see the poll section of data.dart).
+import 'dart:math' as math;
+
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:latlong2/latlong.dart';
@@ -19,11 +21,12 @@ String _countdown(DateTime now) {
 int walkMinutes(PollOption o, DateTime now) =>
     (const Distance().as(LengthUnit.Meter, myPosition(now), o.at) * streetDetour / walkingMetresPerMinute).ceil();
 
-/// While the poll is open it stands where the Up next card would: the question, the three places with who voted for
-/// each, the leading one marked, and the countdown. Tapping it opens the poll.
+/// While the poll is open it stands where the Up next card would: a live sign and the countdown, the question, then
+/// each place with everyone who voted for it and a bar of its votes (the one ahead in brand). Tapping it opens the
+/// poll; the corner button folds it into a pill, so it needn't cover the map the whole time.
 class PollCard extends StatelessWidget {
-  const PollCard({super.key, required this.onOpen});
-  final VoidCallback onOpen;
+  const PollCard({super.key, required this.onOpen, required this.onFold});
+  final VoidCallback onOpen, onFold;
 
   @override
   Widget build(BuildContext context) {
@@ -34,32 +37,163 @@ class PollCard extends StatelessWidget {
       onTap: onOpen,
       semanticLabel: 'Dinner poll: ${votesIn(now)} of ${dinnerTable.length} voted, ${_countdown(now)}. Open',
       child: Container(
-        width: TokDim.widgetMidWidth,
-        padding: const EdgeInsets.fromLTRB(TokSpace.md, TokSpace.md, TokSpace.md, TokSpace.sm),
+        width: math.min(TokDim.pollWidth, MediaQuery.sizeOf(context).width - 2 * TokSpace.md),
+        padding: const EdgeInsets.fromLTRB(TokSpace.md, TokSpace.sm, TokSpace.sm, TokSpace.md),
         decoration: surfaceDecoration(context, BorderRadius.circular(TokDim.surfaceRadius)),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: TokSpace.x2xs, children: [
-          Text('Poll · ${_countdown(now)}', textAlign: TextAlign.center, style: TokText.labelMd.copyWith(fontWeight: TokWeight.bold, color: t.textBrand)),
-          Text('Where for dinner tonight?', textAlign: TextAlign.center, style: TokText.headingSm.copyWith(color: t.textDefault)),
-          Text('5 PM · ${personById(pollAskedBy).name} asked · ${votesIn(now)} of ${dinnerTable.length} voted', textAlign: TextAlign.center, style: TokText.bodySm.copyWith(color: t.textMuted)),
-          const SizedBox(height: TokSpace.xs),
-          for (final o in pollOptions)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: TokSpace.x3xs),
-              child: Row(spacing: TokSpace.xs, children: [
-                SizedBox(width: TokDim.stickerAvatar, child: Center(child: Sticker(o.sticker, size: StickerSize.avatar))),
-                Expanded(child: Text(o.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textDefault))),
-                if (o.id == leader) const PollTag('Leading'),
-                if (votersOf(o.id, now) case final v when v.isNotEmpty) FacePile(faces: [for (final id in v) personById(id).sticker], size: StickerSize.chip),
-              ]),
-            ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Row(spacing: TokSpace.xs, children: [
+            const LiveDot(),
+            Expanded(child: Text('Live poll · ${_countdown(now)}', style: TokText.labelMd.copyWith(fontWeight: TokWeight.bold, color: t.textBrand))),
+            TuButton(icon: TuIcons.fold, label: 'Fold the poll away', size: TuButtonSize.sm, onTap: onFold),
+          ]),
+          Padding(
+            padding: const EdgeInsets.only(right: TokSpace.xs),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: TokSpace.x3xs, children: [
+              Text('Where for dinner tonight?', style: TokText.headingSm.copyWith(color: t.textDefault)),
+              Text('5 PM · ${personById(pollAskedBy).name} asked · ${votesIn(now)} of ${dinnerTable.length} voted', style: TokText.bodySm.copyWith(color: t.textMuted)),
+              const SizedBox(height: TokSpace.xs),
+              for (final o in pollOptions)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: TokSpace.x2xs),
+                  child: Row(spacing: TokSpace.sm, children: [
+                    SizedBox(width: TokDim.stickerAvatar, child: Center(child: Sticker(o.sticker, size: StickerSize.avatar))),
+                    Expanded(
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: TokSpace.x2xs, children: [
+                        Row(spacing: TokSpace.xs, children: [
+                          Expanded(child: Text(o.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textDefault))),
+                          Voters(votersOf(o.id, now)),
+                        ]),
+                        VoteBar(votes: votersOf(o.id, now).length, ahead: o.id == leader),
+                      ]),
+                    ),
+                  ]),
+                ),
+            ]),
+          ),
         ]),
       ),
     );
   }
 }
 
-/// The poll: a card per place (its sticker, rating, food, price and how far it is), who voted for it, and Vote. Once
-/// it has closed: which one won and went into tonight; after an Undo, a way to pick one by hand.
+/// The poll folded away: a pill under the day filter that keeps it in sight (live sign, how many voted, the
+/// countdown). Tapping it unfolds the card.
+class PollPill extends StatelessWidget {
+  const PollPill({super.key, required this.onUnfold});
+  final VoidCallback onUnfold;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tok;
+    final now = tripNow();
+    return Pressable(
+      onTap: onUnfold,
+      semanticLabel: 'Dinner poll: ${votesIn(now)} of ${dinnerTable.length} voted, ${_countdown(now)}. Unfold',
+      child: Container(
+        height: TokDim.buttonMd,
+        padding: const EdgeInsets.symmetric(horizontal: TokSpace.md),
+        decoration: surfaceDecoration(context, BorderRadius.circular(TokRadius.pill)),
+        child: Row(mainAxisSize: MainAxisSize.min, spacing: TokSpace.xs, children: [
+          const LiveDot(),
+          Flexible(
+            child: Text('Dinner poll · ${votesIn(now)} of ${dinnerTable.length} · ${_countdown(now)}',
+                maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textDefault)),
+          ),
+          LucideIcon(TuIcons.unfold, size: TokSize.iconSm, color: t.iconMuted),
+        ]),
+      ),
+    );
+  }
+}
+
+/// A place's share of the table's votes, as a bar: grows as votes come in, in brand for the one ahead. The fill
+/// slides in from the left inside the track (a transform, so the rounded end keeps its shape); with reduced motion it
+/// just jumps.
+class VoteBar extends StatelessWidget {
+  const VoteBar({super.key, required this.votes, required this.ahead, this.onMuted = false});
+  final int votes;
+  final bool ahead;
+
+  /// On a grey card (the poll's places), where the usual track wouldn't show.
+  final bool onMuted;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tok;
+    final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    return SizedBox(
+      height: TokDim.pollBarHeight,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(TokRadius.pill),
+        child: ColoredBox(
+          color: onMuted ? t.cPollBarTrackOnMuted : t.cPollBarTrack,
+          child: TweenAnimationBuilder<double>(
+            tween: Tween(end: votes / dinnerTable.length),
+            duration: reduce ? Duration.zero : TokMotion.enter,
+            curve: TokMotion.easeOut,
+            builder: (context, share, _) => FractionalTranslation(
+              translation: Offset(share - 1, 0),
+              child: DecoratedBox(
+                decoration: BoxDecoration(color: ahead ? t.cPollBarLead : t.cPollBar, borderRadius: BorderRadius.circular(TokRadius.pill)),
+                child: const SizedBox.expand(),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Everyone who voted for a place, every face (five at most, so no "+N").
+class Voters extends StatelessWidget {
+  const Voters(this.ids, {super.key});
+  final List<String> ids;
+
+  @override
+  Widget build(BuildContext context) =>
+      Overlapped(overlap: TokDim.chipFaceOverlap, children: [for (final id in ids) Sticker(personById(id).sticker, size: StickerSize.chip)]);
+}
+
+/// "Live": a red dot that slowly breathes while the poll is open (still, with reduced motion).
+class LiveDot extends StatefulWidget {
+  const LiveDot({super.key});
+
+  @override
+  State<LiveDot> createState() => _LiveDotState();
+}
+
+class _LiveDotState extends State<LiveDot> with SingleTickerProviderStateMixin {
+  late final _c = AnimationController(vsync: this, duration: TokMotion.pulse);
+  late final _opacity = Tween(begin: 1.0, end: TokDim.pollLiveDimOpacity).animate(CurvedAnimation(parent: _c, curve: TokMotion.easeBreathe));
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    (MediaQuery.maybeDisableAnimationsOf(context) ?? false) ? _c.stop() : _c.repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => RepaintBoundary(
+        child: FadeTransition(
+          opacity: _opacity,
+          child: Container(
+            width: TokDim.pollLiveDot,
+            height: TokDim.pollLiveDot,
+            decoration: BoxDecoration(color: context.tok.cPollLive, shape: BoxShape.circle),
+          ),
+        ),
+      );
+}
+
+/// The poll: a card per place (its sticker, rating, food, price and how far it is), a bar of its votes, who voted for
+/// it, and Vote. Once it has closed: which one won and went into tonight; after an Undo, a way to pick one by hand.
 class PollPage extends StatelessWidget {
   const PollPage({super.key});
 
@@ -110,13 +244,14 @@ class PollPage extends StatelessWidget {
                     ]),
                   ),
                 ]),
+                VoteBar(votes: voters.length, ahead: o.id == leader, onMuted: true),
                 Row(spacing: TokSpace.xs, children: [
-                  if (voters.isNotEmpty) FacePile(faces: [for (final id in voters) personById(id).sticker], size: StickerSize.chip),
+                  if (voters.isNotEmpty) Voters(voters),
                   Text(voters.isEmpty ? 'No votes yet' : '${voters.length} ${voters.length == 1 ? 'vote' : 'votes'}', style: TokText.bodySm.copyWith(color: t.textMuted)),
                   if (won)
                     const PollTag('Tonight')
-                  else if (o.id == leader)
-                    PollTag(open ? 'Leading' : 'Won'),
+                  else if (!open && o.id == leader)
+                    const PollTag('Won'),
                   const Spacer(),
                   if (open)
                     TuTextButton(
@@ -146,7 +281,7 @@ class PollPage extends StatelessWidget {
   }
 }
 
-/// A small brand pill: "Leading", "Won", "Tonight".
+/// A small brand pill: "Won", "Tonight".
 class PollTag extends StatelessWidget {
   const PollTag(this.label, {super.key});
   final String label;

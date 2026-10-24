@@ -482,6 +482,14 @@ Every version made for the Bending Spoons Task #2, oldest first, with what chang
 - Ren isn't on the map before he joins (`onTrip`).
 - Token: `motion/page-zoom-scale` 1.04. Icons: bed-double (`TuIcons.stay`), vote (`TuIcons.poll`).
 - Checked on the iPhone simulator. A "lost tap" while testing turned out to be the simulator's screenshot arriving before the next frame, not the app.
+- **Storybook mirrors 1.26:** Screens/Trip gets Your trips (folded and open), Ren's phone (invite and the trip so far) and the Invite preview; Pop-ups gets Add · invite. The card's arrow is drawn but not separately clickable (no button inside a button on the web).
+
+### Final UI, iteration 1.27: the poll card (branch `feature/poll-card`)
+Bogdan's notes on the poll card: wider, a bar under each choice, who voted for what, no "Leading", and a way to put it away or make it clearer that it's live.
+- **Card:** 345 wide (or the screen less its margins), left-aligned. "Live poll · closes in N mins" with a breathing red dot, the question, then each place: its sticker, name, every voter's face, and a bar of its votes (brand for the one ahead).
+- **Fold:** a chevron in the card's corner folds it into a pill under the day filter; tapping the pill unfolds it. Card and pill swap with a fade and a slight scale into the top (260 ms in, 160 ms out; fade only with reduced motion). A poll that opens, or a Demo jump, shows it in full again.
+- **Poll page:** the same bar on each place (on a white track, since the cards are grey), every voter's face, and no "Leading" (Won and Tonight stay once it has closed).
+- Tokens: `poll/width` 345, `poll/bar-height` 6, `poll/live-dot` 8, `poll/live-dim-opacity` 0.35; colours `poll/bar-track`, `poll/bar-track-on-muted`, `poll/bar`, `poll/bar-lead`, `poll/live`. Icons: chevron-down (`TuIcons.unfold`), `TuIcons.fold`.
 
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html

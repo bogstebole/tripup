@@ -91,6 +91,11 @@ class TokColors {
     'c/toast/bg': Color(0xFF1D4ED8),
     'c/toast/fg': Color(0xFFFFFFFF),
     'c/attribution/fg': Color(0xFF71717A),
+    'c/poll/bar-track': Color(0xFFE4E4E7),
+    'c/poll/bar-track-on-muted': Color(0xFFFFFFFF),
+    'c/poll/bar': Color(0xFFD4D4D8),
+    'c/poll/bar-lead': Color(0xFF2563EB),
+    'c/poll/live': Color(0xFFDC2626),
   });
   static const dark = TokColors._({
     'bg/canvas': Color(0xFF09090B),
@@ -168,6 +173,11 @@ class TokColors {
     'c/toast/bg': Color(0xFF1D4ED8),
     'c/toast/fg': Color(0xFFFFFFFF),
     'c/attribution/fg': Color(0xFFA1A1AA),
+    'c/poll/bar-track': Color(0xFF27272A),
+    'c/poll/bar-track-on-muted': Color(0xFF18181B),
+    'c/poll/bar': Color(0xFFD4D4D8),
+    'c/poll/bar-lead': Color(0xFF2563EB),
+    'c/poll/live': Color(0xFFDC2626),
   });
   Color get bgCanvas => _m['bg/canvas']!;
   Color get bgDefault => _m['bg/default']!;
@@ -244,6 +254,11 @@ class TokColors {
   Color get cToastBg => _m['c/toast/bg']!;
   Color get cToastFg => _m['c/toast/fg']!;
   Color get cAttributionFg => _m['c/attribution/fg']!;
+  Color get cPollBarTrack => _m['c/poll/bar-track']!;
+  Color get cPollBarTrackOnMuted => _m['c/poll/bar-track-on-muted']!;
+  Color get cPollBar => _m['c/poll/bar']!;
+  Color get cPollBarLead => _m['c/poll/bar-lead']!;
+  Color get cPollLive => _m['c/poll/live']!;
 }
 
 abstract final class TokSpace {
@@ -296,6 +311,10 @@ abstract final class TokDim {
   static const double scanStroke = 3;
   static const double scanOffOpacity = 0.3;
   static const double pollLostOpacity = 0.6;
+  static const double pollWidth = 345;
+  static const double pollBarHeight = 6;
+  static const double pollLiveDot = 8;
+  static const double pollLiveDimOpacity = 0.35;
   static const double toggleChipHeight = 32;
   static const double toggleChipPaddingX = 12;
   static const double toggleChipGap = 8;
