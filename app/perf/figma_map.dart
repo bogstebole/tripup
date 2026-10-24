@@ -3,7 +3,7 @@
 // On the iPhone 17 Pro Max simulator (440 × 956, the Figma frames' size):
 //   flutter build ios --simulator --debug -t perf/figma_map.dart
 //   xcrun simctl install <id> build/ios/iphonesimulator/Runner.app && xcrun simctl launch <id> com.bogste.tripup
-// For each moment it writes tmp/figma/<moment>.png (the map at 2×) and tmp/figma/<moment>.json (the camera, and each
+// For each moment (and a plan sent from Add) it writes tmp/figma/<moment>.png (the map at 2×) and tmp/figma/<moment>.json (the camera, and each
 // marker's kind, name and rect in screen points) in the app's container, prints FIGMA DONE and quits.
 import 'dart:convert';
 import 'dart:io';
@@ -14,6 +14,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_map/flutter_map.dart' as fm;
 import 'package:latlong2/latlong.dart';
 import 'package:tripup/components/basics.dart';
+import 'package:tripup/components/glass.dart';
 import 'package:tripup/components/map_shapes.dart';
 import 'package:tripup/components/map_tiles.dart';
 import 'package:tripup/components/plan_pin.dart';
@@ -25,11 +26,18 @@ import 'trip_perf.dart' show Player;
 /// The moments the Figma flows show, by their title in [storyMoments].
 const _moments = ['Your trips', 'Ren joins', 'Dinner poll', 'The poll closes', 'On the way', 'Before dinner', "Everyone's there", 'The bill'];
 
+/// The small maps of single places (a picked place in Add, a plan without photos), as `_mapOf` draws them: 15.5 zoom
+/// around the place, the page's width (392) and the plan map's height.
+const _places = {'gulbenkian': (38.7372, -9.1545), 'tram': (38.7114, -9.1296)};
+
+/// `--dart-define=FIGMA_ONLY=places` draws only the small maps; `sent`, only the map after a plan is sent from Add.
+const _only = String.fromEnvironment('FIGMA_ONLY');
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final dir = Directory('${Directory.systemTemp.path}/figma')..createSync(recursive: true);
   final p = Player({});
-  for (final title in _moments) {
+  for (final title in _only.isNotEmpty ? const <String>[] : _moments) {
     final m = storyMoments.firstWhere((m) => m.title == title);
     await p.start(inTrip: false);
     jumpTo(m);
@@ -41,6 +49,34 @@ Future<void> main() async {
     File('${dir.path}/$name.json').writeAsStringSync(const JsonEncoder.withIndent(' ').convert(scene));
     await _drawMap(scene, File('${dir.path}/$name.png'));
     debugPrint('FIGMA $name');
+  }
+  // A plan sent from Add: the map flies to it
+  if (_only.isEmpty || _only == 'sent') {
+    await p.start(inTrip: false);
+    await p.tap(Player.tripCard);
+    await p.wait(3500);
+    await p.tap(Player.button('Add to the trip'));
+    await p.wait(1200);
+    await p.tap((w) => w is Text && w.data == 'Plan something');
+    await p.wait(1200);
+    await p.tap((w) => w is Text && w.data == 'Museu Calouste Gulbenkian');
+    await p.wait(1200);
+    await p.tap((w) => w is TuTextButton && w.label == 'Send to the group');
+    await p.wait(3500);
+    final scene = _scene();
+    File('${dir.path}/plan-sent.json').writeAsStringSync(const JsonEncoder.withIndent(' ').convert(scene));
+    await _drawMap(scene, File('${dir.path}/plan-sent.png'));
+    debugPrint('FIGMA plan-sent');
+  }
+  // The tiles' source is ready once the app has run
+  if (MapTiles.source.value == null) {
+    await p.start(inTrip: false);
+    await p.wait(3000);
+  }
+  for (final MapEntry(key: name, value: at) in _only == 'sent' ? const <String, (double, double)>{}.entries : _places.entries) {
+    final scene = {'size': [392.0, TokDim.planMapHeight], 'center': [at.$1, at.$2], 'zoom': 15.5};
+    await _drawMap(scene, File('${dir.path}/place-$name.png'));
+    debugPrint('FIGMA place-$name');
   }
   debugPrint('FIGMA DONE ${dir.path}');
   exit(0);
