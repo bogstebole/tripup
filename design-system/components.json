@@ -211,7 +211,7 @@
         },
         {
           "name": "Mini pin",
-          "what": "A plan's small pin on the map: its sticker, name and when. Whoever is already there sits on the middle of its top edge, as a Face pile (chip size).",
+          "what": "A plan's small pin on the map: its sticker, name and when. Whoever is already there sits on the middle of its top edge, lifted widget/here-lift (10) off it, as a Face pile (chip size).",
           "props": "Name · When · Sticker.",
           "code": "_MiniContent (PlanPin, mini) · app/lib/components/plan_pin.dart",
           "section": "144:1636",

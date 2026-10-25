@@ -403,11 +403,12 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
           ),
         ),
       ),
-      // Who's already there, on the middle of the mini pin's top edge (on the card they're in the first chip)
+      // Who's already there, on the middle of the mini pin's top edge, lifted a little off it (on the card they're in
+      // the first chip)
       if (widget.here.isNotEmpty && mini > 0 && onMapOp > 0)
         Positioned(
           left: center.dx,
-          top: center.dy - size.height / 2,
+          top: center.dy - size.height / 2 - TokDim.widgetHereLift,
           child: IgnorePointer(
             child: FractionalTranslation(
               translation: const Offset(-0.5, -0.5),
