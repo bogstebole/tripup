@@ -15,7 +15,7 @@ import { Sticker } from './Sticker';
 import { useTripNotice } from './Notice';
 import { SegmentedTabs } from './SegmentedTabs';
 import { ToggleChip } from './ToggleChips';
-import { Hairline, SheetRow, SheetSection, Slot, StaggerIn } from './TripSheet';
+import { Hairline, SheetFooter, SheetRow, SheetSection, Slot, StaggerIn } from './TripSheet';
 import './TripPages.css';
 
 const m = tokens.motion;
@@ -295,7 +295,7 @@ export interface MoneyFooterProps {
 export function MoneyFooter({ money = PRE_DINNER, dinnerOn, onScan }: MoneyFooterProps) {
   const mine = money.expenses.reduce((sum, e) => sum + shareOf(e, MY_ID), 0);
   return (
-    <div className="tu-money-footer">
+    <SheetFooter>
       <div className="tu-money-footer__row">
         <div className="tu-money-footer__text">
           <p className="text-label-lg">Spent so far</p>
@@ -304,7 +304,7 @@ export function MoneyFooter({ money = PRE_DINNER, dinnerOn, onScan }: MoneyFoote
         <p className="text-heading-lg tu-pages__strong">{euros(money.spent)}</p>
       </div>
       {!money.bill && dinnerOn && <TextButton label="Scan the bill" icon={ScanLine} size="lg" wide onClick={onScan} />}
-    </div>
+    </SheetFooter>
   );
 }
 
@@ -334,11 +334,12 @@ function Why({ money, p }: { money: Money; p: Payment }) {
 /** What Add to the trip shows: the two choices, or one of them. */
 export type AddStep = 'choose' | 'plan' | 'invite';
 
-/** The pop-up's title and the line under it, for each step (the app's `AddPage.headerOf`). */
-export const addHeaderOf = (step: AddStep) => ({
+/** The pop-up's title and the line at the top of its page, for each step (the app's `AddPage.headerOf`); Invite's page
+ *  says it itself. */
+export const addHeaderOf = (step: AddStep): { title: string; subtitle?: string } => ({
   choose: { title: 'Add to the trip', subtitle: 'A plan, or someone new' },
   plan: { title: 'Plan something', subtitle: 'Find a place, pick a time, send it' },
-  invite: { title: 'Invite someone', subtitle: 'They join with a link, no account' },
+  invite: { title: 'Invite someone' },
 })[step];
 
 export interface AddPageProps {
@@ -346,10 +347,8 @@ export interface AddPageProps {
    *  and a way back). */
   step: AddStep;
   onStep: (step: AddStep) => void;
-  /** Shows what someone invited will see on their phone (Invite's "See what they'll see"). */
-  onPreview?: () => void;
-  /** A plan went to the group. */
-  onSent?: (plan: Plan) => void;
+  /** The plan being made, shared with the pop-up's footer (Send) and its Back (see usePlanDraft); its own if not given. */
+  draft?: PlanDraft;
   /** What Plan something's search holds when the page opens on it (for a story; empty by default). */
   query?: string;
   /** The place it has picked when the page opens on Plan something (an id in LISBON_PLACES; for a story). */
@@ -370,17 +369,64 @@ const startWhen = (now: Date) => {
 type When = ReturnType<typeof startWhen>;
 
 /**
+ * What's being planned in Add (the app's `PlanDraft`): the place picked from the search, if any, and when. The page
+ * edits it; the pop-up's footer sends it (AddFooter), and its Back puts the place down again.
+ */
+export function usePlanDraft(place?: string) {
+  const [spot, pick] = useState<PlaceSpot | undefined>(place ? placeById(place) : undefined);
+  const [when, setWhen] = useState<When>(() => startWhen(TRIP_NOW));
+  const reset = () => {
+    pick(undefined);
+    setWhen(startWhen(TRIP_NOW));
+  };
+  const toPlan = (): Plan => {
+    const s = spot!, { day, from, to } = when;
+    return { id: `added-${s.id}-${day}-${from}`, name: s.name, sticker: s.sticker, at: s.at, day, hour: Math.floor(from / 60), minute: from % 60, endHour: Math.floor(to / 60), endMinute: to % 60 };
+  };
+  return { spot, pick, when, setWhen, reset, toPlan };
+}
+export type PlanDraft = ReturnType<typeof usePlanDraft>;
+
+/**
+ * Add's footer, for each step: once a place is picked, Send to the group (lg, wide) with a line under it; for Invite,
+ * Copy link and a look at what they'll see. Nothing while choosing or searching.
+ */
+export function AddFooter({ step, draft, onSent, onPreview }: { step: AddStep; draft: PlanDraft; onSent: (plan: Plan) => void; onPreview?: () => void }) {
+  const toast = useTripNotice();
+  if (step === 'plan' && draft.spot) {
+    return (
+      <SheetFooter note="It goes on everyone's itinerary and map.">
+        <TextButton label="Send to the group" size="lg" wide onClick={() => onSent(draft.toPlan())} />
+      </SheetFooter>
+    );
+  }
+  if (step !== 'invite') return null;
+  const copy = () => {
+    // The story's frame may not be allowed the clipboard; the note shows either way, as in the app
+    navigator.clipboard?.writeText(`https://${INVITE_LINK}`).catch(() => {});
+    toast('Link copied');
+  };
+  return (
+    <SheetFooter>
+      <TextButton label="Copy link" icon={Copy} size="lg" wide onClick={copy} />
+      {/* A look at their phone: what someone invited will see (see Join.tsx) */}
+      {onPreview && <TextButton variant="soft" label="See what they'll see" size="lg" wide onClick={onPreview} />}
+    </SheetFooter>
+  );
+}
+
+/**
  * Adding to the trip: a plan (find a place, pick a day and a time, send it to everyone's itinerary and map) or someone
  * new (a link: no account, and they only share costs from the day they join; Invite can show what they'll see). The
  * step lives with the pop-up: its header shows the step's title and a back button (see TripSheet `onBack`), and
  * going back to the choice starts a plan over. One step (or, in Plan something, the search and then the place) at a
  * time: it fades in (enter-ms) while the last one fades out with a blur (fade-ms; no blur with reduced motion).
  */
-export function AddPage({ step, onStep, onPreview, onSent, query: firstQuery = '', place }: AddPageProps) {
+export function AddPage({ step, onStep, draft: shared, query: firstQuery = '', place }: AddPageProps) {
   const reduce = useReducedMotion();
   const [query, setQuery] = useState(step === 'plan' ? firstQuery : '');
-  const [spot, setSpot] = useState<PlaceSpot | undefined>(step === 'plan' && place ? placeById(place) : undefined);
-  const [when, setWhen] = useState<When>(() => startWhen(TRIP_NOW));
+  const own = usePlanDraft(step === 'plan' ? place : undefined);
+  const { spot, when, setWhen } = shared ?? own;
   // Which time's wheel is open, if any
   const [editing, setEditing] = useState<'from' | 'to' | null>(null);
 
@@ -390,19 +436,20 @@ export function AddPage({ step, onStep, onPreview, onSent, query: firstQuery = '
     setLastStep(step);
     if (step === 'choose') {
       setQuery('');
-      setSpot(undefined);
       setEditing(null);
-      setWhen(startWhen(TRIP_NOW));
+      (shared ?? own).reset();
     }
   }
+  // Back from a picked place (the header's) closes any open wheel with it
+  const [lastSpot, setLastSpot] = useState(spot);
+  if (spot !== lastSpot) {
+    setLastSpot(spot);
+    if (!spot) setEditing(null);
+  }
 
-  const pick = (s?: PlaceSpot) => {
-    setSpot(s);
+  const pick = (s: PlaceSpot) => {
+    (shared ?? own).pick(s);
     setEditing(null);
-  };
-  const send = () => {
-    const s = spot!, { day, from, to } = when;
-    onSent?.({ id: `added-${s.id}-${day}-${from}`, name: s.name, sticker: s.sticker, at: s.at, day, hour: Math.floor(from / 60), minute: from % 60, endHour: Math.floor(to / 60), endMinute: to % 60 });
   };
 
   const key = `${step}:${spot?.id ?? ''}`;
@@ -417,10 +464,10 @@ export function AddPage({ step, onStep, onPreview, onSent, query: firstQuery = '
           exit={{ opacity: 0, filter: reduce ? 'none' : `blur(${m['enter-blur']}px)`, pointerEvents: 'none', transition: { duration: m['fade-ms'] / 1000, ease } }}
         >
           {step === 'choose' && <ChooseStep onPick={onStep} />}
-          {step === 'invite' && <InviteStep onPreview={onPreview} />}
+          {step === 'invite' && <InviteStep />}
           {step === 'plan' && !spot && <PlanSearch query={query} onQuery={setQuery} onPick={pick} />}
           {step === 'plan' && spot && (
-            <PlanWhen spot={spot} when={when} onWhen={setWhen} editing={editing} onEditing={setEditing} onChange={() => pick(undefined)} onSend={send} />
+            <PlanWhen spot={spot} when={when} onWhen={setWhen} editing={editing} onEditing={setEditing} />
           )}
         </motion.div>
       </AnimatePresence>
@@ -452,14 +499,9 @@ function Choice({ title, subtitle, onClick }: { title: string; subtitle: string;
   );
 }
 
-/** The link, in the middle of the sheet (TripSheet `centered`), and the one thing to do with it. */
-function InviteStep({ onPreview }: { onPreview?: () => void }) {
-  const toast = useTripNotice();
-  const copy = () => {
-    // The story's frame may not be allowed the clipboard; the note shows either way, as in the app
-    navigator.clipboard?.writeText(`https://${INVITE_LINK}`).catch(() => {});
-    toast('Link copied');
-  };
+/** The link, in the middle of the sheet (TripSheet `centered`); Copy link and a look at what they'll see are in the
+ *  footer (AddFooter). */
+function InviteStep() {
   return (
     <div className="tu-invite">
       <StaggerIn gap="md">
@@ -469,10 +511,7 @@ function InviteStep({ onPreview }: { onPreview?: () => void }) {
         </div>
         <div key="link" className="tu-link">
           <span className="text-label-lg tu-ellipsis tu-link__text">{INVITE_LINK}</span>
-          <TextButton label="Copy link" icon={Copy} onClick={copy} />
         </div>
-        {/* A look at their phone: what someone invited will see (see Join.tsx) */}
-        {onPreview && <div key="preview"><TextButton variant="soft" label="See what they'll see" onClick={onPreview} /></div>}
       </StaggerIn>
     </div>
   );
@@ -541,27 +580,20 @@ export function PlaceMap({ sticker }: { sticker: string }) {
   );
 }
 
-/** The place you picked, on a small map, then when: a day, from and to; and Send at the end. */
-function PlanWhen({ spot, when, onWhen, editing, onEditing, onChange, onSend }: {
+/** The place you picked, on a small map (its sticker is on it), then when: a day, from and to. Send is in the footer
+ *  (AddFooter); a different place is the header's Back. */
+function PlanWhen({ spot, when, onWhen, editing, onEditing }: {
   spot: PlaceSpot;
   when: When;
   onWhen: (w: When) => void;
   editing: 'from' | 'to' | null;
   onEditing: (e: 'from' | 'to' | null) => void;
-  onChange: () => void;
-  onSend: () => void;
 }) {
   const { day, from, to } = when;
   return (
     <StaggerIn>
       <PlaceMap key="map" sticker={spot.sticker} />
-      <SheetRow
-        key="place"
-        leading={<Slot><Sticker name={spot.sticker} size="row" /></Slot>}
-        title={spot.name}
-        subtitle={placeLine(spot)}
-        trailing={<TextButton variant="soft" label="Change" onClick={onChange} />}
-      />
+      <SheetRow key="place" title={spot.name} subtitle={placeLine(spot)} />
       <SheetSection key="when" title="When" top="lg" />
       {/* One day at a time, today on: the same chips as the day filter, without All */}
       <div key="days" className="tu-toggles" role="group" aria-label="Day" style={{ paddingInline: 'var(--space-xs)' }}>
@@ -589,10 +621,6 @@ function PlanWhen({ spot, when, onWhen, editing, onEditing, onChange, onSend }: 
         onOpen={open => onEditing(open ? 'to' : null)}
         onChange={x => onWhen({ day, from, to: Math.max(x, from + 15) })}
       />
-      <div key="send" className="tu-plan-send">
-        <TextButton label="Send to the group" size="lg" wide onClick={onSend} />
-      </div>
-      <p key="note" className="text-body-sm tu-pages__muted tu-plan-note">It goes on everyone's itinerary and map.</p>
     </StaggerIn>
   );
 }

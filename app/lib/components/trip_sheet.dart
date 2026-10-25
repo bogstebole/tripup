@@ -8,14 +8,15 @@ import 'basics.dart';
 import 'glass.dart';
 import 'progressive_blur.dart';
 
-/// One of the footer's pop-ups (itinerary, money, add): the full view's surface, a header with the title and close,
-/// and a page that scrolls up under the header. It rises from the bottom (see TripScreen); the header is also a
-/// handle for pulling it back down.
+/// One of the footer's pop-ups (itinerary, money, add): the full view's surface, a header with Back (for a step inside
+/// it), the title and Close on one line, a page that scrolls up under the header, and a footer with the page's actions.
+/// Every pop-up is built the same way: going back and closing in the header, doing things in the footer. It rises from
+/// the bottom (see TripScreen); the header is also a handle for pulling it back down.
 class TripSheet extends StatefulWidget {
   const TripSheet({
     super.key,
     required this.title,
-    required this.subtitle,
+    this.subtitle,
     required this.child,
     this.onClose,
     this.onHeaderDragUpdate,
@@ -36,10 +37,13 @@ class TripSheet extends StatefulWidget {
   /// Stays put under the title while the page scrolls under it (the itinerary's day filter). One chip row high.
   final Widget? top;
 
-  /// Stays put at the bottom while the page scrolls above it (the bill's totals and its button).
+  /// Stays put at the bottom while the page scrolls above it: the page's actions (see [SheetFooter]).
   final Widget? footer;
 
-  final String title, subtitle;
+  final String title;
+
+  /// A line on what the pop-up is for, at the top of its page (not in the header, so the header stays one line).
+  final String? subtitle;
 
   /// A block to open scrolled to (today, in the itinerary), just under the header.
   final GlobalKey? focus;
@@ -54,9 +58,8 @@ class TripSheet extends StatefulWidget {
   /// What [top] adds to the header: a gap, then a row of toggle chips.
   static const double topHeight = TokSpace.sm + TokDim.toggleChipHeight;
 
-  /// The header's height: its top inset, then the taller of the title block and the close button.
-  static double get headerHeight =>
-      TokSpace.md + math.max(TokText.headingMd.fontSize! * TokText.headingMd.height! + TokSpace.x2xs + TokText.bodySm.fontSize! * TokText.bodySm.height!, TokDim.buttonSm);
+  /// The header's height: its top inset, then the taller of the title and the buttons, on one line.
+  static double get headerHeight => TokSpace.xs + math.max(TokText.headingMd.fontSize! * TokText.headingMd.height!, TokDim.buttonSm);
 
   @override
   State<TripSheet> createState() => _TripSheetState();
@@ -119,10 +122,10 @@ class _TripSheetState extends State<TripSheet> {
                         physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
                         padding: pad,
                         child: !widget.centered
-                            ? widget.child
+                            ? Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [_subtitle(context), widget.child])
                             : ConstrainedBox(
                                 constraints: BoxConstraints(minHeight: math.max(0, box.maxHeight - pad.vertical)),
-                                child: Center(child: widget.child),
+                                child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [_subtitle(context), widget.child])),
                               ),
                       );
                     },
@@ -154,7 +157,7 @@ class _TripSheetState extends State<TripSheet> {
                   onVerticalDragEnd: widget.onHeaderDragEnd,
                   child: Padding(
                     padding: const EdgeInsets.only(top: TokSpace.xs),
-                    child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    child: Row(children: [
                       // A step back slides in before the title (and out again), the title moving over for it
                       AnimatedSize(
                         duration: TokMotion.enter,
@@ -168,18 +171,15 @@ class _TripSheetState extends State<TripSheet> {
                       ),
                       Expanded(
                         child: Padding(
-                          padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.xs, TokSpace.md, 0),
+                          padding: const EdgeInsets.fromLTRB(TokSpace.xs, 0, TokSpace.md, 0),
                           // A new title fades in as the old one leaves (a step inside the pop-up)
                           child: AnimatedSwitcher(
                             duration: TokMotion.enter,
                             reverseDuration: TokMotion.fade,
                             switchInCurve: TokMotion.easeOut,
                             switchOutCurve: TokMotion.easeOut,
-                            layoutBuilder: (current, previous) => Stack(alignment: Alignment.topLeft, children: [...previous, ?current]),
-                            child: Column(key: ValueKey(widget.title), crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x2xs, children: [
-                              Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingMd.copyWith(color: t.textDefault)),
-                              Text(widget.subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.bodySm.copyWith(color: t.textMuted)),
-                            ]),
+                            layoutBuilder: (current, previous) => Stack(alignment: Alignment.centerLeft, children: [...previous, ?current]),
+                            child: Text(widget.title, key: ValueKey(widget.title), maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingMd.copyWith(color: t.textDefault)),
                           ),
                         ),
                       ),
@@ -199,6 +199,22 @@ class _TripSheetState extends State<TripSheet> {
     );
   }
 
+  /// The pop-up's line at the top of its page, lined up with the page's text; it fades over when a step changes it.
+  Widget _subtitle(BuildContext context) => AnimatedSwitcher(
+        duration: TokMotion.enter,
+        reverseDuration: TokMotion.fade,
+        switchInCurve: TokMotion.easeOut,
+        switchOutCurve: TokMotion.easeOut,
+        layoutBuilder: (current, previous) => Stack(alignment: Alignment.topLeft, children: [...previous, ?current]),
+        child: widget.subtitle == null
+            ? const SizedBox(key: ValueKey(null), width: double.infinity)
+            : Padding(
+                key: ValueKey(widget.subtitle),
+                padding: const EdgeInsets.fromLTRB(TokSpace.xs, 0, TokSpace.xs, TokSpace.md),
+                child: Text(widget.subtitle!, style: TokText.bodySm.copyWith(color: context.tok.textMuted)),
+              ),
+      );
+
   /// The page fades out over its last few pixels at the bottom instead of being cut off.
   Widget _fadeBottom(BuildContext context, Widget child) {
     final solid = context.tok.textDefault;   // only its alpha matters for the mask
@@ -211,6 +227,33 @@ class _TripSheetState extends State<TripSheet> {
         stops: [0, 1 - TokDim.sheetFade / r.height, 1],
       ).createShader(r),
       child: child,
+    );
+  }
+}
+
+/// A pop-up's bottom, in view while its page scrolls: what to do there, as buttons (one wide, or several stacked or side
+/// by side), with what they need above them (Money's total) or a line under them. Every pop-up's actions are here;
+/// going back and closing are in the header.
+class SheetFooter extends StatelessWidget {
+  const SheetFooter({super.key, required this.children, this.note});
+  final List<Widget> children;
+
+  /// A line under the last button: what it will do.
+  final String? note;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tok;
+    final last = note == null
+        ? children.last
+        : Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: TokSpace.xs, children: [
+            children.last,
+            Text(note!, textAlign: TextAlign.center, style: TokText.bodySm.copyWith(color: t.textMuted)),
+          ]);
+    return Container(
+      padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.sm, TokSpace.xs, TokSpace.md),
+      decoration: BoxDecoration(border: Border(top: BorderSide(color: t.borderDefault, width: TokDim.surfaceEdgeWidth))),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: TokSpace.md, children: [...children.take(children.length - 1), last]),
     );
   }
 }

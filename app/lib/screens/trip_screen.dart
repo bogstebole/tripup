@@ -99,6 +99,10 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   Timer? _tick;
   bool _upNextMid = false;   // the app opens on your trips; Up next opens last as you go in
 
+  /// Up next has opened by itself once since the app started: the first time into the trip. After that only a tap on
+  /// its pin opens it (or news about it: the poll's winner, a dinner picked by hand, a moment of the demo).
+  bool _upNextShown = false;
+
   /// The trip's entrance clock (see [EnterOrder]): 0 at the tap, 1 once every control is in. At rest it's 1.
   late final _enter = AnimationController(vsync: this, duration: EnterOrder.total, value: 1);
 
@@ -128,6 +132,9 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
 
   /// Where Add to the trip is: its choice, Plan something or Invite someone (it opens on the choice).
   AddStep _addStep = AddStep.choose;
+
+  /// The plan being made in Add: shared by its page, its footer (Send) and its Back (a different place).
+  final _draft = PlanDraft();
   bool _shows(int day) => _days.isEmpty || _days.contains(day);
 
   /// Whoever has already got to the Up next place.
@@ -177,7 +184,8 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       if (!_upNextIn && _enter.value * EnterOrder.total.inMicroseconds >= EnterOrder.last.inMicroseconds) {
         setState(() {
           _upNextIn = true;
-          _upNextMid = true;
+          _upNextMid = !_upNextShown;
+          _upNextShown = true;
         });
       }
     });
@@ -433,12 +441,12 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     _fly.animateWith(SpringSimulation(springOf(TokMotion.springSnap), 0, 1, 0)).whenCompleteOrCancel(() => _fly.removeListener(step));
   }
 
-  /// The filter changed: other days' pins and places fade out, and the map frames what's left.
-  /// All brings back the opening view, with the Up next card.
+  /// The filter changed: other days' pins and places fade out, and the map frames what's left. All brings back the
+  /// opening view. The Up next card doesn't open for it (it steps back if its day is filtered out).
   void _setDays(Set<int> days, Size size) {
     setState(() {
       _days = days;
-      _upNextMid = days.isEmpty || days.contains(_upNext.day);
+      _upNextMid = _upNextMid && (days.isEmpty || days.contains(_upNext.day));
     });
     if (days.isEmpty) {
       _flyCamera(startCenter, startZoom);
@@ -487,6 +495,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       _planDays = const {};
       _addStep = AddStep.choose;
     });
+    _draft.reset();
     _holdUnder();
     if (_reduce) {
       _pop.value = 1;
@@ -530,7 +539,8 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       _openOnToday();
       setState(() {
         _upNextIn = true;
-        _upNextMid = true;
+        _upNextMid = !_upNextShown;
+        _upNextShown = true;
       });
       _enter.value = 1;
       _home.animateTo(0, duration: TokMotion.fade);
@@ -750,21 +760,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       _Popup.add => (
           AddPage.headerOf(_addStep).$1,
           AddPage.headerOf(_addStep).$2,
-          AddPage(
-            step: _addStep,
-            onStep: (s) => setState(() => _addStep = s),
-            mapOf: _mapOf,
-            onPreview: () => setState(() {
-              _joining = true;
-              _joinPreview = true;
-            }),
-            onSent: (plan) {
-              _closePopup();
-              _flyTo(plan.at);
-              final day = dayName(plan.start, tripNow());
-              tripNotice.value = 'Sent: ${plan.name}, ${day == 'Today' ? '' : '$day '}${clockTime(plan.start)}–${clockTime(plan.end!)}';
-            },
-          )
+          AddPage(step: _addStep, onStep: (s) => setState(() => _addStep = s), draft: _draft, mapOf: _mapOf)
         ),
       _Popup.story => ('Story', StoryPage.subtitle, StoryPage(onPick: _jump)),
       _Popup.poll => ('Dinner tonight', PollPage.subtitle(tripNow()), const PollPage()),
@@ -789,9 +785,21 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           onHeaderDragUpdate: dragUpdate,
           onHeaderDragEnd: dragEnd,
           focus: _popup == _Popup.itinerary ? _todayKey : null,
-          onBack: _popup == _Popup.add && _addStep != AddStep.choose ? () => setState(() => _addStep = AddStep.choose) : null,
+          onBack: _popup == _Popup.add && _addStep != AddStep.choose ? _addBack : null,
           centered: _popup == _Popup.add && _addStep == AddStep.invite,
-          footer: _popup == _Popup.money ? MoneyFooter(onScan: _scan) : null,
+          footer: switch (_popup) {
+            _Popup.money => MoneyFooter(onScan: _scan),
+            _Popup.add => AddPage.footer(
+                step: _addStep,
+                draft: _draft,
+                onSent: _sentPlan,
+                onPreview: () => setState(() {
+                  _joining = true;
+                  _joinPreview = true;
+                }),
+              ),
+            _ => null,
+          },
           // The itinerary filters by day, like the map
           top: _popup != _Popup.itinerary
               ? null
@@ -806,6 +814,24 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
         ),
       ),
     );
+  }
+
+  /// Back in Add: from a picked place to the search, from the search or the invite to the choice.
+  void _addBack() {
+    HapticFeedback.selectionClick();
+    if (_addStep == AddStep.plan && _draft.spot != null) {
+      _draft.pick(null);
+    } else {
+      setState(() => _addStep = AddStep.choose);
+    }
+  }
+
+  /// A plan went to the group: the pop-up closes and the map flies to it.
+  void _sentPlan(Plan plan) {
+    _closePopup();
+    _flyTo(plan.at);
+    final day = dayName(plan.start, tripNow());
+    tripNotice.value = 'Sent: ${plan.name}, ${day == 'Today' ? '' : '$day '}${clockTime(plan.start)}–${clockTime(plan.end!)}';
   }
 
   void _openSheet() {
@@ -923,6 +949,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
 
   @override
   void dispose() {
+    _draft.dispose();
     _under.image?.dispose();
     _still.image?.dispose();
     _rescene?.cancel();
