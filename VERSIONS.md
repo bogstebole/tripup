@@ -640,6 +640,11 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - Tokens: `spring-pop` (0.4 s, bounce 0.3), `spring-fly` (0.7 s, 0.12), the splash's timings (`splash-*`) and sizes (`splash/dot-scale`, `splash/word`, `splash/sticker`, `splash/ring`); the stickers' places around TripUp are `splashStickers` in `data.dart`. The perf and Figma drivers skip it (`splashOnStart`).
 - **Checked** on the iPhone 17 Pro Max simulator from cold launches, frame by frame, and by the recording's frame times (no gaps over 50 ms during the splash).
 
+### Final UI, iteration 1.58: Know before you go at 14 px (branch `fix/know-tip-14`)
+- Bogdan: the tips read small. A Know tip's line is Label/MD now (14 px, medium), not Label/SM (12): the same weight and brand colour, the row still at least know-row/height (56). The three tips on Overview each fit in two lines.
+- Storybook the same (`KnowSection.tsx`, `text-label-md`). Figma: Know tip's text uses the Label/MD/Medium style, and its docs card and description list the label/md tokens; the three instances on Overview follow.
+- **Checked** on the iPhone 17 Pro Max simulator (Overview of La Brasserie) and in Figma (Overview, 108:2104).
+
 ### Final UI, iteration 1.57: the itinerary opens at its top (branch `fix/itinerary-opens-at-top`)
 - Bogdan: opening the itinerary, it was scrolled a little and "12–21 May · Day 3 of 10" was hidden. The scroll to today came from 1.21, when the days ran in calendar order; since 1.30 today comes first, so it only pushed the pop-up's line above the header. Now every pop-up opens at its top: `TripSheet` lost its `focus` (the itinerary was its only user) and `ItineraryPage` its `todayKey`. Storybook the same (`data-sheet-focus` and its scroll are gone from TripSheet and the itinerary). Figma already shows it from the top.
 - **Checked** on the iPhone 17 Pro Max simulator (Itinerary from the map: the line under the chips shows, today first; a day filter and a plan's details as before) and in Storybook (Pop-ups · Itinerary opens at scroll 0).
