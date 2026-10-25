@@ -626,6 +626,9 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - `design-system/components.json` + `design-system/build-components-doc.mjs` → `design-system/COMPONENTS.md`: the index for agents, with node ids, component keys and property APIs.
 - **Checked** with Figma's MCP: `get_design_context` on a component returns its description, documentation link and its nested icon's `TuIcons` name.
 
+### Storybook: no credit to Emil's rules (branch `docs/storybook-motion`)
+- Introduction's Motion no longer says the motion follows Emil Kowalski's rules (Bogdan: we used too few of them to claim it). The rules it lists stay, since they describe what the app does.
+
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
 
