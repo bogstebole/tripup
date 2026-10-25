@@ -93,6 +93,18 @@
   --c-now-dot-bottom: #15803d;
   --c-now-dot-edge: #4ade80;
   --c-now-dot-glow: rgb(34 197 94 / 0.2);
+  --c-bank-bg: #fafafa;
+  --c-bank-card: #ffffff;
+  --c-bank-fg: #09090b;
+  --c-bank-muted: #71717a;
+  --c-bank-line: #e4e4e7;
+  --c-bank-logo-bg: #18181b;
+  --c-bank-logo-fg: #ffffff;
+  --c-bank-accent: #18181b;
+  --c-bank-accent-fg: #ffffff;
+  --c-bank-hud-bg: rgb(24 24 27 / 0.85);
+  --c-bank-hud-fg: #ffffff;
+  --c-bank-ok: #22c55e;
   --space-none: 0px;
   --space-3xs: 2px;
   --space-2xs: 4px;
@@ -274,6 +286,12 @@
   --d-splash-word-gap: 16px;
   --d-splash-sticker: 88px;
   --d-splash-ring: 160px;
+  --d-bank-radius: 12px;
+  --d-bank-button: 56px;
+  --d-bank-logo: 32px;
+  --d-bank-hud: 160px;
+  --d-bank-hud-icon: 64px;
+  --d-pay-amount-sticker: 48px;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
@@ -306,6 +324,9 @@
   --splash-stickers-at-ms: 500ms;
   --splash-sticker-stagger-ms: 70ms;
   --splash-assemble-at-ms: 1250ms;
+  --face-id-ms: 900ms;
+  --approved-ms: 600ms;
+  --swap-in-at: 0.4;
 }
 [data-theme="dark"] {
   --color-bg-canvas: #09090b;
@@ -401,6 +422,18 @@
   --c-now-dot-bottom: #15803d;
   --c-now-dot-edge: #4ade80;
   --c-now-dot-glow: rgb(34 197 94 / 0.2);
+  --c-bank-bg: #fafafa;
+  --c-bank-card: #ffffff;
+  --c-bank-fg: #09090b;
+  --c-bank-muted: #71717a;
+  --c-bank-line: #e4e4e7;
+  --c-bank-logo-bg: #18181b;
+  --c-bank-logo-fg: #ffffff;
+  --c-bank-accent: #18181b;
+  --c-bank-accent-fg: #ffffff;
+  --c-bank-hud-bg: rgb(24 24 27 / 0.85);
+  --c-bank-hud-fg: #ffffff;
+  --c-bank-ok: #22c55e;
 }
 .text-display { font-family: var(--font-display); font-size: var(--text-display); line-height: var(--text-display--line-height); font-weight: var(--text-display--font-weight); letter-spacing: 0; }
 .text-heading-xl { font-family: var(--font-display); font-size: var(--text-heading-xl); line-height: var(--text-heading-xl--line-height); font-weight: var(--text-heading-xl--font-weight); letter-spacing: 0; }

@@ -1,17 +1,18 @@
 // The pages of the footer's three pop-ups: the itinerary, the group's money, and adding to the trip. Each goes inside
 // a TripSheet, which scrolls it; their notes come down at the top of the screen (see Notice.tsx).
-import { ArrowRight, MapPin, Search, X } from 'lucide-react';
+import { ArrowRight, ChevronDown, ChevronRight, ChevronUp, Clock, MapPin, Search, X } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { useEffect, useLayoutEffect, useRef, useState, type ReactElement } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactElement, type ReactNode } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import {
-  balanceLeft, clockTime, dayName, DINNER, DINNER_TABLE, dinnerChoice, euros, INVITE_LINK, isPaid, LISBON_PLACES, MY_ID, payLine, PEOPLE,
+  accountOf, balanceLeft, BANK_CONFIRM_MS, BANKS, clockTime, dayName, DINNER, DINNER_TABLE, dinnerChoice, euros, INVITE_LINK, isPaid, LISBON_PLACES, MARK_CONFIRM_MS, MY_ID, payLine, payReference, PEOPLE,
   personById, placeById, placeMatches, planEnd, planStart, plansWith, POLL_OPENS, pollClosed, pollOpen, PRE_DINNER, shareOf,
-  timeUntil, TODAY, tripDate, TRIP_DAYS, TRIP_NOW, VISITED, votesIn, walkLabel, walkMinutes, type Money, type Payment, type PlaceSpot,
+  timeUntil, TODAY, tripDate, TRIP_DAYS, TRIP_NOW, VISITED, votesIn, walkLabel, walkMinutes, type Bank, type Money, type Paying, type Payment, type PlaceSpot,
   type Plan, type PollState,
 } from '../data';
 import { TextButton } from './Button';
 import { Sticker } from './Sticker';
+import { BankLayer } from './BankApp';
 import { useTripNotice } from './Notice';
 import { SegmentedTabs } from './SegmentedTabs';
 import { ToggleChip } from './ToggleChips';
@@ -129,8 +130,11 @@ export interface MoneyPageProps {
   money?: Money;
   /** The payments made so far (none by default). My Pay is in the footer (MoneyFooter, OwePill). */
   made?: Payment[];
-  /** The tab it opens on (Settle up, by default). */
+  /** The tab it opens on (Settle up, by default), and a change of tab (so Pay and back keep it). */
   tab?: MoneyTab;
+  onTab?: (tab: MoneyTab) => void;
+  /** My payment on its way, if any: its row says so (Paying…, or Waiting for Maya to confirm). */
+  paying?: Paying;
 }
 
 /**
@@ -141,7 +145,7 @@ export interface MoneyPageProps {
  * once its bill is in, as an expense split by who had what. What I owe and Pay, what it has cost so far, and Scan the
  * bill are at the bottom, in the pop-up's footer (MoneyFooter), where the thumb reaches.
  */
-export function MoneyPage({ money = PRE_DINNER, made = [], tab: firstTab = 'Settle up' }: MoneyPageProps) {
+export function MoneyPage({ money = PRE_DINNER, made = [], tab: firstTab = 'Settle up', onTab, paying }: MoneyPageProps) {
   const [tab, setTab] = useState<MoneyTab>(firstTab);
   // The payment whose "why" is open, if any
   const [why, setWhy] = useState<string | null>(null);
@@ -150,10 +154,14 @@ export function MoneyPage({ money = PRE_DINNER, made = [], tab: firstTab = 'Sett
   const paid = (p: Payment) => isPaid(p, made);
   const joinedLate = (joined: number) => joined > TRIP_DAYS[0].day;
   const key = (p: Payment) => `${p.from}>${p.to}`;
+  // Paid; mine on its way (from my bank, or marked and waiting for them to confirm); or not yet
+  const state = (p: Payment) => paid(p) ? 'Paid'
+    : paying && key(paying.pay) === key(p) ? (paying.via === 'bank' ? 'Paying…' : `Waiting for ${name(p.to)} to confirm`)
+    : 'Pending';
   return (
     <StaggerIn>
       <div key="tabs" className="tu-money-tabs">
-        <SegmentedTabs tabs={[...MONEY_TABS]} value={tab} onChange={t => setTab(t as MoneyTab)} wide />
+        <SegmentedTabs tabs={[...MONEY_TABS]} value={tab} onChange={t => { setTab(t as MoneyTab); onTab?.(t as MoneyTab); }} wide />
       </div>
       {/* One tab's list at a time: it fades in while the last one fades out with a blur, both from the top */}
       <div key="list" className="tu-money-list">
@@ -173,7 +181,7 @@ export function MoneyPage({ money = PRE_DINNER, made = [], tab: firstTab = 'Sett
                     <SheetRow
                       leading={<span className="tu-pay">{face(p.from)}<ArrowRight className="tu-pay__arrow" strokeWidth={2} absoluteStrokeWidth aria-hidden />{face(p.to)}</span>}
                       title={p.from === MY_ID ? `You pay ${name(p.to)}` : `${name(p.from)} pays ${name(p.to)}`}
-                      subtitle={`${paid(p) ? 'Paid' : 'Pending'} · ${why === key(p) ? 'Hide why' : 'Why'}`}
+                      subtitle={`${state(p)} · ${why === key(p) ? 'Hide why' : 'Why'}`}
                       tone={paid(p) ? 'success' : undefined}
                       trailing={<span className="text-label-lg tu-pages__strong">{euros(p.amount)}</span>}
                       onClick={() => setWhy(w => (w === key(p) ? null : key(p)))}
@@ -248,27 +256,26 @@ export interface MoneyFooterProps {
   /** The dinner is on: until its bill is in, Scan the bill. */
   dinnerOn?: boolean;
   onScan?: () => void;
-  /** The payments made so far (none by default), and my Pay (see OwePill). */
+  /** The payments made so far (none by default), my Pay (see OwePill), and my payment on its way. */
   made?: Payment[];
   onPay?: (p: Payment) => void;
+  paying?: Paying;
 }
 
 /**
  * What I owe and Pay, as a rounded pill (xl in on the left, xs elsewhere), while I owe it: a muted "You owe Maya" ("·
- * Everyone else has paid" once they have) over the amount, and Pay. Once I've paid it goes, fading as the footer
- * closes up under it (the note at the top says it went through). Nothing if I owe nobody. At the top of Money's
- * footer, where the thumb reaches.
+ * Everyone else has paid" once they have) over the amount, and Pay, which opens the payment (see PayPage). While it's
+ * on its way the line and the end change over: "Paying Maya · your bank is confirming" with a spinner, or "Waiting for
+ * Maya to confirm" with a clock, as tall as Pay so the pill keeps its height. Once it's paid the pill goes, fading as
+ * the footer closes up under it (the note at the top says it went through). Nothing if I owe nobody. At the top of
+ * Money's footer, where the thumb reaches.
  */
-export function OwePill({ money = PRE_DINNER, made = [], onPay }: { money?: Money; made?: Payment[]; onPay?: (p: Payment) => void }) {
-  const toast = useTripNotice();
+export function OwePill({ money = PRE_DINNER, made = [], onPay, paying }: { money?: Money; made?: Payment[]; onPay?: (p: Payment) => void; paying?: Paying }) {
   const pays = money.settleUp;
   const mine = pays.find(p => p.from === MY_ID);
   const owing = mine && !isPaid(mine, made) ? mine : undefined;
   const othersPaid = pays.filter(p => p.from !== MY_ID).every(p => isPaid(p, made));
-  const pay = (p: Payment) => {
-    onPay?.(p);
-    toast(payLine(p));
-  };
+  const via = owing && paying && paying.pay.to === owing.to ? paying.via : undefined;
   return (
     <AnimatePresence initial={false}>
       {owing && (
@@ -277,11 +284,27 @@ export function OwePill({ money = PRE_DINNER, made = [], onPay }: { money?: Mone
           className="tu-owe"
           exit={{ opacity: 0, height: 0, marginBottom: 0, paddingTop: 0, paddingBottom: 0, transition: { duration: m['fade-ms'] / 1000, ease } }}
         >
-          <div className="tu-owe__text">
-            <p className="text-body-sm tu-ellipsis tu-pages__muted">You owe {name(owing.to)}{othersPaid && money.bill ? ' · Everyone else has paid' : ''}</p>
-            <p className="text-heading-sm tu-ellipsis tu-pages__strong">{euros(owing.amount)}</p>
-          </div>
-          <TextButton label="Pay" onClick={() => pay(owing)} />
+          <AnimatePresence initial={false} mode="popLayout">
+            <motion.div
+              key={via ?? 'owe'}
+              className="tu-owe__body"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1, transition: { duration: m['enter-ms'] / 1000, ease } }}
+              exit={{ opacity: 0, transition: { duration: m['fade-ms'] / 1000, ease } }}
+            >
+              <div className="tu-owe__text">
+                <p className="text-body-sm tu-ellipsis tu-pages__muted">
+                  {via === 'bank' ? `Paying ${name(owing.to)} · your bank is confirming`
+                    : via === 'marked' ? `Waiting for ${name(owing.to)} to confirm`
+                    : `You owe ${name(owing.to)}${othersPaid && money.bill ? ' · Everyone else has paid' : ''}`}
+                </p>
+                <p className="text-heading-sm tu-ellipsis tu-pages__strong">{euros(owing.amount)}</p>
+              </div>
+              {via === 'bank' ? <span className="tu-owe__wait"><span className="tu-spinner" aria-label="Confirming" /></span>
+                : via === 'marked' ? <span className="tu-owe__wait"><Clock className="tu-owe__clock" strokeWidth={2} absoluteStrokeWidth aria-hidden /></span>
+                : <TextButton label="Pay" onClick={() => onPay?.(owing)} />}
+            </motion.div>
+          </AnimatePresence>
         </motion.div>
       )}
     </AnimatePresence>
@@ -294,11 +317,11 @@ export function OwePill({ money = PRE_DINNER, made = [], onPay }: { money?: Mone
  * total: "Spent so far", "3 expenses · yours €181.50", and the total, big. While the
  * dinner is on and its bill isn't in, Scan the bill under it, the width of the page and 56 px tall (TextButton lg, wide).
  */
-export function MoneyFooter({ money = PRE_DINNER, dinnerOn, onScan, made, onPay }: MoneyFooterProps) {
+export function MoneyFooter({ money = PRE_DINNER, dinnerOn, onScan, made, onPay, paying }: MoneyFooterProps) {
   const mine = money.expenses.reduce((sum, e) => sum + shareOf(e, MY_ID), 0);
   return (
     <>
-    <OwePill money={money} made={made} onPay={onPay} />
+    <OwePill money={money} made={made} onPay={onPay} paying={paying} />
     <SheetFooter>
       <div className="tu-money-footer__row">
         <div className="tu-money-footer__text">
@@ -332,6 +355,214 @@ function Why({ money, p }: { money: Money; p: Payment }) {
       </p>
     </div>
   );
+}
+
+// ---------- Paying
+
+/** Where Money is: the group's money, paying what I owe, or picking my bank (the first time I pay). */
+export type MoneyStep = 'list' | 'pay' | 'bank';
+
+/** The pop-up's title and the line at the top of its page, for each step (the app's `MoneyFlow.headerOf`). */
+export const moneyHeaderOf = (step: MoneyStep, pay?: Payment): { title: string; subtitle?: string } =>
+  step === 'pay' && pay ? { title: `Pay ${name(pay.to)}`, subtitle: `It goes straight from your bank to ${name(pay.to)}'s. TripUp never holds the money.` }
+  : step === 'bank' ? { title: 'Your bank', subtitle: "Pick it once and TripUp remembers it. You approve each payment in your bank's app; TripUp never sees your login." }
+  : { title: 'Money' };
+
+/**
+ * Paying what I owe: who and how much, big (their sticker, the amount in display, "to Maya"); then what the transfer
+ * will say, in a muted box inset like Why's (To, with their account; From, my bank once I've picked it, a tap to pick
+ * another; the reference that tells them what it's for; Arrives in seconds); and Why that amount, which opens under
+ * it. Pay with the bank and Mark as paid are in the footer (PayFooter).
+ */
+export function PayPage({ money = PRE_DINNER, pay, bank, onChangeBank }: { money?: Money; pay: Payment; bank?: Bank; onChangeBank?: () => void }) {
+  const reduce = useReducedMotion();
+  const [why, setWhy] = useState(false);
+  const to = personById(pay.to);
+  return (
+    <StaggerIn>
+      <div key="who" className="tu-pay-who">
+        <Sticker name={to.sticker} className="tu-pay-who__face" />
+        <p className="text-display tu-pages__strong">{euros(pay.amount)}</p>
+        <p className="text-body-md tu-pages__muted">to {to.name}</p>
+      </div>
+      <div key="lines" className="tu-pay-lines">
+        <PayLine label="To" value={`${to.name} · ${accountOf(to.id)}`} />
+        {bank && <PayLine label="From" value={bank.name} onClick={onChangeBank} />}
+        <PayLine label="Reference" value={payReference(pay)} />
+        <PayLine label="Arrives" value="In seconds" />
+      </div>
+      <div key="why">
+        <SheetRow
+          title={`Why ${euros(pay.amount)}`}
+          subtitle={why ? 'Hide why' : 'What you had, and what you paid'}
+          trailing={why ? <ChevronUp className="tu-pay-line__arrow" strokeWidth={2} absoluteStrokeWidth aria-hidden /> : <ChevronDown className="tu-pay-line__arrow" strokeWidth={2} absoluteStrokeWidth aria-hidden />}
+          onClick={() => setWhy(w => !w)}
+        />
+        <AnimatePresence initial={false}>
+          {why && (
+            <motion.div
+              key="why"
+              className="tu-why"
+              initial={reduce ? { opacity: 0 } : { height: 0, opacity: 0 }}
+              animate={reduce ? { opacity: 1, transition: { duration: m['fade-ms'] / 1000, ease } } : { height: 'auto', opacity: 1, transition: { duration: m['enter-ms'] / 1000, ease } }}
+              exit={reduce ? { opacity: 0, transition: { duration: m['fade-ms'] / 1000, ease } } : { height: 0, opacity: 0, transition: { duration: m['fade-ms'] / 1000, ease } }}
+            >
+              <Why money={money} p={pay} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </StaggerIn>
+  );
+}
+
+/** One line of what the transfer will say: what it is on the left (muted), the value on the right; an arrow when a
+ *  tap changes it. */
+function PayLine({ label, value, onClick }: { label: string; value: string; onClick?: () => void }) {
+  const body = (
+    <>
+      <span className="text-body-sm tu-pages__muted">{label}</span>
+      <span className="text-label-md tu-pages__strong tu-pay-line__value">{value}</span>
+      {onClick && <ChevronRight className="tu-pay-line__arrow" strokeWidth={2} absoluteStrokeWidth aria-hidden />}
+    </>
+  );
+  return onClick ? <button type="button" className="tu-pay-line tu-pay-line--tap" onClick={onClick}>{body}</button> : <div className="tu-pay-line">{body}</div>;
+}
+
+/** Paying's footer: Pay with my bank (named once TripUp knows it), and Mark as paid (soft) for money that went another
+ *  way; under them, "Paid in cash or another way? Maya confirms it." */
+export function PayFooter({ pay, bank, onBank, onMarked }: { pay: Payment; bank?: Bank; onBank?: () => void; onMarked?: () => void }) {
+  return (
+    <SheetFooter note={`Paid in cash or another way? ${name(pay.to)} confirms it.`}>
+      <TextButton label={`Pay with ${bank?.name ?? 'your bank'}`} size="lg" wide onClick={onBank} />
+      <TextButton label="Mark as paid" variant="soft" size="lg" wide onClick={onMarked} />
+    </SheetFooter>
+  );
+}
+
+/** The banks I can pay from, the first time I pay: each its mark, its name and an arrow; a tap picks it and opens it to
+ *  approve. */
+export function BankPage({ onPick }: { onPick?: (bank: Bank) => void }) {
+  return (
+    <StaggerIn>
+      {withHairlines(BANKS, b => (
+        <SheetRow
+          key={b.id}
+          leading={<BankLogo bank={b} />}
+          title={b.name}
+          trailing={<ChevronRight className="tu-pay-line__arrow" strokeWidth={2} absoluteStrokeWidth aria-hidden />}
+          onClick={onPick && (() => onPick(b))}
+        />
+      ))}
+    </StaggerIn>
+  );
+}
+
+/** A bank's mark in TripUp's lists: its first letter on a muted disc, bank/logo wide (the real app shows its logo). */
+export function BankLogo({ bank }: { bank: Bank }) {
+  return <span className="tu-bank-logo text-label-md weight-semibold" aria-hidden>{bank.name[0]}</span>;
+}
+
+/** Money's pop-up for a story: its header, page, footer and Back for the step it's on, and my bank's app over the
+ *  screen while it's up (`overlay`). */
+export type MoneySlot = { title: string; subtitle?: string; page: ReactNode; footer: ReactNode; onBack?: () => void; overlay: ReactNode; reset: () => void };
+
+/**
+ * The whole of Money, as in the app: the money; Pay on what I owe opens paying it (Back to the money); Pay with your
+ * bank, the first time, picks the bank (Back to paying), then hands off to the bank's app, the transfer filled in.
+ * Approved: back on the money, the pill waits for the bank (BANK_CONFIRM_MS), then "You paid Maya €11.82" and Paid.
+ * Cancelled: back on paying, "Payment cancelled · nothing was sent". Mark as paid: back on the money, the pill waits
+ * for Maya (MARK_CONFIRM_MS), then "Maya confirmed your €11.82". The step's page fades in (enter-ms) while the last
+ * fades out with a blur (fade-ms); the footer comes in once the old one has mostly gone (swap-in-at).
+ */
+export function useMoneyFlow({ money = PRE_DINNER, made, onPaid, notify, dinnerOn, onScan, tab: firstTab = 'Settle up', step: firstStep = 'list', bank: knownBank, banking: bankFirst = false }: {
+  money?: Money;
+  /** The tab the money opens on. */
+  tab?: MoneyTab;
+  /** For a story: the step it starts on (paying what I owe, or the bank list), the bank TripUp already knows, and
+   *  whether my bank's app is up from the start. */
+  step?: MoneyStep;
+  bank?: Bank;
+  banking?: boolean;
+  made: Payment[];
+  onPaid: (p: Payment) => void;
+  notify: (line: string) => void;
+  dinnerOn?: boolean;
+  onScan?: () => void;
+}): MoneySlot {
+  const reduce = useReducedMotion();
+  const [step, setStep] = useState<MoneyStep>(firstStep);
+  const [tab, setTab] = useState<MoneyTab>(firstTab);
+  const [payFor, setPayFor] = useState<Payment | undefined>(() => (firstStep !== 'list' || bankFirst ? money.settleUp.find(p => p.from === MY_ID) : undefined));
+  const [bank, setBank] = useState<Bank | undefined>(knownBank);
+  const [banking, setBanking] = useState(bankFirst);
+  const [paying, setPaying] = useState<Paying>();
+  const timer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(timer.current), []);
+
+  const onTheWay = (p: Payment, via: Paying['via']) => {
+    setPaying({ pay: p, via });
+    window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => {
+      setPaying(undefined);
+      onPaid(p);
+      notify(via === 'bank' ? payLine(p) : `${name(p.to)} confirmed your ${euros(p.amount)}`);
+    }, via === 'bank' ? BANK_CONFIRM_MS : MARK_CONFIRM_MS);
+  };
+  const payWithBank = () => (bank ? setBanking(true) : setStep('bank'));
+  const header = moneyHeaderOf(step, payFor);
+  const swapIn = { duration: (m['enter-ms'] * (1 - m['swap-in-at'])) / 1000, delay: (m['enter-ms'] * m['swap-in-at']) / 1000, ease };
+  return {
+    ...header,
+    page: (
+      <div className="tu-add-steps">
+        <AnimatePresence initial={false}>
+          <motion.div
+            key={step}
+            className="tu-add-steps__step"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: { duration: m['enter-ms'] / 1000, ease } }}
+            exit={{ opacity: 0, filter: reduce ? 'none' : `blur(${m['enter-blur']}px)`, pointerEvents: 'none', transition: { duration: m['fade-ms'] / 1000, ease } }}
+          >
+            {step === 'list' && <MoneyPage money={money} made={made} tab={tab} onTab={setTab} paying={paying} />}
+            {step === 'pay' && payFor && <PayPage money={money} pay={payFor} bank={bank} onChangeBank={() => setStep('bank')} />}
+            {step === 'bank' && <BankPage onPick={b => { setBank(b); setBanking(true); }} />}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    ),
+    footer: (
+      <div className="tu-money-footers">
+        <AnimatePresence initial={false}>
+          <motion.div
+            key={step}
+            className="tu-money-footers__one"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: swapIn }}
+            exit={{ opacity: 0, pointerEvents: 'none', transition: { duration: m['fade-ms'] / 1000, ease } }}
+          >
+            {step === 'list' && <MoneyFooter money={money} dinnerOn={dinnerOn} onScan={onScan} made={made} paying={paying} onPay={p => { setPayFor(p); setStep('pay'); }} />}
+            {step === 'pay' && payFor && <PayFooter pay={payFor} bank={bank} onBank={payWithBank} onMarked={() => { onTheWay(payFor, 'marked'); setStep('list'); }} />}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    ),
+    onBack: step === 'list' ? undefined : () => setStep(s => (s === 'bank' ? 'pay' : 'list')),
+    overlay: (
+      <AnimatePresence>
+        {banking && payFor && bank && (
+          <BankLayer
+            key="bank"
+            pay={payFor}
+            bank={bank}
+            onApproved={() => { onTheWay(payFor, 'bank'); setBanking(false); setStep('list'); }}
+            onCancel={() => { setBanking(false); setStep('pay'); notify('Payment cancelled · nothing was sent'); }}
+          />
+        )}
+      </AnimatePresence>
+    ),
+    reset: () => setStep('list'),
+  };
 }
 
 // ---------- Add

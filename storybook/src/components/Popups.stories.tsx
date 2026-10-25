@@ -5,7 +5,7 @@ import tokens from '../../../design-system/tokens.json';
 import {
   billTotal, BILL_IN, clockTime, dayName, euros, isPaid, moneyWith, MY_ID, payLine, PEOPLE, planDetails, planEnd, planStart, POLL_CLOSES,
   POLL_OPENS, POLL_VOTES, pollClosed, pollLeader, pollOpen, pollOptionById, pollStartedLine, pollWonLine, SCANNED_BILL, squaredUp, TODAY, TRIP,
-  TRIP_DAYS, TRIP_NOW, type Bill, type Payment, type Plan, type PollState,
+  BANKS, TRIP_DAYS, TRIP_NOW, type Bank, type Bill, type Payment, type Plan, type PollState,
 } from '../data';
 import { ActionBar, TopBar } from './Bars';
 import { Camera } from './BillScan';
@@ -14,8 +14,8 @@ import { NoticeLayer, useNotice, type NoticeState } from './Notice';
 import { PollCard, PollPage, PollScrim, pollSubtitle } from './Poll';
 import { ToggleChips } from './ToggleChips';
 import {
-  addHeaderOf, AddFooter, AddPage, ITINERARY_SUBTITLE, ItineraryPage, MoneyFooter, MoneyPage, type AddPageProps, type AddStep,
-  type ItineraryPageProps, type MoneyTab, usePlanDraft,
+  addHeaderOf, AddFooter, AddPage, ITINERARY_SUBTITLE, ItineraryPage, type AddPageProps, type AddStep,
+  type ItineraryPageProps, type MoneySlot, type MoneyStep, type MoneyTab, usePlanDraft, useMoneyFlow,
 } from './TripPages';
 import { TripSheet } from './TripSheet';
 
@@ -126,7 +126,8 @@ function Screen({ start = null, open: shown, onOpen, money, moneyTab, itinerary,
   moneyTab?: MoneyTab;
   open?: Which | null;
   onOpen?: (which: Which | null) => void;
-  money?: { page: ReactNode; footer?: ReactNode };
+  /** Money as a story runs it (see useMoneyFlow); left out, the money before dinner, with Pay working. */
+  money?: MoneySlot;
   itinerary?: Omit<ItineraryPageProps, 'onPick' | 'onOpen' | 'onPoll' | 'days' | 'added'>;
   add?: Omit<AddPageProps, 'step' | 'onStep' | 'draft'> & { start?: AddStep };
   poll?: PollSlot;
@@ -149,8 +150,10 @@ function Screen({ start = null, open: shown, onOpen, money, moneyTab, itinerary,
   const draft = usePlanDraft(add?.start === 'plan' ? add?.place : undefined);
   // Plans the group added (Plan something's Send)
   const [added, setAdded] = useState<Plan[]>([]);
-  // My payments in Money (its Pay is in the footer; the page's rows follow)
+  // My payments in Money (its Pay is in the footer and pays through the bank; the page's rows follow)
   const [made, setMade] = useState<Payment[]>([]);
+  const ownMoney = useMoneyFlow({ made, onPaid: p => setMade(ms => [...ms, p]), notify: notices[1], tab: moneyTab });
+  const moneyFlow = money ?? ownMoney;
   // A plan opened from the itinerary: its details, in the pop-up's place (the pop-up goes as they come)
   const [details, setDetails] = useState<Plan | null>(null);
   const openDetails = (plan: Plan) => {
@@ -161,6 +164,7 @@ function Screen({ start = null, open: shown, onOpen, money, moneyTab, itinerary,
   if (open !== lastOpen) {
     setLastOpen(open);
     if (open === 'itinerary') setPlanDays([]);
+    if (open === 'money') moneyFlow.reset();
     if (open === 'add') {
       setAddStep('choose');
       draft.reset();
@@ -180,7 +184,7 @@ function Screen({ start = null, open: shown, onOpen, money, moneyTab, itinerary,
       page: <ItineraryPage onPick={close} onOpen={openDetails} onPoll={poll && (() => setOpen('poll'))} {...itinerary} days={planDays} added={added} />,
       top: <ToggleChips label="Filter the itinerary by day" options={dayOptions} selected={planDays} onChange={setPlanDays} inset="xs" />,
     },
-    money: { title: 'Money', page: money?.page ?? <MoneyPage tab={moneyTab} made={made} />, footer: money?.footer ?? <MoneyFooter made={made} onPay={p => setMade(m => [...m, p])} /> },
+    money: { title: moneyFlow.title, subtitle: moneyFlow.subtitle, page: moneyFlow.page, footer: moneyFlow.footer, onBack: moneyFlow.onBack },
     add: {
       ...addHeader,
       page: <AddPage step={addStep} onStep={setAddStep} draft={draft} query={add?.query} place={add?.place} />,
@@ -255,6 +259,7 @@ function Screen({ start = null, open: shown, onOpen, money, moneyTab, itinerary,
           </AnimatePresence>
         </div>
         {children}
+        {moneyFlow.overlay}
       </NoticeLayer>
     </div>
   );
@@ -306,18 +311,21 @@ function LiveMoney({ from, scanning: scanFirst = false }: { from: 'dinner-on' | 
     setScanning(false);
     showNotice(`Dinner added · ${euros(billTotal(b))}, split by who had what`);
   };
+  const flow = useMoneyFlow({ money, made, onPaid: pay, notify: showNotice, dinnerOn: true, onScan: () => setScanning(true) });
   return (
-    <Screen
-      start="money"
-      money={{
-        page: <MoneyPage money={money} made={made} />,
-        footer: <MoneyFooter money={money} dinnerOn onScan={() => setScanning(true)} made={made} onPay={pay} />,
-      }}
-      notices={notices}
-    >
+    <Screen start="money" money={flow} notices={notices}>
       <AnimatePresence>{scanning && <Camera key="camera" onAdd={add} onClose={() => setScanning(false)} />}</AnimatePresence>
     </Screen>
   );
+}
+
+/** Money before dinner, on paying what I owe (€181.50 to Maya): `step` it starts on, `bank` TripUp already knows, and
+ *  `banking` with my bank's app up from the start. The rest works as in the app (see useMoneyFlow). */
+function PayStory({ step = 'pay', bank, banking }: { step?: MoneyStep; bank?: Bank; banking?: boolean }) {
+  const [made, setMade] = useState<Payment[]>([]);
+  const notices = useNotice();
+  const flow = useMoneyFlow({ made, onPaid: p => setMade(ms => [...ms, p]), notify: notices[1], step, bank, banking });
+  return <Screen start="money" money={flow} notices={notices} />;
 }
 
 /** Starts a story over. */
@@ -490,7 +498,7 @@ export const ItineraryOneDay: Story = {
 };
 
 export const Money: Story = {
-  parameters: { docs: { description: { story: 'Before dinner. Tabs the width of the page, Settle up · Balances · Expenses (SegmentedTabs wide: the three share it equally), one list at a time, each under a section title with a line under it (lg above); so the expenses, the list that grows all trip, never push the rest away. Settle up comes first, as it\'s the one with something to do: "3 payments square everyone, instead of 9" (one expense at a time), each with its Why (tap it). Balances: "Who gets money back, and who owes", in plain words (see Money · balances). Expenses: "Newest first" (see Money · expenses). At the bottom, where the thumb reaches, what I owe, in a rounded pill sm above the footer (bg-muted, radius-pill; xl in on the left, xs on the other sides): a muted "You owe Maya" (body-sm) over €181.50 (heading-sm), each one line, and Pay at its end. The footer stays put while the lists scroll, over a hairline: "Spent so far", "3 expenses · yours €181.50", and €726.00 (heading-lg) on the right, like the Menu\'s total. There\'s no estimate for tonight\'s dinner: it joins once its bill is in. Picking a tab slides the pill to it (spring-snap) and fades its list in (enter-ms, ease-out) while the last one fades out with a blur (fade-ms, enter-blur; reduced motion, no blur). Pay sends it: "You paid Maya €181.50" comes down at the top, the pill fades away as the footer closes up under it (the note is the success, so nothing stays behind), my payment row turns to Paid and the balances follow. Costs from before someone joined stay with the people who were there (Ren joined today).' } } },
+  parameters: { docs: { description: { story: 'Before dinner. Tabs the width of the page, Settle up · Balances · Expenses (SegmentedTabs wide: the three share it equally), one list at a time, each under a section title with a line under it (lg above); so the expenses, the list that grows all trip, never push the rest away. Settle up comes first, as it\'s the one with something to do: "3 payments square everyone, instead of 9" (one expense at a time), each with its Why (tap it). Balances: "Who gets money back, and who owes", in plain words (see Money · balances). Expenses: "Newest first" (see Money · expenses). At the bottom, where the thumb reaches, what I owe, in a rounded pill sm above the footer (bg-muted, radius-pill; xl in on the left, xs on the other sides): a muted "You owe Maya" (body-sm) over €181.50 (heading-sm), each one line, and Pay at its end. The footer stays put while the lists scroll, over a hairline: "Spent so far", "3 expenses · yours €181.50", and €726.00 (heading-lg) on the right, like the Menu\'s total. There\'s no estimate for tonight\'s dinner: it joins once its bill is in. Picking a tab slides the pill to it (spring-snap) and fades its list in (enter-ms, ease-out) while the last one fades out with a blur (fade-ms, enter-blur; reduced motion, no blur). Pay opens paying it, in the same pop-up (see Money · pay): through my bank, or marked as paid. While it\'s on its way the pill says so; once it\'s paid, "You paid Maya €181.50" comes down at the top, the pill fades away as the footer closes up under it (the note is the success, so nothing stays behind), my payment row turns to Paid and the balances follow. Costs from before someone joined stay with the people who were there (Ren joined today).' } } },
   render: () => <Screen start="money" />,
 };
 
@@ -525,6 +533,24 @@ export const MoneySquaredUp: Story = {
   name: 'Money · squared up',
   parameters: { docs: { description: { story: 'Everyone has paid, so there\'s no pill: the note at the top said "Lisbon is squared up" when the last payment landed. Every payment is Paid (each still has its Why); every balance is Square (Balances); and the dinner sits on top of the expenses, by who had what (Expenses). The footer: "Spent so far", "4 expenses · yours €240.62", €954.80.' } } },
   render: () => <LiveMoney from="squared-up" />,
+};
+
+export const MoneyPay: Story = {
+  name: 'Money · pay',
+  parameters: { docs: { description: { story: 'Pay on what I owe opens paying it, in the same pop-up: Back, "Pay Maya" and ×; the line at the top of the page, "It goes straight from your bank to Maya\'s. TripUp never holds the money." (TripUp starts a bank transfer through open banking, PSD2: a provider like Tink or TrueLayer; it never holds the money). Then Maya\'s sticker (pay/amount-sticker), €181.50 (display) and "to Maya", centred, xl above what the transfer will say, in a muted box inset like Why\'s: To "Maya · PT50 •••• 4021" (she adds where she gets paid once, the first time someone owes her), From (my bank, once TripUp knows it: a tap picks another), Reference "TRIPUP-…" (so Maya knows what it\'s for, and TripUp can match it), Arrives "In seconds" (SEPA Instant). Why €181.50 opens under it. The footer: Pay with your bank (lg, wide; "Pay with Millennium bcp" once it\'s known), Mark as paid (soft) and "Paid in cash or another way? Maya confirms it." The first time, Pay with your bank goes to the bank list (see Money · your bank); after that, straight to the bank\'s app (see Bank app). Mark as paid: back on the money, the pill says "Waiting for Maya to confirm" with a clock where Pay was, and the row the same; Maya confirms from her notification (here 6 s later): "Maya confirmed your €181.50", Paid. The step fades in while the last fades out with a blur; the title, and the footer, come in once the old one has mostly gone (swap-in-at), so they never read over each other.' } } },
+  render: () => <PayStory />,
+};
+
+export const MoneyYourBank: Story = {
+  name: 'Money · your bank',
+  parameters: { docs: { description: { story: 'The first time I pay: "Your bank", Back to paying. "Pick it once and TripUp remembers it. You approve each payment in your bank\'s app; TripUp never sees your login." Then the banks (in the real app, the provider\'s list for my country), each its first letter on a muted disc (bank/logo), its name and an arrow, a hairline between. A tap picks it and opens it to approve (see Bank app); from then on, paying names it and goes straight there.' } } },
+  render: () => <PayStory step="bank" />,
+};
+
+export const BankApproval: Story = {
+  name: 'Bank app',
+  parameters: { docs: { description: { story: 'My bank\'s app, over TripUp: it comes in like another phone screen, from a slight zoom (page-zoom-scale, enter-ms) and fades away (fade-ms). In the real app iOS opens the bank\'s own app with the transfer filled in; here it stands in for it, in a plain look of its own (c-bank colours, bank/radius corners, a dark button) so it reads as another app. "‹ TripUp" at the top (iOS\'s back-to-app link), the bank\'s bar (its mark, name and a lock), "Approve payment" (heading-lg), "TripUp asked to send this from your account.", then the transfer in a white card: €181.50 (heading-xl), "SEPA Instant · arrives in seconds", To, IBAN, Reference and From; none of it can be changed. Approve with Face ID (bank/button tall): Face ID\'s square comes up in the middle (face-id-ms), turns to a green check and Approved (approved-ms), and the bank sends me back to the money, where the pill says "Paying Maya · your bank is confirming" with a spinner; the bank confirms (here 2 s later): "You paid Maya €181.50", the pill goes, Paid. Cancel (or ‹ TripUp): back on paying, "Payment cancelled · nothing was sent", and the pill still there.' } } },
+  render: () => <PayStory bank={BANKS[0]} banking />,
 };
 
 export const ScanTheBill: Story = {

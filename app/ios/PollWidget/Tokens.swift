@@ -96,6 +96,18 @@ struct TokColors {
   let cNowDotBottom: Color
   let cNowDotEdge: Color
   let cNowDotGlow: Color
+  let cBankBg: Color
+  let cBankCard: Color
+  let cBankFg: Color
+  let cBankMuted: Color
+  let cBankLine: Color
+  let cBankLogoBg: Color
+  let cBankLogoFg: Color
+  let cBankAccent: Color
+  let cBankAccentFg: Color
+  let cBankHudBg: Color
+  let cBankHudFg: Color
+  let cBankOk: Color
   static let light = TokColors(
     bgCanvas: Color(.sRGB, red: 0.9569, green: 0.9569, blue: 0.9608, opacity: 1),
     bgDefault: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1),
@@ -189,7 +201,19 @@ struct TokColors {
     cNowDotTop: Color(.sRGB, red: 0.1333, green: 0.7725, blue: 0.3686, opacity: 1),
     cNowDotBottom: Color(.sRGB, red: 0.0824, green: 0.5020, blue: 0.2392, opacity: 1),
     cNowDotEdge: Color(.sRGB, red: 0.2902, green: 0.8706, blue: 0.5020, opacity: 1),
-    cNowDotGlow: Color(.sRGB, red: 0.1333, green: 0.7725, blue: 0.3686, opacity: 0.2)
+    cNowDotGlow: Color(.sRGB, red: 0.1333, green: 0.7725, blue: 0.3686, opacity: 0.2),
+    cBankBg: Color(.sRGB, red: 0.9804, green: 0.9804, blue: 0.9804, opacity: 1),
+    cBankCard: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1),
+    cBankFg: Color(.sRGB, red: 0.0353, green: 0.0353, blue: 0.0431, opacity: 1),
+    cBankMuted: Color(.sRGB, red: 0.4431, green: 0.4431, blue: 0.4784, opacity: 1),
+    cBankLine: Color(.sRGB, red: 0.8941, green: 0.8941, blue: 0.9059, opacity: 1),
+    cBankLogoBg: Color(.sRGB, red: 0.0941, green: 0.0941, blue: 0.1059, opacity: 1),
+    cBankLogoFg: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1),
+    cBankAccent: Color(.sRGB, red: 0.0941, green: 0.0941, blue: 0.1059, opacity: 1),
+    cBankAccentFg: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1),
+    cBankHudBg: Color(.sRGB, red: 0.0941, green: 0.0941, blue: 0.1059, opacity: 0.85),
+    cBankHudFg: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1),
+    cBankOk: Color(.sRGB, red: 0.1333, green: 0.7725, blue: 0.3686, opacity: 1)
   )
   static let dark = TokColors(
     bgCanvas: Color(.sRGB, red: 0.0353, green: 0.0353, blue: 0.0431, opacity: 1),
@@ -284,7 +308,19 @@ struct TokColors {
     cNowDotTop: Color(.sRGB, red: 0.1333, green: 0.7725, blue: 0.3686, opacity: 1),
     cNowDotBottom: Color(.sRGB, red: 0.0824, green: 0.5020, blue: 0.2392, opacity: 1),
     cNowDotEdge: Color(.sRGB, red: 0.2902, green: 0.8706, blue: 0.5020, opacity: 1),
-    cNowDotGlow: Color(.sRGB, red: 0.1333, green: 0.7725, blue: 0.3686, opacity: 0.2)
+    cNowDotGlow: Color(.sRGB, red: 0.1333, green: 0.7725, blue: 0.3686, opacity: 0.2),
+    cBankBg: Color(.sRGB, red: 0.9804, green: 0.9804, blue: 0.9804, opacity: 1),
+    cBankCard: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1),
+    cBankFg: Color(.sRGB, red: 0.0353, green: 0.0353, blue: 0.0431, opacity: 1),
+    cBankMuted: Color(.sRGB, red: 0.4431, green: 0.4431, blue: 0.4784, opacity: 1),
+    cBankLine: Color(.sRGB, red: 0.8941, green: 0.8941, blue: 0.9059, opacity: 1),
+    cBankLogoBg: Color(.sRGB, red: 0.0941, green: 0.0941, blue: 0.1059, opacity: 1),
+    cBankLogoFg: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1),
+    cBankAccent: Color(.sRGB, red: 0.0941, green: 0.0941, blue: 0.1059, opacity: 1),
+    cBankAccentFg: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1),
+    cBankHudBg: Color(.sRGB, red: 0.0941, green: 0.0941, blue: 0.1059, opacity: 0.85),
+    cBankHudFg: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1),
+    cBankOk: Color(.sRGB, red: 0.1333, green: 0.7725, blue: 0.3686, opacity: 1)
   )
 }
 
@@ -425,6 +461,12 @@ enum TokDim {
   static let splashWordGap: CGFloat = 16
   static let splashSticker: CGFloat = 88
   static let splashRing: CGFloat = 160
+  static let bankRadius: CGFloat = 12
+  static let bankButton: CGFloat = 56
+  static let bankLogo: CGFloat = 32
+  static let bankHud: CGFloat = 160
+  static let bankHudIcon: CGFloat = 64
+  static let payAmountSticker: CGFloat = 48
 }
 
 enum TokText {

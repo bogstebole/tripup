@@ -16,7 +16,14 @@
 /* Money: what I owe, in a rounded pill like Invite's link (md in on the left, xs on the other sides): a muted line over
    the amount, Pay at its end; green once everyone has paid, the done mark xs in from the end */
 .tu-owe { display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-sm); padding: var(--space-xs) var(--space-xs) var(--space-xs) var(--space-xl); border-radius: var(--radius-pill); background: var(--color-bg-muted); }
+.tu-owe__body { flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: var(--space-sm); }
 .tu-owe__text { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
+/* While it's on its way, a spinner or a clock where Pay was, as tall as Pay, sm in from the end */
+.tu-owe__wait { display: grid; place-items: center; height: var(--d-button-md); padding-right: var(--space-sm); color: var(--color-icon-muted); }
+.tu-owe__clock { width: var(--size-icon-md); height: var(--size-icon-md); }
+.tu-spinner { width: var(--size-icon-md); height: var(--size-icon-md); border-radius: var(--radius-pill); border: var(--space-3xs) solid var(--color-border-default); border-top-color: var(--color-icon-muted); animation: tu-spin var(--pulse-ms) linear infinite; }
+@keyframes tu-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .tu-spinner { animation-duration: calc(var(--pulse-ms) * 2); } }
 /* The tabs under it (lg below the block), the page's whole width; then one tab's list, under a section title. The
    leaving list fades out over the same spot as the new one. */
 .tu-money-tabs { display: flex; }
@@ -90,3 +97,20 @@
 }
 .tu-wheel__scroll::-webkit-scrollbar { display: none; }
 .tu-wheel__item { display: grid; place-items: center; height: var(--item); scroll-snap-align: center; color: var(--color-text-default); cursor: default; user-select: none; }
+
+/* Paying: who and how much, centred, xs apart and xl above the lines; the lines in a muted box inset like Why's
+   (xs in from the page's edges, sm inside), each a muted label and its value at the end, xs above and below */
+.tu-pay-who { display: flex; flex-direction: column; align-items: center; gap: var(--space-xs); padding-bottom: var(--space-xl); text-align: center; }
+.tu-pay-who__face { height: var(--d-pay-amount-sticker); }
+.tu-pay-lines { margin: 0 var(--space-xs); padding: var(--space-2xs) var(--space-sm); border-radius: var(--radius-card); background: var(--color-bg-muted); }
+.tu-pay-line { display: flex; align-items: center; gap: var(--space-sm); width: 100%; padding: var(--space-xs) 0; text-align: left; }
+.tu-pay-line--tap { border-radius: var(--radius-control); transition: transform var(--press-ms) var(--ease-out); }
+.tu-pay-line--tap:active { transform: scale(var(--press-scale)); }
+.tu-pay-line--tap:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: var(--space-3xs); }
+.tu-pay-line__value { flex: 1 1 0; min-width: 0; text-align: right; }
+.tu-pay-line__arrow { width: var(--size-icon-sm); height: var(--size-icon-sm); flex: none; color: var(--color-icon-muted); }
+/* A bank's mark in our lists: its first letter on a muted disc */
+.tu-bank-logo { display: grid; place-items: center; width: var(--d-bank-logo); height: var(--d-bank-logo); flex: none; border-radius: var(--radius-pill); background: var(--color-bg-muted); color: var(--color-text-default); }
+/* Money's footer for each step: the old one fades out over the new one, both from the bottom */
+.tu-money-footers { display: grid; align-items: end; }
+.tu-money-footers__one { grid-area: 1 / 1; min-width: 0; }

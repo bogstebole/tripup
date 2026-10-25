@@ -337,6 +337,39 @@ export const squaredUp = (money: Money, made: Payment[]) => money.settleUp.lengt
 /** "Leo paid Maya €185.92", "You paid Maya €11.82": the note everyone on the trip sees. */
 export const payLine = (p: Payment) => `${p.from === MY_ID ? 'You' : personById(p.from).name} paid ${p.to === MY_ID ? 'you' : personById(p.to).name} ${euros(p.amount)}`;
 
+// ---------- Paying from the app (the app's data.dart)
+// TripUp never holds the money. Pay starts a bank transfer (open banking: a provider like Tink or TrueLayer starts a
+// SEPA Instant transfer from my bank to theirs, I approve it in my bank's app, and the bank tells TripUp it went
+// through). Paid another way, I mark it as paid and whoever gets it confirms. Here the bank is simulated.
+
+/** A bank I can pay from (in the real app, the provider's list for my country). */
+export type Bank = { id: string; name: string };
+export const BANKS: Bank[] = [
+  { id: 'millennium', name: 'Millennium bcp' },
+  { id: 'cgd', name: 'Caixa Geral de Depósitos' },
+  { id: 'novobanco', name: 'Novo Banco' },
+  { id: 'revolut', name: 'Revolut' },
+  { id: 'n26', name: 'N26' },
+  { id: 'wise', name: 'Wise' },
+];
+
+/** Where each of us gets paid: the last four of their IBAN (they add it once, the first time someone owes them). */
+const ACCOUNTS: Record<string, string> = { ari: '8812', maya: '4021', nic: '7730', leo: '1195', ren: '5546' };
+export const accountOf = (id: string) => `PT50 •••• ${ACCOUNTS[id]}`;
+
+/** What goes on the transfer, so whoever gets it knows what it's for, and TripUp can match it ("TRIPUP-9SP5"). */
+export const payReference = (p: Payment) => {
+  const n = [...`${p.from}>${p.to}`].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 1679616, 7);   // 36^4
+  return `TRIPUP-${n.toString(36).toUpperCase().padStart(4, '0')}`;
+};
+
+/** How a payment of mine is on its way: sent from my bank (it confirms in a moment), or marked as paid another way
+ *  (waiting for whoever gets it to confirm). */
+export type Paying = { pay: Payment; via: 'bank' | 'marked' };
+
+/** The demo's bank answers this long after I approve; whoever I marked it for confirms after MARK_CONFIRM_MS. */
+export const BANK_CONFIRM_MS = 2000, MARK_CONFIRM_MS = 6000;
+
 type MenuItem = { name: string; price: string; pickedBy?: string[] };
 const MENU_ITEMS = (realMenu as { sections: { items: MenuItem[] }[] }).sections.flatMap(s => s.items);
 

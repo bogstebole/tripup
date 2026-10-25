@@ -2,7 +2,7 @@
 
 Generated from design-system/components.json by design-system/build-components-doc.mjs. Don't edit by hand.
 
-Every component the Figma screens are built from: 88 entries on the page Components (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=143-83), one section each.
+Every component the Figma screens are built from: 93 entries on the page Components (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=143-83), one section each.
 The Flutter app (app/lib) is the source of truth; each component is drawn 1:1 from its widget.
 
 ## How to read it
@@ -22,9 +22,10 @@ The Flutter app (app/lib) is the source of truth; each component is drawn 1:1 fr
 - Map: Top bar, Toggle chip, Demo button, Action bar, Crew button, Plan pin, Up next card, Mini pin, Pin tail, Edge pin, Edge arrow, Info chip, Rating line, Face pile, Me marker
 - Scenes: Scene / Trip map · 2:10 PM, Scene / Trip map · 2:30 PM, Scene / Trip map · 3:00 PM, Scene / Trip map · 3:56 PM, Scene / Trip map · plan sent, Scene / Trip map · 5 PM, Map / Lisbon today, Map / Lisbon · Gulbenkian
 - Full view: Sheet header, Segmented tabs, Segment, Page title, Photo carousel, Know tip, Fact row, Menu row, Dish sticker, Person row, More picks, Hairline
-- Pop-ups: Pop-up header, Sheet footer, Sheet section, Sheet row, Icon row, Day heading, Tag, Segmented tabs / wide, Owe pill, Payment row, Why, Money footer, Add choice, Search field, Place map, Time row, Link pill, Text field, Phone pill, Toast
+- Pop-ups: Pop-up header, Sheet footer, Sheet section, Sheet row, Icon row, Day heading, Tag, Segmented tabs / wide, Owe pill, Payment row, Why, Money footer, Add choice, Search field, Place map, Time row, Link pill, Text field, Phone pill, Toast, Pay amount, Pay line, Bank logo
 - Poll: Poll card, Poll place, Vote bar, Live dot
 - Bill: Scan frame, Receipt, Bill line, Share, Payer
+- Paying: Face ID, Bank approval
 - Live Activity: Live Activity, Activity place, Activity mark, Activity bar, Island / compact, Island / expanded, Notification, Notification actions, App icon, Wallpaper
 - Assets: Icon set, Sticker library, Photo set
 
@@ -491,12 +492,12 @@ Segmented tabs that fill the width: Money's Settle up, Balances, Expenses.
 
 ### Owe pill
 
-What I owe and Pay, while I owe it, at the bottom of Money just above its footer (where the thumb reaches). Once I've paid it goes: the note at the top is the success.
+What I owe and Pay, while I owe it, at the bottom of Money just above its footer (where the thumb reaches). Pay opens paying it (Pay Maya). While it's on its way the line and the end change over: paying (my bank is confirming: a spinner) or waiting (marked as paid, waiting for them to confirm: a clock). Once it's paid it goes: the note at the top is the success.
 
-- Props: Label · Amount.
+- Props: Label · Amount · State (owe, paying, waiting).
 - Code: OwePill · app/lib/components/trip_pages.dart
-- Storybook: Money
-- Figma: node 123:5316 · key 3ffbc217e3e6fe29f00bf2485e1fa97ff76b2e2a · properties: Label (text), Amount (text), State=owe (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=146-1269)
+- Storybook: Money, Money · pay, Bank app
+- Figma: node 123:5316 · key 3ffbc217e3e6fe29f00bf2485e1fa97ff76b2e2a · properties: Label (text), Amount (text), State=owe|paying|waiting (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=146-1269)
 
 ### Payment row
 
@@ -585,6 +586,36 @@ A short note for everyone, down from the top under the status bar: a flat brand 
 - Code: Toast · app/lib/components/toast.dart
 - Figma: node 114:3693 · key f2600c07b75780baaeccef3d04bbecd48276bea3 · properties: Label (text), Action=no|yes (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=146-1799)
 
+### Pay amount
+
+Who I pay and how much, big, at the top of Pay Maya: their sticker, the amount (Display) and "to Maya", centred, space/xl above what the transfer will say.
+
+- Use: Pay Maya only.
+- Props: Amount · To · Sticker (instance swap: the person's sticker).
+- Code: PayPage · app/lib/components/trip_pages.dart
+- Storybook: Money · pay
+- Figma: node 176:6552 · key 9a06b20501b8fc33f757d80644bce4ecbe757a70 · properties: Amount (text), To (text), Sticker (instance swap) (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=176-6607)
+
+### Pay line
+
+One line of what the transfer will say (To, From, Reference, Arrives), in Pay Maya's muted box: the label on the left, the value at the end; Tap=yes adds an arrow when a tap changes it (From: pick another bank).
+
+- Use: Inside Pay Maya's muted box (bg/muted, radius/card, space/sm across, space/2xs down, inset space/xs like Why's).
+- Props: Label · Value · Tap (no, yes → onTap).
+- Code: _PayLine · app/lib/components/trip_pages.dart
+- Storybook: Money · pay
+- Figma: node 176:6564 · key 4aefb1d354852cdb252f575edfb7dd9052a2364b · properties: Label (text), Value (text), Tap=no|yes (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=176-6648)
+
+### Bank logo
+
+A bank's mark in Your bank's list: its first letter on a muted disc, bank/logo wide. The real app shows the bank's logo from the payment provider.
+
+- Use: In a Sheet row's sticker slot (Sticker swapped to Bank logo), Trailing=arrow with the chevron-right icon and no subtitle.
+- Props: Letter.
+- Code: BankLogo · app/lib/components/trip_pages.dart
+- Storybook: Money · your bank
+- Figma: node 176:6565 · key fe8e5b9cdfe5043ebe1c78167839ba389aadaee1 · properties: Letter (text) (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=176-6689)
+
 ## Poll
 
 Choosing dinner: the poll on the map.
@@ -662,6 +693,31 @@ Who paid, at the bottom of the scanned bill. Tapping it opens a small menu of ev
 - Props: Label.
 - Code: _PayerPicker · app/lib/components/bill_scan.dart
 - Figma: node 124:5342 · key 150d7f56e53bce41cf86b2714fdca6be72686a81 · properties: Label (text) (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=147-1411)
+
+## Paying
+
+Paying what I owe from the app: TripUp hands off to my bank's app (open banking), I approve it there with Face ID, and the bank confirms. TripUp never holds the money.
+
+### Face ID
+
+The system's Face ID square in the middle of the bank's app: the face glyph and "Face ID" while it scans (face-id-ms), then a green check and "Approved" (approved-ms).
+
+- Use: Inside Bank approval (its scanning and approved phases).
+- Props: Phase (scanning, approved).
+- Code: BankApp · app/lib/components/bank_app.dart
+- Storybook: Bank app
+- Figma: node 178:6568 · key b57e002eade74b3dbe46f4a4f91f996b66abfb4f · properties: Phase=scanning|approved (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=178-6851)
+
+### Bank approval
+
+My bank's app with the transfer TripUp started filled in: ‹ TripUp (iOS's back-to-app link), the bank's bar, "Approve payment", the transfer in a white card (amount, SEPA Instant · arrives in seconds, To, IBAN, Reference, From; none can be changed), Approve with Face ID and Cancel. A stand-in for the bank's own app, in a plain look of its own (c-bank colours) so it reads as another app.
+
+- Use: The whole screen (it has its own status bar and home indicator).
+- Avoid: TripUp's own glass or brand blue here: it's another app.
+- Props: Phase (review, scanning, approved) · Bank · Amount · To · IBAN · Reference · From.
+- Code: BankApp · app/lib/components/bank_app.dart
+- Storybook: Bank app
+- Figma: node 178:6806 · key 9869a0b9abdf86e4cd87258810b9cf2cff15109d · properties: Bank (text), Amount (text), To (text), IBAN (text), Reference (text), From (text), Phase=review|scanning|approved (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=178-6892)
 
 ## Live Activity
 

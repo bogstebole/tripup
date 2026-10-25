@@ -640,6 +640,14 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - Tokens: `spring-pop` (0.4 s, bounce 0.3), `spring-fly` (0.7 s, 0.12), the splash's timings (`splash-*`) and sizes (`splash/dot-scale`, `splash/word`, `splash/sticker`, `splash/ring`); the stickers' places around TripUp are `splashStickers` in `data.dart`. The perf and Figma drivers skip it (`splashOnStart`).
 - **Checked** on the iPhone 17 Pro Max simulator from cold launches, frame by frame, and by the recording's frame times (no gaps over 50 ms during the splash).
 
+### Final UI, iteration 1.56: paying through the bank (branch `feat/pay-flow`)
+- Pay opens **Pay Maya** in Money (Back to the money): the amount, Maya's account, the reference and Why; Pay with your bank and Mark as paid in the footer. The first time, **Your bank** (Back to Pay Maya); then **my bank's app**, simulated (`bank_app.dart`): the transfer filled in, Approve with Face ID (the Face ID square, then Approved) or Cancel. Back on the money the owe pill has two new states, paying (spinner) and waiting (clock), and my row says so; the bank's answer (2 s) or Maya's confirmation (6 s) records it, with a note. See DECISIONS, Paying from the app.
+- Tokens: `bank/*` colours and sizes, `pay/amount-sticker`, `face-id-ms`, `approved-ms`, `swap-in-at` (a pop-up's new title and footer come in once the old ones have mostly gone; for every pop-up). Icons: chevron-right, scan-face, landmark, lock.
+- Fixed on the way: the owe pill threw after the bank's answer (a null check), and each step now opens at its top.
+- Storybook: `useMoneyFlow` runs the same steps for every Money story; new stories Money · pay, Money · your bank and Bank app (`BankApp.tsx`).
+- Figma: in Settling up, **Pay through the bank** (Pay Maya → Your bank → Bank app → Approved → Money · paying → Money · paid) and a new row **Paid another way** (Pay Maya with the bank known → Money · waiting for Maya → Maya confirmed), each with its story card and connectors. New components (documented, in COMPONENTS.md): Pay amount, Pay line, Bank logo (Pop-ups), and a new category **Paying** with Face ID and Bank approval; Owe pill has paying and waiting states.
+- **Checked** on the iPhone 17 Pro Max simulator (video, frame by frame: Pay → bank → Face ID → Paying → Paid; Cancel; Mark as paid → Maya confirmed), in Storybook (the same three paths) and in Figma.
+
 ### Final UI, iteration 1.55: no banner after paying (branch `fix/owe-pill-only-owing`)
 - Bogdan: once I've paid, the note at the top is enough. The owe pill shows only while I owe; after Pay it fades away as the footer closes up under it, and there's no green "squared up" pill either (everyone hears it as a note). Storybook the same; Figma: the paid and squared-up Money screens have no pill, and Owe pill keeps only its owe state.
 - **Checked** on the iPhone 17 Pro Max simulator (Pay: the note, the row Paid, the pill gone).
