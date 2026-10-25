@@ -106,9 +106,9 @@ class ItineraryPage extends StatelessWidget {
   }
 }
 
-/// The group's money: what I owe (and paying it) on top, then one thing at a time in tabs: the fewest payments that
-/// square everyone up, each person's balance, or the expenses (the list that grows all trip). Tonight's dinner joins
-/// once the bill comes; until then it's an estimate.
+/// The group's money, one thing at a time in tabs: the fewest payments that square everyone up, each person's balance,
+/// or the expenses (the list that grows all trip). Tonight's dinner joins once the bill comes. What I owe, and Pay, is
+/// at the bottom (see MoneyFooter), in reach of the thumb.
 class MoneyPage extends StatefulWidget {
   const MoneyPage({super.key});
 
@@ -133,52 +133,13 @@ class _MoneyPageState extends State<MoneyPage> {
       );
 
   Widget _page(BuildContext context) {
-    final t = context.tok;
     final pays = settleUp;
-    final mine = pays.where((p) => p.from == myId).firstOrNull;
-    final square = squaredUp, minePaid = mine != null && isPaid(mine);
-    final othersPaid = pays.where((p) => p.from != myId).every(isPaid);
-    // The top block: the group squared up; or what I owe, with Pay; or that I'm square
-    final (head, sub, done) = square
-        ? ('Lisbon is squared up', 'Everyone has paid: ${pays.length} payments, ${euros(pays.fold(0.0, (s, p) => s + p.amount))} in all', true)
-        : minePaid
-            ? ("You're square with ${_name(mine.to)}", 'Paid ${euros(mine.amount)}', true)
-            : mine != null
-                ? ('You owe ${_name(mine.to)}', othersPaid && dinnerBill.value != null ? 'Everyone else has paid' : null, false)
-                : ('', null, false);
     return StaggerIn(children: [
-      // A rounded pill: what I owe and Pay (or that it's settled); xl in on the left, so the words sit clear of the curve
-      if (mine != null || square)
-        Container(
-          padding: const EdgeInsets.fromLTRB(TokSpace.xl, TokSpace.xs, TokSpace.xs, TokSpace.xs),
-          decoration: BoxDecoration(color: square ? t.bgSuccessSubtle : t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.pill)),
-          child: Row(spacing: TokSpace.sm, children: [
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(done ? head : '$head${sub != null ? ' · $sub' : ''}', maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.bodySm.copyWith(color: t.textMuted)),
-                Text(done ? (sub ?? '') : euros(mine!.amount), maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingSm.copyWith(color: done ? t.textSuccess : t.textDefault)),
-              ]),
-            ),
-            if (done)
-              Padding(padding: const EdgeInsets.only(right: TokSpace.xs), child: LucideIcon(TuIcons.done, size: TokSize.iconMd, color: t.iconSuccess))
-            else
-              TuTextButton(
-                label: 'Pay',
-                onTap: () {
-                  recordPayment(mine!);
-                  tripNotice.value = payLine(mine);
-                },
-              ),
-          ]),
-        ),
-      Padding(
-        padding: EdgeInsets.only(top: mine != null || square ? TokSpace.lg : 0),
-        child: SegmentedTabs(
-          tabs: const ['Settle up', 'Balances', 'Expenses'],
-          index: _tab,
-          wide: true,
-          onChanged: (i) => setState(() => _tab = i),
-        ),
+      SegmentedTabs(
+        tabs: const ['Settle up', 'Balances', 'Expenses'],
+        index: _tab,
+        wide: true,
+        onChanged: (i) => setState(() => _tab = i),
       ),
       // One tab's list at a time: it fades in, the last one fades out with a blur
       AnimatedSwitcher(
@@ -273,8 +234,58 @@ class _MoneyPageState extends State<MoneyPage> {
   }
 }
 
-/// Money's bottom, in view while the lists scroll: what the trip has cost so far and my part of it, like the Menu's
-/// total; while the dinner is on and its bill isn't in, Scan the bill under it.
+/// What I owe and Pay, as a rounded pill; or that I'm square with whoever I paid; or, once everyone has paid, the trip
+/// squared up on green. Nothing if I owe nobody.
+class OwePill extends StatelessWidget {
+  const OwePill({super.key});
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(listenable: Listenable.merge([dinnerBill, madePayments]), builder: (context, _) => _pill(context));
+
+  Widget _pill(BuildContext context) {
+    final t = context.tok;
+    final pays = settleUp;
+    final mine = pays.where((p) => p.from == myId).firstOrNull;
+    final square = squaredUp, minePaid = mine != null && isPaid(mine);
+    final othersPaid = pays.where((p) => p.from != myId).every(isPaid);
+    String name(String id) => personById(id).name;
+    final (head, sub, done) = square
+        ? ('Lisbon is squared up', 'Everyone has paid: ${pays.length} payments, ${euros(pays.fold(0.0, (s, p) => s + p.amount))} in all', true)
+        : minePaid
+            ? ("You're square with ${name(mine.to)}", 'Paid ${euros(mine.amount)}', true)
+            : mine != null
+                ? ('You owe ${name(mine.to)}', othersPaid && dinnerBill.value != null ? 'Everyone else has paid' : null, false)
+                : ('', null, false);
+    if (mine == null && !square) return const SizedBox.shrink();
+    // xl in on the left, so the words sit clear of the curve
+    return Container(
+      padding: const EdgeInsets.fromLTRB(TokSpace.xl, TokSpace.xs, TokSpace.xs, TokSpace.xs),
+      decoration: BoxDecoration(color: square ? t.bgSuccessSubtle : t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.pill)),
+      child: Row(spacing: TokSpace.sm, children: [
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(done ? head : '$head${sub != null ? ' · $sub' : ''}', maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.bodySm.copyWith(color: t.textMuted)),
+            Text(done ? (sub ?? '') : euros(mine!.amount), maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingSm.copyWith(color: done ? t.textSuccess : t.textDefault)),
+          ]),
+        ),
+        if (done)
+          Padding(padding: const EdgeInsets.only(right: TokSpace.xs), child: LucideIcon(TuIcons.done, size: TokSize.iconMd, color: t.iconSuccess))
+        else
+          TuTextButton(
+            label: 'Pay',
+            onTap: () {
+              recordPayment(mine!);
+              tripNotice.value = payLine(mine);
+            },
+          ),
+      ]),
+    );
+  }
+}
+
+/// Money's bottom, in view while the lists scroll: what I owe and Pay (OwePill), just above it where the thumb reaches;
+/// then, over a hairline, what the trip has cost so far and my part of it, like the Menu's total; while the dinner is
+/// on and its bill isn't in, Scan the bill under it.
 class MoneyFooter extends StatelessWidget {
   const MoneyFooter({super.key, this.onScan});
   final VoidCallback? onScan;
@@ -286,7 +297,14 @@ class MoneyFooter extends StatelessWidget {
           final t = context.tok;
           final mine = tripExpenses.fold(0.0, (sum, e) => sum + e.shareOf(myId));
           final scan = dinnerBill.value == null && isActive(plans.first, tripNow());
-          return SheetFooter(children: [
+          return Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            AnimatedSize(
+              duration: TokMotion.enter,
+              curve: TokMotion.easeOut,
+              alignment: Alignment.bottomCenter,
+              child: Padding(padding: EdgeInsets.only(bottom: squaredUp || settleUp.any((p) => p.from == myId) ? TokSpace.sm : 0), child: const OwePill()),
+            ),
+            SheetFooter(children: [
               Row(spacing: TokSpace.sm, children: [
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x3xs, children: [
@@ -297,6 +315,7 @@ class MoneyFooter extends StatelessWidget {
                 Text(euros(spentSoFar), style: TokText.headingLg.copyWith(color: t.textDefault)),
               ]),
               if (scan) TuTextButton(label: 'Scan the bill', size: TuButtonSize.lg, wide: true, onTap: onScan),
+            ]),
           ]);
         },
       );

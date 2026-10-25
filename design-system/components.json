@@ -570,9 +570,9 @@
         },
         {
           "name": "Owe pill",
-          "what": "Money's top: what I owe and Pay; after I pay, squared with whoever I paid; once everyone has paid, the trip squared up in green.",
+          "what": "What I owe and Pay, at the bottom of Money just above its footer (where the thumb reaches); then square with whoever I paid; once everyone has paid, the trip squared up on green.",
           "props": "Label · Amount · State=owe|paid|squared up.",
-          "code": "MoneyPage · app/lib/components/trip_pages.dart",
+          "code": "OwePill · app/lib/components/trip_pages.dart",
           "story": "Money",
           "section": "146:1269",
           "id": "123:5316",

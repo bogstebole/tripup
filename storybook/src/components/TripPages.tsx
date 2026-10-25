@@ -127,66 +127,32 @@ export type MoneyTab = (typeof MONEY_TABS)[number];
 export interface MoneyPageProps {
   /** The money as it stands: before the dinner's bill (`PRE_DINNER`, the default) or with it in (`BILL_IN`). */
   money?: Money;
-  /** The payments made so far. Leave it out and the page keeps its own (then only my Pay makes one). */
+  /** The payments made so far (none by default). My Pay is in the footer (MoneyFooter, OwePill). */
   made?: Payment[];
-  /** My Pay, when the payments are kept outside. */
-  onPay?: (p: Payment) => void;
   /** The tab it opens on (Settle up, by default). */
   tab?: MoneyTab;
 }
 
 /**
- * The group's money: what I owe (and paying it) on top, then one thing at a time in tabs the width of the page
- * (Settle up · Balances · Expenses): the fewest payments that square everyone up (each with a Why that opens), each
+ * The group's money, one thing at a time in tabs the width of the page (Settle up · Balances · Expenses): the fewest payments that square everyone up (each with a Why that opens), each
  * person's balance after the payments made so far, or the expenses (the list that grows all trip, so it never pushes
  * the rest away). Each tab's list starts with a section title and a line under it. Picking a tab fades its list in
  * (enter-ms) while the last one fades out with a blur (fade-ms; no blur with reduced motion). Tonight's dinner joins
- * once its bill is in, as an expense split by who had what. The top block is a rounded pill, like Invite's link: a muted
- * line ("You owe Maya", "· Everyone else has paid") over the amount, and Pay; "You're square with Maya" over "Paid
- * €181.50"; and, once everyone has paid, a green "Lisbon is squared up". What it has cost so far, and Scan the bill,
- * are in the pop-up's footer (MoneyFooter).
+ * once its bill is in, as an expense split by who had what. What I owe and Pay, what it has cost so far, and Scan the
+ * bill are at the bottom, in the pop-up's footer (MoneyFooter), where the thumb reaches.
  */
-export function MoneyPage({ money = PRE_DINNER, made: kept, onPay, tab: firstTab = 'Settle up' }: MoneyPageProps) {
-  const toast = useTripNotice();
-  const [own, setOwn] = useState<Payment[]>([]);
-  const made = kept ?? own;
+export function MoneyPage({ money = PRE_DINNER, made = [], tab: firstTab = 'Settle up' }: MoneyPageProps) {
   const [tab, setTab] = useState<MoneyTab>(firstTab);
   // The payment whose "why" is open, if any
   const [why, setWhy] = useState<string | null>(null);
   const reduce = useReducedMotion();
   const pays = money.settleUp;
-  const mine = pays.find(p => p.from === MY_ID);
   const paid = (p: Payment) => isPaid(p, made);
-  const square = squaredUp(money, made), minePaid = !!mine && paid(mine);
-  const othersPaid = pays.filter(p => p.from !== MY_ID).every(paid);
-  const done = square || minePaid;
-  const head = square ? 'Lisbon is squared up' : mine ? (minePaid ? `You're square with ${name(mine.to)}` : `You owe ${name(mine.to)}`) : '';
-  const sub = square
-    ? `Everyone has paid: ${pays.length} payments, ${euros(pays.reduce((sum, p) => sum + p.amount, 0))} in all`
-    : mine && minePaid ? `Paid ${euros(mine.amount)}`
-    : othersPaid && money.bill ? 'Everyone else has paid'
-    : undefined;
-  const pay = (p: Payment) => {
-    if (onPay) onPay(p); else setOwn(m => [...m, p]);
-    toast(payLine(p));
-  };
   const joinedLate = (joined: number) => joined > TRIP_DAYS[0].day;
   const key = (p: Payment) => `${p.from}>${p.to}`;
   return (
     <StaggerIn>
-      {/* A rounded pill like Invite's link: what I owe and Pay (or that it's settled) */}
-      {(mine || square) && (
-        <div key="mine" className={square ? 'tu-owe tu-owe--square' : 'tu-owe'}>
-          <div className="tu-owe__text">
-            <p className="text-body-sm tu-ellipsis tu-pages__muted">{done ? head : `${head}${sub ? ` · ${sub}` : ''}`}</p>
-            <p className={`text-heading-sm tu-ellipsis ${done ? 'tu-pages__success' : 'tu-pages__strong'}`}>{done ? sub : mine && euros(mine.amount)}</p>
-          </div>
-          {done
-            ? <CircleCheck className="tu-owe__done" strokeWidth={2} absoluteStrokeWidth aria-label="Paid" />
-            : mine && <TextButton label="Pay" onClick={() => pay(mine)} />}
-        </div>
-      )}
-      <div key="tabs" className={mine || square ? 'tu-money-tabs tu-money-tabs--under' : 'tu-money-tabs'}>
+      <div key="tabs" className="tu-money-tabs">
         <SegmentedTabs tabs={[...MONEY_TABS]} value={tab} onChange={t => setTab(t as MoneyTab)} wide />
       </div>
       {/* One tab's list at a time: it fades in while the last one fades out with a blur, both from the top */}
@@ -282,16 +248,59 @@ export interface MoneyFooterProps {
   /** The dinner is on: until its bill is in, Scan the bill. */
   dinnerOn?: boolean;
   onScan?: () => void;
+  /** The payments made so far (none by default), and my Pay (see OwePill). */
+  made?: Payment[];
+  onPay?: (p: Payment) => void;
 }
 
 /**
- * Money's bottom, in view while the lists scroll (the pop-up's footer, over a hairline): what the trip has cost so far
- * and my part of it, like the Menu's total: "Spent so far", "3 expenses · yours €181.50", and the total, big. While the
+ * What I owe and Pay, as a rounded pill (xl in on the left, xs elsewhere): a muted line ("You owe Maya", "· Everyone
+ * else has paid") over the amount, and Pay; "You're square with Maya" over "Paid €181.50"; and, once everyone has
+ * paid, a green "Lisbon is squared up". Nothing if I owe nobody. At the top of Money's footer, where the thumb reaches.
+ */
+export function OwePill({ money = PRE_DINNER, made = [], onPay }: { money?: Money; made?: Payment[]; onPay?: (p: Payment) => void }) {
+  const toast = useTripNotice();
+  const pays = money.settleUp;
+  const mine = pays.find(p => p.from === MY_ID);
+  const paid = (p: Payment) => isPaid(p, made);
+  const square = squaredUp(money, made), minePaid = !!mine && paid(mine);
+  const othersPaid = pays.filter(p => p.from !== MY_ID).every(paid);
+  const done = square || minePaid;
+  const head = square ? 'Lisbon is squared up' : mine ? (minePaid ? `You're square with ${name(mine.to)}` : `You owe ${name(mine.to)}`) : '';
+  const sub = square
+    ? `Everyone has paid: ${pays.length} payments, ${euros(pays.reduce((sum, p) => sum + p.amount, 0))} in all`
+    : mine && minePaid ? `Paid ${euros(mine.amount)}`
+    : othersPaid && money.bill ? 'Everyone else has paid'
+    : undefined;
+  const pay = (p: Payment) => {
+    onPay?.(p);
+    toast(payLine(p));
+  };
+  if (!mine && !square) return null;
+  return (
+    <div className={square ? 'tu-owe tu-owe--square' : 'tu-owe'}>
+      <div className="tu-owe__text">
+        <p className="text-body-sm tu-ellipsis tu-pages__muted">{done ? head : `${head}${sub ? ` · ${sub}` : ''}`}</p>
+        <p className={`text-heading-sm tu-ellipsis ${done ? 'tu-pages__success' : 'tu-pages__strong'}`}>{done ? sub : mine && euros(mine.amount)}</p>
+      </div>
+      {done
+        ? <CircleCheck className="tu-owe__done" strokeWidth={2} absoluteStrokeWidth aria-label="Paid" />
+        : mine && <TextButton label="Pay" onClick={() => pay(mine)} />}
+    </div>
+  );
+}
+
+/**
+ * Money's bottom, in view while the lists scroll (the pop-up's footer): what I owe and Pay (OwePill), sm above the
+ * hairline, where the thumb reaches; then, over it, what the trip has cost so far and my part of it, like the Menu's
+ * total: "Spent so far", "3 expenses · yours €181.50", and the total, big. While the
  * dinner is on and its bill isn't in, Scan the bill under it, the width of the page and 56 px tall (TextButton lg, wide).
  */
-export function MoneyFooter({ money = PRE_DINNER, dinnerOn, onScan }: MoneyFooterProps) {
+export function MoneyFooter({ money = PRE_DINNER, dinnerOn, onScan, made, onPay }: MoneyFooterProps) {
   const mine = money.expenses.reduce((sum, e) => sum + shareOf(e, MY_ID), 0);
   return (
+    <>
+    <OwePill money={money} made={made} onPay={onPay} />
     <SheetFooter>
       <div className="tu-money-footer__row">
         <div className="tu-money-footer__text">
@@ -302,6 +311,7 @@ export function MoneyFooter({ money = PRE_DINNER, dinnerOn, onScan }: MoneyFoote
       </div>
       {!money.bill && dinnerOn && <TextButton label="Scan the bill" size="lg" wide onClick={onScan} />}
     </SheetFooter>
+    </>
   );
 }
 
