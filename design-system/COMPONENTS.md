@@ -36,7 +36,7 @@ The raised bodies people tap. Soft for most actions, primary (brand blue) for th
 
 Round icon button: every icon-only action in TripUp (back, close, add, the arrow into a trip).
 
-- Use: When the icon alone says the action. Kind=primary only for the one main action on a screen.
+- Use: When the icon alone says the action. Kind=primary only for the one main action on a screen. States: Kind=soft|primary × Size=sm|md|lg, all six. Pressed has no look of its own: the whole button scales to 0.97 (press-scale) while held.
 - Avoid: Actions that need words: use Text button.
 - Props: Kind → kind (GlassKind.soft | primary) · Size → size (TuButtonSize sm 40 | md 44 | lg 56) · Icon → icon (a TuIcons entry). Code also takes label (read by screen readers) and onTap.
 - Code: TuButton · app/lib/components/glass.dart
@@ -47,7 +47,7 @@ Round icon button: every icon-only action in TripUp (back, close, add, the arrow
 
 Pill button with a label and an optional icon before it, for actions an icon can't say: Pay, Copy link, Send to the group.
 
-- Use: Set the instance's width to Fill for the main action at the bottom of a page (wide: true in code).
+- Use: Set the instance's width to Fill for the main action at the bottom of a page (wide: true in code). States: Kind=soft|primary × Size=sm|md|lg, with or without the icon, hugging its label or set to Fill. Pressed has no look of its own: the whole button scales to 0.97 (press-scale) while held.
 - Avoid: Icon-only actions: use Button.
 - Props: Label → label · Show icon + Icon → icon (null hides it) · Kind → kind (code default is primary) · Size → size · Fill width → wide: true.
 - Code: TuTextButton · app/lib/components/glass.dart
@@ -164,7 +164,7 @@ The trip's three actions at the bottom of the map: Itinerary, Money (the group a
 
 ### Crew button
 
-The Money button: the whole group piled up on a soft glass circle. Opens Money.
+The Money button: the whole group piled up on a soft glass circle. Opens Money. Built like Bogdan's buttons: the glass body sits behind the faces, which may spill over its edge.
 
 - Code: _CrewButton · app/lib/components/bars.dart
 - Figma: node 98:1592 · key 3fc35b7d3135177491ea3ab726b6fa5934b55943 (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=144-1361)

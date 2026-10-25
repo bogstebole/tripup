@@ -640,6 +640,12 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - Tokens: `spring-pop` (0.4 s, bounce 0.3), `spring-fly` (0.7 s, 0.12), the splash's timings (`splash-*`) and sizes (`splash/dot-scale`, `splash/word`, `splash/sticker`, `splash/ring`); the stickers' places around TripUp are `splashStickers` in `data.dart`. The perf and Figma drivers skip it (`splashOnStart`).
 - **Checked** on the iPhone 17 Pro Max simulator from cold launches, frame by frame, and by the recording's frame times (no gaps over 50 ms during the splash).
 
+### Figma: the buttons look like Bogdan's (branch `figma/buttons-clip`)
+- The cause, measured on a white compare frame: Clip content was off on our buttons, so Figma drew the inner shadows bigger and darker (a thick grey band at the bottom of the soft ones). On now for Button, Text button, Toggle chip, Demo button, Happening now and Avatar button; the effect styles' descriptions say they need it.
+- The Money button (Crew button) has the glass as a body layer behind the faces, like his frames, so the faces still spill over as in the app.
+- Button and Text button document their states: Kind × Size; pressed is the app's 0.97 scale, not a look of its own.
+- **Checked** pixel by pixel against his 129:7592 (same values down each column, but for our fill token), and the Action bar and the Trip card by eye.
+
 ### Storybook: no credit to Emil's rules (branch `docs/storybook-motion`)
 - Introduction's Motion no longer says the motion follows Emil Kowalski's rules (Bogdan: we used too few of them to claim it). The rules it lists stay, since they describe what the app does.
 
