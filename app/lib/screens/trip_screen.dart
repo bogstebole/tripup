@@ -356,8 +356,9 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     final off = !_area(MediaQuery.sizeOf(context)).contains(e.camera.latLngToScreenOffset(myPosition(tripNow())));
     if (off != _meOff) setState(() => _meOff = off);
     // The actions step out of the way while the person moves the map, and come back once it has been still a moment
-    // (a short pause between two drags shouldn't bring them back)
-    if (byUser) {
+    // (a short pause between two drags shouldn't bring them back). Only when the map really moves: a tap is a user's
+    // event too, and shouldn't send them away
+    if (byUser && e is MapEventWithMove) {
       if (!_moving) setState(() => _moving = true);
       _settle?.cancel();
       _settle = Timer(TokMotion.settle, () {
