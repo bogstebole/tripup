@@ -1,6 +1,6 @@
 // The pages of the footer's three pop-ups: the itinerary, the group's money, and adding to the trip. Each goes inside
 // a TripSheet, which scrolls it; their notes come down at the top of the screen (see Notice.tsx).
-import { ArrowRight, CircleCheck, Copy, MapPin, ScanLine, Search, X } from 'lucide-react';
+import { ArrowRight, CircleCheck, MapPin, Search, X } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useEffect, useLayoutEffect, useRef, useState, type ReactElement } from 'react';
 import tokens from '../../../design-system/tokens.json';
@@ -300,7 +300,7 @@ export function MoneyFooter({ money = PRE_DINNER, dinnerOn, onScan }: MoneyFoote
         </div>
         <p className="text-heading-lg tu-pages__strong">{euros(money.spent)}</p>
       </div>
-      {!money.bill && dinnerOn && <TextButton label="Scan the bill" icon={ScanLine} size="lg" wide onClick={onScan} />}
+      {!money.bill && dinnerOn && <TextButton label="Scan the bill" size="lg" wide onClick={onScan} />}
     </SheetFooter>
   );
 }
@@ -405,7 +405,7 @@ export function AddFooter({ step, draft, onSent }: { step: AddStep; draft: PlanD
   };
   return (
     <SheetFooter>
-      <TextButton label="Copy link" icon={Copy} size="lg" wide onClick={copy} />
+      <TextButton label="Copy link" size="lg" wide onClick={copy} />
     </SheetFooter>
   );
 }

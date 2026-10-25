@@ -1,4 +1,4 @@
-import { Banknote, Calendar, Check, Clock, Globe, MapPin, Navigation, Phone, ScanLine, Truck, X, type LucideIcon } from 'lucide-react';
+import { Banknote, Calendar, Check, Clock, Globe, MapPin, Phone, Truck, X, type LucideIcon } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion, type MotionValue, type Variants } from 'motion/react';
 import { createContext, useContext, useState, type CSSProperties, type ReactNode } from 'react';
 import tokens from '../../../design-system/tokens.json';
@@ -344,8 +344,8 @@ export function DetailSheet(p: DetailSheetProps) {
       {tab === 'Overview' && p.at && (
         <motion.div className="tu-sheet__footer-wrap" style={{ opacity: p.contentOpacity }}>
         <motion.div className="tu-sheet__footer tu-sheet__actions" variants={block} custom={1} initial="hidden" animate="shown">
-          {site && <TextButton variant="soft" label="Website" icon={Globe} size="lg" wide onClick={() => openWebsite(site.text)} />}
-          <TextButton label="Directions" icon={Navigation} size="lg" wide onClick={() => openDirections(p.at!)} />
+          {site && <TextButton variant="soft" label="Website" size="lg" wide onClick={() => openWebsite(site.text)} />}
+          <TextButton label="Directions" size="lg" wide onClick={() => openDirections(p.at!)} />
         </motion.div>
         </motion.div>
       )}
@@ -365,7 +365,7 @@ export function DetailSheet(p: DetailSheetProps) {
           </div>
           {p.bill
             ? <TextButton variant="soft" label="See who owes what" size="lg" wide onClick={p.onSettle} />
-            : p.active && <TextButton label="Scan the bill" icon={ScanLine} size="lg" wide onClick={p.onScan} />}
+            : p.active && <TextButton label="Scan the bill" size="lg" wide onClick={p.onScan} />}
         </motion.div>
         </motion.div>
       )}

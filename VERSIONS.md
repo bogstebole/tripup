@@ -640,6 +640,10 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - Tokens: `spring-pop` (0.4 s, bounce 0.3), `spring-fly` (0.7 s, 0.12), the splash's timings (`splash-*`) and sizes (`splash/dot-scale`, `splash/word`, `splash/sticker`, `splash/ring`); the stickers' places around TripUp are `splashStickers` in `data.dart`. The perf and Figma drivers skip it (`splashOnStart`).
 - **Checked** on the iPhone 17 Pro Max simulator from cold launches, frame by frame, and by the recording's frame times (no gaps over 50 ms during the splash).
 
+### Final UI, iteration 1.53: text buttons without icons (branch `fix/text-buttons-no-icons`)
+- Bogdan: the label says what a button does, so no icons on text buttons. Gone from Website, Directions, Scan the bill (both) and Copy link. The one icon left is a state mark, the check on Your vote. Storybook the same (its TextButton story shows Pay, Vote, Your vote); Figma's Text button has Show icon off by default and on no screen.
+- **Checked** on the iPhone 17 Pro Max simulator (Overview's footer) and in Figma (Overview, Who's here).
+
 ### Final UI, iteration 1.52: Money's top, simpler (branch `fix/money-top`)
 - Bogdan: "5 people · split by who had what" was more than Money needs, so its page opens straight on what I owe. The owe pill has space/xl (24) in on the left, as Bogdan set it on the Figma component, so the words sit clear of the curve; app and Storybook follow, and the four Money screens in Figma lost their intro line.
 - **Checked** on the iPhone 17 Pro Max simulator.

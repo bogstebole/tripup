@@ -75,7 +75,8 @@ class TuButton extends StatelessWidget {
   }
 }
 
-/// A glass pill with a label (and an optional icon before it), for actions a bare icon can't say: Pay, Copy link.
+/// A glass pill with a label, for actions a bare icon can't say: Pay, Copy link. The label says it, so there's no icon;
+/// [icon] is only for a state mark, the check on Your vote.
 class TuTextButton extends StatelessWidget {
   const TuTextButton({super.key, required this.label, this.icon, this.kind = GlassKind.primary, this.size = TuButtonSize.md, this.wide = false, this.onTap});
   final String label;
