@@ -205,9 +205,10 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 
 ## Bogdan's buttons (25 Oct)
 
-- **His buttons are the source** (Figma 129:7592; mine were close but missed something): the white edge outside and a stronger pressed-in edge are what make them read as one raised object. They went into the tokens, so the app, Storybook and Figma all follow from one place.
-- **Our tokens where they exist,** new primitives only where his colours have no match (`zinc.350`, `sky.650`); his soft fill was a hair off our `bg/muted`, so ours stayed.
-- **Not "glass":** in Figma the styles are named after the tokens, Button/Soft and Button/Primary. The app's widget keeps its name (`Glass`) to avoid a rename across the code.
+- **His buttons fix Figma, not the app** (Figma 129:7592). The app's buttons were right; only their Figma copies looked off, because Figma blurs inner shadows differently from the app's painter, so the same numbers read flatter there. So his pressed-in edges live in the Figma effect styles only, and the app, Storybook and `tokens.json` stay as they were (1.40).
+  - First we put his values into the tokens and the app (1.41), with the thin white edge his frames have. Bogdan: keep the app's buttons. Reverted in 1.42.
+- **No white edge anywhere.** It was a hidden stroke in his file, not part of the design; it's gone from Figma too (and the `button/edge` variables with it).
+- **Not "glass":** in Figma the styles are named Button/Soft and Button/Primary, and their descriptions say why their values differ from `inset.button-*`. The app's widget keeps its name (`Glass`) to avoid a rename across the code.
 
 ## The final UI in Figma (25 Oct)
 
@@ -218,6 +219,15 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 - **The flows follow the brief's scenario,** grouped as epics with their stories and criteria, in Bogdan's example format: the stories read as the acceptance criteria for the screens next to them.
 - **What we didn't do:** a flat export of the app's drawing into Figma (it would match pixels but have no auto layout or components).
 - **The Live Activity is its own story** (Vote from outside the app): the activity, the island and the notification are components built from the Swift code; the lock screen's wallpaper is a plain stand-in, since it's the phone's, not the app's.
+- **One story card per row** (Bogdan, from his Settling up): each flow row has its own card beside it, at the same height. Dividers only split extra detail within the same row's flow, never one story from the next.
+
+## Components, documented for people and agents (25 Oct)
+
+- **A page of their own, like Storybook:** page **Components**, a Read me first, then one section per category (Buttons, System, Your trips, Map, Scenes, Full view, Pop-ups, Poll, Bill, Live Activity, Assets) and one section per component. Each component section holds a docs card (what it does, use, avoid, props, code, Storybook, tokens, used in) and the component itself. The stickers moved here from Assets too.
+- **Written where agents actually read it.** We checked what Figma's MCP hands an agent: `get_design_context` returns the code, the property API (Kind → `kind`), variables by their code syntax (`var(--c-button-soft-bg)`), and every component's **description and documentation link**, nested ones included; `get_metadata` returns only names and positions. So the docs card's text is also the component's description, in labelled lines (Use:, Avoid:, Props:, Code:, Tokens:), and the documentation link opens the widget's file on GitHub. Icons name their `TuIcons` constant, stickers their `Sticker('…')` file.
+- **Names an agent can't misread:** sections, cards and components share one name; text layers are named by role (What, Props, Code); property names follow the code's parameters, and no component has two properties with the same name (Sheet row's and Icon row's colour variant became Subtitle color = `subtitleColor`, Payment row's became State).
+- **An index in the repo:** `design-system/COMPONENTS.md`, built from `design-system/components.json` (the hand-written docs plus node ids, component keys and property APIs), split by category with an index on top, so an agent can find a component without opening Figma.
+- **What we didn't do:** Code Connect (it needs a paid Organization plan and a published library; the description and documentation link carry the same pointer to the code), and Dev Mode annotations (Figma's MCP docs don't say they reach the agent; descriptions demonstrably do).
 
 ## Getting there from the details, and one backdrop (24 Oct)
 

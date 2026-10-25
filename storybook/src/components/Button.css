@@ -6,8 +6,8 @@
   border-radius: var(--radius-pill);
   transition: transform var(--press-ms) var(--ease-out);
 }
-.tu-btn--soft { background: var(--c-button-soft-bg); color: var(--c-button-soft-fg); box-shadow: 0 0 0 var(--d-button-edge-width) var(--c-button-edge), var(--inset-button-soft), var(--shadow-slightly-raised); }
-.tu-btn--primary { background: var(--c-button-primary-bg); color: var(--c-button-primary-fg); box-shadow: 0 0 0 var(--d-button-edge-width) var(--c-button-edge), var(--inset-button-primary), var(--shadow-slightly-raised); }
+.tu-btn--soft { background: var(--c-button-soft-bg); color: var(--c-button-soft-fg); box-shadow: var(--inset-button-soft), var(--shadow-slightly-raised); }
+.tu-btn--primary { background: var(--c-button-primary-bg); color: var(--c-button-primary-fg); box-shadow: var(--inset-button-primary), var(--shadow-slightly-raised); }
 .tu-btn--sm { width: var(--d-button-sm); height: var(--d-button-sm); }
 .tu-btn--md { width: var(--d-button-md); height: var(--d-button-md); }
 .tu-btn--lg { width: var(--d-button-lg); height: var(--d-button-lg); }

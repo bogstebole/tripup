@@ -612,6 +612,19 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - From his buttons (Figma 129:7592): a thin white edge outside every raised button (`button/edge`, `button/edge-width` 0.96, outside), and his pressed-in edges: soft `inset.button-soft` = white 3.2 down, `zinc.350` (#c0c0c0, new) −8 with −4.8 spread, white 25% −1; primary `inset.button-primary` = `sky.650` (#0186df, new) 4.2 down, `blue.975`@51 −8 with −1.8 spread, `sky.650`@68 −2. His soft fill (#e7e7e7) stays our `button/soft-bg` (#e4e4e7).
 - App: `Glass` draws the edge (a border outside the rounded box); every button, chip, pill and the Money pile follows. Storybook: the same edge as an outer ring before the inset. Figma: effect styles renamed **Button/Soft** and **Button/Primary** (they were "Glass", which they aren't), with his values, and the edge on every component that uses them.
 - **Checked** side by side with his two buttons in Figma, and on the iPhone 17 Pro Max simulator (the trip map's buttons).
+- Reverted in the app by 1.42: his buttons were meant for Figma only.
+
+### Final UI, iteration 1.42: the app's buttons back (branch `feature/figma-docs`)
+- Bogdan: the app's buttons were right, only Figma's needed fixing. `tokens.json`, `Glass`, Storybook's Button and Home CSS, and the generated tokens are back to 1.40, byte for byte; no white edge.
+- Figma keeps his pressed-in edges in the effect styles **Button/Soft** and **Button/Primary** (Figma blurs inner shadows differently, so it needs its own values); the white edge is gone there too, with the `button/edge` variables.
+- **Checked** on the iPhone 17 Pro Max simulator: Your trips' buttons as before 1.41.
+
+### Figma: one story card per row, and a Components page (branch `feature/figma-docs`, 25 Oct)
+- Final UI: every epic now has one story card per flow row, beside it at the same height, like Bogdan's Settling up. **Vote from outside the app** is back in Choosing dinner as its third row (it had landed in The bill), and The bill and Settling up moved down so no two epics overlap.
+- New page **Components**: a Read me, then a section per category and per component (86), each with a docs card: what it does, use, avoid, props and how they map to the code, the widget and its file, the Storybook story, the tokens it uses (read from its variables) and where it's used (screens and parent components). The same text is each component's description, and its documentation link opens its file on GitHub. All components moved here from Final UI, and the sticker library from Assets; every screen instance still points at them (2,078 checked).
+- Duplicate property names fixed: Sheet row and Icon row (Subtitle color), Payment row (State).
+- `design-system/components.json` + `design-system/build-components-doc.mjs` → `design-system/COMPONENTS.md`: the index for agents, with node ids, component keys and property APIs.
+- **Checked** with Figma's MCP: `get_design_context` on a component returns its description, documentation link and its nested icon's `TuIcons` name.
 
 ### One link to the latest prototype
 - `prototype/latest.html` always opens the newest `prototype/versions/vN-*.html` (highest N). Locally: http://localhost:8765/prototype/latest.html
