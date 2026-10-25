@@ -194,6 +194,9 @@ class TripCardFace extends StatelessWidget {
   }
 }
 
+/// Whether the card's stickers show: not while the splash's copies of them are flying onto the card.
+final homeCardStickersShown = ValueNotifier(true);
+
 /// The still of the city with its stickers, at the design's size (the card scales it to fit).
 class _HomeMap extends StatelessWidget {
   const _HomeMap();
@@ -218,7 +221,12 @@ class _HomeMap extends StatelessWidget {
             Positioned(
               left: s.center.dx,
               top: s.center.dy,
-              child: FractionalTranslation(translation: const Offset(-0.5, -0.5), child: Sticker(s.sticker, height: s.height, tilt: s.tilt)),
+              // Hidden while the splash's copies fly here
+              child: ValueListenableBuilder(
+                valueListenable: homeCardStickersShown,
+                child: FractionalTranslation(translation: const Offset(-0.5, -0.5), child: Sticker(s.sticker, height: s.height, tilt: s.tilt)),
+                builder: (context, shown, child) => Opacity(opacity: shown ? 1 : 0, child: child),
+              ),
             ),
         ]),
       );

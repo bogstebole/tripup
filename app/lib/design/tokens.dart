@@ -431,6 +431,11 @@ abstract final class TokDim {
   static const double meCone = 24;
   static const double topBarFadeStart = 0.5;
   static const double actionBarFadeStart = 0;
+  static const double splashDotScale = 4;
+  static const double splashWord = 52;
+  static const double splashWordGap = 16;
+  static const double splashSticker = 88;
+  static const double splashRing = 160;
 }
 
 abstract final class TokFont {
@@ -486,6 +491,8 @@ abstract final class TokMotion {
   static const springCollapse = TokSpring(0.38, 0);
   static const springSnap = TokSpring(0.35, 0);
   static const springOpen = TokSpring(0.45, 0);
+  static const springPop = TokSpring(0.4, 0.3);
+  static const springFly = TokSpring(0.7, 0.12);
   static const double crossfadeBlur = 2;
   static const double enterBlur = 4;
   static const double morphEnterScale = 0.9;
@@ -510,6 +517,11 @@ abstract final class TokMotion {
   static const pinOut = Duration(milliseconds: 150);
   static const double pinInAt = 0.55;
   static const double pinMiniAt = 0.35;
+  static const double splashPopFrom = 0.6;
+  static const splashWordAt = Duration(milliseconds: 220);
+  static const splashStickersAt = Duration(milliseconds: 500);
+  static const splashStickerStagger = Duration(milliseconds: 70);
+  static const splashAssembleAt = Duration(milliseconds: 1250);
   static const easeOut = Cubic(0.23, 1, 0.32, 1);
   static const easeInOut = Cubic(0.77, 0, 0.175, 1);
   static const easeDrawer = Cubic(0.32, 0.72, 0, 1);

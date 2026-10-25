@@ -21,6 +21,7 @@ import '../components/join.dart';
 import '../components/map_shapes.dart';
 import '../components/map_tiles.dart';
 import '../components/people_layer.dart';
+import '../components/splash.dart';
 import '../components/plan_pin.dart';
 import '../components/poll.dart';
 import '../components/stagger.dart';
@@ -62,6 +63,9 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   /// while the list behind fades and leans in. Back closes it into the card again.
   late final _home = AnimationController.unbounded(vsync: this, value: 1);
   final _homeKey = GlobalKey(), _homeCardKey = GlobalKey();
+
+  /// The splash on a cold start (none with reduced motion).
+  bool _splash = splashOnStart && !ui.PlatformDispatcher.instance.accessibilityFeatures.disableAnimations;
 
   /// Where the trip card is on the screen, taken as a transition starts.
   Rect? _homeCard;
@@ -140,6 +144,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    homeCardStickersShown.value = !_splash;
     // The map's style and tiles load right after the first frame (Your trips), not before it; draw it once they're ready
     SchedulerBinding.instance.addPostFrameCallback((_) => MapTiles.start());
     MapTiles.source.addListener(_sceneChanged);
@@ -1198,6 +1203,16 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
             ),
           ),
         ),
+        if (_splash)
+          Positioned.fill(
+            child: Splash(
+              cardKey: _homeCardKey,
+              onDone: () {
+                homeCardStickersShown.value = true;
+                setState(() => _splash = false);
+              },
+            ),
+          ),
       ]),
     );
   }

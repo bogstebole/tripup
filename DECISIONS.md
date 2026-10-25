@@ -234,6 +234,14 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 - **Overview ends with Website and Directions,** fixed at the bottom while the page scrolls, like the Group page's Scan the bill. Directions is the primary one: on a trip the question is "how do I get there", and it opens the phone's maps app straight to walking directions (Apple Maps on iPhone, Google Maps elsewhere), with no step in between. Website is the soft one and only shows when the place has a site. We didn't draw directions inside TripUp: the maps apps already do it better, and the trip's map is for the group, not for routing.
 - **Every backdrop is the poll's** (Bogdan: the expanded poll's darker backdrop was better). Behind sheets, pop-ups and details the map now gets the same deep blue tint at 23% with a light blur, instead of a white wash with a heavier blur. The sheet stands out more, and it's one look everywhere. On Android before 10 it's the same tint, a little stronger, with no blur. The trip's opening keeps its own stronger blur, since that's a transition, not a backdrop.
 
+## The splash (25 Oct)
+
+- **The loader becomes the page** (the amo.co reference from 21 Oct): no spinner and no logo screen that cuts to the app. The trip's own stickers pop up around the mark and then fly onto the trip card, so the splash assembles Your trips instead of standing in front of it.
+- **The mark is my dot and TripUp,** because that's the app icon (my location) and there's no other logo; the wordmark is our display face, bigger.
+- **Short and out of the way:** under 2 s, a tap skips ahead, none with reduced motion; the launch screen is the same blue on iOS and Android, so the first frame doesn't cut.
+- **Delight is allowed here:** it's seen once per cold start, so the stickers pop with a bouncier spring than the rest of the app (`spring-pop`).
+- **What we didn't do:** a long amo-style collage (11 s is for a website, not a cold start), more stickers than the card has (they'd have nowhere to land), or a logo that writes itself (there's no script logo to draw).
+
 ## Mini pin ↔ Up next: one content at a time (25 Oct)
 
 - **Swap the content, not morph it** (Bogdan: everything overlapped). The surface still grows and shrinks as one object with its spring; what's on it swaps like the Dynamic Island's: the old leaves, the surface changes size, the new comes in. Two layouts are never on screen together.

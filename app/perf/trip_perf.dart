@@ -21,6 +21,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:tripup/components/glass.dart';
 import 'package:tripup/components/segmented_tabs.dart';
+import 'package:tripup/components/splash.dart';
 import 'package:tripup/components/toggle_chips.dart';
 import 'package:tripup/main.dart';
 
@@ -254,6 +255,7 @@ class Player {
 
   /// A fresh app, as it opens on Your trips; then (unless not [inTrip]) into the trip: tiles loaded, the Up next card up.
   Future<Size> start({bool inTrip = true, int settle = 6000}) async {
+    splashOnStart = false;   // straight to Your trips: the timings and taps start there
     runApp(KeyedSubtree(key: UniqueKey(), child: const TripUpApp()));
     await wait(settle);
     if (inTrip) {

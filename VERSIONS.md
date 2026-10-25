@@ -633,6 +633,13 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - Storybook's Widget/Up next morphs the same way (the delays come from the same spring).
 - **Checked** on the iPhone 17 Pro Max simulator, frame by frame from screen recordings: opening the trip (mini → card) and moving the map (card → mini); and in Storybook, by sampling each part's opacity per frame.
 
+### Final UI, iteration 1.44: the splash (branch `feature/splash`)
+- On a cold start, on Your trips' blue: my dot pops in (the app icon's motif), **TripUp** comes in under it, and the four stickers on the Lisbon card (Belém, the rooster, the tile, the caravel) pop up around them, 70 ms apart. At 1.25 s the mark blurs away, the blue thins out to Your trips, and the stickers fly onto their exact places on the trip card (they're hidden on the card until they land). About 1.85 s from the first frame; a tap skips ahead to the flight; with reduced motion there's no splash.
+- Your trips is drawn under the splash from the first frame, so revealing it costs nothing: drawing it for the first time at the reveal dropped frames on the simulator.
+- iOS's launch screen is now the same blue (a `LaunchBackground` colour generated from `home/bg` by `build-tokens.mjs`), so there's no white flash before it; Android's already was.
+- Tokens: `spring-pop` (0.4 s, bounce 0.3), `spring-fly` (0.7 s, 0.12), the splash's timings (`splash-*`) and sizes (`splash/dot-scale`, `splash/word`, `splash/sticker`, `splash/ring`); the stickers' places around TripUp are `splashStickers` in `data.dart`. The perf and Figma drivers skip it (`splashOnStart`).
+- **Checked** on the iPhone 17 Pro Max simulator from cold launches, frame by frame, and by the recording's frame times (no gaps over 50 ms during the splash).
+
 ### Storybook: no credit to Emil's rules (branch `docs/storybook-motion`)
 - Introduction's Motion no longer says the motion follows Emil Kowalski's rules (Bogdan: we used too few of them to claim it). The rules it lists stay, since they describe what the app does.
 
