@@ -54,7 +54,6 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   /// Which footer pop-up is up (or closing), if any.
   _Popup? _popup;
   bool _popClosing = false;
-  final _todayKey = GlobalKey();
 
   /// The camera is up, scanning the dinner's bill.
   bool _scanning = false;
@@ -761,7 +760,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
 
     void dragUpdate(DragUpdateDetails d) => _popDrag.value = math.max(0, _popDrag.value + d.delta.dy);
     final (title, subtitle, page) = switch (_popup!) {
-      _Popup.itinerary => ('Itinerary', ItineraryPage.subtitle, ItineraryPage(todayKey: _todayKey, days: _planDays, onOpen: _openDetails, onPoll: () => setState(() => _popup = _Popup.poll), onPick: (at) {
+      _Popup.itinerary => ('Itinerary', ItineraryPage.subtitle, ItineraryPage(days: _planDays, onOpen: _openDetails, onPoll: () => setState(() => _popup = _Popup.poll), onPick: (at) {
           _closePopup();
           _flyTo(at);
         }) as Widget),
@@ -797,7 +796,6 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           onClose: () => _closePopup(),
           onHeaderDragUpdate: dragUpdate,
           onHeaderDragEnd: dragEnd,
-          focus: _popup == _Popup.itinerary ? _todayKey : null,
           onBack: _popup == _Popup.add && _addStep != AddStep.choose
               ? _addBack
               : _popup == _Popup.money && _moneyStep != MoneyStep.list

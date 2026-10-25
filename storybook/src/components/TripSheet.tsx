@@ -1,6 +1,6 @@
 import { ArrowLeft, X } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion, type Variants } from 'motion/react';
-import { Children, isValidElement, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { Children, isValidElement, useEffect, useRef, useState, type ReactNode } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import { Button } from './Button';
 import { easedFade } from './easedFade';
@@ -21,7 +21,7 @@ export interface TripSheetProps {
   title: string;
   /** A line on what the pop-up is for, at the top of its page (not in the header, so the header stays one line). */
   subtitle?: string;
-  /** The page, top to bottom. The sheet scrolls it; a block marked `data-sheet-focus` opens scrolled to just under the header. */
+  /** The page, top to bottom. The sheet scrolls it, and opens at its top. */
   children: ReactNode;
   onClose?: () => void;
   /** Add's choice and its invite: only a few rows, so it stops at sheet/compact-height and sits at the bottom of its
@@ -56,18 +56,6 @@ export function TripSheet({ title, subtitle, children, onClose, compact, footer,
   const scroll = useRef<HTMLDivElement>(null);
   // How far the page has scrolled under the header, 0–1 over the top fade's height
   const [under, setUnder] = useState(0);
-
-  // Open on the marked block (today, in the itinerary): its top just under the header
-  useLayoutEffect(() => {
-    const el = scroll.current, at = el?.querySelector<HTMLElement>('[data-sheet-focus]');
-    if (!el || !at) return;
-    // Its layout position in the page (the blocks are still mid-stagger, so not their rects); each arriving block
-    // has a transform, which makes it the offsetParent of what's inside, so add up the chain
-    let y = 0;
-    for (let n: HTMLElement | null = at; n && n !== el; n = n.offsetParent as HTMLElement | null) y += n.offsetTop;
-    el.scrollTop = y - parseFloat(getComputedStyle(el).paddingTop);
-    setUnder(Math.min(1, el.scrollTop / topFade));
-  }, []);
 
   // Full transform strings, so Motion runs them on the compositor
   const away = `translate(0px, calc(100% + ${inset}px))`;

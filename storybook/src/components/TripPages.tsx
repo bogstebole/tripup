@@ -104,7 +104,7 @@ export function ItineraryPage({ onPick, onOpen, poll, onPoll, now = TRIP_NOW, da
           )),
         ];
         return (
-          <div key={day} className="tu-day-block" data-sheet-focus={day === TODAY || undefined}>
+          <div key={day} className="tu-day-block">
             {k > 0 && <div className="tu-day-block__line"><Hairline /></div>}
             <div className="tu-day">
               <h3 className={`text-heading-sm ${day < TODAY ? 'tu-pages__muted' : 'tu-pages__strong'}`}>{label}</h3>

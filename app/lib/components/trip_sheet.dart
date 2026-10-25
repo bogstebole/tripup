@@ -21,7 +21,6 @@ class TripSheet extends StatefulWidget {
     this.onClose,
     this.onHeaderDragUpdate,
     this.onHeaderDragEnd,
-    this.focus,
     this.footer,
     this.top,
     this.onBack,
@@ -45,10 +44,7 @@ class TripSheet extends StatefulWidget {
   /// A line on what the pop-up is for, at the top of its page (not in the header, so the header stays one line).
   final String? subtitle;
 
-  /// A block to open scrolled to (today, in the itinerary), just under the header.
-  final GlobalKey? focus;
-
-  /// The page, top to bottom. The sheet scrolls it.
+  /// The page, top to bottom. The sheet scrolls it, and opens at its top.
   final Widget child;
   final VoidCallback? onClose;
   final GestureDragUpdateCallback? onHeaderDragUpdate;
@@ -70,18 +66,6 @@ class _TripSheetState extends State<TripSheet> {
   final _under = ValueNotifier<double>(0);
 
   final _scroll = ScrollController();
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final at = widget.focus?.currentContext;
-      if (!mounted || at == null || !_scroll.hasClients) return;
-      Scrollable.ensureVisible(at);   // its top at the top of the view…
-      final pos = _scroll.position;   // …then back down by the header, so it sits just under it
-      _scroll.jumpTo((pos.pixels - _header - TokSpace.md).clamp(pos.minScrollExtent, pos.maxScrollExtent));
-    });
-  }
 
   @override
   void didUpdateWidget(TripSheet old) {
