@@ -8,7 +8,8 @@ import 'stagger.dart';
 
 enum GlassKind { soft, primary }
 
-/// The glass body shared by buttons, the people pill and tappable rows: fill, pressed-in edge, slight lift.
+/// The raised body shared by buttons, the people pill and tappable rows (Bogdan's buttons, Figma 129:7592): fill, a
+/// thin white edge outside, the pressed-in edge inside, slight lift.
 class Glass extends StatelessWidget {
   const Glass({super.key, required this.kind, required this.radius, this.padding, this.child, this.width, this.height});
   final GlassKind kind;
@@ -28,6 +29,7 @@ class Glass extends StatelessWidget {
       decoration: BoxDecoration(
         color: soft ? t.cButtonSoftBg : t.cButtonPrimaryBg,
         borderRadius: radius,
+        border: Border.all(color: t.cButtonEdge, width: TokDim.buttonEdgeWidth, strokeAlign: BorderSide.strokeAlignOutside),
         boxShadow: TokShadow.slightlyRaised,
       ),
       child: CustomPaint(
