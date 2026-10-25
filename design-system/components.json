@@ -122,6 +122,17 @@
           "id": "95:1492",
           "key": "58299270ce357d26ef6de654cc201ffd2cdf9630",
           "figmaProps": "Sticker (instance swap)"
+        },
+        {
+          "name": "Splash mark",
+          "what": "The splash's mark on a cold start: my dot (the app icon's motif, four times the map's, with its ring) and TripUp in the display face, centred on Your trips' blue.",
+          "use": "Step=dot while the dot pops in (TripUp is there but not yet showing, so the dot sits where it ends up); Step=word once TripUp has come in. The trip's stickers pop up around it (Sticker instances, splash/sticker high, splash/ring from the centre), then fly onto the trip card.",
+          "props": "Step=dot|word.",
+          "code": "Splash · app/lib/components/splash.dart",
+          "section": "159:6443",
+          "id": "159:6442",
+          "key": "c96ff46358b0776facdb6a3728f2adb0faf06b7a",
+          "figmaProps": "Step=dot|word"
         }
       ]
     },
