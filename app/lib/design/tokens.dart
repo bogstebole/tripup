@@ -507,6 +507,9 @@ abstract final class TokMotion {
   static const double pressScale = 0.97;
   static const press = Duration(milliseconds: 120);
   static const fade = Duration(milliseconds: 160);
+  static const pinOut = Duration(milliseconds: 150);
+  static const double pinInAt = 0.55;
+  static const double pinMiniAt = 0.35;
   static const easeOut = Cubic(0.23, 1, 0.32, 1);
   static const easeInOut = Cubic(0.77, 0, 0.175, 1);
   static const easeDrawer = Cubic(0.32, 0.72, 0, 1);

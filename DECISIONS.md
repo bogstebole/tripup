@@ -234,6 +234,13 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 - **Overview ends with Website and Directions,** fixed at the bottom while the page scrolls, like the Group page's Scan the bill. Directions is the primary one: on a trip the question is "how do I get there", and it opens the phone's maps app straight to walking directions (Apple Maps on iPhone, Google Maps elsewhere), with no step in between. Website is the soft one and only shows when the place has a site. We didn't draw directions inside TripUp: the maps apps already do it better, and the trip's map is for the group, not for routing.
 - **Every backdrop is the poll's** (Bogdan: the expanded poll's darker backdrop was better). Behind sheets, pop-ups and details the map now gets the same deep blue tint at 23% with a light blur, instead of a white wash with a heavier blur. The sheet stands out more, and it's one look everywhere. On Android before 10 it's the same tint, a little stronger, with no blur. The trip's opening keeps its own stronger blur, since that's a transition, not a backdrop.
 
+## Mini pin ↔ Up next: one content at a time (25 Oct)
+
+- **Swap the content, not morph it** (Bogdan: everything overlapped). The surface still grows and shrinks as one object with its spring; what's on it swaps like the Dynamic Island's: the old leaves, the surface changes size, the new comes in. Two layouts are never on screen together.
+- **Exit fast, enter in order:** leaving is an even 150 ms fade with a blur (the strong ease-out made it a cut); coming in, the card's parts follow one another from the top, the order people read them. The next content starts from the spring's progress, not a timer, so it never comes in while the surface is still far from its size.
+- **The card's content hangs from its top edge** while it grows, so the label can come in early without being clipped; the surface is only empty for about three frames.
+- **What we didn't do:** keep the shared sticker and name travelling between the two (the cause of the overlap), or scale the card's content with the surface (text would stretch).
+
 ## Voting from outside the app (24 Oct)
 
 - **A Live Activity, not a home-screen widget.** The poll lasts half an hour and is about "now", which is what Live Activities are for: it appears on the lock screen and in the Dynamic Island as the poll opens, with the countdown, how many have voted, each place with a bar and its count, and a vote button per place (filled in brand once it's yours). Tapping a button votes without opening the app; the vote shows on the activity at once and in the app. A home-screen widget suits something that lasts (the trip's Up next), so we didn't build one.

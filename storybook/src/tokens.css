@@ -292,6 +292,9 @@
   --press-scale: 0.97;
   --press-ms: 120ms;
   --fade-ms: 160ms;
+  --pin-out-ms: 150ms;
+  --pin-in-at: 0.55;
+  --pin-mini-at: 0.35;
 }
 [data-theme="dark"] {
   --color-bg-canvas: #09090b;
