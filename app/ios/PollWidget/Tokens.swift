@@ -419,6 +419,11 @@ enum TokDim {
   static let meCone: CGFloat = 24
   static let topBarFadeStart: CGFloat = 0.5
   static let actionBarFadeStart: CGFloat = 0
+  static let splashDotScale: CGFloat = 4
+  static let splashWord: CGFloat = 52
+  static let splashWordGap: CGFloat = 16
+  static let splashSticker: CGFloat = 88
+  static let splashRing: CGFloat = 160
 }
 
 enum TokText {
