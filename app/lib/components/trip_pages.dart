@@ -20,7 +20,7 @@ import 'trip_sheet.dart';
 /// Every day of the trip, in order: where we've been, what's planned, and today marked. Tapping a stop shows it
 /// on the map.
 class ItineraryPage extends StatelessWidget {
-  const ItineraryPage({super.key, this.onPick, this.onOpen, this.todayKey, this.onPoll, this.days = const {}});
+  const ItineraryPage({super.key, this.onPick, this.onOpen, this.onPoll, this.days = const {}});
 
   /// A place we've been: show it on the map.
   final ValueChanged<LatLng>? onPick;
@@ -33,9 +33,6 @@ class ItineraryPage extends StatelessWidget {
 
   /// Opens the dinner poll (from tonight's slot, while it isn't decided).
   final VoidCallback? onPoll;
-
-  /// Put on today's block, so the pop-up can open there.
-  final GlobalKey? todayKey;
 
   static String get subtitle => '${tripDays.first}–${tripDays.last} May · Day ${tripDays.indexOf(today) + 1} of ${tripDays.length}';
 
@@ -84,7 +81,7 @@ class ItineraryPage extends StatelessWidget {
                 onTap: onOpen == null ? null : () => onOpen!(p),
               ),
           ];
-          return Column(key: day == today ? todayKey : null, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             if (k > 0) const Padding(padding: EdgeInsets.symmetric(vertical: TokSpace.md), child: Hairline()),
             Padding(
               padding: const EdgeInsets.fromLTRB(TokSpace.xs, 0, TokSpace.xs, TokSpace.x2xs),
