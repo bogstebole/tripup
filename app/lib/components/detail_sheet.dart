@@ -295,10 +295,10 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
           child: Row(spacing: TokSpace.xs, children: [
             if (site != null)
               Expanded(
-                child: TuTextButton(label: 'Website', icon: TuIcons.website, kind: GlassKind.soft, size: TuButtonSize.lg, wide: true, onTap: () => openWebsite(site.text)),
+                child: TuTextButton(label: 'Website', kind: GlassKind.soft, size: TuButtonSize.lg, wide: true, onTap: () => openWebsite(site.text)),
               ),
             Expanded(
-              child: TuTextButton(label: 'Directions', icon: TuIcons.directions, size: TuButtonSize.lg, wide: true, onTap: () => openDirections(p.at, p.name)),
+              child: TuTextButton(label: 'Directions', size: TuButtonSize.lg, wide: true, onTap: () => openDirections(p.at, p.name)),
             ),
           ]),
         ),
@@ -419,7 +419,7 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
                   if (bill != null)
                     TuTextButton(label: 'See who owes what', kind: GlassKind.soft, size: TuButtonSize.lg, wide: true, onTap: widget.onSettle)
                   else if (on)
-                    TuTextButton(label: 'Scan the bill', icon: TuIcons.scan, size: TuButtonSize.lg, wide: true, onTap: widget.onScan),
+                    TuTextButton(label: 'Scan the bill', size: TuButtonSize.lg, wide: true, onTap: widget.onScan),
                 ]),
               ),
             ]),

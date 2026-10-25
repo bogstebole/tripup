@@ -244,6 +244,11 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 - **No duplicate ways back:** a picked place's Change did what Back does, so it's gone, and the place's sticker (already on the map above it) left its row.
 - **Pay stays in Money's pill:** it's the action on that one debt (like Vote on a place), not the page's; the page's own action, Scan the bill, is in the footer.
 
+## Text buttons without icons (25 Oct)
+
+- **The label says it.** Icons had crept onto buttons that leave the app or use the phone (Website, Directions, the camera, the clipboard), but not consistently (Pay has none), and the words already say where each goes. So none; Bogdan chose it over keeping Directions and Scan the bill.
+- **One exception, and it's not an action:** the check on Your vote marks a state, so it stays.
+
 ## Up next opens by itself once (25 Oct)
 
 - **Once per launch, the first time into the trip** (Bogdan): that's when "what's next" helps. After it's been made small, browsing the days or the map shouldn't keep pushing it back open; a tap on its pin does. News about it (the poll's winner, a dinner picked by hand) still opens it, since that changes what's next.

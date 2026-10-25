@@ -34,7 +34,7 @@ export interface TextButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonEle
   wide?: boolean;
   /** The visible label; also the accessible name. */
   label: string;
-  /** An optional Lucide icon before the label, 16 px. */
+  /** A Lucide icon before the label, 16 px: only a state mark (the check on Your vote); actions have none. */
   icon?: LucideIcon;
 }
 

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { ArrowLeft, ArrowRight, Copy, MapPin, Plus, ScanLine, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, MapPin, Plus, X } from 'lucide-react';
 import { CrewButton } from './Bars';
 import { Button, TextButton } from './Button';
 
@@ -68,15 +68,16 @@ export const InContext: Story = {
 
 export const Text: Story = {
   name: 'TextButton',
-  parameters: { docs: { description: { story: 'A glass pill with a label, 44 px tall, for actions a bare icon can\'t say. Primary by default: Pay in the money pop-up, Copy link in the invite. At `lg` (56 px) and `wide`, it\'s the main action at the bottom of a page: Scan the bill and See who owes what in the full view\'s Group, the width of the page.' } } },
+  parameters: { docs: { description: { story: 'A glass pill with a label, 44 px tall, for actions a bare icon can\'t say. Primary by default: Pay in the money pop-up. At `lg` (56 px) and `wide`, it\'s the main action in a footer: Copy link in the invite, Scan the bill and See who owes what in the full view\'s Group, the width of the page. No icons: the label says it. The one icon is a state mark, the check on Your vote in the poll.' } } },
   render: () => (
     <div style={{ display: 'grid', gap: 'var(--space-md)', width: 343 }}>
       <div style={{ display: 'flex', gap: 'var(--space-md)' }}>
         <TextButton label="Pay" />
-        <TextButton label="Copy link" icon={Copy} />
-        <TextButton label="Copy link" icon={Copy} variant="soft" />
+        <TextButton label="Vote" variant="soft" />
+        <TextButton label="Your vote" icon={Check} />
       </div>
-      <TextButton label="Scan the bill" icon={ScanLine} size="lg" wide />
+      <TextButton label="Copy link" size="lg" wide />
+      <TextButton label="Scan the bill" size="lg" wide />
       <TextButton label="See who owes what" variant="soft" size="lg" wide />
     </div>
   ),

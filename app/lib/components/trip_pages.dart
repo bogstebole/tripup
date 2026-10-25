@@ -296,7 +296,7 @@ class MoneyFooter extends StatelessWidget {
                 ),
                 Text(euros(spentSoFar), style: TokText.headingLg.copyWith(color: t.textDefault)),
               ]),
-              if (scan) TuTextButton(label: 'Scan the bill', icon: TuIcons.scan, size: TuButtonSize.lg, wide: true, onTap: onScan),
+              if (scan) TuTextButton(label: 'Scan the bill', size: TuButtonSize.lg, wide: true, onTap: onScan),
           ]);
         },
       );
@@ -438,7 +438,6 @@ class AddPage extends StatefulWidget {
             AddStep.invite => SheetFooter(children: [
                 TuTextButton(
                   label: 'Copy link',
-                  icon: TuIcons.copy,
                   size: TuButtonSize.lg,
                   wide: true,
                   onTap: () {
