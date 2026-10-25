@@ -14,7 +14,7 @@ import { NoticeLayer, useNotice, type NoticeState } from './Notice';
 import { PollCard, PollPage, PollScrim, pollSubtitle } from './Poll';
 import { ToggleChips } from './ToggleChips';
 import {
-  addHeaderOf, AddFooter, AddPage, ITINERARY_SUBTITLE, ItineraryPage, MONEY_SUBTITLE, MoneyFooter, MoneyPage, type AddPageProps, type AddStep,
+  addHeaderOf, AddFooter, AddPage, ITINERARY_SUBTITLE, ItineraryPage, MoneyFooter, MoneyPage, type AddPageProps, type AddStep,
   type ItineraryPageProps, type MoneyTab, usePlanDraft,
 } from './TripPages';
 import { TripSheet } from './TripSheet';
@@ -176,7 +176,7 @@ function Screen({ start = null, open: shown, onOpen, money, itinerary, add, poll
       page: <ItineraryPage onPick={close} onOpen={openDetails} onPoll={poll && (() => setOpen('poll'))} {...itinerary} days={planDays} added={added} />,
       top: <ToggleChips label="Filter the itinerary by day" options={dayOptions} selected={planDays} onChange={setPlanDays} inset="xs" />,
     },
-    money: { title: 'Money', subtitle: MONEY_SUBTITLE, page: money?.page ?? <MoneyPage />, footer: money?.footer ?? <MoneyFooter /> },
+    money: { title: 'Money', page: money?.page ?? <MoneyPage />, footer: money?.footer ?? <MoneyFooter /> },
     add: {
       ...addHeader,
       page: <AddPage step={addStep} onStep={setAddStep} draft={draft} query={add?.query} place={add?.place} />,
@@ -486,7 +486,7 @@ export const ItineraryOneDay: Story = {
 };
 
 export const Money: Story = {
-  parameters: { docs: { description: { story: 'Before dinner. The subtitle: "5 people · split by who had what". On top, what I owe, in a rounded pill like Invite\'s link (bg-muted, radius-pill; md in on the left, xs on the other sides): a muted "You owe Maya" (body-sm) over €181.50 (heading-sm), each one line, and Pay at its end. Then tabs the width of the page, Settle up · Balances · Expenses (SegmentedTabs wide: the three share it equally; lg above), one list at a time, each under a section title with a line under it (lg above); so the expenses, the list that grows all trip, never push the rest away. Settle up comes first, as it\'s the one with something to do: "3 payments square everyone, instead of 9" (one expense at a time), each with its Why (tap it). Balances: "Who gets money back, and who owes", in plain words (see Money · balances). Expenses: "Newest first" (see Money · expenses). The footer stays put while the lists scroll, over a hairline: "Spent so far", "3 expenses · yours €181.50", and €726.00 (heading-lg) on the right, like the Menu\'s total. There\'s no estimate for tonight\'s dinner: it joins once its bill is in. Picking a tab slides the pill to it (spring-snap) and fades its list in (enter-ms, ease-out) while the last one fades out with a blur (fade-ms, enter-blur; reduced motion, no blur). Pay flips the pill to "You\'re square with Maya" over a green "Paid €181.50", with the done mark at its end (xs in), and a note comes down at the top; my payment row turns to Paid and the balances follow. Costs from before someone joined stay with the people who were there (Ren joined today).' } } },
+  parameters: { docs: { description: { story: 'Before dinner. On top, what I owe, in a rounded pill (bg-muted, radius-pill; xl in on the left, xs on the other sides): a muted "You owe Maya" (body-sm) over €181.50 (heading-sm), each one line, and Pay at its end. Then tabs the width of the page, Settle up · Balances · Expenses (SegmentedTabs wide: the three share it equally; lg above), one list at a time, each under a section title with a line under it (lg above); so the expenses, the list that grows all trip, never push the rest away. Settle up comes first, as it\'s the one with something to do: "3 payments square everyone, instead of 9" (one expense at a time), each with its Why (tap it). Balances: "Who gets money back, and who owes", in plain words (see Money · balances). Expenses: "Newest first" (see Money · expenses). The footer stays put while the lists scroll, over a hairline: "Spent so far", "3 expenses · yours €181.50", and €726.00 (heading-lg) on the right, like the Menu\'s total. There\'s no estimate for tonight\'s dinner: it joins once its bill is in. Picking a tab slides the pill to it (spring-snap) and fades its list in (enter-ms, ease-out) while the last one fades out with a blur (fade-ms, enter-blur; reduced motion, no blur). Pay flips the pill to "You\'re square with Maya" over a green "Paid €181.50", with the done mark at its end (xs in), and a note comes down at the top; my payment row turns to Paid and the balances follow. Costs from before someone joined stay with the people who were there (Ren joined today).' } } },
   render: () => <Screen start="money" />,
 };
 

@@ -120,9 +120,6 @@ export function ItineraryPage({ onPick, onOpen, poll, onPoll, now = TRIP_NOW, da
 
 // ---------- Money
 
-/** "5 people · split by who had what". What it has cost so far is in its footer (see MoneyFooter). */
-export const MONEY_SUBTITLE = `${PEOPLE.length} people · split by who had what`;
-
 /** Money's tabs: one list at a time, Settle up first (it's the one with something to do). */
 export const MONEY_TABS = ['Settle up', 'Balances', 'Expenses'] as const;
 export type MoneyTab = (typeof MONEY_TABS)[number];
