@@ -207,6 +207,9 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 
 - **His buttons fix Figma, not the app** (Figma 129:7592). The app's buttons were right; only their Figma copies looked off, because Figma blurs inner shadows differently from the app's painter, so the same numbers read flatter there. So his pressed-in edges live in the Figma effect styles only, and the app, Storybook and `tokens.json` stay as they were (1.40).
   - First we put his values into the tokens and the app (1.41), with the thin white edge his frames have. Bogdan: keep the app's buttons. Reverted in 1.42.
+- **Why ours looked worse in Figma (found 25 Oct): one setting.** Side by side on white, his and ours had the same effects to the last decimal, yet ours had a thicker, darker grey band at the bottom. Testing one difference at a time, it was Clip content: off on ours, on in his inner circle. Without it Figma draws inner shadows bigger. Every raised body now has it on and matches his pixel for pixel, except the fill, which stays our `button/soft-bg` (#e4e4e7, the app's) rather than his #e7e7e7.
+  - Where something may spill over the edge (the Money button's faces), the glass is a body layer behind the content, his structure, so the faces aren't cut.
+  - We didn't rebuild every button from his frames: his are two of our twelve variants with the same values, and rebuilding would have broken the 175 instances on the screens.
 - **No white edge anywhere.** It was a hidden stroke in his file, not part of the design; it's gone from Figma too (and the `button/edge` variables with it).
 - **Not "glass":** in Figma the styles are named Button/Soft and Button/Primary, and their descriptions say why their values differ from `inset.button-*`. The app's widget keeps its name (`Glass`) to avoid a rename across the code.
 
