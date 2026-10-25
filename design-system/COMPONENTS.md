@@ -491,10 +491,10 @@ Segmented tabs that fill the width: Money's Settle up, Balances, Expenses.
 
 ### Owe pill
 
-Money's top: what I owe and Pay; after I pay, squared with whoever I paid; once everyone has paid, the trip squared up in green.
+What I owe and Pay, at the bottom of Money just above its footer (where the thumb reaches); then square with whoever I paid; once everyone has paid, the trip squared up on green.
 
 - Props: Label · Amount · State=owe|paid|squared up.
-- Code: MoneyPage · app/lib/components/trip_pages.dart
+- Code: OwePill · app/lib/components/trip_pages.dart
 - Storybook: Money
 - Figma: node 123:5316 · key 3ffbc217e3e6fe29f00bf2485e1fa97ff76b2e2a · properties: Label (text), Amount (text), State=owe|paid|squared up (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=146-1269)
 

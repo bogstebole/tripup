@@ -640,6 +640,11 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - Tokens: `spring-pop` (0.4 s, bounce 0.3), `spring-fly` (0.7 s, 0.12), the splash's timings (`splash-*`) and sizes (`splash/dot-scale`, `splash/word`, `splash/sticker`, `splash/ring`); the stickers' places around TripUp are `splashStickers` in `data.dart`. The perf and Figma drivers skip it (`splashOnStart`).
 - **Checked** on the iPhone 17 Pro Max simulator from cold launches, frame by frame, and by the recording's frame times (no gaps over 50 ms during the splash).
 
+### Final UI, iteration 1.54: what I owe, at the bottom (branch `fix/owe-at-bottom`)
+- Bogdan: the owe pill (You owe Maya · Pay) goes down, just above the footer, for reach. It's now `OwePill` at the top of `MoneyFooter`, sm above its hairline, so it stays in view while the lists scroll; Money's page opens on its tabs. The pill follows payments itself (built as a const inside the footer, it didn't update after Pay at first).
+- Storybook the same (OwePill in MoneyFooter; the payments are kept by the story's host, so the rows and the pill change together). Figma: the four Money screens have the pill in an Owe slot above the Money footer.
+- **Checked** on the iPhone 17 Pro Max simulator (Pay: the row turns Paid and the pill "You're square with Maya"), in Storybook (Pop-ups · Money, Pay) and in Figma.
+
 ### Final UI, iteration 1.53: text buttons without icons (branch `fix/text-buttons-no-icons`)
 - Bogdan: the label says what a button does, so no icons on text buttons. Gone from Website, Directions, Scan the bill (both) and Copy link. The one icon left is a state mark, the check on Your vote. Storybook the same (its TextButton story shows Pay, Vote, Your vote); Figma's Text button has Show icon off by default and on no screen.
 - **Checked** on the iPhone 17 Pro Max simulator (Overview's footer) and in Figma (Overview, Who's here).

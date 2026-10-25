@@ -242,7 +242,7 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 - **Every pop-up is built the same way** (Bogdan): navigation in the header (Back where there's a step to go back from, Close), doing things in the footer, whether one wide button or two stacked. The full view (Overview's Website and Directions) already worked like that.
 - **The header is one line.** Back, the title and Close share the buttons' centre line; the line under the title fell out of that alignment, so it moved to the top of the page, lined up with the page's text, instead of being dropped (it says what the pop-up is for).
 - **No duplicate ways back:** a picked place's Change did what Back does, so it's gone, and the place's sticker (already on the map above it) left its row.
-- **Pay stays in Money's pill:** it's the action on that one debt (like Vote on a place), not the page's; the page's own action, Scan the bill, is in the footer.
+- **Pay stays in Money's pill, and the pill moves down** (Bogdan, on second thought): Pay is the action on that one debt (like Vote on a place), so it keeps its pill, but the pill sits at the bottom just above the footer, where the thumb reaches, and stays in view while the lists scroll. The page opens straight on its tabs.
 
 ## Text buttons without icons (25 Oct)
 

@@ -120,8 +120,10 @@ function PlanDetails({ plan, now, onClose }: { plan: Plan; now: Date; onClose: (
  * app, so the pop-up's header can follow it; each time Add opens, it's on the choice. A plan sent from it closes the
  * pop-up with a note, and is on the itinerary from then on.
  */
-function Screen({ start = null, open: shown, onOpen, money, itinerary, add, poll, notices: shared, planDays: firstDays = [], children }: {
+function Screen({ start = null, open: shown, onOpen, money, moneyTab, itinerary, add, poll, notices: shared, planDays: firstDays = [], children }: {
   start?: Which | null;
+  /** The tab Money opens on (Settle up, by default). */
+  moneyTab?: MoneyTab;
   open?: Which | null;
   onOpen?: (which: Which | null) => void;
   money?: { page: ReactNode; footer?: ReactNode };
@@ -147,6 +149,8 @@ function Screen({ start = null, open: shown, onOpen, money, itinerary, add, poll
   const draft = usePlanDraft(add?.start === 'plan' ? add?.place : undefined);
   // Plans the group added (Plan something's Send)
   const [added, setAdded] = useState<Plan[]>([]);
+  // My payments in Money (its Pay is in the footer; the page's rows follow)
+  const [made, setMade] = useState<Payment[]>([]);
   // A plan opened from the itinerary: its details, in the pop-up's place (the pop-up goes as they come)
   const [details, setDetails] = useState<Plan | null>(null);
   const openDetails = (plan: Plan) => {
@@ -176,7 +180,7 @@ function Screen({ start = null, open: shown, onOpen, money, itinerary, add, poll
       page: <ItineraryPage onPick={close} onOpen={openDetails} onPoll={poll && (() => setOpen('poll'))} {...itinerary} days={planDays} added={added} />,
       top: <ToggleChips label="Filter the itinerary by day" options={dayOptions} selected={planDays} onChange={setPlanDays} inset="xs" />,
     },
-    money: { title: 'Money', page: money?.page ?? <MoneyPage />, footer: money?.footer ?? <MoneyFooter /> },
+    money: { title: 'Money', page: money?.page ?? <MoneyPage tab={moneyTab} made={made} />, footer: money?.footer ?? <MoneyFooter made={made} onPay={p => setMade(m => [...m, p])} /> },
     add: {
       ...addHeader,
       page: <AddPage step={addStep} onStep={setAddStep} draft={draft} query={add?.query} place={add?.place} />,
@@ -306,8 +310,8 @@ function LiveMoney({ from, scanning: scanFirst = false }: { from: 'dinner-on' | 
     <Screen
       start="money"
       money={{
-        page: <MoneyPage money={money} made={made} onPay={pay} />,
-        footer: <MoneyFooter money={money} dinnerOn onScan={() => setScanning(true)} />,
+        page: <MoneyPage money={money} made={made} />,
+        footer: <MoneyFooter money={money} dinnerOn onScan={() => setScanning(true)} made={made} onPay={pay} />,
       }}
       notices={notices}
     >
@@ -486,12 +490,12 @@ export const ItineraryOneDay: Story = {
 };
 
 export const Money: Story = {
-  parameters: { docs: { description: { story: 'Before dinner. On top, what I owe, in a rounded pill (bg-muted, radius-pill; xl in on the left, xs on the other sides): a muted "You owe Maya" (body-sm) over €181.50 (heading-sm), each one line, and Pay at its end. Then tabs the width of the page, Settle up · Balances · Expenses (SegmentedTabs wide: the three share it equally; lg above), one list at a time, each under a section title with a line under it (lg above); so the expenses, the list that grows all trip, never push the rest away. Settle up comes first, as it\'s the one with something to do: "3 payments square everyone, instead of 9" (one expense at a time), each with its Why (tap it). Balances: "Who gets money back, and who owes", in plain words (see Money · balances). Expenses: "Newest first" (see Money · expenses). The footer stays put while the lists scroll, over a hairline: "Spent so far", "3 expenses · yours €181.50", and €726.00 (heading-lg) on the right, like the Menu\'s total. There\'s no estimate for tonight\'s dinner: it joins once its bill is in. Picking a tab slides the pill to it (spring-snap) and fades its list in (enter-ms, ease-out) while the last one fades out with a blur (fade-ms, enter-blur; reduced motion, no blur). Pay flips the pill to "You\'re square with Maya" over a green "Paid €181.50", with the done mark at its end (xs in), and a note comes down at the top; my payment row turns to Paid and the balances follow. Costs from before someone joined stay with the people who were there (Ren joined today).' } } },
+  parameters: { docs: { description: { story: 'Before dinner. Tabs the width of the page, Settle up · Balances · Expenses (SegmentedTabs wide: the three share it equally), one list at a time, each under a section title with a line under it (lg above); so the expenses, the list that grows all trip, never push the rest away. Settle up comes first, as it\'s the one with something to do: "3 payments square everyone, instead of 9" (one expense at a time), each with its Why (tap it). Balances: "Who gets money back, and who owes", in plain words (see Money · balances). Expenses: "Newest first" (see Money · expenses). At the bottom, where the thumb reaches, what I owe, in a rounded pill sm above the footer (bg-muted, radius-pill; xl in on the left, xs on the other sides): a muted "You owe Maya" (body-sm) over €181.50 (heading-sm), each one line, and Pay at its end. The footer stays put while the lists scroll, over a hairline: "Spent so far", "3 expenses · yours €181.50", and €726.00 (heading-lg) on the right, like the Menu\'s total. There\'s no estimate for tonight\'s dinner: it joins once its bill is in. Picking a tab slides the pill to it (spring-snap) and fades its list in (enter-ms, ease-out) while the last one fades out with a blur (fade-ms, enter-blur; reduced motion, no blur). Pay flips the pill to "You\'re square with Maya" over a green "Paid €181.50", with the done mark at its end (xs in), and a note comes down at the top; my payment row turns to Paid and the balances follow. Costs from before someone joined stay with the people who were there (Ren joined today).' } } },
   render: () => <Screen start="money" />,
 };
 
 /** The money pop-up before dinner, opening on `tab`. */
-const moneyOn = (tab: MoneyTab) => <Screen start="money" money={{ page: <MoneyPage tab={tab} /> }} />;
+const moneyOn = (tab: MoneyTab) => <Screen start="money" moneyTab={tab} />;
 
 export const MoneyBalances: Story = {
   name: 'Money · balances',

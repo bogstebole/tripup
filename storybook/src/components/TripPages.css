@@ -15,14 +15,13 @@
 
 /* Money: what I owe, in a rounded pill like Invite's link (md in on the left, xs on the other sides): a muted line over
    the amount, Pay at its end; green once everyone has paid, the done mark xs in from the end */
-.tu-owe { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-xs) var(--space-xs) var(--space-xs) var(--space-xl); border-radius: var(--radius-pill); background: var(--color-bg-muted); }
+.tu-owe { display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-sm); padding: var(--space-xs) var(--space-xs) var(--space-xs) var(--space-xl); border-radius: var(--radius-pill); background: var(--color-bg-muted); }
 .tu-owe--square { background: var(--color-bg-success-subtle); }
 .tu-owe__text { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
 .tu-owe__done { width: var(--size-icon-md); height: var(--size-icon-md); flex: none; margin-right: var(--space-xs); color: var(--color-icon-success); }
 /* The tabs under it (lg below the block), the page's whole width; then one tab's list, under a section title. The
    leaving list fades out over the same spot as the new one. */
 .tu-money-tabs { display: flex; }
-.tu-money-tabs--under { padding-top: var(--space-lg); }
 .tu-money-list { display: grid; }
 .tu-money-list__tab { grid-area: 1 / 1; min-width: 0; }
 /* Who pays whom: their two faces with an arrow between */
