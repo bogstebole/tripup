@@ -234,58 +234,60 @@ class _MoneyPageState extends State<MoneyPage> {
   }
 }
 
-/// What I owe and Pay, as a rounded pill; or that I'm square with whoever I paid; or, once everyone has paid, the trip
-/// squared up on green. Nothing if I owe nobody.
+/// What I owe and Pay, as a rounded pill, while I owe it. Once I've paid it goes (the note at the top says it went
+/// through); nothing if I owe nobody.
 class OwePill extends StatelessWidget {
   const OwePill({super.key});
+
+  /// The payment I still have to make, if any.
+  static Payment? get owing {
+    final mine = settleUp.where((p) => p.from == myId).firstOrNull;
+    return mine == null || isPaid(mine) ? null : mine;
+  }
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(listenable: Listenable.merge([dinnerBill, madePayments]), builder: (context, _) => _pill(context));
 
   Widget _pill(BuildContext context) {
     final t = context.tok;
-    final pays = settleUp;
-    final mine = pays.where((p) => p.from == myId).firstOrNull;
-    final square = squaredUp, minePaid = mine != null && isPaid(mine);
-    final othersPaid = pays.where((p) => p.from != myId).every(isPaid);
-    String name(String id) => personById(id).name;
-    final (head, sub, done) = square
-        ? ('Lisbon is squared up', 'Everyone has paid: ${pays.length} payments, ${euros(pays.fold(0.0, (s, p) => s + p.amount))} in all', true)
-        : minePaid
-            ? ("You're square with ${name(mine.to)}", 'Paid ${euros(mine.amount)}', true)
-            : mine != null
-                ? ('You owe ${name(mine.to)}', othersPaid && dinnerBill.value != null ? 'Everyone else has paid' : null, false)
-                : ('', null, false);
-    if (mine == null && !square) return const SizedBox.shrink();
-    // xl in on the left, so the words sit clear of the curve
-    return Container(
-      padding: const EdgeInsets.fromLTRB(TokSpace.xl, TokSpace.xs, TokSpace.xs, TokSpace.xs),
-      decoration: BoxDecoration(color: square ? t.bgSuccessSubtle : t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.pill)),
-      child: Row(spacing: TokSpace.sm, children: [
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(done ? head : '$head${sub != null ? ' · $sub' : ''}', maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.bodySm.copyWith(color: t.textMuted)),
-            Text(done ? (sub ?? '') : euros(mine!.amount), maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingSm.copyWith(color: done ? t.textSuccess : t.textDefault)),
-          ]),
-        ),
-        if (done)
-          Padding(padding: const EdgeInsets.only(right: TokSpace.xs), child: LucideIcon(TuIcons.done, size: TokSize.iconMd, color: t.iconSuccess))
-        else
-          TuTextButton(
-            label: 'Pay',
-            onTap: () {
-              recordPayment(mine!);
-              tripNotice.value = payLine(mine);
-            },
-          ),
-      ]),
+    final mine = owing;
+    final othersPaid = settleUp.where((p) => p.from != myId).every(isPaid);
+    // It fades away as Money's footer closes up under it (see MoneyFooter)
+    return AnimatedSwitcher(
+      duration: TokMotion.enter,
+      reverseDuration: TokMotion.fade,
+      switchInCurve: TokMotion.easeOut,
+      switchOutCurve: TokMotion.easeOut,
+      child: mine == null
+          ? const SizedBox(key: ValueKey('none'), width: double.infinity)
+          : Container(
+              key: ValueKey(mine.to),
+              // xl in on the left, so the words sit clear of the curve
+              padding: const EdgeInsets.fromLTRB(TokSpace.xl, TokSpace.xs, TokSpace.xs, TokSpace.xs),
+              decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.pill)),
+              child: Row(spacing: TokSpace.sm, children: [
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text('You owe ${personById(mine.to).name}${othersPaid && dinnerBill.value != null ? ' · Everyone else has paid' : ''}', maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.bodySm.copyWith(color: t.textMuted)),
+                    Text(euros(mine.amount), maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingSm.copyWith(color: t.textDefault)),
+                  ]),
+                ),
+                TuTextButton(
+                  label: 'Pay',
+                  onTap: () {
+                    recordPayment(mine);
+                    tripNotice.value = payLine(mine);
+                  },
+                ),
+              ]),
+            ),
     );
   }
 }
 
-/// Money's bottom, in view while the lists scroll: what I owe and Pay (OwePill), just above it where the thumb reaches;
-/// then, over a hairline, what the trip has cost so far and my part of it, like the Menu's total; while the dinner is
-/// on and its bill isn't in, Scan the bill under it.
+/// Money's bottom, in view while the lists scroll: what I owe and Pay (OwePill, while I owe it), just above it where the
+/// thumb reaches; then, over a hairline, what the trip has cost so far and my part of it, like the Menu's total; while
+/// the dinner is on and its bill isn't in, Scan the bill under it.
 class MoneyFooter extends StatelessWidget {
   const MoneyFooter({super.key, this.onScan});
   final VoidCallback? onScan;
@@ -302,7 +304,7 @@ class MoneyFooter extends StatelessWidget {
               duration: TokMotion.enter,
               curve: TokMotion.easeOut,
               alignment: Alignment.bottomCenter,
-              child: Padding(padding: EdgeInsets.only(bottom: squaredUp || settleUp.any((p) => p.from == myId) ? TokSpace.sm : 0), child: const OwePill()),
+              child: Padding(padding: EdgeInsets.only(bottom: OwePill.owing != null ? TokSpace.sm : 0), child: const OwePill()),
             ),
             SheetFooter(children: [
               Row(spacing: TokSpace.sm, children: [

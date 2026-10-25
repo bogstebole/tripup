@@ -570,14 +570,14 @@
         },
         {
           "name": "Owe pill",
-          "what": "What I owe and Pay, at the bottom of Money just above its footer (where the thumb reaches); then square with whoever I paid; once everyone has paid, the trip squared up on green.",
-          "props": "Label · Amount · State=owe|paid|squared up.",
+          "what": "What I owe and Pay, while I owe it, at the bottom of Money just above its footer (where the thumb reaches). Once I've paid it goes: the note at the top is the success.",
+          "props": "Label · Amount.",
           "code": "OwePill · app/lib/components/trip_pages.dart",
           "story": "Money",
           "section": "146:1269",
           "id": "123:5316",
           "key": "3ffbc217e3e6fe29f00bf2485e1fa97ff76b2e2a",
-          "figmaProps": "Label (text), Amount (text), State=owe|paid|squared up"
+          "figmaProps": "Label (text), Amount (text), State=owe"
         },
         {
           "name": "Payment row",

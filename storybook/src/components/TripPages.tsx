@@ -1,12 +1,12 @@
 // The pages of the footer's three pop-ups: the itinerary, the group's money, and adding to the trip. Each goes inside
 // a TripSheet, which scrolls it; their notes come down at the top of the screen (see Notice.tsx).
-import { ArrowRight, CircleCheck, MapPin, Search, X } from 'lucide-react';
+import { ArrowRight, MapPin, Search, X } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useEffect, useLayoutEffect, useRef, useState, type ReactElement } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import {
   balanceLeft, clockTime, dayName, DINNER, DINNER_TABLE, dinnerChoice, euros, INVITE_LINK, isPaid, LISBON_PLACES, MY_ID, payLine, PEOPLE,
-  personById, placeById, placeMatches, planEnd, planStart, plansWith, POLL_OPENS, pollClosed, pollOpen, PRE_DINNER, shareOf, squaredUp,
+  personById, placeById, placeMatches, planEnd, planStart, plansWith, POLL_OPENS, pollClosed, pollOpen, PRE_DINNER, shareOf,
   timeUntil, TODAY, tripDate, TRIP_DAYS, TRIP_NOW, VISITED, votesIn, walkLabel, walkMinutes, type Money, type Payment, type PlaceSpot,
   type Plan, type PollState,
 } from '../data';
@@ -254,44 +254,42 @@ export interface MoneyFooterProps {
 }
 
 /**
- * What I owe and Pay, as a rounded pill (xl in on the left, xs elsewhere): a muted line ("You owe Maya", "· Everyone
- * else has paid") over the amount, and Pay; "You're square with Maya" over "Paid €181.50"; and, once everyone has
- * paid, a green "Lisbon is squared up". Nothing if I owe nobody. At the top of Money's footer, where the thumb reaches.
+ * What I owe and Pay, as a rounded pill (xl in on the left, xs elsewhere), while I owe it: a muted "You owe Maya" ("·
+ * Everyone else has paid" once they have) over the amount, and Pay. Once I've paid it goes, fading as the footer
+ * closes up under it (the note at the top says it went through). Nothing if I owe nobody. At the top of Money's
+ * footer, where the thumb reaches.
  */
 export function OwePill({ money = PRE_DINNER, made = [], onPay }: { money?: Money; made?: Payment[]; onPay?: (p: Payment) => void }) {
   const toast = useTripNotice();
   const pays = money.settleUp;
   const mine = pays.find(p => p.from === MY_ID);
-  const paid = (p: Payment) => isPaid(p, made);
-  const square = squaredUp(money, made), minePaid = !!mine && paid(mine);
-  const othersPaid = pays.filter(p => p.from !== MY_ID).every(paid);
-  const done = square || minePaid;
-  const head = square ? 'Lisbon is squared up' : mine ? (minePaid ? `You're square with ${name(mine.to)}` : `You owe ${name(mine.to)}`) : '';
-  const sub = square
-    ? `Everyone has paid: ${pays.length} payments, ${euros(pays.reduce((sum, p) => sum + p.amount, 0))} in all`
-    : mine && minePaid ? `Paid ${euros(mine.amount)}`
-    : othersPaid && money.bill ? 'Everyone else has paid'
-    : undefined;
+  const owing = mine && !isPaid(mine, made) ? mine : undefined;
+  const othersPaid = pays.filter(p => p.from !== MY_ID).every(p => isPaid(p, made));
   const pay = (p: Payment) => {
     onPay?.(p);
     toast(payLine(p));
   };
-  if (!mine && !square) return null;
   return (
-    <div className={square ? 'tu-owe tu-owe--square' : 'tu-owe'}>
-      <div className="tu-owe__text">
-        <p className="text-body-sm tu-ellipsis tu-pages__muted">{done ? head : `${head}${sub ? ` · ${sub}` : ''}`}</p>
-        <p className={`text-heading-sm tu-ellipsis ${done ? 'tu-pages__success' : 'tu-pages__strong'}`}>{done ? sub : mine && euros(mine.amount)}</p>
-      </div>
-      {done
-        ? <CircleCheck className="tu-owe__done" strokeWidth={2} absoluteStrokeWidth aria-label="Paid" />
-        : mine && <TextButton label="Pay" onClick={() => pay(mine)} />}
-    </div>
+    <AnimatePresence initial={false}>
+      {owing && (
+        <motion.div
+          key="owe"
+          className="tu-owe"
+          exit={{ opacity: 0, height: 0, marginBottom: 0, paddingTop: 0, paddingBottom: 0, transition: { duration: m['fade-ms'] / 1000, ease } }}
+        >
+          <div className="tu-owe__text">
+            <p className="text-body-sm tu-ellipsis tu-pages__muted">You owe {name(owing.to)}{othersPaid && money.bill ? ' · Everyone else has paid' : ''}</p>
+            <p className="text-heading-sm tu-ellipsis tu-pages__strong">{euros(owing.amount)}</p>
+          </div>
+          <TextButton label="Pay" onClick={() => pay(owing)} />
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
 /**
- * Money's bottom, in view while the lists scroll (the pop-up's footer): what I owe and Pay (OwePill), sm above the
+ * Money's bottom, in view while the lists scroll (the pop-up's footer): what I owe and Pay (OwePill, while I owe it), sm above the
  * hairline, where the thumb reaches; then, over it, what the trip has cost so far and my part of it, like the Menu's
  * total: "Spent so far", "3 expenses · yours €181.50", and the total, big. While the
  * dinner is on and its bill isn't in, Scan the bill under it, the width of the page and 56 px tall (TextButton lg, wide).

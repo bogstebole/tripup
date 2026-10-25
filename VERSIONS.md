@@ -640,6 +640,10 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - Tokens: `spring-pop` (0.4 s, bounce 0.3), `spring-fly` (0.7 s, 0.12), the splash's timings (`splash-*`) and sizes (`splash/dot-scale`, `splash/word`, `splash/sticker`, `splash/ring`); the stickers' places around TripUp are `splashStickers` in `data.dart`. The perf and Figma drivers skip it (`splashOnStart`).
 - **Checked** on the iPhone 17 Pro Max simulator from cold launches, frame by frame, and by the recording's frame times (no gaps over 50 ms during the splash).
 
+### Final UI, iteration 1.55: no banner after paying (branch `fix/owe-pill-only-owing`)
+- Bogdan: once I've paid, the note at the top is enough. The owe pill shows only while I owe; after Pay it fades away as the footer closes up under it, and there's no green "squared up" pill either (everyone hears it as a note). Storybook the same; Figma: the paid and squared-up Money screens have no pill, and Owe pill keeps only its owe state.
+- **Checked** on the iPhone 17 Pro Max simulator (Pay: the note, the row Paid, the pill gone).
+
 ### Final UI, iteration 1.54: what I owe, at the bottom (branch `fix/owe-at-bottom`)
 - Bogdan: the owe pill (You owe Maya · Pay) goes down, just above the footer, for reach. It's now `OwePill` at the top of `MoneyFooter`, sm above its hairline, so it stays in view while the lists scroll; Money's page opens on its tabs. The pill follows payments itself (built as a const inside the footer, it didn't update after Pay at first).
 - Storybook the same (OwePill in MoneyFooter; the payments are kept by the story's host, so the rows and the pill change together). Figma: the four Money screens have the pill in an Owe slot above the Money footer.
