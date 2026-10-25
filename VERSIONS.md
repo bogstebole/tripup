@@ -640,6 +640,10 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - Tokens: `spring-pop` (0.4 s, bounce 0.3), `spring-fly` (0.7 s, 0.12), the splash's timings (`splash-*`) and sizes (`splash/dot-scale`, `splash/word`, `splash/sticker`, `splash/ring`); the stickers' places around TripUp are `splashStickers` in `data.dart`. The perf and Figma drivers skip it (`splashOnStart`).
 - **Checked** on the iPhone 17 Pro Max simulator from cold launches, frame by frame, and by the recording's frame times (no gaps over 50 ms during the splash).
 
+### Final UI, iteration 1.51: Invite without See what they'll see (branch `fix/invite-footer`)
+- Bogdan: Invite someone doesn't need it. Its footer is Copy link alone, and the preview it opened (Ren's phone as "What they'll see") is gone with it, in the app (JoinFlow's `preview`) and Storybook (Screens · Invite preview, Add · invite's layer). Figma: Invite's Sheet footer without its second action.
+- **Checked** on the iPhone 17 Pro Max simulator.
+
 ### Final UI, iteration 1.50: Up next opens by itself once (branch `feature/popup-header-footer`)
 - Bogdan: the card opens by itself only the first time into the trip after the app starts, to show what's next. Once it's been made small, changing the day filter (All included), moving the map or going back to Your trips and in again leaves it small; a tap on its pin opens it. News about it still opens it: the poll's winner, a dinner picked by hand, a moment of the demo.
 - **Checked** on the iPhone 17 Pro Max simulator: in (open) → tap beside (small) → Wed 13 → All (still small) → Your trips → in again (still small).

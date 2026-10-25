@@ -423,9 +423,9 @@ class AddPage extends StatefulWidget {
 
   static const link = 'tripup.app/j/lisbon-may';
 
-  /// The pop-up's footer for each step: once a place is picked, Send; for Invite, Copy link (and a look at what they'll
-  /// see). Nothing while choosing or searching.
-  static Widget footer({required AddStep step, required PlanDraft draft, required ValueChanged<Plan> onSent, VoidCallback? onPreview}) => ListenableBuilder(
+  /// The pop-up's footer for each step: once a place is picked, Send; for Invite, Copy link. Nothing while choosing or
+  /// searching.
+  static Widget footer({required AddStep step, required PlanDraft draft, required ValueChanged<Plan> onSent}) => ListenableBuilder(
         listenable: draft,
         builder: (context, _) => AnimatedSize(
           duration: TokMotion.enter,
@@ -447,7 +447,6 @@ class AddPage extends StatefulWidget {
                     tripNotice.value = 'Link copied';
                   },
                 ),
-                if (onPreview != null) TuTextButton(label: "See what they'll see", kind: GlassKind.soft, size: TuButtonSize.lg, wide: true, onTap: onPreview),
               ]),
             _ => const SizedBox(width: double.infinity),
           },
@@ -539,7 +538,7 @@ class _AddPageState extends State<AddPage> {
         _Choice(title: 'Invite someone', subtitle: 'They join with a link, no account. They only share costs from the day they join.', onTap: () => _go(AddStep.invite)),
       ]);
 
-  /// The link, in the middle of the sheet (Copy link and a look at what they'll see are in the footer).
+  /// The link, in the middle of the sheet (Copy link is in the footer).
   Widget _invite(BuildContext context) {
     final t = context.tok;
     return StaggerIn(spacing: TokSpace.md, crossAxisAlignment: CrossAxisAlignment.center, children: [

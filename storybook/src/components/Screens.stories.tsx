@@ -134,9 +134,9 @@ function Home({ now, scrolledToEnd }: { now?: Date; scrolledToEnd?: boolean }) {
   );
 }
 
-/** Ren's phone (or, with `preview`, what anyone invited would see) over Ari's trip screen, from `start`. Open the trip
- *  closes it, back on Ari's map, where everyone hears he's in; the × (or Close the preview) just closes it. */
-function Joining({ start, preview, now = REN_JOINS }: { start?: JoinStep; preview?: boolean; now?: Date }) {
+/** Ren's phone over Ari's trip screen, from `start`. Open the trip closes it, back on Ari's map, where everyone hears
+ *  he's in; the × just closes it. */
+function Joining({ start, now = REN_JOINS }: { start?: JoinStep; now?: Date }) {
   const [joining, setJoining] = useState(true);
   const notices = useNotice();
   const [, showNotice] = notices;
@@ -149,7 +149,7 @@ function Joining({ start, preview, now = REN_JOINS }: { start?: JoinStep; previe
       <NoticeLayer state={notices}>
         <TripScreen now={now} />
         <AnimatePresence>
-          {joining && <JoinLayer key="join" start={start} preview={preview} now={now} onJoined={() => close(!preview)} onClose={() => close()} />}
+          {joining && <JoinLayer key="join" start={start} now={now} onJoined={() => close(true)} onClose={() => close()} />}
         </AnimatePresence>
       </NoticeLayer>
     </div>
@@ -176,8 +176,4 @@ export const RenTripSoFar: Story = {
   parameters: { docs: { description: { story: 'Just after Join, for someone arriving mid-trip: "Welcome, Ren", then where they\'re staying (a bed: Alfama flat, Airbnb until 21 May, Maya booked it), Been so far (8 places in 2 days, every sticker), Coming up (tonight\'s dinner while the poll hasn\'t decided it, in brand blue with a ballot box: "A poll opens at 2:30 PM: you can vote", "Poll open: where? Your vote counts too" once it\'s open; then the next three plans) and the rule for money: "The €726.00 spent before you joined stays with the four of them." Open the trip closes his phone, back on Ari\'s map, and everyone hears "Ren joined the trip" at the top.' } } },
   render: () => <Joining start="recap" />,
 };
-export const InvitePreview: Story = {
-  name: "Invite preview · what they'll see",
-  parameters: { docs: { description: { story: 'From Add\'s Invite step, See what they\'ll see (see Pop-ups · Add · invite): the same phone, as anyone invited now would see it. The pill says "What they\'ll see" and × closes the preview; the name field is empty (Join the trip goes to it until there\'s a name); everyone is there, Ren too ("5 friends are there"). Nobody joins: after Join, the trip so far is as it stands now (the poll decided, so no Dinner row; La Brasserie is next), and its last button is Close the preview.' } } },
-  render: () => <Joining preview now={TRIP_NOW} />,
-};
+

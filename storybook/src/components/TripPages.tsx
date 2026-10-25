@@ -389,9 +389,9 @@ export type PlanDraft = ReturnType<typeof usePlanDraft>;
 
 /**
  * Add's footer, for each step: once a place is picked, Send to the group (lg, wide) with a line under it; for Invite,
- * Copy link and a look at what they'll see. Nothing while choosing or searching.
+ * Copy link. Nothing while choosing or searching.
  */
-export function AddFooter({ step, draft, onSent, onPreview }: { step: AddStep; draft: PlanDraft; onSent: (plan: Plan) => void; onPreview?: () => void }) {
+export function AddFooter({ step, draft, onSent }: { step: AddStep; draft: PlanDraft; onSent: (plan: Plan) => void }) {
   const toast = useTripNotice();
   if (step === 'plan' && draft.spot) {
     return (
@@ -409,8 +409,6 @@ export function AddFooter({ step, draft, onSent, onPreview }: { step: AddStep; d
   return (
     <SheetFooter>
       <TextButton label="Copy link" icon={Copy} size="lg" wide onClick={copy} />
-      {/* A look at their phone: what someone invited will see (see Join.tsx) */}
-      {onPreview && <TextButton variant="soft" label="See what they'll see" size="lg" wide onClick={onPreview} />}
     </SheetFooter>
   );
 }
@@ -499,8 +497,7 @@ function Choice({ title, subtitle, onClick }: { title: string; subtitle: string;
   );
 }
 
-/** The link, in the middle of the sheet (TripSheet `centered`); Copy link and a look at what they'll see are in the
- *  footer (AddFooter). */
+/** The link, in the middle of the sheet (TripSheet `centered`); Copy link is in the footer (AddFooter). */
 function InviteStep() {
   return (
     <div className="tu-invite">

@@ -18,10 +18,7 @@ import 'trip_sheet.dart';
 /// then the trip so far: where they're staying, where they've been, what's coming (an open poll included) and the
 /// rule for money. It's the other person's phone, so the top says so.
 class JoinFlow extends StatefulWidget {
-  const JoinFlow({super.key, required this.onJoined, required this.onClose, this.preview = false});
-
-  /// Only a look, from Invite, at what someone you invite will see (nobody joins).
-  final bool preview;
+  const JoinFlow({super.key, required this.onJoined, required this.onClose});
 
   /// He joined and opens the trip.
   final VoidCallback onJoined;
@@ -33,7 +30,7 @@ class JoinFlow extends StatefulWidget {
 
 class _JoinFlowState extends State<JoinFlow> {
   var _recap = false;
-  late final _name = TextEditingController(text: widget.preview ? '' : personById('ren').name);
+  late final _name = TextEditingController(text: personById('ren').name);
   final _nameFocus = FocusNode();
 
   @override
@@ -82,11 +79,11 @@ class _JoinFlowState extends State<JoinFlow> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: TokSpace.sm, vertical: TokSpace.x2xs),
                   decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.pill)),
-                  child: Text(widget.preview ? "What they'll see" : "${personById('ren').name}'s phone", style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textMuted)),
+                  child: Text("${personById('ren').name}'s phone", style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textMuted)),
                 ),
               ),
             ),
-            TuButton(icon: TuIcons.close, label: widget.preview ? 'Close the preview' : "Back to $myName's phone", size: TuButtonSize.sm, onTap: widget.onClose),
+            TuButton(icon: TuIcons.close, label: "Back to $myName's phone", size: TuButtonSize.sm, onTap: widget.onClose),
           ]),
         ),
       ]),
@@ -97,7 +94,7 @@ class _JoinFlowState extends State<JoinFlow> {
   Widget _invite(BuildContext context, EdgeInsets pad) {
     final t = context.tok;
     final now = tripNow();
-    final crew = [for (final p in people) if (onTrip(p, now) && (widget.preview || p.id != 'ren')) p];
+    final crew = [for (final p in people) if (onTrip(p, now) && p.id != 'ren') p];
     // In the middle of the screen (clear of the pill on top), scrolling only if it doesn't fit
     final inset = EdgeInsets.fromLTRB(TokSpace.lg, pad.top + TokSpace.x5xl, TokSpace.lg, pad.bottom + TokSpace.x5xl);
     return LayoutBuilder(
@@ -208,7 +205,7 @@ class _JoinFlowState extends State<JoinFlow> {
             ),
           ),
           const SizedBox(height: TokSpace.xl),
-          TuTextButton(label: widget.preview ? 'Close the preview' : 'Open the trip', size: TuButtonSize.lg, wide: true, onTap: widget.onJoined),
+          TuTextButton(label: 'Open the trip', size: TuButtonSize.lg, wide: true, onTap: widget.onJoined),
         ]),
       ],
     );

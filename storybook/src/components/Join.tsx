@@ -27,17 +27,15 @@ const firstDay = TRIP_DAYS[0].day, lastDay = TRIP_DAYS[TRIP_DAYS.length - 1].day
 export type JoinStep = 'invite' | 'recap';
 
 export interface JoinFlowProps {
-  /** Only a look, from Invite, at what someone you invite will see (nobody joins): "What they'll see", no name yet. */
-  preview?: boolean;
   /** Where it starts: the invite, or the trip so far (as just after Join). */
   start?: JoinStep;
   /** Now, in the trip (the demo's start, 3:56 PM, by default): who's there, and what's coming. */
   now?: Date;
   /** The dinner poll as it stands (nobody has voted here by default). */
   poll?: PollState;
-  /** He joined and opens the trip (the preview just closes). */
+  /** He joined and opens the trip. */
   onJoined?: () => void;
-  /** The × at the top: back to Ari's phone, or out of the preview. */
+  /** The × at the top: back to Ari's phone. */
   onClose?: () => void;
 }
 
@@ -47,9 +45,9 @@ export interface JoinFlowProps {
  * money. It's the other person's phone, so the top says so, in a pill over an eased fade. Join swaps the page: the
  * invite fades out with a blur (fade-ms) while the trip so far fades in (enter-ms) and its blocks arrive.
  */
-export function JoinFlow({ preview = false, start = 'invite', now = TRIP_NOW, poll = {}, onJoined, onClose }: JoinFlowProps) {
+export function JoinFlow({ start = 'invite', now = TRIP_NOW, poll = {}, onJoined, onClose }: JoinFlowProps) {
   const [step, setStep] = useState<JoinStep>(start);
-  const [name, setName] = useState(preview ? '' : personById(REN).name);
+  const [name, setName] = useState(personById(REN).name);
   const reduce = useReducedMotion();
   return (
     <div className="tu-join">
@@ -62,16 +60,16 @@ export function JoinFlow({ preview = false, start = 'invite', now = TRIP_NOW, po
           exit={{ opacity: 0, filter: reduce ? 'none' : `blur(${m['enter-blur']}px)`, pointerEvents: 'none', transition: { duration: m['fade-ms'] / 1000, ease } }}
         >
           {step === 'invite'
-            ? <Invite preview={preview} now={now} name={name} onName={setName} onJoin={() => setStep('recap')} />
-            : <Recap preview={preview} now={now} poll={poll} name={name} onJoined={onJoined} />}
+            ? <Invite now={now} name={name} onName={setName} onJoin={() => setStep('recap')} />
+            : <Recap now={now} poll={poll} name={name} onJoined={onJoined} />}
         </motion.div>
       </AnimatePresence>
       {/* The page fades out under the top, so the pill reads over whatever scrolls by */}
       <div className="tu-join__fade" aria-hidden style={{ background: easedFade('var(--color-bg-canvas)', { from: 'calc(var(--d-top-bar-fade-start) * 100%)' }) }} />
       {/* Whose phone this is (the demo switches to Ren's), and a way back */}
       <div className="tu-join__top">
-        <span className="text-label-md weight-semibold tu-join__pill">{preview ? "What they'll see" : `${personById(REN).name}'s phone`}</span>
-        <Button icon={X} label={preview ? 'Close the preview' : `Back to ${MY_NAME}'s phone`} size="sm" onClick={onClose} />
+        <span className="text-label-md weight-semibold tu-join__pill">{`${personById(REN).name}'s phone`}</span>
+        <Button icon={X} label={`Back to ${MY_NAME}'s phone`} size="sm" onClick={onClose} />
       </div>
     </div>
   );
@@ -79,9 +77,9 @@ export function JoinFlow({ preview = false, start = 'invite', now = TRIP_NOW, po
 
 /** The invite, in the middle of the screen: who's there, who invited you to what, then the one thing to do: your name,
  *  and Join. */
-function Invite({ preview, now, name, onName, onJoin }: { preview: boolean; now: Date; name: string; onName: (name: string) => void; onJoin: () => void }) {
+function Invite({ now, name, onName, onJoin }: { now: Date; name: string; onName: (name: string) => void; onJoin: () => void }) {
   const field = useRef<HTMLInputElement>(null);
-  const crew = PEOPLE.filter(p => onTrip(p, now) && (preview || p.id !== REN));
+  const crew = PEOPLE.filter(p => onTrip(p, now) && p.id !== REN);
   const join = () => {
     // Without a name yet, it goes to the name field instead
     if (!name.trim()) {
@@ -117,7 +115,7 @@ function Invite({ preview, now, name, onName, onJoin }: { preview: boolean; now:
 }
 
 /** The trip so far, for someone arriving in the middle of it. */
-function Recap({ preview, now, poll, name, onJoined }: { preview: boolean; now: Date; poll: PollState; name: string; onJoined?: () => void }) {
+function Recap({ now, poll, name, onJoined }: { now: Date; poll: PollState; name: string; onJoined?: () => void }) {
   const days = new Set(VISITED.map(v => v.day)).size;
   const next = plansAhead(now, poll).slice(0, 3);
   const undecided = dinnerChoice(now, poll) == null;
@@ -155,7 +153,7 @@ function Recap({ preview, now, poll, name, onJoined }: { preview: boolean; now: 
       <p key="rule" className="text-body-sm tu-join__rule">
         You share costs from today on. The {euros(SPENT_SO_FAR)} spent before you joined stays with the {NUMBERS[crew.length] ?? crew.length} of them.
       </p>
-      <TextButton key="open" className="tu-join__open" label={preview ? 'Close the preview' : 'Open the trip'} size="lg" wide onClick={onJoined} />
+      <TextButton key="open" className="tu-join__open" label="Open the trip" size="lg" wide onClick={onJoined} />
     </StaggerIn>
   );
 }

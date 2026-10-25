@@ -11,7 +11,6 @@ import { ActionBar, TopBar } from './Bars';
 import { Camera } from './BillScan';
 import { DetailSheet } from './DetailSheet';
 import { NoticeLayer, useNotice, type NoticeState } from './Notice';
-import { JoinLayer } from './Join';
 import { PollCard, PollPage, PollScrim, pollSubtitle } from './Poll';
 import { ToggleChips } from './ToggleChips';
 import {
@@ -112,7 +111,7 @@ function PlanDetails({ plan, now, onClose }: { plan: Plan; now: Date; onClose: (
 /**
  * The trip screen with one footer pop-up open. The footer's buttons open the others once it's closed. `money` swaps
  * in another state of the money pop-up (its page and its footer), `itinerary` sets the itinerary's page (the poll, now), `add` the add page's
- * (the step it starts on, a search or a place already picked, and Invite's preview); `poll` is the dinner poll (its
+ * (the step it starts on, a search or a place already picked); `poll` is the dinner poll (its
  * pop-up, and its card on the map while no pop-up covers it); `children` go over everything (the camera, the invited
  * person's phone). Notes for everyone come down at the top: the pages show theirs, and `notices` lets the story show
  * its own too. `open` and `onOpen` say from outside which pop-up is open. The itinerary has its own day filter, pinned
@@ -127,7 +126,7 @@ function Screen({ start = null, open: shown, onOpen, money, itinerary, add, poll
   onOpen?: (which: Which | null) => void;
   money?: { page: ReactNode; footer?: ReactNode };
   itinerary?: Omit<ItineraryPageProps, 'onPick' | 'onOpen' | 'onPoll' | 'days' | 'added'>;
-  add?: Omit<AddPageProps, 'step' | 'onStep' | 'draft'> & { start?: AddStep; onPreview?: () => void };
+  add?: Omit<AddPageProps, 'step' | 'onStep' | 'draft'> & { start?: AddStep };
   poll?: PollSlot;
   notices?: NoticeState;
   planDays?: number[];
@@ -181,7 +180,7 @@ function Screen({ start = null, open: shown, onOpen, money, itinerary, add, poll
     add: {
       ...addHeader,
       page: <AddPage step={addStep} onStep={setAddStep} draft={draft} query={add?.query} place={add?.place} />,
-      footer: <AddFooter step={addStep} draft={draft} onSent={sent} onPreview={add?.onPreview} />,
+      footer: <AddFooter step={addStep} draft={draft} onSent={sent} />,
       // Back: from a picked place to the search, from the search or the invite to the choice
       onBack: addStep === 'choose' ? undefined : () => (addStep === 'plan' && draft.spot ? draft.pick(undefined) : setAddStep('choose')),
     },
@@ -446,16 +445,9 @@ function PollStory({ start }: { start?: Which }) {
 
 // ---------- Add: a plan, or someone new
 
-/** The add pop-up, on `start` (Plan something's search holding `query`, or with `place` picked). Invite's See what
- *  they'll see opens the invited person's phone over everything (as in Screens · Invite preview); its × or Close the
- *  preview goes back to Invite. */
+/** The add pop-up, on `start` (Plan something's search holding `query`, or with `place` picked). */
 function AddStory({ start, query, place }: { start?: AddStep; query?: string; place?: string }) {
-  const [preview, setPreview] = useState(false);
-  return (
-    <Screen start="add" add={{ start, query, place, onPreview: () => setPreview(true) }}>
-      <AnimatePresence>{preview && <JoinLayer key="preview" preview onJoined={() => setPreview(false)} onClose={() => setPreview(false)} />}</AnimatePresence>
-    </Screen>
-  );
+  return <Screen start="add" add={{ start, query, place }} />;
 }
 
 const meta = {
@@ -544,7 +536,7 @@ export const Add: Story = {
 
 export const AddInvite: Story = {
   name: 'Add · invite',
-  parameters: { docs: { description: { story: 'Invite, as it opens from Invite someone, in the middle of the compact sheet (TripSheet centered), md between its blocks: "Send them this link" (heading-sm) and "Share it with a friend. They type their name and they\'re in." (body-sm, muted), centred; and the link in a muted pill as tall as a big button. The footer: Copy link (TextButton lg, wide; "Link copied" comes down at the top) and a soft "See what they\'ll see" under it (lg, wide). It opens the invited person\'s phone over everything, the way Ren\'s phone opens (it fades in from page-zoom-scale, enter-ms, and fades away, fade-ms; reduced motion, fades only): "What they\'ll see" at the top, the name field empty, and the trip as anyone joining now would see it (see Screens · Invite preview). Nobody joins; × or Close the preview goes back to Invite, the pop-up still open.' } } },
+  parameters: { docs: { description: { story: 'Invite, as it opens from Invite someone, in the middle of the compact sheet (TripSheet centered), md between its blocks: "Send them this link" (heading-sm) and "Share it with a friend. They type their name and they\'re in." (body-sm, muted), centred; and the link in a muted pill as tall as a big button. The footer: Copy link (TextButton lg, wide; "Link copied" comes down at the top).' } } },
   render: () => <AddStory start="invite" />,
 };
 

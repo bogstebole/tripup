@@ -435,7 +435,7 @@ A pop-up's header, one line everywhere: Back (for a step inside it), its title a
 
 A pop-up's bottom, in view while its page scrolls: its actions over a hairline, one wide button, or two stacked, and a line under them if they need one. Every pop-up's actions are here; going back and closing are in the Pop-up header.
 
-- Use: Plan something's Send to the group (with its note); Invite someone's Copy link and a soft See what they'll see (Second action). Money's footer is the same bottom with the total above the button.
+- Use: Plan something's Send to the group (with its note); Invite someone's Copy link. Two stacked actions when a pop-up needs them (Second action). Money's footer is the same bottom with the total above the button.
 - Props: Primary, Secondary (nested Text buttons: Label, Show icon, Icon) · Second action (boolean) · Note shown + Note.
 - Code: SheetFooter · app/lib/components/trip_sheet.dart
 - Figma: node 165:6603 · key a86b3191539729790022b81402c1c22703b7e07f · properties: Second action (boolean), Note shown (boolean), Note (text) (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=165-6616)
