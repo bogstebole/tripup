@@ -626,6 +626,13 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - `design-system/components.json` + `design-system/build-components-doc.mjs` → `design-system/COMPONENTS.md`: the index for agents, with node ids, component keys and property APIs.
 - **Checked** with Figma's MCP: `get_design_context` on a component returns its description, documentation link and its nested icon's `TuIcons` name.
 
+### Final UI, iteration 1.43: mini pin ↔ Up next without the overlap (branch `feature/pin-morph`)
+- Bogdan: the orchestration was bad, everything overlapped. Frames from the simulator showed why: the mini's name and sticker travelled and scaled into the card's while the card's own name, rating, fan and chips faded in over them, so two layouts showed at once.
+- Now, like the Dynamic Island: the old content fades out with a blur as the surface starts to spring (`pin-out-ms` 150, an even fade), and the new one comes in once the surface is nearly its new size. Growing, the card's parts follow one another from the top at 0.55 of the spring (`pin-in-at`): label, name, rating, the fan, the chips, each rising 8 px and sharpening (30 ms apart, 200 ms each); they hang from the card's top edge, so they ride up with it. Shrinking, the mini's content comes back at 0.35 of the way left (`pin-mini-at`), all at once, with whoever is there on its corner.
+- Gone: the shared sticker and name travelling between the two layouts, and the part-by-part geometry it needed.
+- Storybook's Widget/Up next morphs the same way (the delays come from the same spring).
+- **Checked** on the iPhone 17 Pro Max simulator, frame by frame from screen recordings: opening the trip (mini → card) and moving the map (card → mini); and in Storybook, by sampling each part's opacity per frame.
+
 ### Storybook: no credit to Emil's rules (branch `docs/storybook-motion`)
 - Introduction's Motion no longer says the motion follows Emil Kowalski's rules (Bogdan: we used too few of them to claim it). The rules it lists stay, since they describe what the app does.
 
