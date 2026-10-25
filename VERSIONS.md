@@ -640,6 +640,12 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - Tokens: `spring-pop` (0.4 s, bounce 0.3), `spring-fly` (0.7 s, 0.12), the splash's timings (`splash-*`) and sizes (`splash/dot-scale`, `splash/word`, `splash/sticker`, `splash/ring`); the stickers' places around TripUp are `splashStickers` in `data.dart`. The perf and Figma drivers skip it (`splashOnStart`).
 - **Checked** on the iPhone 17 Pro Max simulator from cold launches, frame by frame, and by the recording's frame times (no gaps over 50 ms during the splash).
 
+### The web prototype on Vercel (branch `feat/web-on-vercel`)
+- The whole app as Flutter's web build, on Vercel: **https://tripup-three.vercel.app** (project `tripup`, team bole's projects, production). Static files only; the same code as 1.58.
+- `tools/deploy_web.sh` builds it and deploys it (`--preview` for a preview URL). The build is copied to `~/Library/Caches/tripup-app/vercel/tripup` first, so Vercel's link file stays out of git. The Vercel CLI runs through npx, pinned to 65.2.0.
+- The page's title and the home-screen name are TripUp (were "tripup").
+- **Checked** live at phone size: the splash, Your trips, into the trip, the map with Up next. Location, haptics and the Live Activity are phone-only, as before.
+
 ### Final UI, iteration 1.58: Know before you go at 14 px (branch `fix/know-tip-14`)
 - Bogdan: the tips read small. A Know tip's line is Label/MD now (14 px, medium), not Label/SM (12): the same weight and brand colour, the row still at least know-row/height (56). The three tips on Overview each fit in two lines.
 - Storybook the same (`KnowSection.tsx`, `text-label-md`). Figma: Know tip's text uses the Label/MD/Medium style, and its docs card and description list the label/md tokens; the three instances on Overview follow.

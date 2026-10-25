@@ -1,11 +1,11 @@
 {
-    "name": "tripup",
-    "short_name": "tripup",
+    "name": "TripUp",
+    "short_name": "TripUp",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "TripUp trip screen",
+    "description": "TripUp: a group trip prototype.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
