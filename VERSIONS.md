@@ -640,6 +640,10 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - Tokens: `spring-pop` (0.4 s, bounce 0.3), `spring-fly` (0.7 s, 0.12), the splash's timings (`splash-*`) and sizes (`splash/dot-scale`, `splash/word`, `splash/sticker`, `splash/ring`); the stickers' places around TripUp are `splashStickers` in `data.dart`. The perf and Figma drivers skip it (`splashOnStart`).
 - **Checked** on the iPhone 17 Pro Max simulator from cold launches, frame by frame, and by the recording's frame times (no gaps over 50 ms during the splash).
 
+### Final UI, iteration 1.48: the mini pin's faces a little higher (branch `feature/mini-faces-lift`)
+- Bogdan: up by 8–12 px. They're lifted 10 px off the top edge now (`widget/here-lift`, new), in the app and Storybook.
+- **Checked** on the iPhone 17 Pro Max simulator and in Storybook (centred, 10 px above the edge).
+
 ### Final UI, iteration 1.47: who's there sits on the middle of the mini pin (branch `feature/mini-faces-centre`)
 - Bogdan: the faces of whoever has arrived moved from the mini pin's top-right corner to the middle of its top edge, at the same height.
 - Storybook's mini pin the same, and its Widget/Up next notes now describe the 1.43 morph (they still told the old shared-sticker one). In Figma no screen shows a mini pin with faces, so only the Mini pin's description says where they go.

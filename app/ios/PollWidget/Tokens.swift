@@ -390,6 +390,7 @@ enum TokDim {
   static let widgetEdgeSize: CGFloat = 30
   static let widgetEdgeArrow: CGFloat = 11
   static let widgetEdgeInset: CGFloat = 8
+  static let widgetHereLift: CGFloat = 10
   static let knowRowHeight: CGFloat = 56
   static let photosHeight: CGFloat = 142
   static let photosPeekStart: CGFloat = 36

@@ -402,6 +402,7 @@ abstract final class TokDim {
   static const double widgetEdgeSize = 30;
   static const double widgetEdgeArrow = 11;
   static const double widgetEdgeInset = 8;
+  static const double widgetHereLift = 10;
   static const double knowRowHeight = 56;
   static const double photosHeight = 142;
   static const double photosPeekStart = 36;
