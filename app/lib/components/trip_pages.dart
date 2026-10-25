@@ -112,7 +112,6 @@ class ItineraryPage extends StatelessWidget {
 class MoneyPage extends StatefulWidget {
   const MoneyPage({super.key});
 
-  static String get subtitle => '${people.length} people · split by who had what';
 
   @override
   State<MoneyPage> createState() => _MoneyPageState();
@@ -148,10 +147,10 @@ class _MoneyPageState extends State<MoneyPage> {
                 ? ('You owe ${_name(mine.to)}', othersPaid && dinnerBill.value != null ? 'Everyone else has paid' : null, false)
                 : ('', null, false);
     return StaggerIn(children: [
-      // A rounded pill like Invite's link: what I owe and Pay (or that it's settled)
+      // A rounded pill: what I owe and Pay (or that it's settled); xl in on the left, so the words sit clear of the curve
       if (mine != null || square)
         Container(
-          padding: const EdgeInsets.fromLTRB(TokSpace.md, TokSpace.xs, TokSpace.xs, TokSpace.xs),
+          padding: const EdgeInsets.fromLTRB(TokSpace.xl, TokSpace.xs, TokSpace.xs, TokSpace.xs),
           decoration: BoxDecoration(color: square ? t.bgSuccessSubtle : t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.pill)),
           child: Row(spacing: TokSpace.sm, children: [
             Expanded(

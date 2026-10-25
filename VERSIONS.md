@@ -640,6 +640,10 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - Tokens: `spring-pop` (0.4 s, bounce 0.3), `spring-fly` (0.7 s, 0.12), the splash's timings (`splash-*`) and sizes (`splash/dot-scale`, `splash/word`, `splash/sticker`, `splash/ring`); the stickers' places around TripUp are `splashStickers` in `data.dart`. The perf and Figma drivers skip it (`splashOnStart`).
 - **Checked** on the iPhone 17 Pro Max simulator from cold launches, frame by frame, and by the recording's frame times (no gaps over 50 ms during the splash).
 
+### Final UI, iteration 1.52: Money's top, simpler (branch `fix/money-top`)
+- Bogdan: "5 people · split by who had what" was more than Money needs, so its page opens straight on what I owe. The owe pill has space/xl (24) in on the left, as Bogdan set it on the Figma component, so the words sit clear of the curve; app and Storybook follow, and the four Money screens in Figma lost their intro line.
+- **Checked** on the iPhone 17 Pro Max simulator.
+
 ### Final UI, iteration 1.51: Invite without See what they'll see (branch `fix/invite-footer`)
 - Bogdan: Invite someone doesn't need it. Its footer is Copy link alone, and the preview it opened (Ren's phone as "What they'll see") is gone with it, in the app (JoinFlow's `preview`) and Storybook (Screens · Invite preview, Add · invite's layer). Figma: Invite's Sheet footer without its second action.
 - **Checked** on the iPhone 17 Pro Max simulator.

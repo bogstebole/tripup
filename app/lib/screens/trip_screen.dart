@@ -755,7 +755,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           _closePopup();
           _flyTo(at);
         }) as Widget),
-      _Popup.money => ('Money', MoneyPage.subtitle, const MoneyPage()),
+      _Popup.money => ('Money', null, const MoneyPage()),
       _Popup.add => (
           AddPage.headerOf(_addStep).$1,
           AddPage.headerOf(_addStep).$2,
