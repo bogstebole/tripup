@@ -61,7 +61,6 @@ class TokColors {
     'c/button/soft-fg': Color(0xFF18181B),
     'c/button/primary-bg': Color(0xFF1D4ED8),
     'c/button/primary-fg': Color(0xFFFFFFFF),
-    'c/button/edge': Color(0xFFFFFFFF),
     'c/segment/track': Color(0xFFE4E4E7),
     'c/segment/on-fg': Color(0xFF09090B),
     'c/segment/off-fg': Color(0xFF71717A),
@@ -157,7 +156,6 @@ class TokColors {
     'c/button/soft-fg': Color(0xFFF4F4F5),
     'c/button/primary-bg': Color(0xFF1D4ED8),
     'c/button/primary-fg': Color(0xFFFFFFFF),
-    'c/button/edge': Color(0xFFFFFFFF),
     'c/segment/track': Color(0xFF27272A),
     'c/segment/on-fg': Color(0xFFFAFAFA),
     'c/segment/off-fg': Color(0xFFA1A1AA),
@@ -252,7 +250,6 @@ class TokColors {
   Color get cButtonSoftFg => _m['c/button/soft-fg']!;
   Color get cButtonPrimaryBg => _m['c/button/primary-bg']!;
   Color get cButtonPrimaryFg => _m['c/button/primary-fg']!;
-  Color get cButtonEdge => _m['c/button/edge']!;
   Color get cSegmentTrack => _m['c/segment/track']!;
   Color get cSegmentOnFg => _m['c/segment/on-fg']!;
   Color get cSegmentOffFg => _m['c/segment/off-fg']!;
@@ -341,7 +338,6 @@ abstract final class TokDim {
   static const double buttonLg = 56;
   static const double buttonIcon = 16;
   static const double buttonPillHeight = 32;
-  static const double buttonEdgeWidth = 0.96;
   static const double iconStroke = 2;
   static const double surfaceRadius = 24;
   static const double surfaceEdgeWidth = 1;
@@ -473,8 +469,8 @@ abstract final class TokShadow {
 }
 
 abstract final class TokInset {
-  static const buttonSoft = [InsetShadow(offset: Offset(0, 3.2), blur: 3.2, spread: 0, color: Color(0xFFFFFFFF)), InsetShadow(offset: Offset(0, -8), blur: 3.2, spread: -4.8, color: Color(0xFFC0C0C0)), InsetShadow(offset: Offset(0, -1), blur: 1, spread: 0, color: Color(0x40FFFFFF))];
-  static const buttonPrimary = [InsetShadow(offset: Offset(0, 4.2), blur: 3.2, spread: 0, color: Color(0xFF0186DF)), InsetShadow(offset: Offset(0, -8), blur: 3.2, spread: -1.8, color: Color(0x82001E81)), InsetShadow(offset: Offset(0, -2), blur: 2, spread: 0, color: Color(0xAD0186DF))];
+  static const buttonSoft = [InsetShadow(offset: Offset(0, -1), blur: 1, spread: 0, color: Color(0x40FFFFFF)), InsetShadow(offset: Offset(0, -8), blur: 3.2, spread: -4.8, color: Color(0xFFD4D4D8)), InsetShadow(offset: Offset(0, 3.2), blur: 3.2, spread: 0, color: Color(0xFFFFFFFF))];
+  static const buttonPrimary = [InsetShadow(offset: Offset(0, -1), blur: 2, spread: 0, color: Color(0xFF0284C7)), InsetShadow(offset: Offset(0, -8), blur: 3.2, spread: -4.8, color: Color(0xFF1E3A8A)), InsetShadow(offset: Offset(0, 3.2), blur: 3.2, spread: 0, color: Color(0xFF0284C7))];
 }
 
 /// Apple-style spring: perceived duration (s) and bounce (0 = no overshoot).
