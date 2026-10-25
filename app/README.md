@@ -5,8 +5,10 @@ The trip screen, built to run on a phone: the map with past places and planned p
 ## Run it
 
 ```bash
-# on the connected iPhone (signed with team QLXB6T6X9W)
-flutter build ios --release && flutter install --release
+# on the connected iPhone (signed with team QLXB6T6X9W), as an update: the app keeps its data and permissions
+# (flutter install uninstalls the old app first)
+flutter build ios --release
+xcrun devicectl device install app --device <id> build/ios/iphoneos/Runner.app   # ids: xcrun devicectl list devices
 
 # on a simulator, with hot reload
 flutter run -d "iPhone 16"
