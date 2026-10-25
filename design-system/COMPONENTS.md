@@ -2,7 +2,7 @@
 
 Generated from design-system/components.json by design-system/build-components-doc.mjs. Don't edit by hand.
 
-Every component the Figma screens are built from: 86 entries on the page Components (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=143-83), one section each.
+Every component the Figma screens are built from: 87 entries on the page Components (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=143-83), one section each.
 The Flutter app (app/lib) is the source of truth; each component is drawn 1:1 from its widget.
 
 ## How to read it
@@ -18,7 +18,7 @@ The Flutter app (app/lib) is the source of truth; each component is drawn 1:1 fr
 
 - Buttons: Button, Text button, Add button
 - System: Status bar, Home indicator
-- Your trips: Trip card, Trip still / Lisbon, Happening now, Trip row, Avatar button
+- Your trips: Trip card, Trip still / Lisbon, Happening now, Trip row, Avatar button, Splash mark
 - Map: Top bar, Toggle chip, Demo button, Action bar, Crew button, Plan pin, Up next card, Mini pin, Pin tail, Edge pin, Edge arrow, Info chip, Rating line, Face pile, Me marker
 - Scenes: Scene / Trip map · 2:10 PM, Scene / Trip map · 2:30 PM, Scene / Trip map · 3:00 PM, Scene / Trip map · 3:56 PM, Scene / Trip map · plan sent, Scene / Trip map · 5 PM, Map / Lisbon today, Map / Lisbon · Gulbenkian
 - Full view: Sheet header, Segmented tabs, Segment, Page title, Photo carousel, Know tip, Fact row, Menu row, Dish sticker, Person row, More picks, Hairline
@@ -125,6 +125,15 @@ Me: my sticker in a soft glass circle, top right of Your trips.
 - Props: Sticker → my face.
 - Code: TripsHome · app/lib/components/home.dart
 - Figma: node 95:1492 · key 58299270ce357d26ef6de654cc201ffd2cdf9630 · properties: Sticker (instance swap) (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=144-910)
+
+### Splash mark
+
+The splash's mark on a cold start: my dot (the app icon's motif, four times the map's, with its ring) and TripUp in the display face, centred on Your trips' blue.
+
+- Use: Step=dot while the dot pops in (TripUp is there but not yet showing, so the dot sits where it ends up); Step=word once TripUp has come in. The trip's stickers pop up around it (Sticker instances, splash/sticker high, splash/ring from the centre), then fly onto the trip card.
+- Props: Step=dot|word.
+- Code: Splash · app/lib/components/splash.dart
+- Figma: node 159:6442 · key c96ff46358b0776facdb6a3728f2adb0faf06b7a · properties: Step=dot|word (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=159-6443)
 
 ## Map
 
