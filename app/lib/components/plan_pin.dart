@@ -157,7 +157,7 @@ class PlanPin extends StatefulWidget {
   /// The card's full height plus its tail, once measured (the screen uses it to make room above the place).
   final ValueChanged<double>? onMidHeight;
 
-  /// Stickers of whoever is already at the place: on the card's first chip, and on the mini pin's corner.
+  /// Stickers of whoever is already at the place: on the card's first chip, and on the middle of the mini pin's top edge.
   final List<String> here;
 
   /// How far a mini pin reaches above its place (card, gap and tail): room to leave when fitting the map around pins.
@@ -403,10 +403,10 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
           ),
         ),
       ),
-      // Who's already there, across the mini pin's top-right corner (on the card they're in the first chip)
+      // Who's already there, on the middle of the mini pin's top edge (on the card they're in the first chip)
       if (widget.here.isNotEmpty && mini > 0 && onMapOp > 0)
         Positioned(
-          left: center.dx + size.width / 2,
+          left: center.dx,
           top: center.dy - size.height / 2,
           child: IgnorePointer(
             child: FractionalTranslation(

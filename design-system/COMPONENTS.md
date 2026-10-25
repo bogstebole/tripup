@@ -198,7 +198,7 @@ The next plan on the map: when, the place's name and rating, its fan of dishes, 
 
 ### Mini pin
 
-A plan's small pin on the map: its sticker, name and when.
+A plan's small pin on the map: its sticker, name and when. Whoever is already there sits on the middle of its top edge, as a Face pile (chip size).
 
 - Props: Name · When · Sticker.
 - Code: _MiniContent (PlanPin, mini) · app/lib/components/plan_pin.dart
