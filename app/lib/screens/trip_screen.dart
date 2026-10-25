@@ -970,6 +970,11 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
               maxZoom: 18,
               backgroundColor: t.bgCanvas,
               interactionOptions: const InteractionOptions(flags: InteractiveFlag.all & ~InteractiveFlag.rotate),
+              // A tap on the map beside the card steps it back to a mini pin, as moving the map does (pins take
+              // their own taps)
+              onTap: (_, _) {
+                if (_upNextMid) setState(() => _upNextMid = false);
+              },
             ),
             children: [
               if (MapTiles.source.value case final source?) TripTileLayer(source: source),

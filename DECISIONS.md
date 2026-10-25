@@ -251,6 +251,7 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 - **Exit fast, enter in order:** leaving is an even 150 ms fade with a blur (the strong ease-out made it a cut); coming in, the card's parts follow one another from the top, the order people read them. The next content starts from the spring's progress, not a timer, so it never comes in while the surface is still far from its size.
 - **The card's content hangs from its top edge** while it grows, so the label can come in early without being clipped; the surface is only empty for about three frames.
 - **What we didn't do:** keep the shared sticker and name travelling between the two (the cause of the overlap), or scale the card's content with the surface (text would stretch).
+- **A tap beside the card shrinks it** (Bogdan), like moving the map: the card is a peek, and tapping away is how people dismiss a peek. No haptic for it: it's the background, not a control.
 
 ## Voting from outside the app (24 Oct)
 

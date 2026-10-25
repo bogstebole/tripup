@@ -640,6 +640,10 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - Tokens: `spring-pop` (0.4 s, bounce 0.3), `spring-fly` (0.7 s, 0.12), the splash's timings (`splash-*`) and sizes (`splash/dot-scale`, `splash/word`, `splash/sticker`, `splash/ring`); the stickers' places around TripUp are `splashStickers` in `data.dart`. The perf and Figma drivers skip it (`splashOnStart`).
 - **Checked** on the iPhone 17 Pro Max simulator from cold launches, frame by frame, and by the recording's frame times (no gaps over 50 ms during the splash).
 
+### Final UI, iteration 1.45: a tap on the map shrinks the card (branch `feature/tap-map-shrinks`)
+- Bogdan: with the Up next card open, a tap anywhere else on the map steps it back to a mini pin, with the same morph as moving the map. Pins keep their own taps (the mini pin still grows it back, the card still opens the full view).
+- **Checked** on the iPhone 17 Pro Max simulator: card → tap beside it → mini pin → tap the pin → card.
+
 ### Figma: the splash, as the Open the app story (branch `figma/splash`)
 - Your trips now has two rows: **Open the app** first (its story card, then four screens: the dot, TripUp, the stickers, onto the card, joined by connectors with their times, the last one down to Your trips), then See all my trips as before. The epics under it moved down a row.
 - The screens are built from components: the new **Splash mark** (Step=dot|word: my dot four times the map's size, from the Me marker's dot, with its ring, and TripUp at `splash/word`), the Lisbon stickers at the app's places and tilts, and, for the last one, the Your trips screen with the card's stickers hidden and the splash's copies 60% of the way there under the thinning blue.
