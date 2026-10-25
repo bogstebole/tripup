@@ -74,8 +74,8 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   bool get _onHome => !_home.isAnimating && _home.value > 0.5;
   bool get _inTrip => !_home.isAnimating && _home.value <= 0.5;
 
-  /// Ren's phone, from the invite link: the 'Ren joins' moment, or only a look at what someone invited would see.
-  bool _joining = false, _joinPreview = false;
+  /// Ren's phone, from the invite link: the 'Ren joins' moment.
+  bool _joining = false;
 
   /// Run once the full view has finished closing (Settle up goes on to Money).
   VoidCallback? _afterSheet;
@@ -515,7 +515,6 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       if (!_onHome) _upNextMid = true;
       _pollExpanded = false;
       _joining = m.opens == 'join';
-      _joinPreview = false;
     });
     if (m.opens == 'money') {
       setState(() => _popup = _Popup.money);
@@ -789,15 +788,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           centered: _popup == _Popup.add && _addStep == AddStep.invite,
           footer: switch (_popup) {
             _Popup.money => MoneyFooter(onScan: _scan),
-            _Popup.add => AddPage.footer(
-                step: _addStep,
-                draft: _draft,
-                onSent: _sentPlan,
-                onPreview: () => setState(() {
-                  _joining = true;
-                  _joinPreview = true;
-                }),
-              ),
+            _Popup.add => AddPage.footer(step: _addStep, draft: _draft, onSent: _sentPlan),
             _ => null,
           },
           // The itinerary filters by day, like the map
@@ -1204,12 +1195,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
             ),
             child: !_joining
                 ? const SizedBox.shrink(key: ValueKey('none'))
-                : JoinFlow(
-                    key: ValueKey(_joinPreview),
-                    preview: _joinPreview,
-                    onJoined: () => _closeJoin(joined: !_joinPreview),
-                    onClose: _closeJoin,
-                  ),
+                : JoinFlow(onJoined: () => _closeJoin(joined: true), onClose: _closeJoin),
           ),
         ),
         // A note for everyone, sliding down from the top and back up the way it came
