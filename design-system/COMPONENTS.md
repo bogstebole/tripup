@@ -2,7 +2,7 @@
 
 Generated from design-system/components.json by design-system/build-components-doc.mjs. Don't edit by hand.
 
-Every component the Figma screens are built from: 87 entries on the page Components (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=143-83), one section each.
+Every component the Figma screens are built from: 88 entries on the page Components (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=143-83), one section each.
 The Flutter app (app/lib) is the source of truth; each component is drawn 1:1 from its widget.
 
 ## How to read it
@@ -22,7 +22,7 @@ The Flutter app (app/lib) is the source of truth; each component is drawn 1:1 fr
 - Map: Top bar, Toggle chip, Demo button, Action bar, Crew button, Plan pin, Up next card, Mini pin, Pin tail, Edge pin, Edge arrow, Info chip, Rating line, Face pile, Me marker
 - Scenes: Scene / Trip map · 2:10 PM, Scene / Trip map · 2:30 PM, Scene / Trip map · 3:00 PM, Scene / Trip map · 3:56 PM, Scene / Trip map · plan sent, Scene / Trip map · 5 PM, Map / Lisbon today, Map / Lisbon · Gulbenkian
 - Full view: Sheet header, Segmented tabs, Segment, Page title, Photo carousel, Know tip, Fact row, Menu row, Dish sticker, Person row, More picks, Hairline
-- Pop-ups: Pop-up header, Sheet section, Sheet row, Icon row, Day heading, Tag, Segmented tabs / wide, Owe pill, Payment row, Why, Money footer, Add choice, Search field, Place map, Time row, Link pill, Text field, Phone pill, Toast
+- Pop-ups: Pop-up header, Sheet footer, Sheet section, Sheet row, Icon row, Day heading, Tag, Segmented tabs / wide, Owe pill, Payment row, Why, Money footer, Add choice, Search field, Place map, Time row, Link pill, Text field, Phone pill, Toast
 - Poll: Poll card, Poll place, Vote bar, Live dot
 - Bill: Scan frame, Receipt, Bill line, Share, Payer
 - Live Activity: Live Activity, Activity place, Activity mark, Activity bar, Island / compact, Island / expanded, Notification, Notification actions, App icon, Wallpaper
@@ -424,12 +424,21 @@ The footer's pop-ups: Itinerary, Money, Add (Plan something, Invite someone), an
 
 ### Pop-up header
 
-A pop-up's header: Back (for a step inside it), its title and the line under it, and Close. The page scrolls up under it; the header is also the handle to drag it down.
+A pop-up's header, one line everywhere: Back (for a step inside it), its title and Close, on the buttons' centre line. The pop-up's line on what it's for opens its page (an Intro text), and its actions are in a Sheet footer. The page scrolls up under the header; the header is also the handle to drag it down.
 
-- Props: Title · Subtitle · Back=no|yes.
+- Props: Title · Back=no|yes.
 - Code: TripSheet · app/lib/components/trip_sheet.dart
 - Storybook: Pop-ups
-- Figma: node 110:2813 · key c1ba4e00d44a14abab10af368306d4104cf96e55 · properties: Title (text), Subtitle (text), Back=no|yes (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=146-903)
+- Figma: node 110:2813 · key c1ba4e00d44a14abab10af368306d4104cf96e55 · properties: Title (text), Back=no|yes (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=146-903)
+
+### Sheet footer
+
+A pop-up's bottom, in view while its page scrolls: its actions over a hairline, one wide button, or two stacked, and a line under them if they need one. Every pop-up's actions are here; going back and closing are in the Pop-up header.
+
+- Use: Plan something's Send to the group (with its note); Invite someone's Copy link and a soft See what they'll see (Second action). Money's footer is the same bottom with the total above the button.
+- Props: Primary, Secondary (nested Text buttons: Label, Show icon, Icon) · Second action (boolean) · Note shown + Note.
+- Code: SheetFooter · app/lib/components/trip_sheet.dart
+- Figma: node 165:6603 · key a86b3191539729790022b81402c1c22703b7e07f · properties: Second action (boolean), Note shown (boolean), Note (text) (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=165-6616)
 
 ### Sheet section
 
@@ -443,9 +452,9 @@ A heading inside a pop-up's page, with an optional line under it (space/lg or sp
 
 One line in a pop-up's list: a sticker, a name (up to two lines), a line under it (brand for Up next), and what sits at the end: a time, an arrow, a button, or nothing.
 
-- Props: Title → title · Subtitle → subtitle · Subtitle color=muted|brand → subtitleColor · End · Sticker → leading · Trailing=time|arrow|button|none → trailing.
+- Props: Title → title · Subtitle → subtitle · Subtitle color=muted|brand → subtitleColor · End · Sticker → leading · Sticker shown (off for a picked place, whose sticker is on the map above) · Trailing=time|arrow|button|none → trailing.
 - Code: SheetRow · app/lib/components/trip_sheet.dart
-- Figma: node 110:2890 · key 7a6cc965ca8f256ec7571317104ec4d221560b06 · properties: Title (text), Subtitle (text), End (text), Sticker (instance swap), Trailing=time|arrow|button|none, Subtitle color=muted|brand (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=146-1069)
+- Figma: node 110:2890 · key 7a6cc965ca8f256ec7571317104ec4d221560b06 · properties: Title (text), Subtitle (text), End (text), Sticker (instance swap), Sticker shown (boolean), Trailing=time|arrow|button|none, Subtitle color=muted|brand (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=146-1069)
 
 ### Icon row
 
@@ -547,7 +556,7 @@ From or To in Plan something's When step: the label and the time.
 
 ### Link pill
 
-The invite link with Copy link, in Invite someone.
+The invite link, alone in a muted pill as tall as a big button, in Invite someone. Copy link is in the pop-up's Sheet footer.
 
 - Props: Link.
 - Code: AddPage · app/lib/components/trip_pages.dart

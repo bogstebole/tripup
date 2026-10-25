@@ -15,8 +15,8 @@ import { JoinLayer } from './Join';
 import { PollCard, PollPage, PollScrim, pollSubtitle } from './Poll';
 import { ToggleChips } from './ToggleChips';
 import {
-  addHeaderOf, AddPage, ITINERARY_SUBTITLE, ItineraryPage, MONEY_SUBTITLE, MoneyFooter, MoneyPage, type AddPageProps, type AddStep,
-  type ItineraryPageProps, type MoneyTab,
+  addHeaderOf, AddFooter, AddPage, ITINERARY_SUBTITLE, ItineraryPage, MONEY_SUBTITLE, MoneyFooter, MoneyPage, type AddPageProps, type AddStep,
+  type ItineraryPageProps, type MoneyTab, usePlanDraft,
 } from './TripPages';
 import { TripSheet } from './TripSheet';
 
@@ -127,7 +127,7 @@ function Screen({ start = null, open: shown, onOpen, money, itinerary, add, poll
   onOpen?: (which: Which | null) => void;
   money?: { page: ReactNode; footer?: ReactNode };
   itinerary?: Omit<ItineraryPageProps, 'onPick' | 'onOpen' | 'onPoll' | 'days' | 'added'>;
-  add?: Omit<AddPageProps, 'step' | 'onStep' | 'onSent'> & { start?: AddStep };
+  add?: Omit<AddPageProps, 'step' | 'onStep' | 'draft'> & { start?: AddStep; onPreview?: () => void };
   poll?: PollSlot;
   notices?: NoticeState;
   planDays?: number[];
@@ -142,8 +142,10 @@ function Screen({ start = null, open: shown, onOpen, money, itinerary, add, poll
   const notices = shared ?? ownNotices;
   // The itinerary's own filter (not the map's, so planning ahead doesn't change the map); each time it opens, on All
   const [planDays, setPlanDays] = useState<number[]>(firstDays);
-  // Where Add to the trip is: its choice, Plan something or Invite someone
+  // Where Add to the trip is: its choice, Plan something or Invite someone; and the plan being made, shared by its page,
+  // its footer (Send) and its Back (a different place)
   const [addStep, setAddStep] = useState<AddStep>(add?.start ?? 'choose');
+  const draft = usePlanDraft(add?.start === 'plan' ? add?.place : undefined);
   // Plans the group added (Plan something's Send)
   const [added, setAdded] = useState<Plan[]>([]);
   // A plan opened from the itinerary: its details, in the pop-up's place (the pop-up goes as they come)
@@ -156,7 +158,10 @@ function Screen({ start = null, open: shown, onOpen, money, itinerary, add, poll
   if (open !== lastOpen) {
     setLastOpen(open);
     if (open === 'itinerary') setPlanDays([]);
-    if (open === 'add') setAddStep('choose');
+    if (open === 'add') {
+      setAddStep('choose');
+      draft.reset();
+    }
   }
   const sent = (plan: Plan) => {
     setAdded(a => [...a, plan]);
@@ -165,7 +170,7 @@ function Screen({ start = null, open: shown, onOpen, money, itinerary, add, poll
     notices[1](`Sent: ${plan.name}, ${day === 'Today' ? '' : `${day} `}${clockTime(planStart(plan))}–${clockTime(planEnd(plan)!)}`);
   };
   const addHeader = addHeaderOf(addStep);
-  const sheet: Record<Which, { title: string; subtitle: string; page: ReactNode; top?: ReactNode; footer?: ReactNode; onBack?: () => void } | undefined> = {
+  const sheet: Record<Which, { title: string; subtitle?: string; page: ReactNode; top?: ReactNode; footer?: ReactNode; onBack?: () => void } | undefined> = {
     itinerary: {
       title: 'Itinerary',
       subtitle: ITINERARY_SUBTITLE,
@@ -175,8 +180,10 @@ function Screen({ start = null, open: shown, onOpen, money, itinerary, add, poll
     money: { title: 'Money', subtitle: MONEY_SUBTITLE, page: money?.page ?? <MoneyPage />, footer: money?.footer ?? <MoneyFooter /> },
     add: {
       ...addHeader,
-      page: <AddPage step={addStep} onStep={setAddStep} onSent={sent} onPreview={add?.onPreview} query={add?.query} place={add?.place} />,
-      onBack: addStep === 'choose' ? undefined : () => setAddStep('choose'),
+      page: <AddPage step={addStep} onStep={setAddStep} draft={draft} query={add?.query} place={add?.place} />,
+      footer: <AddFooter step={addStep} draft={draft} onSent={sent} onPreview={add?.onPreview} />,
+      // Back: from a picked place to the search, from the search or the invite to the choice
+      onBack: addStep === 'choose' ? undefined : () => (addStep === 'plan' && draft.spot ? draft.pick(undefined) : setAddStep('choose')),
     },
     poll: poll && { title: 'Dinner tonight', subtitle: poll.subtitle, page: poll.page },
   };
@@ -531,13 +538,13 @@ export const ScanTheBill: Story = {
 };
 
 export const Add: Story = {
-  parameters: { docs: { description: { story: '"Add to the trip", "A plan, or someone new", in the compact sheet (sheet/compact-height): two plain choices, Plan something and Invite someone, each a big title (heading-sm) with a line under it (body-sm, muted) and an arrow, md above and below, a hairline between; no icons and no boxes. Picking one changes the header, not the page: a back button (sm) slides in before the title (enter-ms, ease-out) and the title and its line crossfade to the step\'s ("Plan something · Find a place, pick a time, send it", "Invite someone · They join with a link, no account"). The step fades in (enter-ms), its blocks arriving one after another, while the choice fades out with a blur (fade-ms). Plan something grows the sheet to the full height (enter-ms, ease-in-out); Back shrinks it again and starts a plan over. Every time Add opens, it\'s on the choice.' } } },
+  parameters: { docs: { description: { story: '"Add to the trip", and "A plan, or someone new" at the top of the page, in the compact sheet (sheet/compact-height). Like every pop-up, its header is one line: Back (for a step inside it), the title and Close, on the buttons\' centre line; the pop-up\'s line on what it\'s for opens its page, lined up with the page\'s text, and its actions are in a footer over a hairline. Then two plain choices, Plan something and Invite someone, each a big title (heading-sm) with a line under it (body-sm, muted) and an arrow, md above and below, a hairline between; no icons and no boxes. Picking one changes the header: a back button (sm) slides in before the title (enter-ms, ease-out) and the title crossfades to the step\'s ("Plan something", with "Find a place, pick a time, send it" at the top of its page; "Invite someone"). The step fades in (enter-ms), its blocks arriving one after another, while the choice fades out with a blur (fade-ms). Plan something grows the sheet to the full height (enter-ms, ease-in-out); Back shrinks it again and starts a plan over. Every time Add opens, it\'s on the choice.' } } },
   render: () => <AddStory />,
 };
 
 export const AddInvite: Story = {
   name: 'Add · invite',
-  parameters: { docs: { description: { story: 'Invite, as it opens from Invite someone, in the middle of the compact sheet (TripSheet centered), md between its blocks: "Send them this link" (heading-sm) and "Share it with a friend. They type their name and they\'re in." (body-sm, muted), centred; the link in a muted pill with Copy link ("Link copied" comes down at the top); and a soft "See what they\'ll see" (TextButton soft, 44 px). It opens the invited person\'s phone over everything, the way Ren\'s phone opens (it fades in from page-zoom-scale, enter-ms, and fades away, fade-ms; reduced motion, fades only): "What they\'ll see" at the top, the name field empty, and the trip as anyone joining now would see it (see Screens · Invite preview). Nobody joins; × or Close the preview goes back to Invite, the pop-up still open.' } } },
+  parameters: { docs: { description: { story: 'Invite, as it opens from Invite someone, in the middle of the compact sheet (TripSheet centered), md between its blocks: "Send them this link" (heading-sm) and "Share it with a friend. They type their name and they\'re in." (body-sm, muted), centred; and the link in a muted pill as tall as a big button. The footer: Copy link (TextButton lg, wide; "Link copied" comes down at the top) and a soft "See what they\'ll see" under it (lg, wide). It opens the invited person\'s phone over everything, the way Ren\'s phone opens (it fades in from page-zoom-scale, enter-ms, and fades away, fade-ms; reduced motion, fades only): "What they\'ll see" at the top, the name field empty, and the trip as anyone joining now would see it (see Screens · Invite preview). Nobody joins; × or Close the preview goes back to Invite, the pop-up still open.' } } },
   render: () => <AddStory start="invite" />,
 };
 
@@ -555,7 +562,7 @@ export const AddPlanSearch: Story = {
 
 export const AddPlanPicked: Story = {
   name: 'Add · plan · place picked',
-  parameters: { docs: { description: { story: 'Time Out Market picked. On top, a small still map of it, plan/map-height (160) tall with radius-card corners, its sticker in the middle and the map\'s credit at the bottom (the app draws the live map\'s tiles; here a plain bg-subtle block stands in for them). Then its row with a soft Change, back to the search as it was. "When" (lg above): one day at a time, as chips (Today on, then Tomorrow, Sat 16…), and From and To: tonight 6 PM to 8 PM (from the next hour once it\'s past 5; tomorrow once it\'s past 9 PM). Tapping a time opens a wheel under it (plan/picker-height, 180; it opens over enter-ms and closes quicker), the time in brand while it\'s open; tapping it again closes it. The app\'s wheel is Cupertino\'s (hour, minute and AM/PM, 15-minute steps); here it\'s one column of times 15 minutes apart that scrolls and snaps, the one in the middle band picked once it settles (tap a time, or step with the arrow keys). A From at or past To moves To an hour after it; To stays at least 15 min after From. Then Send to the group (TextButton lg, wide; xl above) and, centred under it, "It goes on everyone\'s itinerary and map." Send closes the pop-up and everyone hears "Sent: Time Out Market, 6 PM–8 PM" at the top (with the day when it isn\'t today); the itinerary has it, "In 2 hrs · until 8 PM". In the app the map also flies to it.' } } },
+  parameters: { docs: { description: { story: 'Time Out Market picked. On top, a small still map of it, plan/map-height (160) tall with radius-card corners, its sticker in the middle and the map\'s credit at the bottom (the app draws the live map\'s tiles; here a plain bg-subtle block stands in for them). Then its name and the line under it; no sticker (it\'s on the map) and no Change: the header\'s Back goes back to the search as it was. "When" (lg above): one day at a time, as chips (Today on, then Tomorrow, Sat 16…), and From and To: tonight 6 PM to 8 PM (from the next hour once it\'s past 5; tomorrow once it\'s past 9 PM). Tapping a time opens a wheel under it (plan/picker-height, 180; it opens over enter-ms and closes quicker), the time in brand while it\'s open; tapping it again closes it. The app\'s wheel is Cupertino\'s (hour, minute and AM/PM, 15-minute steps); here it\'s one column of times 15 minutes apart that scrolls and snaps, the one in the middle band picked once it settles (tap a time, or step with the arrow keys). A From at or past To moves To an hour after it; To stays at least 15 min after From. The footer, in view while the page scrolls: Send to the group (TextButton lg, wide) and, centred under it, "It goes on everyone\'s itinerary and map." Send closes the pop-up and everyone hears "Sent: Time Out Market, 6 PM–8 PM" at the top (with the day when it isn\'t today); the itinerary has it, "In 2 hrs · until 8 PM". In the app the map also flies to it.' } } },
   render: () => <AddStory start="plan" place="timeout" />,
 };
 

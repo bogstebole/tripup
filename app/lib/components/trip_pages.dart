@@ -287,10 +287,7 @@ class MoneyFooter extends StatelessWidget {
           final t = context.tok;
           final mine = tripExpenses.fold(0.0, (sum, e) => sum + e.shareOf(myId));
           final scan = dinnerBill.value == null && isActive(plans.first, tripNow());
-          return Container(
-            padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.sm, TokSpace.xs, TokSpace.md),
-            decoration: BoxDecoration(border: Border(top: BorderSide(color: t.borderDefault, width: TokDim.surfaceEdgeWidth))),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: TokSpace.md, children: [
+          return SheetFooter(children: [
               Row(spacing: TokSpace.sm, children: [
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x3xs, children: [
@@ -301,8 +298,7 @@ class MoneyFooter extends StatelessWidget {
                 Text(euros(spentSoFar), style: TokText.headingLg.copyWith(color: t.textDefault)),
               ]),
               if (scan) TuTextButton(label: 'Scan the bill', icon: TuIcons.scan, size: TuButtonSize.lg, wide: true, onTap: onScan),
-            ]),
-          );
+          ]);
         },
       );
 }
@@ -338,96 +334,54 @@ Widget _explain(BuildContext context, Payment p) {
 /// What Add to the trip shows: the two choices, or one of them.
 enum AddStep { choose, plan, invite }
 
-/// Adding to the trip: a plan (find a place, pick a day and a time, send it to everyone's itinerary and map) or someone
-/// new (a link: no account, and they only share costs from the day they join). The step lives with the pop-up, whose
-/// header follows it: its title, and a way back.
-class AddPage extends StatefulWidget {
-  const AddPage({super.key, required this.step, required this.onStep, this.onPreview, this.onSent, this.mapOf});
-  final AddStep step;
-  final ValueChanged<AddStep> onStep;
+/// What's being planned in Add: the place picked from the search (none yet), and when: a day, and a time range in
+/// minutes from midnight. The page edits it; the pop-up's footer sends it, and its Back puts the place down again.
+class PlanDraft extends ChangeNotifier {
+  PlanDraft() {
+    reset();
+  }
 
-  /// Shows what someone invited will see on their phone.
-  final VoidCallback? onPreview;
-
-  /// A plan went to the group.
-  final ValueChanged<Plan>? onSent;
-
-  /// A small still map of a place, with its sticker on it.
-  final Widget Function(LatLng at, String sticker)? mapOf;
-
-  /// The pop-up's title and the line under it, for each step.
-  static (String, String) headerOf(AddStep step) => switch (step) {
-        AddStep.choose => ('Add to the trip', 'A plan, or someone new'),
-        AddStep.plan => ('Plan something', 'Find a place, pick a time, send it'),
-        AddStep.invite => ('Invite someone', 'They join with a link, no account'),
-      };
-
-  @override
-  State<AddPage> createState() => _AddPageState();
-}
-
-class _AddPageState extends State<AddPage> {
-  static const _link = 'tripup.app/j/lisbon-may';
-
-  final _query = TextEditingController();
-  final _focus = FocusNode();
-
-  /// The place picked from the search, and when: a day, and a time range in minutes from midnight.
   PlaceSpot? _spot;
+  PlaceSpot? get spot => _spot;
   late int _day, _from, _to;
+  int get day => _day;
+  int get from => _from;
+  int get to => _to;
 
-  /// Which time's wheel is open: 'from', 'to', or none.
-  String? _editing;
-
-  @override
-  void initState() {
-    super.initState();
-    _resetWhen();
+  void pick(PlaceSpot? spot) {
+    _spot = spot;
+    notifyListeners();
   }
 
-  @override
-  void didUpdateWidget(AddPage old) {
-    super.didUpdateWidget(old);
-    // Back to the choice starts a plan over next time
-    if (widget.step == AddStep.choose && old.step != AddStep.choose) {
-      _query.clear();
-      _spot = null;
-      _editing = null;
-      _resetWhen();
-    }
+  void setDay(int d) {
+    _day = d;
+    notifyListeners();
   }
 
-  @override
-  void dispose() {
-    _query.dispose();
-    _focus.dispose();
-    super.dispose();
+  void setFrom(int m) {
+    _from = m;
+    if (_to <= _from) _to = math.min(_from + 60, 23 * 60 + 45);
+    notifyListeners();
   }
 
-  /// Tonight from 6 to 8, or from the next hour if it's already later; tomorrow once the evening is gone.
-  void _resetWhen() {
+  void setTo(int m) {
+    _to = math.max(m, _from + 15);
+    notifyListeners();
+  }
+
+  /// No place yet, and tonight from 6 to 8, or from the next hour if it's already later; tomorrow once the evening is gone.
+  void reset() {
     final now = tripNow();
     final late = now.hour >= 21;
+    _spot = null;
     _day = late && tripDays.contains(today + 1) ? today + 1 : today;
     _from = _day == today && now.hour >= 17 ? (now.hour + 1) * 60 : 18 * 60;
     _to = math.min(_from + 120, 23 * 60 + 45);
+    notifyListeners();
   }
 
-  void _go(AddStep step) {
-    HapticFeedback.selectionClick();
-    widget.onStep(step);
-  }
-
-  void _pick(PlaceSpot? spot) {
-    HapticFeedback.selectionClick();
-    FocusScope.of(context).unfocus();
-    setState(() {
-      _spot = spot;
-      _editing = null;
-    });
-  }
-
-  void _send() {
+  /// Puts it on everyone's itinerary and map.
+  Plan send() {
     final s = _spot!;
     final plan = Plan(
       id: 'added-${s.id}-$_day-$_from',
@@ -442,7 +396,122 @@ class _AddPageState extends State<AddPage> {
     );
     HapticFeedback.mediumImpact();
     addedPlans.value = [...addedPlans.value, plan];
-    widget.onSent?.call(plan);
+    return plan;
+  }
+}
+
+/// Adding to the trip: a plan (find a place, pick a day and a time, send it to everyone's itinerary and map) or someone
+/// new (a link: no account, and they only share costs from the day they join). The step lives with the pop-up, whose
+/// header follows it: its title, and a way back.
+class AddPage extends StatefulWidget {
+  const AddPage({super.key, required this.step, required this.onStep, required this.draft, this.mapOf});
+  final AddStep step;
+  final ValueChanged<AddStep> onStep;
+
+  /// The plan being made (its Send is in the pop-up's footer: see [AddPage.footer]).
+  final PlanDraft draft;
+
+  /// A small still map of a place, with its sticker on it.
+  final Widget Function(LatLng at, String sticker)? mapOf;
+
+  /// The pop-up's title and the line at the top of its page, for each step (Invite's page says it itself).
+  static (String, String?) headerOf(AddStep step) => switch (step) {
+        AddStep.choose => ('Add to the trip', 'A plan, or someone new'),
+        AddStep.plan => ('Plan something', 'Find a place, pick a time, send it'),
+        AddStep.invite => ('Invite someone', null),
+      };
+
+  static const link = 'tripup.app/j/lisbon-may';
+
+  /// The pop-up's footer for each step: once a place is picked, Send; for Invite, Copy link (and a look at what they'll
+  /// see). Nothing while choosing or searching.
+  static Widget footer({required AddStep step, required PlanDraft draft, required ValueChanged<Plan> onSent, VoidCallback? onPreview}) => ListenableBuilder(
+        listenable: draft,
+        builder: (context, _) => AnimatedSize(
+          duration: TokMotion.enter,
+          curve: TokMotion.easeOut,
+          alignment: Alignment.topCenter,
+          child: switch (step) {
+            AddStep.plan when draft.spot != null => SheetFooter(
+                note: "It goes on everyone's itinerary and map.",
+                children: [TuTextButton(label: 'Send to the group', size: TuButtonSize.lg, wide: true, onTap: () => onSent(draft.send()))],
+              ),
+            AddStep.invite => SheetFooter(children: [
+                TuTextButton(
+                  label: 'Copy link',
+                  icon: TuIcons.copy,
+                  size: TuButtonSize.lg,
+                  wide: true,
+                  onTap: () {
+                    Clipboard.setData(const ClipboardData(text: 'https://$link'));
+                    tripNotice.value = 'Link copied';
+                  },
+                ),
+                if (onPreview != null) TuTextButton(label: "See what they'll see", kind: GlassKind.soft, size: TuButtonSize.lg, wide: true, onTap: onPreview),
+              ]),
+            _ => const SizedBox(width: double.infinity),
+          },
+        ),
+      );
+
+  @override
+  State<AddPage> createState() => _AddPageState();
+}
+
+class _AddPageState extends State<AddPage> {
+  final _query = TextEditingController();
+  final _focus = FocusNode();
+
+  /// Which time's wheel is open: 'from', 'to', or none.
+  String? _editing;
+
+  PlanDraft get _draft => widget.draft;
+
+  @override
+  void initState() {
+    super.initState();
+    _draft.addListener(_changed);
+  }
+
+  void _changed() {
+    if (!mounted) return;
+    if (_draft.spot == null) _editing = null;
+    setState(() {});
+  }
+
+  @override
+  void didUpdateWidget(AddPage old) {
+    super.didUpdateWidget(old);
+    if (old.draft != widget.draft) {
+      old.draft.removeListener(_changed);
+      widget.draft.addListener(_changed);
+    }
+    // Back to the choice starts a plan over next time
+    if (widget.step == AddStep.choose && old.step != AddStep.choose) {
+      _query.clear();
+      _editing = null;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _draft.reset());
+    }
+  }
+
+  @override
+  void dispose() {
+    _draft.removeListener(_changed);
+    _query.dispose();
+    _focus.dispose();
+    super.dispose();
+  }
+
+  void _go(AddStep step) {
+    HapticFeedback.selectionClick();
+    widget.onStep(step);
+  }
+
+  void _pick(PlaceSpot spot) {
+    HapticFeedback.selectionClick();
+    FocusScope.of(context).unfocus();
+    _editing = null;
+    _draft.pick(spot);
   }
 
   // One step (or, in Plan, the search and then the place) at a time: it fades in, the last one fades out with a blur
@@ -452,12 +521,12 @@ class _AddPageState extends State<AddPage> {
         reverseDuration: TokMotion.fade,
         switchInCurve: TokMotion.easeOut,
         layoutBuilder: (current, previous) => Stack(alignment: Alignment.topCenter, children: [...previous, ?current]),
-        transitionBuilder: (child, anim) => child.key == ValueKey((widget.step, _spot?.id)) ? FadeTransition(opacity: anim, child: child) : fadeBlurOut(anim, child),
+        transitionBuilder: (child, anim) => child.key == ValueKey((widget.step, _draft.spot?.id)) ? FadeTransition(opacity: anim, child: child) : fadeBlurOut(anim, child),
         child: KeyedSubtree(
-          key: ValueKey((widget.step, _spot?.id)),
+          key: ValueKey((widget.step, _draft.spot?.id)),
           child: switch (widget.step) {
             AddStep.choose => _choose(context),
-            AddStep.plan => _spot == null ? _search(context) : _when(context, _spot!),
+            AddStep.plan => _draft.spot == null ? _search(context) : _when(context, _draft.spot!),
             AddStep.invite => _invite(context),
           },
         ),
@@ -470,7 +539,7 @@ class _AddPageState extends State<AddPage> {
         _Choice(title: 'Invite someone', subtitle: 'They join with a link, no account. They only share costs from the day they join.', onTap: () => _go(AddStep.invite)),
       ]);
 
-  /// The link, in the middle of the sheet, and the one thing to do with it.
+  /// The link, in the middle of the sheet (Copy link and a look at what they'll see are in the footer).
   Widget _invite(BuildContext context) {
     final t = context.tok;
     return StaggerIn(spacing: TokSpace.md, crossAxisAlignment: CrossAxisAlignment.center, children: [
@@ -479,21 +548,12 @@ class _AddPageState extends State<AddPage> {
         Text("Share it with a friend. They type their name and they're in.", textAlign: TextAlign.center, style: TokText.bodySm.copyWith(color: t.textMuted)),
       ]),
       Container(
-        padding: const EdgeInsets.fromLTRB(TokSpace.md, TokSpace.xs, TokSpace.xs, TokSpace.xs),
+        height: TokDim.buttonLg,
+        alignment: Alignment.centerLeft,
+        padding: const EdgeInsets.symmetric(horizontal: TokSpace.md),
         decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.pill)),
-        child: Row(spacing: TokSpace.sm, children: [
-          Expanded(child: Text(_link, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.labelLg.copyWith(color: t.textDefault))),
-          TuTextButton(
-            label: 'Copy link',
-            icon: TuIcons.copy,
-            onTap: () {
-              Clipboard.setData(const ClipboardData(text: 'https://$_link'));
-              tripNotice.value = 'Link copied';
-            },
-          ),
-        ]),
+        child: Text(AddPage.link, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.labelLg.copyWith(color: t.textDefault)),
       ),
-      if (widget.onPreview case final preview?) TuTextButton(label: "See what they'll see", kind: GlassKind.soft, onTap: preview),
     ]);
   }
 
@@ -550,22 +610,18 @@ class _AddPageState extends State<AddPage> {
     ]);
   }
 
-  /// The place you picked, on a small map, then when: a day, from and to; and Send at the end.
+  /// The place you picked, on a small map (its sticker is on it), then when: a day, from and to. Send is in the footer;
+  /// a different place is the header's Back.
   Widget _when(BuildContext context, PlaceSpot s) {
     final t = context.tok;
     final now = tripNow();
-    final at = DateTime(tripYear, tripMonth, _day);
+    final at = DateTime(tripYear, tripMonth, _draft.day);
     return StaggerIn(children: [
       ClipRRect(
         borderRadius: BorderRadius.circular(TokRadius.card),
         child: SizedBox(height: TokDim.planMapHeight, child: widget.mapOf?.call(s.at, s.sticker) ?? ColoredBox(color: t.bgMuted)),
       ),
-      SheetRow(
-        leading: _slot(Sticker(s.sticker, size: StickerSize.row)),
-        title: s.name,
-        subtitle: '${s.kind} · ${s.area} · ${walkLabel(s.at, now)}',
-        trailing: TuTextButton(label: 'Change', kind: GlassKind.soft, onTap: () => _pick(null)),
-      ),
+      SheetRow(title: s.name, subtitle: '${s.kind} · ${s.area} · ${walkLabel(s.at, now)}'),
       const SheetSection('When', top: TokSpace.lg),
       SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -576,24 +632,15 @@ class _AddPageState extends State<AddPage> {
             if (d >= today)
               ToggleChip(
                 label: dayName(DateTime(tripYear, tripMonth, d), now),
-                on: d == _day,
-                onTap: () => setState(() => _day = d),
+                on: d == _draft.day,
+                onTap: () => _draft.setDay(d),
               ),
         ]),
       ),
       const SizedBox(height: TokSpace.sm),
-      _time(context, 'From', 'from', _from, at, (m) {
-        _from = m;
-        if (_to <= _from) _to = math.min(_from + 60, 23 * 60 + 45);
-      }),
+      _time(context, 'From', 'from', _draft.from, at, _draft.setFrom),
       const Hairline(),
-      _time(context, 'To', 'to', _to, at, (m) => _to = math.max(m, _from + 15)),
-      const SizedBox(height: TokSpace.xl),
-      TuTextButton(label: 'Send to the group', size: TuButtonSize.lg, wide: true, onTap: _send),
-      Padding(
-        padding: const EdgeInsets.only(top: TokSpace.xs),
-        child: Text("It goes on everyone's itinerary and map.", textAlign: TextAlign.center, style: TokText.bodySm.copyWith(color: t.textMuted)),
-      ),
+      _time(context, 'To', 'to', _draft.to, at, _draft.setTo),
     ]);
   }
 
@@ -626,11 +673,11 @@ class _AddPageState extends State<AddPage> {
             : SizedBox(
                 height: TokDim.planPickerHeight,
                 child: CupertinoDatePicker(
-                  key: ValueKey('$key-$_day'),
+                  key: ValueKey('$key-${_draft.day}'),
                   mode: CupertinoDatePickerMode.time,
                   minuteInterval: 15,
                   initialDateTime: value,
-                  onDateTimeChanged: (d) => setState(() => set(d.hour * 60 + d.minute)),
+                  onDateTimeChanged: (d) => set(d.hour * 60 + d.minute),
                 ),
               ),
       ),

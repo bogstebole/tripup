@@ -237,6 +237,17 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 - **Overview ends with Website and Directions,** fixed at the bottom while the page scrolls, like the Group page's Scan the bill. Directions is the primary one: on a trip the question is "how do I get there", and it opens the phone's maps app straight to walking directions (Apple Maps on iPhone, Google Maps elsewhere), with no step in between. Website is the soft one and only shows when the place has a site. We didn't draw directions inside TripUp: the maps apps already do it better, and the trip's map is for the group, not for routing.
 - **Every backdrop is the poll's** (Bogdan: the expanded poll's darker backdrop was better). Behind sheets, pop-ups and details the map now gets the same deep blue tint at 23% with a light blur, instead of a white wash with a heavier blur. The sheet stands out more, and it's one look everywhere. On Android before 10 it's the same tint, a little stronger, with no blur. The trip's opening keeps its own stronger blur, since that's a transition, not a backdrop.
 
+## Pop-ups: one header, actions in the footer (25 Oct)
+
+- **Every pop-up is built the same way** (Bogdan): navigation in the header (Back where there's a step to go back from, Close), doing things in the footer, whether one wide button or two stacked. The full view (Overview's Website and Directions) already worked like that.
+- **The header is one line.** Back, the title and Close share the buttons' centre line; the line under the title fell out of that alignment, so it moved to the top of the page, lined up with the page's text, instead of being dropped (it says what the pop-up is for).
+- **No duplicate ways back:** a picked place's Change did what Back does, so it's gone, and the place's sticker (already on the map above it) left its row.
+- **Pay stays in Money's pill:** it's the action on that one debt (like Vote on a place), not the page's; the page's own action, Scan the bill, is in the footer.
+
+## Up next opens by itself once (25 Oct)
+
+- **Once per launch, the first time into the trip** (Bogdan): that's when "what's next" helps. After it's been made small, browsing the days or the map shouldn't keep pushing it back open; a tap on its pin does. News about it (the poll's winner, a dinner picked by hand) still opens it, since that changes what's next.
+
 ## The splash (25 Oct)
 
 - **The loader becomes the page** (the amo.co reference from 21 Oct): no spinner and no logo screen that cuts to the app. The trip's own stickers pop up around the mark and then fly onto the trip card, so the splash assembles Your trips instead of standing in front of it.

@@ -31,7 +31,6 @@
 .tu-amount { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-3xs); flex: none; }
 /* The footer, over a hairline: spent so far on the left, the total on the right; Scan the bill under them while the
    dinner is on */
-.tu-money-footer { display: flex; flex-direction: column; gap: var(--space-md); padding: var(--space-sm) var(--space-xs) var(--space-md); border-top: var(--d-surface-edge-width) solid var(--color-border-default); }
 .tu-money-footer__row { display: flex; align-items: center; gap: var(--space-sm); }
 .tu-money-footer__text { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: var(--space-3xs); color: var(--color-text-default); }
 /* A payment's Why: what they had of each expense, what they paid, and the sum in words, in a muted box under the row */
@@ -54,7 +53,7 @@
 .tu-invite__head { display: flex; flex-direction: column; gap: var(--space-2xs); }
 .tu-invite__head h3 { margin: 0; }
 /* The invite link in a muted pill, with Copy at its end */
-.tu-link { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-xs) var(--space-xs) var(--space-xs) var(--space-md); border-radius: var(--radius-pill); background: var(--color-bg-muted); text-align: left; }
+.tu-link { display: flex; align-items: center; height: var(--d-button-lg); padding: 0 var(--space-md); border-radius: var(--radius-pill); background: var(--color-bg-muted); text-align: left; }
 .tu-link__text { flex: 1 1 0; min-width: 0; color: var(--color-text-default); }
 /* Plan something's search: a muted pill as tall as a big button, the search icon, the field, and × once there's text */
 .tu-search { display: flex; align-items: center; gap: var(--space-xs); height: var(--d-button-lg); padding: 0 var(--space-md); border-radius: var(--radius-pill); background: var(--color-bg-muted); }
@@ -71,8 +70,6 @@
 .tu-place-map__credit { position: absolute; left: 0; right: 0; bottom: var(--space-2xs); text-align: center; color: var(--c-attribution-fg); }
 /* When: sm under the day chips, then From and To; xl above Send, and its line xs under it */
 .tu-plan-from { padding-top: var(--space-sm); }
-.tu-plan-send { display: flex; padding-top: var(--space-xl); }
-.tu-plan-note { padding-top: var(--space-xs); text-align: center; }
 .tu-time { display: flex; flex-direction: column; }
 .tu-time__row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-sm); padding: var(--space-sm) var(--space-xs); border-radius: var(--radius-card); color: var(--color-text-default); transition: transform var(--press-ms) var(--ease-out); }
 .tu-time__row:active { transform: scale(var(--press-scale)); }

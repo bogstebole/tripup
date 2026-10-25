@@ -19,7 +19,8 @@ const blur = `blur(${m['enter-blur']}px)`;
 
 export interface TripSheetProps {
   title: string;
-  subtitle: string;
+  /** A line on what the pop-up is for, at the top of its page (not in the header, so the header stays one line). */
+  subtitle?: string;
   /** The page, top to bottom. The sheet scrolls it; a block marked `data-sheet-focus` opens scrolled to just under the header. */
   children: ReactNode;
   onClose?: () => void;
@@ -30,8 +31,7 @@ export interface TripSheetProps {
   onBack?: () => void;
   /** The page sits in the middle of the sheet when it's shorter than it (Invite's link). */
   centered?: boolean;
-  /** Stays put at the bottom while the page scrolls above it (the scanned bill's totals and its button; Money's spent
-   *  so far). */
+  /** Stays put at the bottom while the page scrolls above it: the page's actions (see SheetFooter). */
   footer?: ReactNode;
   /** Stays put under the title while the page scrolls under it (the itinerary's day filter): one chip row high
    *  (toggle-chip-height), sm under the title, and the header grows by as much. */
@@ -39,15 +39,17 @@ export interface TripSheetProps {
 }
 
 /**
- * One of the footer's pop-ups (itinerary, money, add): the full view's surface, a header with the title, subtitle
- * and close, and a page that scrolls up under the header. It rises from the bottom in the full view's place, from
+ * One of the footer's pop-ups (itinerary, money, add): the full view's surface, a header with Back (for a step inside
+ * it), the title and Close on one line, a page that scrolls up under the header (the pop-up's line on what it's for at
+ * its top), and a footer with the page's actions. Every pop-up is built the same way: going back and closing in the
+ * header, doing things in the footer. It rises from the bottom in the full view's place, from
  * just past the bottom edge (its own height plus the inset), and goes back down quicker than it came; with reduced
  * motion it only fades. Put it in AnimatePresence so it can leave; with `custom` true on that AnimatePresence it goes at
  * once instead (a plan's details opened from the itinerary take its place: the same surface, in the same place). On the
  * phone, a pull down on the header closes it too.
  * It has no notes of its own: its pages show them at the top of the screen (see Notice.tsx). A step inside it (Add's)
- * shows in the header: a back button slides in before the title (enter-ms, ease-out), and a new title and line fade in
- * as the old ones fade out (enter-ms in, fade-ms out).
+ * shows in the header: a back button slides in before the title (enter-ms, ease-out), and a new title fades in as the
+ * old one fades out (enter-ms in, fade-ms out).
  */
 export function TripSheet({ title, subtitle, children, onClose, compact, footer, top, onBack, centered }: TripSheetProps) {
   const reduce = useReducedMotion();
@@ -88,6 +90,7 @@ export function TripSheet({ title, subtitle, children, onClose, compact, footer,
       exit="leave"
     >
       <div ref={scroll} className={centered ? 'tu-trip-sheet__scroll tu-trip-sheet__scroll--centered' : 'tu-trip-sheet__scroll'} onScroll={e => setUnder(Math.min(1, e.currentTarget.scrollTop / topFade))}>
+        {subtitle && <p className="text-body-sm tu-trip-sheet__intro">{subtitle}</p>}
         {children}
       </div>
       {/* The header's white shows once the page goes under it, so a page at rest isn't faded at the top */}
@@ -118,7 +121,6 @@ export function TripSheet({ title, subtitle, children, onClose, compact, footer,
               exit={{ opacity: 0, transition: { duration: m['fade-ms'] / 1000, ease } }}
             >
               <h2 className="text-heading-md tu-ellipsis">{title}</h2>
-              <p className="text-body-sm tu-ellipsis tu-trip-sheet__subtitle">{subtitle}</p>
             </motion.div>
           </AnimatePresence>
         </div>
@@ -127,6 +129,20 @@ export function TripSheet({ title, subtitle, children, onClose, compact, footer,
       {top != null && <div className="tu-trip-sheet__top">{top}</div>}
       {footer != null && <div className="tu-trip-sheet__footer">{footer}</div>}
     </motion.article>
+  );
+}
+
+/**
+ * A pop-up's bottom, in view while its page scrolls: what to do there, as buttons (one wide, or several stacked), with
+ * what they need above them (Money's total) or a line under them (`note`). Every pop-up's actions are here; going back
+ * and closing are in the header. Padding sm on top and md at the bottom, xs at the sides, over a hairline.
+ */
+export function SheetFooter({ children, note }: { children: ReactNode; note?: string }) {
+  return (
+    <div className="tu-sheet-footer">
+      {children}
+      {note && <p className="text-body-sm tu-sheet-footer__note">{note}</p>}
+    </div>
   );
 }
 

@@ -487,14 +487,25 @@
       "components": [
         {
           "name": "Pop-up header",
-          "what": "A pop-up's header: Back (for a step inside it), its title and the line under it, and Close. The page scrolls up under it; the header is also the handle to drag it down.",
-          "props": "Title · Subtitle · Back=no|yes.",
+          "what": "A pop-up's header, one line everywhere: Back (for a step inside it), its title and Close, on the buttons' centre line. The pop-up's line on what it's for opens its page (an Intro text), and its actions are in a Sheet footer. The page scrolls up under the header; the header is also the handle to drag it down.",
+          "props": "Title · Back=no|yes.",
           "code": "TripSheet · app/lib/components/trip_sheet.dart",
           "story": "Pop-ups",
           "section": "146:903",
           "id": "110:2813",
           "key": "c1ba4e00d44a14abab10af368306d4104cf96e55",
-          "figmaProps": "Title (text), Subtitle (text), Back=no|yes"
+          "figmaProps": "Title (text), Back=no|yes"
+        },
+        {
+          "name": "Sheet footer",
+          "what": "A pop-up's bottom, in view while its page scrolls: its actions over a hairline, one wide button, or two stacked, and a line under them if they need one. Every pop-up's actions are here; going back and closing are in the Pop-up header.",
+          "use": "Plan something's Send to the group (with its note); Invite someone's Copy link and a soft See what they'll see (Second action). Money's footer is the same bottom with the total above the button.",
+          "props": "Primary, Secondary (nested Text buttons: Label, Show icon, Icon) · Second action (boolean) · Note shown + Note.",
+          "code": "SheetFooter · app/lib/components/trip_sheet.dart",
+          "section": "165:6616",
+          "id": "165:6603",
+          "key": "a86b3191539729790022b81402c1c22703b7e07f",
+          "figmaProps": "Second action (boolean), Note shown (boolean), Note (text)"
         },
         {
           "name": "Sheet section",
@@ -509,12 +520,12 @@
         {
           "name": "Sheet row",
           "what": "One line in a pop-up's list: a sticker, a name (up to two lines), a line under it (brand for Up next), and what sits at the end: a time, an arrow, a button, or nothing.",
-          "props": "Title → title · Subtitle → subtitle · Subtitle color=muted|brand → subtitleColor · End · Sticker → leading · Trailing=time|arrow|button|none → trailing.",
+          "props": "Title → title · Subtitle → subtitle · Subtitle color=muted|brand → subtitleColor · End · Sticker → leading · Sticker shown (off for a picked place, whose sticker is on the map above) · Trailing=time|arrow|button|none → trailing.",
           "code": "SheetRow · app/lib/components/trip_sheet.dart",
           "section": "146:1069",
           "id": "110:2890",
           "key": "7a6cc965ca8f256ec7571317104ec4d221560b06",
-          "figmaProps": "Title (text), Subtitle (text), End (text), Sticker (instance swap), Trailing=time|arrow|button|none, Subtitle color=muted|brand"
+          "figmaProps": "Title (text), Subtitle (text), End (text), Sticker (instance swap), Sticker shown (boolean), Trailing=time|arrow|button|none, Subtitle color=muted|brand"
         },
         {
           "name": "Icon row",
@@ -639,7 +650,7 @@
         },
         {
           "name": "Link pill",
-          "what": "The invite link with Copy link, in Invite someone.",
+          "what": "The invite link, alone in a muted pill as tall as a big button, in Invite someone. Copy link is in the pop-up's Sheet footer.",
           "props": "Link.",
           "code": "AddPage · app/lib/components/trip_pages.dart",
           "section": "146:1720",

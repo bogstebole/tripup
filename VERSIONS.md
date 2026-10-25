@@ -640,6 +640,18 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - Tokens: `spring-pop` (0.4 s, bounce 0.3), `spring-fly` (0.7 s, 0.12), the splash's timings (`splash-*`) and sizes (`splash/dot-scale`, `splash/word`, `splash/sticker`, `splash/ring`); the stickers' places around TripUp are `splashStickers` in `data.dart`. The perf and Figma drivers skip it (`splashOnStart`).
 - **Checked** on the iPhone 17 Pro Max simulator from cold launches, frame by frame, and by the recording's frame times (no gaps over 50 ms during the splash).
 
+### Final UI, iteration 1.50: Up next opens by itself once (branch `feature/popup-header-footer`)
+- Bogdan: the card opens by itself only the first time into the trip after the app starts, to show what's next. Once it's been made small, changing the day filter (All included), moving the map or going back to Your trips and in again leaves it small; a tap on its pin opens it. News about it still opens it: the poll's winner, a dinner picked by hand, a moment of the demo.
+- **Checked** on the iPhone 17 Pro Max simulator: in (open) → tap beside (small) → Wed 13 → All (still small) → Your trips → in again (still small).
+
+### Final UI, iteration 1.49: pop-ups with one header and their actions in a footer (branch `feature/popup-header-footer`)
+- Bogdan: in Plan something the Back button lined up with the title but the line under it didn't, and Send to the group sat in the page. Now every pop-up is built the same way: the header is one line (Back for a step inside it, the title, Close, all on the buttons' centre line); the line on what it's for opens the page, lined up with the page's text; and its actions are in a footer that stays put (`SheetFooter`, which Money's footer now uses too).
+- Plan something: once a place is picked, its row is just its name and the line under it (the sticker is on the map above, and Change is gone: the header's Back goes back to the search, then to the choice). Send to the group and "It goes on everyone's itinerary and map." are the footer. The plan being made (`PlanDraft`) is shared by the page, the footer and Back.
+- Invite someone: the link alone in its pill; Copy link and See what they'll see are the footer.
+- Money keeps Pay in its pill: it's the action on that one debt, like Vote on a place, not the page's.
+- Storybook the same (TripSheet, SheetFooter, AddFooter, usePlanDraft; the Add stories' notes). Figma: Pop-up header one line (no Subtitle property), an Intro line at the top of the 10 pop-ups' pages, Sheet row's new Sticker shown, the Link pill without its button, and the new **Sheet footer** on Plan something · when and Invite someone (documented on Components and in COMPONENTS.md).
+- **Checked** on the iPhone 17 Pro Max simulator (Add, Plan something, a picked place, Back twice, Invite, Money), in Storybook (Add · plan · place picked, Add · invite) and in Figma against the app.
+
 ### Final UI, iteration 1.48: the mini pin's faces a little higher (branch `feature/mini-faces-lift`)
 - Bogdan: up by 8–12 px. They're lifted 10 px off the top edge now (`widget/here-lift`, new), in the app and Storybook.
 - **Checked** on the iPhone 17 Pro Max simulator and in Storybook (centred, 10 px above the edge).
