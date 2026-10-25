@@ -35,7 +35,7 @@
   height: var(--d-button-md);
   border-radius: var(--radius-pill);
   background: var(--c-button-soft-bg);
-  box-shadow: var(--inset-button-soft), var(--shadow-slightly-raised);
+  box-shadow: 0 0 0 var(--d-button-edge-width) var(--c-button-edge), var(--inset-button-soft), var(--shadow-slightly-raised);
 }
 .tu-home__gap { height: var(--space-xl); }
 
@@ -125,7 +125,7 @@
   padding: 0 var(--space-sm);
   border-radius: var(--radius-pill);
   background: var(--c-button-soft-bg);
-  box-shadow: var(--inset-button-soft), var(--shadow-slightly-raised);
+  box-shadow: 0 0 0 var(--d-button-edge-width) var(--c-button-edge), var(--inset-button-soft), var(--shadow-slightly-raised);
   color: var(--color-text-default);
 }
 .tu-home-now__dot {

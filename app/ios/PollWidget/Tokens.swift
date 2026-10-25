@@ -48,6 +48,7 @@ struct TokColors {
   let cButtonSoftFg: Color
   let cButtonPrimaryBg: Color
   let cButtonPrimaryFg: Color
+  let cButtonEdge: Color
   let cSegmentTrack: Color
   let cSegmentOnFg: Color
   let cSegmentOffFg: Color
@@ -142,6 +143,7 @@ struct TokColors {
     cButtonSoftFg: Color(.sRGB, red: 0.0941, green: 0.0941, blue: 0.1059, opacity: 1),
     cButtonPrimaryBg: Color(.sRGB, red: 0.1137, green: 0.3059, blue: 0.8471, opacity: 1),
     cButtonPrimaryFg: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1),
+    cButtonEdge: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1),
     cSegmentTrack: Color(.sRGB, red: 0.8941, green: 0.8941, blue: 0.9059, opacity: 1),
     cSegmentOnFg: Color(.sRGB, red: 0.0353, green: 0.0353, blue: 0.0431, opacity: 1),
     cSegmentOffFg: Color(.sRGB, red: 0.4431, green: 0.4431, blue: 0.4784, opacity: 1),
@@ -237,6 +239,7 @@ struct TokColors {
     cButtonSoftFg: Color(.sRGB, red: 0.9569, green: 0.9569, blue: 0.9608, opacity: 1),
     cButtonPrimaryBg: Color(.sRGB, red: 0.1137, green: 0.3059, blue: 0.8471, opacity: 1),
     cButtonPrimaryFg: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1),
+    cButtonEdge: Color(.sRGB, red: 1.0000, green: 1.0000, blue: 1.0000, opacity: 1),
     cSegmentTrack: Color(.sRGB, red: 0.1529, green: 0.1529, blue: 0.1647, opacity: 1),
     cSegmentOnFg: Color(.sRGB, red: 0.9804, green: 0.9804, blue: 0.9804, opacity: 1),
     cSegmentOffFg: Color(.sRGB, red: 0.6314, green: 0.6314, blue: 0.6667, opacity: 1),
@@ -326,6 +329,7 @@ enum TokDim {
   static let buttonLg: CGFloat = 56
   static let buttonIcon: CGFloat = 16
   static let buttonPillHeight: CGFloat = 32
+  static let buttonEdgeWidth: CGFloat = 0.96
   static let iconStroke: CGFloat = 2
   static let surfaceRadius: CGFloat = 24
   static let surfaceEdgeWidth: CGFloat = 1
