@@ -640,6 +640,11 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - Tokens: `spring-pop` (0.4 s, bounce 0.3), `spring-fly` (0.7 s, 0.12), the splash's timings (`splash-*`) and sizes (`splash/dot-scale`, `splash/word`, `splash/sticker`, `splash/ring`); the stickers' places around TripUp are `splashStickers` in `data.dart`. The perf and Figma drivers skip it (`splashOnStart`).
 - **Checked** on the iPhone 17 Pro Max simulator from cold launches, frame by frame, and by the recording's frame times (no gaps over 50 ms during the splash).
 
+### Final UI, iteration 1.47: who's there sits on the middle of the mini pin (branch `feature/mini-faces-centre`)
+- Bogdan: the faces of whoever has arrived moved from the mini pin's top-right corner to the middle of its top edge, at the same height.
+- Storybook's mini pin the same, and its Widget/Up next notes now describe the 1.43 morph (they still told the old shared-sticker one). In Figma no screen shows a mini pin with faces, so only the Mini pin's description says where they go.
+- **Checked** on the iPhone 17 Pro Max simulator (Maya on La Brasserie's mini pin at 3:56 PM) and in Storybook (the pile's centre on the card's top centre).
+
 ### Final UI, iteration 1.46: a tap on the map leaves the actions where they are (branch `fix/actions-on-tap`)
 - Bogdan: every tap with the card open sent the actions away. The map's handler slid them down for any event the person made, a tap included; now only while the map really moves (`MapEventWithMove`: dragging, flinging, zooming).
 - **Checked** on the iPhone 17 Pro Max simulator from a recording: a tap beside the card shrinks it and the actions stay; a drag still slides them down and they come back once the map is still.

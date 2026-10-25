@@ -204,7 +204,7 @@ export const upNextAt = (now: Date) => {
     fan: DISH_FAN,
     // Who's here (their faces, then "here") and the price range. The time sits by "Up next".
     chips: upNextChips(here),
-    // On the mini pin, the same faces sit across its top-right corner
+    // On the mini pin, the same faces sit on the middle of its top edge
     here,
   };
 };

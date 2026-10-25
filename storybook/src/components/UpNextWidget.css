@@ -33,6 +33,6 @@
 
 .tu-upnext__card:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: var(--space-3xs); }
 
-/* Who's already there, across the mini pin's top-right corner (on the card they're in the first chip) */
-.tu-upnext__here { position: absolute; top: 0; right: 0; pointer-events: none; }
-.tu-upnext__here-pile { display: block; transform: translate(50%, -50%); }
+/* Who's already there, on the middle of the mini pin's top edge (on the card they're in the first chip) */
+.tu-upnext__here { position: absolute; top: 0; left: 50%; pointer-events: none; }
+.tu-upnext__here-pile { display: block; transform: translate(-50%, -50%); }

@@ -64,7 +64,7 @@ function springAt(at: number) {
  * Card ↔ mini, like the Dynamic Island: the old content fades out with a blur as the surface starts to spring, and
  * the new one comes in once the surface is nearly its new size: the card's parts one after another from the top
  * (label, name, rating, the fan, the chips), rising a little into place; the mini's all at once. They never overlap.
- * Whoever is already there is in the card's first chip; on the mini pin they sit across its top-right corner instead,
+ * Whoever is already there is in the card's first chip; on the mini pin they sit on the middle of its top edge instead,
  * coming in with the mini's content. Gone at the edge.
  * Once the plan is on (`now`), the label starts with a brand dot: "Now · You're here", and the mini says "Now".
  */
