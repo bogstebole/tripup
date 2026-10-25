@@ -1,5 +1,6 @@
 // Demo content for the Lisbon trip (same as storybook/src/data.ts). The restaurant's rating, place and menu are real
 // (Google Maps and the restaurant's own English menu, in assets/data/brasserie-menu.json).
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -331,6 +332,7 @@ void jumpTo(StoryMoment m) {
   _launch = DateTime.now();
   resetPoll();
   demoMoment.value = m;
+  _stopPaying();
   if (!m.bill) {
     dinnerBill.value = null;
     madePayments.value = const [];
@@ -710,6 +712,70 @@ final tripNotice = ValueNotifier<String?>(null);
 ({String label, VoidCallback onTap})? noticeAction;
 
 String payLine(Payment p) => '${p.from == myId ? 'You' : personById(p.from).name} paid ${p.to == myId ? 'you' : personById(p.to).name} ${euros(p.amount)}';
+
+// ── Paying from the app ──────────────────────────────────────────────────────────────────────────────────────────────
+// TripUp never holds the money. Pay starts a bank transfer (open banking: in the real app a provider like Tink or
+// TrueLayer starts a SEPA Instant transfer from my bank to theirs, I approve it in my bank's app, and the bank tells
+// TripUp it went through). Paid another way, I mark it as paid and whoever gets it confirms. In the prototype the bank
+// is simulated: its approval screen, then its answer a moment later.
+
+/// A bank I can pay from (in the real app, the provider's list for my country).
+typedef Bank = ({String id, String name});
+const banks = <Bank>[
+  (id: 'millennium', name: 'Millennium bcp'),
+  (id: 'cgd', name: 'Caixa Geral de Depósitos'),
+  (id: 'novobanco', name: 'Novo Banco'),
+  (id: 'revolut', name: 'Revolut'),
+  (id: 'n26', name: 'N26'),
+  (id: 'wise', name: 'Wise'),
+];
+
+/// The bank I pay from, once I've picked it: TripUp remembers it, so the next Pay goes straight to it.
+final myBank = ValueNotifier<Bank?>(null);
+
+/// Where each of us gets paid: the last four of their IBAN (they add it once, the first time someone owes them).
+const _accounts = {'ari': '8812', 'maya': '4021', 'nic': '7730', 'leo': '1195', 'ren': '5546'};
+String accountOf(String id) => 'PT50 •••• ${_accounts[id]}';
+
+/// What goes on the transfer, so whoever gets it knows what it's for, and TripUp can match it.
+String payReference(Payment p) {
+  final n = '${p.from}>${p.to}'.codeUnits.fold(7, (h, c) => (h * 31 + c) % 1679616);   // 36^4
+  return 'TRIPUP-${n.toRadixString(36).toUpperCase().padLeft(4, '0')}';
+}
+
+/// How a payment of mine is on its way: sent from my bank (it confirms in a moment), or marked as paid another way
+/// (waiting for whoever gets it to confirm).
+enum PayingVia { bank, marked }
+
+/// My payment on its way, if any. Once it's confirmed it's recorded (see [recordPayment]) and this goes back to null.
+final myPaying = ValueNotifier<({Payment pay, PayingVia via})?>(null);
+
+/// The demo's bank answers this long after I approve; whoever I marked it for confirms after [markConfirmDelay].
+const bankConfirmDelay = Duration(seconds: 2), markConfirmDelay = Duration(seconds: 6);
+int _payRun = 0;
+
+/// I approved [p] in my bank's app. The bank confirms it, then it's paid and everyone hears.
+void payByBank(Payment p) => _paying(p, PayingVia.bank, bankConfirmDelay, () => payLine(p));
+
+/// I paid [p] another way. Whoever gets it confirms, then it's paid.
+void markPaid(Payment p) => _paying(p, PayingVia.marked, markConfirmDelay, () => '${personById(p.to).name} confirmed your ${euros(p.amount)}');
+
+void _paying(Payment p, PayingVia via, Duration after, String Function() note) {
+  final run = ++_payRun;
+  myPaying.value = (pay: p, via: via);
+  Timer(after, () {
+    if (run != _payRun) return;   // the demo jumped since
+    myPaying.value = null;
+    recordPayment(p);
+    tripNotice.value = note();
+  });
+}
+
+/// Forgets a payment on its way (the demo jumped).
+void _stopPaying() {
+  _payRun++;
+  myPaying.value = null;
+}
 
 // ── The dinner poll: where to eat tonight ────────────────────────────────────────────────────────────────────────────
 // Maya asks at 2:30 PM; everyone votes from wherever they are. It closes at 3 PM, or as soon as everyone has voted,

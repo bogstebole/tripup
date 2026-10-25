@@ -110,14 +110,15 @@ export function TripSheet({ title, subtitle, children, onClose, compact, footer,
             </motion.div>
           )}
         </AnimatePresence>
-        {/* A new title fades in as the old one leaves (a step inside the pop-up) */}
+        {/* A new title fades in once the old one has mostly gone (a step inside the pop-up: swap-in-at of enter-ms),
+            so they never read over each other */}
         <div className="tu-trip-sheet__titles">
           <AnimatePresence initial={false}>
             <motion.div
               key={title}
               className="tu-trip-sheet__title"
               initial={{ opacity: 0 }}
-              animate={{ opacity: 1, transition: { duration: m['enter-ms'] / 1000, ease } }}
+              animate={{ opacity: 1, transition: { duration: (m['enter-ms'] * (1 - m['swap-in-at'])) / 1000, delay: (m['enter-ms'] * m['swap-in-at']) / 1000, ease } }}
               exit={{ opacity: 0, transition: { duration: m['fade-ms'] / 1000, ease } }}
             >
               <h2 className="text-heading-md tu-ellipsis">{title}</h2>

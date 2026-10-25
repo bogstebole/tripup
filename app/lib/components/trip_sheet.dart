@@ -83,6 +83,13 @@ class _TripSheetState extends State<TripSheet> {
     });
   }
 
+  @override
+  void didUpdateWidget(TripSheet old) {
+    super.didUpdateWidget(old);
+    // A new step starts at its top (Money's list scrolled down, then Pay)
+    if (old.title != widget.title && _scroll.hasClients) _scroll.jumpTo(0);
+  }
+
   double get _header => TripSheet.headerHeight + (widget.top != null ? TripSheet.topHeight : 0);
 
   @override
@@ -172,11 +179,12 @@ class _TripSheetState extends State<TripSheet> {
                       Expanded(
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(TokSpace.xs, 0, TokSpace.md, 0),
-                          // A new title fades in as the old one leaves (a step inside the pop-up)
+                          // A new title fades in once the old one has mostly gone (a step inside the pop-up), so they never read
+                          // over each other
                           child: AnimatedSwitcher(
                             duration: TokMotion.enter,
                             reverseDuration: TokMotion.fade,
-                            switchInCurve: TokMotion.easeOut,
+                            switchInCurve: TokMotion.swapIn,
                             switchOutCurve: TokMotion.easeOut,
                             layoutBuilder: (current, previous) => Stack(alignment: Alignment.centerLeft, children: [...previous, ?current]),
                             child: Text(widget.title, key: ValueKey(widget.title), maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingMd.copyWith(color: t.textDefault)),
@@ -199,11 +207,12 @@ class _TripSheetState extends State<TripSheet> {
     );
   }
 
-  /// The pop-up's line at the top of its page, lined up with the page's text; it fades over when a step changes it.
+  /// The pop-up's line at the top of its page, lined up with the page's text; when a step changes it, the new line
+  /// comes in once the old one has mostly gone.
   Widget _subtitle(BuildContext context) => AnimatedSwitcher(
         duration: TokMotion.enter,
         reverseDuration: TokMotion.fade,
-        switchInCurve: TokMotion.easeOut,
+        switchInCurve: TokMotion.swapIn,
         switchOutCurve: TokMotion.easeOut,
         layoutBuilder: (current, previous) => Stack(alignment: Alignment.topLeft, children: [...previous, ?current]),
         child: widget.subtitle == null

@@ -109,6 +109,18 @@ class TokColors {
     'c/now-dot/bottom': Color(0xFF15803D),
     'c/now-dot/edge': Color(0xFF4ADE80),
     'c/now-dot/glow': Color(0x3322C55E),
+    'c/bank/bg': Color(0xFFFAFAFA),
+    'c/bank/card': Color(0xFFFFFFFF),
+    'c/bank/fg': Color(0xFF09090B),
+    'c/bank/muted': Color(0xFF71717A),
+    'c/bank/line': Color(0xFFE4E4E7),
+    'c/bank/logo-bg': Color(0xFF18181B),
+    'c/bank/logo-fg': Color(0xFFFFFFFF),
+    'c/bank/accent': Color(0xFF18181B),
+    'c/bank/accent-fg': Color(0xFFFFFFFF),
+    'c/bank/hud-bg': Color(0xD918181B),
+    'c/bank/hud-fg': Color(0xFFFFFFFF),
+    'c/bank/ok': Color(0xFF22C55E),
   });
   static const dark = TokColors._({
     'bg/canvas': Color(0xFF09090B),
@@ -204,6 +216,18 @@ class TokColors {
     'c/now-dot/bottom': Color(0xFF15803D),
     'c/now-dot/edge': Color(0xFF4ADE80),
     'c/now-dot/glow': Color(0x3322C55E),
+    'c/bank/bg': Color(0xFFFAFAFA),
+    'c/bank/card': Color(0xFFFFFFFF),
+    'c/bank/fg': Color(0xFF09090B),
+    'c/bank/muted': Color(0xFF71717A),
+    'c/bank/line': Color(0xFFE4E4E7),
+    'c/bank/logo-bg': Color(0xFF18181B),
+    'c/bank/logo-fg': Color(0xFFFFFFFF),
+    'c/bank/accent': Color(0xFF18181B),
+    'c/bank/accent-fg': Color(0xFFFFFFFF),
+    'c/bank/hud-bg': Color(0xD918181B),
+    'c/bank/hud-fg': Color(0xFFFFFFFF),
+    'c/bank/ok': Color(0xFF22C55E),
   });
   Color get bgCanvas => _m['bg/canvas']!;
   Color get bgDefault => _m['bg/default']!;
@@ -298,6 +322,18 @@ class TokColors {
   Color get cNowDotBottom => _m['c/now-dot/bottom']!;
   Color get cNowDotEdge => _m['c/now-dot/edge']!;
   Color get cNowDotGlow => _m['c/now-dot/glow']!;
+  Color get cBankBg => _m['c/bank/bg']!;
+  Color get cBankCard => _m['c/bank/card']!;
+  Color get cBankFg => _m['c/bank/fg']!;
+  Color get cBankMuted => _m['c/bank/muted']!;
+  Color get cBankLine => _m['c/bank/line']!;
+  Color get cBankLogoBg => _m['c/bank/logo-bg']!;
+  Color get cBankLogoFg => _m['c/bank/logo-fg']!;
+  Color get cBankAccent => _m['c/bank/accent']!;
+  Color get cBankAccentFg => _m['c/bank/accent-fg']!;
+  Color get cBankHudBg => _m['c/bank/hud-bg']!;
+  Color get cBankHudFg => _m['c/bank/hud-fg']!;
+  Color get cBankOk => _m['c/bank/ok']!;
 }
 
 abstract final class TokSpace {
@@ -437,6 +473,12 @@ abstract final class TokDim {
   static const double splashWordGap = 16;
   static const double splashSticker = 88;
   static const double splashRing = 160;
+  static const double bankRadius = 12;
+  static const double bankButton = 56;
+  static const double bankLogo = 32;
+  static const double bankHud = 160;
+  static const double bankHudIcon = 64;
+  static const double payAmountSticker = 48;
 }
 
 abstract final class TokFont {
@@ -523,6 +565,10 @@ abstract final class TokMotion {
   static const splashStickersAt = Duration(milliseconds: 500);
   static const splashStickerStagger = Duration(milliseconds: 70);
   static const splashAssembleAt = Duration(milliseconds: 1250);
+  static const faceId = Duration(milliseconds: 900);
+  static const approved = Duration(milliseconds: 600);
+  static const double swapInAt = 0.4;
+  static const swapIn = Interval(swapInAt, 1, curve: easeOut);
   static const easeOut = Cubic(0.23, 1, 0.32, 1);
   static const easeInOut = Cubic(0.77, 0, 0.175, 1);
   static const easeDrawer = Cubic(0.32, 0.72, 0, 1);

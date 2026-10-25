@@ -1,7 +1,7 @@
 // The pages of the footer's three pop-ups: the itinerary, the group's money, and adding to the trip.
 import 'dart:math' as math;
 
-import 'package:flutter/cupertino.dart' show CupertinoDatePicker, CupertinoDatePickerMode;
+import 'package:flutter/cupertino.dart' show CupertinoActivityIndicator, CupertinoDatePicker, CupertinoDatePickerMode;
 import 'package:flutter/material.dart' show Material, MaterialType, TextField, InputDecoration;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -112,6 +112,8 @@ class ItineraryPage extends StatelessWidget {
 class MoneyPage extends StatefulWidget {
   const MoneyPage({super.key});
 
+  /// Opens on Settle up next time (Pay and back keep the tab it was on).
+  static void startOver() => _MoneyPageState._lastTab = 0;
 
   @override
   State<MoneyPage> createState() => _MoneyPageState();
@@ -122,13 +124,14 @@ class _MoneyPageState extends State<MoneyPage> {
   Payment? _why;
 
   /// Settle up, Balances or Expenses.
-  int _tab = 0;
+  static int _lastTab = 0;
+  int _tab = _lastTab;
 
   String _name(String id) => personById(id).name;
 
   @override
   Widget build(BuildContext context) => AnimatedBuilder(
-        animation: Listenable.merge([dinnerBill, madePayments]),
+        animation: Listenable.merge([dinnerBill, madePayments, myPaying]),
         builder: (context, _) => _page(context),
       );
 
@@ -139,7 +142,7 @@ class _MoneyPageState extends State<MoneyPage> {
         tabs: const ['Settle up', 'Balances', 'Expenses'],
         index: _tab,
         wide: true,
-        onChanged: (i) => setState(() => _tab = i),
+        onChanged: (i) => setState(() => _tab = _lastTab = i),
       ),
       // One tab's list at a time: it fades in, the last one fades out with a blur
       AnimatedSwitcher(
@@ -172,7 +175,7 @@ class _MoneyPageState extends State<MoneyPage> {
             _slot(Sticker(personById(p.to).sticker, size: StickerSize.avatar), TokDim.stickerAvatar),
           ]),
           title: p.from == myId ? 'You pay ${_name(p.to)}' : '${_name(p.from)} pays ${_name(p.to)}',
-          subtitle: '${isPaid(p) ? 'Paid' : 'Pending'} · ${_why == p ? 'Hide why' : 'Why'}',
+          subtitle: '${_state(p)} · ${_why == p ? 'Hide why' : 'Why'}',
           subtitleColor: isPaid(p) ? t.textSuccess : null,
           trailing: Text(euros(p.amount), style: TokText.labelLg.copyWith(color: t.textDefault)),
           onTap: () => setState(() => _why = _why == p ? null : p),
@@ -187,6 +190,15 @@ class _MoneyPageState extends State<MoneyPage> {
       ],
     ];
   }
+
+  /// Paid; mine on its way (from my bank, or marked and waiting for them to confirm); or not yet.
+  String _state(Payment p) => isPaid(p)
+      ? 'Paid'
+      : switch (myPaying.value) {
+          (pay: final on, via: PayingVia.bank) when on == p => 'Paying…',
+          (pay: final on, via: PayingVia.marked) when on == p => 'Waiting for ${_name(p.to)} to confirm',
+          _ => 'Pending',
+        };
 
   List<Widget> _balances(BuildContext context) {
     final t = context.tok;
@@ -234,10 +246,14 @@ class _MoneyPageState extends State<MoneyPage> {
   }
 }
 
-/// What I owe and Pay, as a rounded pill, while I owe it. Once I've paid it goes (the note at the top says it went
-/// through); nothing if I owe nobody.
+/// What I owe and Pay, as a rounded pill, while I owe it. Pay opens the payment (see [PayPage]); while it's on its way
+/// the pill says so (my bank confirming it, or them confirming what I marked as paid). Once it's paid the pill goes
+/// (the note at the top says it went through); nothing if I owe nobody.
 class OwePill extends StatelessWidget {
-  const OwePill({super.key});
+  const OwePill({super.key, this.onPay});
+
+  /// Pay: opens the payment.
+  final ValueChanged<Payment>? onPay;
 
   /// The payment I still have to make, if any.
   static Payment? get owing {
@@ -246,13 +262,16 @@ class OwePill extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) => ListenableBuilder(listenable: Listenable.merge([dinnerBill, madePayments]), builder: (context, _) => _pill(context));
+  Widget build(BuildContext context) => ListenableBuilder(listenable: Listenable.merge([dinnerBill, madePayments, myPaying]), builder: (context, _) => _pill(context));
 
   Widget _pill(BuildContext context) {
     final t = context.tok;
     final mine = owing;
     final othersPaid = settleUp.where((p) => p.from != myId).every(isPaid);
-    // It fades away as Money's footer closes up under it (see MoneyFooter)
+    final paying = myPaying.value;
+    final via = paying != null && paying.pay == mine ? paying.via : null;
+    final name = mine == null ? '' : personById(mine.to).name;
+    // It fades away as Money's footer closes up under it (see MoneyFooter); on its way, the line and the end change over
     return AnimatedSwitcher(
       duration: TokMotion.enter,
       reverseDuration: TokMotion.fade,
@@ -261,22 +280,33 @@ class OwePill extends StatelessWidget {
       child: mine == null
           ? const SizedBox(key: ValueKey('none'), width: double.infinity)
           : Container(
-              key: ValueKey(mine.to),
+              key: ValueKey((mine.to, via)),
               // xl in on the left, so the words sit clear of the curve
               padding: const EdgeInsets.fromLTRB(TokSpace.xl, TokSpace.xs, TokSpace.xs, TokSpace.xs),
               decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.pill)),
               child: Row(spacing: TokSpace.sm, children: [
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text('You owe ${personById(mine.to).name}${othersPaid && dinnerBill.value != null ? ' · Everyone else has paid' : ''}', maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.bodySm.copyWith(color: t.textMuted)),
+                    Text(
+                      switch (via) {
+                        PayingVia.bank => 'Paying $name · your bank is confirming',
+                        PayingVia.marked => 'Waiting for $name to confirm',
+                        null => 'You owe $name${othersPaid && dinnerBill.value != null ? ' · Everyone else has paid' : ''}',
+                      },
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TokText.bodySm.copyWith(color: t.textMuted),
+                    ),
                     Text(euros(mine.amount), maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingSm.copyWith(color: t.textDefault)),
                   ]),
                 ),
-                TuTextButton(
-                  label: 'Pay',
-                  onTap: () {
-                    recordPayment(mine);
-                    tripNotice.value = payLine(mine);
+                // As high as Pay, so the pill keeps its height when Pay gives way
+                SizedBox(
+                  height: TuButton.sizeOf(TuButtonSize.md),
+                  child: switch (via) {
+                    null => TuTextButton(label: 'Pay', onTap: onPay == null ? null : () => onPay!(mine)),
+                    PayingVia.bank => Padding(padding: const EdgeInsets.only(right: TokSpace.sm), child: CupertinoActivityIndicator(color: t.iconMuted)),
+                    PayingVia.marked => Padding(padding: const EdgeInsets.only(right: TokSpace.sm), child: LucideIcon(TuIcons.hours, size: TokSize.iconMd, color: t.iconMuted)),
                   },
                 ),
               ]),
@@ -289,12 +319,15 @@ class OwePill extends StatelessWidget {
 /// thumb reaches; then, over a hairline, what the trip has cost so far and my part of it, like the Menu's total; while
 /// the dinner is on and its bill isn't in, Scan the bill under it.
 class MoneyFooter extends StatelessWidget {
-  const MoneyFooter({super.key, this.onScan});
+  const MoneyFooter({super.key, this.onScan, this.onPay});
   final VoidCallback? onScan;
+
+  /// The pill's Pay.
+  final ValueChanged<Payment>? onPay;
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
-        listenable: Listenable.merge([dinnerBill, madePayments]),
+        listenable: Listenable.merge([dinnerBill, madePayments, myPaying]),
         builder: (context, _) {
           final t = context.tok;
           final mine = tripExpenses.fold(0.0, (sum, e) => sum + e.shareOf(myId));
@@ -304,7 +337,7 @@ class MoneyFooter extends StatelessWidget {
               duration: TokMotion.enter,
               curve: TokMotion.easeOut,
               alignment: Alignment.bottomCenter,
-              child: Padding(padding: EdgeInsets.only(bottom: OwePill.owing != null ? TokSpace.sm : 0), child: const OwePill()),
+              child: Padding(padding: EdgeInsets.only(bottom: OwePill.owing != null ? TokSpace.sm : 0), child: OwePill(onPay: onPay)),
             ),
             SheetFooter(children: [
               Row(spacing: TokSpace.sm, children: [
@@ -349,6 +382,221 @@ Widget _explain(BuildContext context, Payment p) {
       ]),
     ),
   );
+}
+
+/// Where Money is: the group's money, paying what I owe, or picking my bank (the first time I pay).
+enum MoneyStep { list, pay, bank }
+
+/// Money's page for each step, one at a time like Add's: it fades in, the last one fades out with a blur. The pop-up's
+/// header follows the step (see [MoneyFlow.headerOf]), with Back from paying to the money and from the bank to paying.
+class MoneyFlow extends StatelessWidget {
+  const MoneyFlow({super.key, required this.step, this.pay, this.onBank, this.onChangeBank});
+  final MoneyStep step;
+
+  /// Paying's From: back to the bank list, to pay from another one.
+  final VoidCallback? onChangeBank;
+
+  /// What I'm paying (on the pay and bank steps).
+  final Payment? pay;
+
+  /// A bank picked: TripUp remembers it and opens it to approve.
+  final ValueChanged<Bank>? onBank;
+
+  /// The pop-up's title and the line at the top of its page, for each step.
+  static (String, String?) headerOf(MoneyStep step, Payment? pay) => switch (step) {
+        MoneyStep.list => ('Money', null),
+        MoneyStep.pay => ('Pay ${personById(pay!.to).name}', "It goes straight from your bank to ${personById(pay.to).name}'s. TripUp never holds the money."),
+        MoneyStep.bank => ('Your bank', "Pick it once and TripUp remembers it. You approve each payment in your bank's app; TripUp never sees your login."),
+      };
+
+  /// The pop-up's footer for each step: the total (and what I owe) on the money; Pay with the bank, or Mark as paid,
+  /// while paying; nothing on the bank list (a tap on a bank is the step). The old one fades out as the footer
+  /// takes the new one's height, and the new one comes in once it has mostly gone, so the two never overlap.
+  static Widget footer({required MoneyStep step, Payment? pay, VoidCallback? onScan, ValueChanged<Payment>? onPay, VoidCallback? onBankPay, VoidCallback? onMarked}) => AnimatedSize(
+        duration: TokMotion.enter,
+        curve: TokMotion.easeOut,
+        alignment: Alignment.bottomCenter,
+        child: AnimatedSwitcher(
+          duration: TokMotion.enter,
+          reverseDuration: TokMotion.fade,
+          switchInCurve: TokMotion.swapIn,
+          switchOutCurve: TokMotion.easeOut,
+          layoutBuilder: (current, previous) => Stack(alignment: Alignment.bottomCenter, children: [...previous, ?current]),
+          child: KeyedSubtree(
+            key: ValueKey(step),
+            child: switch (step) {
+              MoneyStep.list => MoneyFooter(onScan: onScan, onPay: onPay),
+              MoneyStep.pay => _PayFooter(pay: pay!, onBank: onBankPay, onMarked: onMarked),
+              MoneyStep.bank => const SizedBox(width: double.infinity),
+            },
+          ),
+        ),
+      );
+
+  @override
+  Widget build(BuildContext context) => AnimatedSwitcher(
+        duration: TokMotion.enter,
+        reverseDuration: TokMotion.fade,
+        switchInCurve: TokMotion.easeOut,
+        layoutBuilder: (current, previous) => Stack(alignment: Alignment.topCenter, children: [...previous, ?current]),
+        transitionBuilder: (child, anim) => child.key == ValueKey(step) ? FadeTransition(opacity: anim, child: child) : fadeBlurOut(anim, child),
+        child: KeyedSubtree(
+          key: ValueKey(step),
+          child: switch (step) {
+            MoneyStep.list => const MoneyPage(),
+            MoneyStep.pay => PayPage(pay: pay!, onChangeBank: onChangeBank),
+            MoneyStep.bank => BankPage(onPick: onBank),
+          },
+        ),
+      );
+}
+
+/// Paying what I owe: how much and to whom, big; then what the transfer will say (their account, my bank once I've
+/// picked it, the reference that tells them what it's for, and that it arrives in seconds), and why it's that much.
+/// Pay with the bank and Mark as paid are in the footer.
+class PayPage extends StatefulWidget {
+  const PayPage({super.key, required this.pay, this.onChangeBank});
+  final Payment pay;
+
+  /// A tap on From: pick another bank.
+  final VoidCallback? onChangeBank;
+
+  @override
+  State<PayPage> createState() => _PayPageState();
+}
+
+class _PayPageState extends State<PayPage> {
+  bool _why = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tok;
+    final p = widget.pay, to = personById(p.to);
+    return ValueListenableBuilder(
+      valueListenable: myBank,
+      builder: (context, bank, _) => StaggerIn(children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: TokSpace.xl),
+          child: Column(spacing: TokSpace.xs, children: [
+            Sticker(to.sticker, height: TokDim.payAmountSticker),
+            Text(euros(p.amount), style: TokText.display.copyWith(color: t.textDefault)),
+            Text('to ${to.name}', style: TokText.bodyMd.copyWith(color: t.textMuted)),
+          ]),
+        ),
+        // Inset like the lines of a list, as Why's breakdown is
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
+          padding: const EdgeInsets.symmetric(horizontal: TokSpace.sm, vertical: TokSpace.x2xs),
+          decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.card)),
+          child: Column(children: [
+            _PayLine('To', '${to.name} · ${accountOf(to.id)}'),
+            if (bank != null) _PayLine('From', bank.name, onTap: widget.onChangeBank),
+            _PayLine('Reference', payReference(p)),
+            const _PayLine('Arrives', 'In seconds'),
+          ]),
+        ),
+        SheetRow(
+          title: 'Why ${euros(p.amount)}',
+          subtitle: _why ? 'Hide why' : 'What you had, and what you paid',
+          trailing: LucideIcon(_why ? TuIcons.fold : TuIcons.unfold, size: TokSize.iconSm, color: t.iconMuted),
+          onTap: () => setState(() => _why = !_why),
+        ),
+        AnimatedSize(
+          duration: TokMotion.enter,
+          curve: TokMotion.easeOut,
+          alignment: Alignment.topCenter,
+          child: _why ? _explain(context, p) : const SizedBox(width: double.infinity),
+        ),
+      ]),
+    );
+  }
+}
+
+/// One line of what the transfer will say: what it is on the left, the value on the right (with an arrow when a tap
+/// changes it).
+class _PayLine extends StatelessWidget {
+  const _PayLine(this.label, this.value, {this.onTap});
+  final String label, value;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tok;
+    final line = Padding(
+      padding: const EdgeInsets.symmetric(vertical: TokSpace.xs),
+      child: Row(spacing: TokSpace.sm, children: [
+        Text(label, style: TokText.bodySm.copyWith(color: t.textMuted)),
+        Expanded(child: Text(value, textAlign: TextAlign.end, style: TokText.labelMd.copyWith(color: t.textDefault))),
+        if (onTap != null) LucideIcon(TuIcons.next, size: TokSize.iconSm, color: t.iconMuted),
+      ]),
+    );
+    return onTap == null ? line : Pressable(onTap: onTap, semanticLabel: '$label: $value', child: line);
+  }
+}
+
+/// Paying's footer: Pay with my bank (named once TripUp knows it), and Mark as paid for money that went another way.
+class _PayFooter extends StatelessWidget {
+  const _PayFooter({required this.pay, this.onBank, this.onMarked});
+  final Payment pay;
+  final VoidCallback? onBank, onMarked;
+
+  @override
+  Widget build(BuildContext context) => ValueListenableBuilder(
+        valueListenable: myBank,
+        builder: (context, bank, _) => SheetFooter(
+          note: 'Paid in cash or another way? ${personById(pay.to).name} confirms it.',
+          children: [
+            TuTextButton(label: 'Pay with ${bank?.name ?? 'your bank'}', size: TuButtonSize.lg, wide: true, onTap: onBank),
+            TuTextButton(label: 'Mark as paid', kind: GlassKind.soft, size: TuButtonSize.lg, wide: true, onTap: onMarked),
+          ],
+        ),
+      );
+}
+
+/// The banks I can pay from, the first time I pay: a tap picks one and opens it to approve.
+class BankPage extends StatelessWidget {
+  const BankPage({super.key, this.onPick});
+  final ValueChanged<Bank>? onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tok;
+    return StaggerIn(children: [
+      for (final (i, b) in banks.indexed) ...[
+        if (i > 0) const Hairline(),
+        SheetRow(
+          leading: BankLogo(b),
+          title: b.name,
+          trailing: LucideIcon(TuIcons.next, size: TokSize.iconSm, color: t.iconMuted),
+          onTap: onPick == null
+              ? null
+              : () {
+                  HapticFeedback.selectionClick();
+                  onPick!(b);
+                },
+        ),
+      ],
+    ]);
+  }
+}
+
+/// A bank's mark in TripUp's lists: its first letter on a disc (the real app would show the bank's logo).
+class BankLogo extends StatelessWidget {
+  const BankLogo(this.bank, {super.key, this.size = TokDim.bankLogo});
+  final Bank bank;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tok;
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(color: t.bgMuted, shape: BoxShape.circle),
+      child: Text(bank.name.characters.first, style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textDefault)),
+    );
+  }
 }
 
 /// What Add to the trip shows: the two choices, or one of them.

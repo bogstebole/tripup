@@ -98,7 +98,7 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 - **Tonight's dinner isn't an expense yet;** it's an estimate from what everyone picked on the menu. It joins once the bill comes, split by who had what (the wine story).
 - **Left out:**
   - A switch for simplifying debts: it's always on.
-  - Payment methods: they belong to the Pay step.
+  - Payment methods: they belong to the Pay step (built 25 Oct: see Paying from the app).
   - Receipt lines: they belong to the dinner's own detail.
   - Charts and budgets: no story needs them, and users call cluttered money screens a reason to leave.
 - **In the prototype only my payment can be made,** so the trip can't reach "squared up" from here yet. That comes with the settle-up story.
@@ -253,6 +253,21 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 ## Up next opens by itself once (25 Oct)
 
 - **Once per launch, the first time into the trip** (Bogdan): that's when "what's next" helps. After it's been made small, browsing the days or the map shouldn't keep pushing it back open; a tap on its pin does. News about it (the poll's winner, a dinner picked by hand) still opens it, since that changes what's next.
+
+## Paying from the app (25 Oct)
+
+From the research (`process/research/tripup-competitive-research-v3-en.md`, Payments under the hood), now built as a flow in the prototype:
+- **TripUp never holds the money.** Pay starts a bank transfer through open banking (PSD2 payment initiation, through a provider like Tink or TrueLayer): SEPA Instant from my bank to Maya's, with a reference ("TRIPUP-9SP5") so she knows what it's for and TripUp can match it. Holding money would make TripUp a payment institution (licences, KYC); a wallet or card payments would also cost fees. We didn't build "send a request with a link to Revolut or PayPal" as the main way: it leaves TripUp guessing whether anyone paid.
+- **The flow, for anyone who owes (Ren too, who joined with a link and has no account):**
+  - Pay on the pill opens **Pay Maya** in the same pop-up (Back, title, ×): who and how much, big; what the transfer will say (To with Maya's account, From once my bank is known, Reference, Arrives in seconds); Why that amount. Actions in the footer: **Pay with your bank** and **Mark as paid**, with "Paid in cash or another way? Maya confirms it."
+  - The first time, **Your bank**: pick it once and TripUp remembers it. No login in TripUp; the bank asks me to approve each payment in its own app. From then on Pay says "Pay with Millennium bcp" and goes straight there; From is a way to pick another.
+  - **My bank's app** opens with the transfer filled in, which can't be changed there. Approve with Face ID, or Cancel ("Payment cancelled · nothing was sent", back on Pay Maya, the pill still there).
+  - Back in TripUp on the money, the pill says **"Paying Maya · your bank is confirming"** with a spinner, and my row "Paying…". The bank's answer closes it: the note "You paid Maya €11.82", the row Paid, the pill gone (as in 1.55: the note is the success).
+  - **Mark as paid** for money that went another way: the pill and my row say "Waiting for Maya to confirm" (a clock) until Maya confirms from her notification; then "Maya confirmed your €11.82" and Paid.
+- **Maya adds where she gets paid once,** the first time someone owes her (not shown: the prototype has her IBAN).
+- **In the prototype the bank is simulated:** a stand-in for the bank's app in a plain look of its own (its own `bank/*` tokens, square-ish corners, a dark button), so it reads as another app, with "‹ TripUp" at the top as iOS shows when one app opens another. The bank answers 2 s after approving; Maya confirms 6 s after Mark as paid. The banks listed are Portuguese and European ones by name only, no logos (the real list and logos come from the provider).
+- **Not built:** the Serbian case (no PSD2: an NBS IPS QR code moves the money but tells TripUp nothing, so it would be Mark as paid with a QR), and Maya's side (her notification and Confirm).
+- **A step's title and footer come in once the old ones have mostly gone** (`swap-in-at` 0.4 of enter-ms, for every pop-up), so "Pay Maya" and "Your bank" never read over each other; the pages keep their fade and blur.
 
 ## The splash (25 Oct)
 

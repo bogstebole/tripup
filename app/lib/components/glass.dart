@@ -141,6 +141,10 @@ abstract final class TuIcons {
   static const delivery = Lucide.truck;
   static const website = Lucide.globe;
   static const phone = Lucide.phone;
+  static const next = Lucide.chevronRight;
+  static const faceId = Lucide.scanFace;
+  static const bank = Lucide.landmark;
+  static const secure = Lucide.lock;
 }
 
 /// A Lucide icon with a 2 px stroke at any size (like lucide-react's `absoluteStrokeWidth` in Storybook).

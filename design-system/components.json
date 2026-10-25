@@ -570,14 +570,14 @@
         },
         {
           "name": "Owe pill",
-          "what": "What I owe and Pay, while I owe it, at the bottom of Money just above its footer (where the thumb reaches). Once I've paid it goes: the note at the top is the success.",
-          "props": "Label · Amount.",
+          "what": "What I owe and Pay, while I owe it, at the bottom of Money just above its footer (where the thumb reaches). Pay opens paying it (Pay Maya). While it's on its way the line and the end change over: paying (my bank is confirming: a spinner) or waiting (marked as paid, waiting for them to confirm: a clock). Once it's paid it goes: the note at the top is the success.",
+          "props": "Label · Amount · State (owe, paying, waiting).",
           "code": "OwePill · app/lib/components/trip_pages.dart",
-          "story": "Money",
+          "story": "Money, Money · pay, Bank app",
           "section": "146:1269",
           "id": "123:5316",
           "key": "3ffbc217e3e6fe29f00bf2485e1fa97ff76b2e2a",
-          "figmaProps": "Label (text), Amount (text), State=owe"
+          "figmaProps": "Label (text), Amount (text), State=owe|paying|waiting"
         },
         {
           "name": "Payment row",
@@ -686,6 +686,42 @@
           "id": "114:3693",
           "key": "f2600c07b75780baaeccef3d04bbecd48276bea3",
           "figmaProps": "Label (text), Action=no|yes"
+        },
+        {
+          "name": "Pay amount",
+          "what": "Who I pay and how much, big, at the top of Pay Maya: their sticker, the amount (Display) and \"to Maya\", centred, space/xl above what the transfer will say.",
+          "use": "Pay Maya only.",
+          "props": "Amount · To · Sticker (instance swap: the person's sticker).",
+          "code": "PayPage · app/lib/components/trip_pages.dart",
+          "story": "Money · pay",
+          "section": "176:6607",
+          "id": "176:6552",
+          "key": "9a06b20501b8fc33f757d80644bce4ecbe757a70",
+          "figmaProps": "Amount (text), To (text), Sticker (instance swap)"
+        },
+        {
+          "name": "Pay line",
+          "what": "One line of what the transfer will say (To, From, Reference, Arrives), in Pay Maya's muted box: the label on the left, the value at the end; Tap=yes adds an arrow when a tap changes it (From: pick another bank).",
+          "use": "Inside Pay Maya's muted box (bg/muted, radius/card, space/sm across, space/2xs down, inset space/xs like Why's).",
+          "props": "Label · Value · Tap (no, yes → onTap).",
+          "code": "_PayLine · app/lib/components/trip_pages.dart",
+          "story": "Money · pay",
+          "section": "176:6648",
+          "id": "176:6564",
+          "key": "4aefb1d354852cdb252f575edfb7dd9052a2364b",
+          "figmaProps": "Label (text), Value (text), Tap=no|yes"
+        },
+        {
+          "name": "Bank logo",
+          "what": "A bank's mark in Your bank's list: its first letter on a muted disc, bank/logo wide. The real app shows the bank's logo from the payment provider.",
+          "use": "In a Sheet row's sticker slot (Sticker swapped to Bank logo), Trailing=arrow with the chevron-right icon and no subtitle.",
+          "props": "Letter.",
+          "code": "BankLogo · app/lib/components/trip_pages.dart",
+          "story": "Money · your bank",
+          "section": "176:6689",
+          "id": "176:6565",
+          "key": "fe8e5b9cdfe5043ebe1c78167839ba389aadaee1",
+          "figmaProps": "Letter (text)"
         }
       ]
     },
@@ -783,6 +819,37 @@
           "id": "124:5342",
           "key": "150d7f56e53bce41cf86b2714fdca6be72686a81",
           "figmaProps": "Label (text)"
+        }
+      ]
+    },
+    {
+      "name": "Paying",
+      "about": "Paying what I owe from the app: TripUp hands off to my bank's app (open banking), I approve it there with Face ID, and the bank confirms. TripUp never holds the money.",
+      "components": [
+        {
+          "name": "Face ID",
+          "what": "The system's Face ID square in the middle of the bank's app: the face glyph and \"Face ID\" while it scans (face-id-ms), then a green check and \"Approved\" (approved-ms).",
+          "use": "Inside Bank approval (its scanning and approved phases).",
+          "props": "Phase (scanning, approved).",
+          "code": "BankApp · app/lib/components/bank_app.dart",
+          "story": "Bank app",
+          "section": "178:6851",
+          "id": "178:6568",
+          "key": "b57e002eade74b3dbe46f4a4f91f996b66abfb4f",
+          "figmaProps": "Phase=scanning|approved"
+        },
+        {
+          "name": "Bank approval",
+          "what": "My bank's app with the transfer TripUp started filled in: ‹ TripUp (iOS's back-to-app link), the bank's bar, \"Approve payment\", the transfer in a white card (amount, SEPA Instant · arrives in seconds, To, IBAN, Reference, From; none can be changed), Approve with Face ID and Cancel. A stand-in for the bank's own app, in a plain look of its own (c-bank colours) so it reads as another app.",
+          "use": "The whole screen (it has its own status bar and home indicator).",
+          "avoid": "TripUp's own glass or brand blue here: it's another app.",
+          "props": "Phase (review, scanning, approved) · Bank · Amount · To · IBAN · Reference · From.",
+          "code": "BankApp · app/lib/components/bank_app.dart",
+          "story": "Bank app",
+          "section": "178:6892",
+          "id": "178:6806",
+          "key": "9869a0b9abdf86e4cd87258810b9cf2cff15109d",
+          "figmaProps": "Bank (text), Amount (text), To (text), IBAN (text), Reference (text), From (text), Phase=review|scanning|approved"
         }
       ]
     },

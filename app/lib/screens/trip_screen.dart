@@ -11,6 +11,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../components/bars.dart';
+import '../components/bank_app.dart';
 import '../components/bill_scan.dart';
 import '../components/basics.dart';
 import '../components/toggle_chips.dart';
@@ -57,6 +58,11 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
 
   /// The camera is up, scanning the dinner's bill.
   bool _scanning = false;
+
+  /// Money's step (the money, paying what I owe, picking my bank), what I'm paying, and whether my bank's app is up.
+  MoneyStep _moneyStep = MoneyStep.list;
+  Payment? _payFor;
+  bool _banking = false;
 
   /// Your trips and the trip's map: 1 is the list, 0 is in the trip, a spring between. Going in, the trip card opens
   /// into the map: the whole trip screen grows out of the card's place, from a small copy of itself to the real one,
@@ -494,7 +500,9 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       _popup = which;
       _planDays = const {};
       _addStep = AddStep.choose;
+      _moneyStep = MoneyStep.list;
     });
+    MoneyPage.startOver();
     _draft.reset();
     _holdUnder();
     if (_reduce) {
@@ -515,6 +523,8 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       if (!_onHome) _upNextMid = true;
       _pollExpanded = false;
       _joining = m.opens == 'join';
+      _moneyStep = MoneyStep.list;
+      _banking = false;
     });
     if (m.opens == 'money') {
       setState(() => _popup = _Popup.money);
@@ -755,7 +765,11 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           _closePopup();
           _flyTo(at);
         }) as Widget),
-      _Popup.money => ('Money', null, const MoneyPage()),
+      _Popup.money => (
+          MoneyFlow.headerOf(_moneyStep, _payFor).$1,
+          MoneyFlow.headerOf(_moneyStep, _payFor).$2,
+          MoneyFlow(step: _moneyStep, pay: _payFor, onBank: _pickBank, onChangeBank: _changeBank)
+        ),
       _Popup.add => (
           AddPage.headerOf(_addStep).$1,
           AddPage.headerOf(_addStep).$2,
@@ -784,10 +798,14 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           onHeaderDragUpdate: dragUpdate,
           onHeaderDragEnd: dragEnd,
           focus: _popup == _Popup.itinerary ? _todayKey : null,
-          onBack: _popup == _Popup.add && _addStep != AddStep.choose ? _addBack : null,
+          onBack: _popup == _Popup.add && _addStep != AddStep.choose
+              ? _addBack
+              : _popup == _Popup.money && _moneyStep != MoneyStep.list
+                  ? _moneyBack
+                  : null,
           centered: _popup == _Popup.add && _addStep == AddStep.invite,
           footer: switch (_popup) {
-            _Popup.money => MoneyFooter(onScan: _scan),
+            _Popup.money => MoneyFlow.footer(step: _moneyStep, pay: _payFor, onScan: _scan, onPay: _startPay, onBankPay: _payWithBank, onMarked: _markPaid),
             _Popup.add => AddPage.footer(step: _addStep, draft: _draft, onSent: _sentPlan),
             _ => null,
           },
@@ -815,6 +833,72 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     } else {
       setState(() => _addStep = AddStep.choose);
     }
+  }
+
+  /// Pay on what I owe: Money goes to paying it.
+  void _startPay(Payment p) {
+    HapticFeedback.selectionClick();
+    setState(() {
+      _payFor = p;
+      _moneyStep = MoneyStep.pay;
+    });
+  }
+
+  /// Back in Money: from the bank list to paying, from paying to the money.
+  void _moneyBack() {
+    HapticFeedback.selectionClick();
+    setState(() => _moneyStep = _moneyStep == MoneyStep.bank ? MoneyStep.pay : MoneyStep.list);
+  }
+
+  /// Pay with the bank: the first time, pick it; after that, straight to it.
+  void _payWithBank() {
+    if (myBank.value == null) {
+      HapticFeedback.selectionClick();
+      setState(() => _moneyStep = MoneyStep.bank);
+    } else {
+      _openBank();
+    }
+  }
+
+  void _changeBank() {
+    HapticFeedback.selectionClick();
+    setState(() => _moneyStep = MoneyStep.bank);
+  }
+
+  void _pickBank(Bank b) {
+    myBank.value = b;
+    _openBank();
+  }
+
+  /// Hands off to my bank's app, the transfer filled in.
+  void _openBank() {
+    HapticFeedback.lightImpact();
+    setState(() => _banking = true);
+  }
+
+  /// Approved in the bank: back in TripUp on the money, where the pill waits for the bank's answer.
+  void _bankApproved() {
+    payByBank(_payFor!);
+    setState(() {
+      _banking = false;
+      _moneyStep = MoneyStep.list;
+    });
+  }
+
+  /// Cancelled in the bank: back to paying, nothing sent.
+  void _bankCancelled() {
+    setState(() {
+      _banking = false;
+      _moneyStep = MoneyStep.pay;
+    });
+    tripNotice.value = 'Payment cancelled · nothing was sent';
+  }
+
+  /// Paid another way: back on the money, where the pill waits for them to confirm.
+  void _markPaid() {
+    HapticFeedback.mediumImpact();
+    markPaid(_payFor!);
+    setState(() => _moneyStep = MoneyStep.list);
   }
 
   /// A plan went to the group: the pop-up closes and the map flies to it.
@@ -1196,6 +1280,22 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
             child: !_joining
                 ? const SizedBox.shrink(key: ValueKey('none'))
                 : JoinFlow(onJoined: () => _closeJoin(joined: true), onClose: _closeJoin),
+          ),
+        ),
+        // My bank's app, over TripUp: it comes in like another phone screen (from a slight zoom) and fades away
+        Positioned.fill(
+          child: AnimatedSwitcher(
+            duration: TokMotion.enter,
+            reverseDuration: TokMotion.fade,
+            switchInCurve: TokMotion.easeOut,
+            switchOutCurve: TokMotion.easeOut,
+            transitionBuilder: (child, anim) => FadeTransition(
+              opacity: anim,
+              child: _reduce || !_banking ? child : ScaleTransition(scale: Tween(begin: TokMotion.pageZoomScale, end: 1.0).animate(anim), child: child),
+            ),
+            child: !_banking || _payFor == null || myBank.value == null
+                ? const SizedBox.shrink(key: ValueKey('none'))
+                : BankApp(key: const ValueKey('bank'), pay: _payFor!, bank: myBank.value!, onApproved: _bankApproved, onCancel: _bankCancelled),
           ),
         ),
         // A note for everyone, sliding down from the top and back up the way it came
