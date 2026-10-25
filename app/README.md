@@ -14,6 +14,9 @@ flutter run -d "iPhone 16"
 # Android: the APK for testers (copied to ../releases/, which git ignores)
 flutter build apk --release --no-tree-shake-icons --target-platform android-arm64
 
+# the web build on Vercel (https://tripup-three.vercel.app); --preview for a preview URL
+../tools/deploy_web.sh
+
 # on the Android emulator (Pixel 8, API 36)
 emulator -avd TripUp_Pixel &
 flutter run -d emulator-5554
