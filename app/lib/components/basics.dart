@@ -243,7 +243,7 @@ class KnowTip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: TokSpace.sm, vertical: TokSpace.xs),
       alignment: Alignment.centerLeft,
       decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.card)),
-      child: Text(text, style: TokText.labelSm.copyWith(color: t.textBrand)),
+      child: Text(text, style: TokText.labelMd.copyWith(color: t.textBrand)),
     );
   }
 }

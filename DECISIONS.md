@@ -199,7 +199,7 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 
 ## Details from anywhere, and landing back cleanly (24 Oct)
 
-- **Know before you go is Bogdan's block** (Figma 62:4828): a subtle grey group with a brand title, and each tip as a plain muted line in brand. Tips are read, not tapped, so no arrows and no glass.
+- **Know before you go is Bogdan's block** (Figma 62:4828): a subtle grey group with a brand title, and each tip as a plain muted line in brand, at 14 px (Label/MD; at 12 it read too small). Tips are read, not tapped, so no arrows and no glass.
 - **A plan in the itinerary opens its details right there,** not the map: the itinerary's sheet and the details are the same surface in the same place, so the details' content fades in where the list was, and closing slides it down like a pop-up. A plan we know little about (Tram 28, an added one) shows its time, how far it is and a small map; the Menu tab appears only for a place with a menu. Places we've been still show on the map.
 - **Coming back from the details lands without a change** (Bogdan: the chips changed and the pin blinked at the end). The card that shrinks back is now exactly the card on the map, who's there included (it showed "N coming" until it landed), and the pin's tail stays under it the whole time instead of popping in when the card arrived.
 

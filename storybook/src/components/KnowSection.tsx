@@ -4,7 +4,7 @@ import './KnowSection.css';
 /** A tip inside a section (Bogdan's Overview, Figma 62:4828): a short line in brand on a muted block. Read, not
  *  tapped, so no arrow and no glass. */
 export function KnowTip({ children }: { children: ReactNode }) {
-  return <p className="tu-know-tip text-label-sm">{children}</p>;
+  return <p className="tu-know-tip text-label-md">{children}</p>;
 }
 
 export interface KnowSectionProps {
