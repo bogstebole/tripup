@@ -655,6 +655,12 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Final UI, iteration 1.65: the bill's new layout (branch `feat/bill-line-layout`)
+- Bogdan's Figma bill sheet (209:8186) and Bill line (209:8483), everywhere (DECISIONS: The bill, laid out again). Each line has the dish on its own row, then quantity × price, the faces and the total. The total sits in the footer under the shares, the explanation line is gone, and Who paid is a soft 56 button.
+- **Figma:** Bill line is a component set, Expanded=no|yes. The yes state shows the picker under the line, with Nic faded and his face hidden. Bogdan's frame is now an instance, and the subtitles lost their names on both bill screens.
+- **App:** bill_scan.dart. **Storybook:** BillScan (`tu-bill__line`, `tu-bill__meta`, total in the footer, `tu-payer` as a soft pill).
+- **Checked:** the simulator (the bill, a line opened, the footer), Storybook Pop-ups · Scan the bill, and Figma The bill.
+
 ### Storybook online: https://tripup-storybook.vercel.app (26 Oct)
 - **For reviewers:** the component library is on Vercel, as project "tripup-storybook", deployed to production and public. `tools/deploy_storybook.sh` builds Storybook and deploys it the same way as deploy_web.sh: copied outside the repo, static files only. `--preview` gives a preview URL instead.
 - **Checked:** the live site loads Pop-ups · Itinerary with no errors, and index.json answers.

@@ -217,10 +217,6 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
   Widget _review(BuildContext context) {
     final t = context.tok;
     final table = dinnerTable, shares = _bill.shares;
-    String names(List<String> ids) {
-      final n = [for (final id in ids) id == myId ? 'you' : personById(id).name];
-      return n.length < 2 ? n.join() : '${n.sublist(0, n.length - 1).join(', ')} and ${n.last}';
-    }
 
     return TripSheet(
       title: 'The bill',
@@ -256,6 +252,18 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
                 return fits ? Row(children: cells) : SingleChildScrollView(scrollDirection: Axis.horizontal, child: Row(children: cells));
               },
             ),
+            SizedBox(height: TokDim.surfaceEdgeWidth, width: double.infinity, child: ColoredBox(color: t.borderDefault)),
+            // The total, big: it's the number everyone checks first, and it stays in view under the lines
+            Padding(
+              padding: const EdgeInsets.fromLTRB(TokSpace.xs, 0, TokSpace.xs, TokSpace.sm),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(child: Text('Total', style: TokText.labelLg.copyWith(color: t.textDefault))),
+                  Text(euros(_bill.total), style: TokText.headingLg.copyWith(color: t.textDefault)),
+                ],
+              ),
+            ),
             Row(
               spacing: TokSpace.sm,
               children: [
@@ -275,84 +283,71 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
       ),
       child: StaggerIn(
         children: [
-          // The total, big: it's the number everyone checks first
-          Padding(
-            padding: const EdgeInsets.fromLTRB(TokSpace.xs, 0, TokSpace.xs, TokSpace.sm),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Expanded(child: Text('Total', style: TokText.labelLg.copyWith(color: t.textDefault))),
-                Text(euros(_bill.total), style: TokText.headingLg.copyWith(color: t.textDefault)),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(TokSpace.xs, 0, TokSpace.xs, TokSpace.xs),
-            child: Text(
-              'Each line goes to whoever picked it on the menu; anything nobody picked goes to everyone. Tap a line to change who had it.',
-              style: TokText.bodySm.copyWith(color: t.textMuted),
-            ),
-          ),
           for (final (i, line) in _bill.lines.indexed) ...[
             if (i > 0) const Hairline(),
             () {
               final who = _bill.who[i];
               final item = menuItemNamed(line.item);
-              return Column(
+              // The dish on its own line, then quantity × price, who had it and the line's total; tap to open who had it
+              return Pressable(
                 key: _lineKeys[i],
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SheetRow(
-                    title: item?.name ?? line.printed,
-                    subtitle: '${line.qty} × ${euros(line.unit)} · ${who.length == table.length ? 'Everyone' : names(who)}',
-                    trailing: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      spacing: TokSpace.x3xs,
-                      children: [
-                        Text(euros(line.total), style: TokText.labelLg.copyWith(color: t.textDefault)),
-                        // Every face, overlapped (there's room for the whole table)
-                        Overlapped(overlap: TokDim.chipFaceOverlap, children: [for (final id in who) Sticker(personById(id).sticker, size: StickerSize.chip)]),
-                      ],
-                    ),
-                    onTap: () => _edit(i),
-                  ),
-                  // Who had it: everyone at the table, the ones who had it full, the others faded; tap to change
-                  AnimatedSize(
-                    duration: TokMotion.enter,
-                    curve: TokMotion.easeOut,
-                    alignment: Alignment.topCenter,
-                    child: _editing != i
-                        ? const SizedBox(width: double.infinity)
-                        : Container(
-                            margin: const EdgeInsets.fromLTRB(TokSpace.xs, 0, TokSpace.xs, TokSpace.sm),
-                            padding: const EdgeInsets.symmetric(vertical: TokSpace.sm),
-                            decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.card)),
-                            child: Row(
-                              children: [
-                                for (final id in table)
-                                  Expanded(
-                                    child: Pressable(
-                                      onTap: () => _toggle(i, id),
-                                      semanticLabel: '${personById(id).name}: ${who.contains(id) ? 'had it' : "didn't have it"}',
-                                      child: AnimatedOpacity(
-                                        opacity: who.contains(id) ? 1 : TokDim.scanOffOpacity,
-                                        duration: TokMotion.fade,
-                                        curve: TokMotion.easeOut,
-                                        child: Column(
-                                          spacing: TokSpace.x3xs,
-                                          children: [
-                                            Sticker(personById(id).sticker, size: StickerSize.avatar),
-                                            Text(personById(id).name, style: TokText.labelMd.copyWith(color: t.textDefault)),
-                                          ],
+                onTap: () => _edit(i),
+                semanticLabel: '${item?.name ?? line.printed}, ${euros(line.total)}',
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs, vertical: TokSpace.sm),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    spacing: TokSpace.sm,
+                    children: [
+                      Text(item?.name ?? line.printed, style: TokText.labelLg.copyWith(color: t.textDefault)),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        spacing: TokSpace.xs,
+                        children: [
+                          Text('${line.qty} × ${euros(line.unit)}', style: TokText.bodySm.copyWith(color: t.textMuted)),
+                          // Every face, overlapped (there's room for the whole table)
+                          Overlapped(overlap: TokDim.chipFaceOverlap, children: [for (final id in who) Sticker(personById(id).sticker, size: StickerSize.chip)]),
+                          Text(euros(line.total), style: TokText.labelLg.copyWith(color: t.textDefault)),
+                        ],
+                      ),
+                      // Who had it: everyone at the table, the ones who had it full, the others faded; tap to change
+                      AnimatedSize(
+                        duration: TokMotion.enter,
+                        curve: TokMotion.easeOut,
+                        alignment: Alignment.topCenter,
+                        child: _editing != i
+                            ? const SizedBox(width: double.infinity)
+                            : Container(
+                                padding: const EdgeInsets.symmetric(vertical: TokSpace.sm),
+                                decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.card)),
+                                child: Row(
+                                  children: [
+                                    for (final id in table)
+                                      Expanded(
+                                        child: Pressable(
+                                          onTap: () => _toggle(i, id),
+                                          semanticLabel: '${personById(id).name}: ${who.contains(id) ? 'had it' : "didn't have it"}',
+                                          child: AnimatedOpacity(
+                                            opacity: who.contains(id) ? 1 : TokDim.scanOffOpacity,
+                                            duration: TokMotion.fade,
+                                            curve: TokMotion.easeOut,
+                                            child: Column(
+                                              spacing: TokSpace.x3xs,
+                                              children: [
+                                                Sticker(personById(id).sticker, size: StickerSize.avatar),
+                                                Text(personById(id).name, style: TokText.labelMd.copyWith(color: t.textDefault)),
+                                              ],
+                                            ),
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
+                                  ],
+                                ),
+                              ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               );
             }(),
           ],
@@ -535,13 +530,21 @@ class _PayerPickerState extends State<_PayerPicker> with SingleTickerProviderSta
         child: Pressable(
           onTap: _open,
           semanticLabel: '${_name(widget.payer, start: true)} paid. Change who paid',
-          child: Row(
-            spacing: TokSpace.x2xs,
-            children: [
-              Sticker(personById(widget.payer).sticker, size: StickerSize.chip),
-              Flexible(child: Text('${_name(widget.payer, start: true)} paid', maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textDefault))),
-              LucideIcon(TuIcons.openUp, size: TokSize.iconSm, color: t.iconMuted),
-            ],
+          // A soft button, as tall as the main action next to it
+          child: Glass(
+            kind: GlassKind.soft,
+            height: TokDim.buttonLg,
+            radius: BorderRadius.circular(TokRadius.pill),
+            padding: const EdgeInsets.symmetric(horizontal: TokSpace.md),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              spacing: TokSpace.x2xs,
+              children: [
+                Sticker(personById(widget.payer).sticker, size: StickerSize.chip),
+                Flexible(child: Text('${_name(widget.payer, start: true)} paid', maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textDefault))),
+                LucideIcon(TuIcons.openUp, size: TokSize.iconSm, color: t.iconMuted),
+              ],
+            ),
           ),
         ),
       ),

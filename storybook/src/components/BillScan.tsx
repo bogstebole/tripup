@@ -8,7 +8,7 @@ import {
 } from '../data';
 import { Button, TextButton } from './Button';
 import { Sticker } from './Sticker';
-import { Hairline, SheetRow, Slot, StaggerIn, TripSheet } from './TripSheet';
+import { Hairline, Slot, StaggerIn, TripSheet } from './TripSheet';
 import './Surface.css';
 import './BillScan.css';
 
@@ -229,6 +229,12 @@ function BillReview({ bill, payerMenuOpen, onPayer, onChange, onAdd, onClose }: 
               </span>
             ))}
           </div>
+          <div className="tu-bill__rule" />
+          {/* The total, big: it's the number everyone checks first, and it stays in view under the lines */}
+          <div className="tu-bill__total">
+            <span className="text-label-lg tu-bill__total-label">Total</span>
+            <span className="text-heading-lg">{euros(billTotal(bill))}</span>
+          </div>
           <div className="tu-bill__actions">
             <PayerTrigger payer={bill.paidBy} open={payerMenuOpen} onOpen={onPayer} />
             <TextButton label="Add to the trip's money" size="lg" onClick={onAdd} />
@@ -237,32 +243,22 @@ function BillReview({ bill, payerMenuOpen, onPayer, onChange, onAdd, onClose }: 
       }
     >
       <StaggerIn>
-        {/* The total, big: it's the number everyone checks first */}
-        <div key="total" className="tu-bill__total">
-          <span className="text-label-lg tu-bill__total-label">Total</span>
-          <span className="text-heading-lg">{euros(billTotal(bill))}</span>
-        </div>
-        <p key="intro" className="text-body-sm tu-bill__intro">
-          Each line goes to whoever picked it on the menu; anything nobody picked goes to everyone. Tap a line to change who had it.
-        </p>
         {bill.lines.flatMap((line, i) => {
           const had = bill.who[i];
           const block = (
             <div key={`line-${i}`} ref={el => { lines.current[i] = el; }}>
-              <SheetRow
-                title={menuItemNamed(line.item)?.name ?? line.printed}
-                subtitle={`${line.qty} × ${euros(line.unit)} · ${had.length === table.length ? 'Everyone' : names(had)}`}
-                trailing={
-                  <span className="tu-bill__amount">
-                    <span className="text-label-lg">{euros(lineTotal(line))}</span>
-                    {/* Every face, overlapped (there's room for the whole table) */}
-                    <span className="tu-bill__pile" role="img" aria-label={names(had)}>
-                      {had.map(id => <Sticker key={id} name={personById(id).sticker} size="chip" />)}
-                    </span>
+              {/* The dish on its own line, then quantity × price, who had it and the line's total; tap to open who had it */}
+              <button type="button" className="tu-bill__line" aria-expanded={editing === i} onClick={() => edit(i)}>
+                <span className="text-label-lg">{menuItemNamed(line.item)?.name ?? line.printed}</span>
+                <span className="tu-bill__meta">
+                  <span className="text-body-sm tu-bill__qty">{`${line.qty} × ${euros(line.unit)}`}</span>
+                  {/* Every face, overlapped (there's room for the whole table) */}
+                  <span className="tu-bill__pile" role="img" aria-label={names(had)}>
+                    {had.map(id => <Sticker key={id} name={personById(id).sticker} size="chip" />)}
                   </span>
-                }
-                onClick={() => edit(i)}
-              />
+                  <span className="text-label-lg">{euros(lineTotal(line))}</span>
+                </span>
+              </button>
               {/* Who had it: everyone at the table in a grey block, the ones who had it full, the others faded; tap to change */}
               <AnimatePresence initial={false}>
                 {editing === i && (
