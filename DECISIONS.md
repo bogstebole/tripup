@@ -118,6 +118,10 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 - **A page fades out at its bottom over 40, eased** (sheet/fade: space/3xl, smoothstep in 8 steps, as the header's fade). It was 16 and linear. With the footer's edge gone, the list cut off hard above the grey block (Bogdan). It applies to every pop-up and the full view.
 - **Figma's Bill line has an Expanded state now:** the line with everyone at the table under it, the ones who had it full and the others faded, as in the app.
 
+## The web on a phone doesn't zoom (26 Oct)
+- **The page itself never zooms or scrolls.** Bogdan: on his phone the web build looked blown up, showed a scrollbar and lagged. Flutter writes its own viewport tag, which allows pinch zoom up to 5×. One pinch or double tap zoomed the whole app and made the canvas redraw at that size. index.html now locks the viewport (max 1, no user scaling), turns off the browser's own touch gestures, and stops Safari's pinch events. Flutter handles every gesture itself.
+- **Text keeps the phone app's size on the web** (text scale pinned to 1). The browser's font size isn't the phone's Dynamic Type, and it made labels render bigger. We gave up the browser's text size there; the native app still follows the system's.
+
 ## Back from a plan to the itinerary (26 Oct)
 - **A plan opened from the itinerary has Back, and Back returns to the itinerary in the same sheet** (Bogdan: the navigation happens inside the itinerary). The itinerary and the full view are the same surface in the same place, so Back just brings the itinerary back there, with the day filter as it was. × still closes everything.
 - **Tabs that don't fit between Back and × go on a row of their own under them** (Bogdan). With Back, three tabs and × need about 318 pt. A phone or a text size that leaves less moves the tabs to a second row, and the page starts lower. We didn't shrink the tabs or drop Menu.

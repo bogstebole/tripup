@@ -31,6 +31,27 @@
 
   <title>TripUp</title>
   <link rel="manifest" href="manifest.json">
+  <!-- The prototype is a phone app in a browser: the page itself never zooms or scrolls. Flutter writes its own
+       viewport tag that allows pinch zoom up to 5×; on a phone one pinch or double tap then blew the whole app up,
+       showed scrollbars and made the canvas redraw much larger (slow). Flutter handles every gesture itself, so the
+       browser's are off. -->
+  <style>
+    html, body { margin: 0; overflow: hidden; touch-action: none; overscroll-behavior: none; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  </style>
+  <script>
+    (function () {
+      var content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover';
+      function lock() {
+        var metas = document.querySelectorAll('meta[name="viewport"]');
+        if (!metas.length) { var m = document.createElement('meta'); m.name = 'viewport'; m.content = content; document.head.appendChild(m); return; }
+        metas.forEach(function (m) { if (m.content !== content) m.content = content; });
+      }
+      lock();
+      new MutationObserver(lock).observe(document.head, { childList: true, subtree: true, attributes: true, attributeFilter: ['content'] });
+      // Safari ignores user-scalable=no for pinch; its own gesture events still let a page refuse it
+      ['gesturestart', 'gesturechange', 'gestureend'].forEach(function (t) { document.addEventListener(t, function (e) { e.preventDefault(); }, { passive: false }); });
+    })();
+  </script>
 </head>
 <body>
   <!--

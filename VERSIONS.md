@@ -655,6 +655,11 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Web, iteration 1.69: no zoom on phones (branch `fix/web-mobile-zoom`)
+- **index.html:** locks the viewport, re-locking it whenever Flutter rewrites it, and stops Safari's gesture events. It sets `touch-action: none`, `overflow: hidden` and `text-size-adjust: 100%`.
+- **web_phone_frame.dart:** text scale is 1 on the web, with or without the phone frame (DECISIONS: The web on a phone doesn't zoom).
+- **Checked:** iPhone 15 emulation in Chromium, where the viewport stays locked after Flutter starts, the page is 393×659 with no scroll, and the layout matches the app. Real iOS Safari still needs Bogdan's check.
+
 ### Final UI, iteration 1.68: a softer bottom fade (branch `fix/sheet-bottom-fade`)
 - Bogdan: the fade behind the bill's summary looked sharp. sheet/fade goes from 16 to 40 (space/3xl), and the mask is eased instead of linear, in the app (trip_sheet, detail_sheet), Storybook (TripSheet.css, DetailSheet.css) and Figma. In Figma that's the variable and the 15 sheet "Bottom fade" rectangles, each with 9 eased stops.
 - Checked on the simulator (the bill). Installed on Bogdan's iPhone 15.
