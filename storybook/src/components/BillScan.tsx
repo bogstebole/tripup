@@ -220,20 +220,24 @@ function BillReview({ bill, payerMenuOpen, onPayer, onChange, onAdd, onClose }: 
       onClose={onClose}
       footer={
         <div className="tu-bill__footer">
-          {/* What each person had, to the cent: side by side while they fit, scrolling sideways once they don't */}
-          <div className="tu-bill__shares">
-            {table.map(id => (
-              <span key={id} className="tu-bill__share">
-                <Sticker name={personById(id).sticker} size="avatar" />
-                <span className="text-label-md weight-semibold">{euros(shares[id] ?? 0)}</span>
-              </span>
-            ))}
-          </div>
-          <div className="tu-bill__rule" />
-          {/* The total, big: it's the number everyone checks first, and it stays in view under the lines */}
-          <div className="tu-bill__total">
-            <span className="text-label-lg tu-bill__total-label">Total</span>
-            <span className="text-heading-lg">{euros(billTotal(bill))}</span>
+          {/* The summary in a grey block of its own: everyone's share, then the total. It sets itself apart from the
+              lines above, so the footer needs no edge */}
+          <div className="tu-bill__summary">
+            {/* What each person had, to the cent: side by side while they fit, scrolling sideways once they don't */}
+            <div className="tu-bill__shares">
+              {table.map(id => (
+                <span key={id} className="tu-bill__share">
+                  <Sticker name={personById(id).sticker} size="avatar" />
+                  <span className="text-label-md weight-semibold">{euros(shares[id] ?? 0)}</span>
+                </span>
+              ))}
+            </div>
+            <div className="tu-bill__rule" />
+            {/* The total, big: it's the number everyone checks first, and it stays in view under the lines */}
+            <div className="tu-bill__total">
+              <span className="text-label-lg tu-bill__total-label">Total</span>
+              <span className="text-heading-lg">{euros(billTotal(bill))}</span>
+            </div>
           </div>
           <div className="tu-bill__actions">
             <PayerTrigger payer={bill.paidBy} open={payerMenuOpen} onOpen={onPayer} />
