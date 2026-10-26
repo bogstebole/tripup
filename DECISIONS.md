@@ -120,7 +120,7 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 
 ## The web on a phone doesn't zoom (26 Oct)
 - **The page itself never zooms or scrolls.** Bogdan: on his phone the web build looked blown up, showed a scrollbar and lagged. Flutter writes its own viewport tag, which allows pinch zoom up to 5×. One pinch or double tap zoomed the whole app and made the canvas redraw at that size. index.html now locks the viewport (max 1, no user scaling), turns off the browser's own touch gestures, and stops Safari's pinch events. Flutter handles every gesture itself.
-- **Text keeps the phone app's size on the web** (text scale pinned to 1). The browser's font size isn't the phone's Dynamic Type, and it made labels render bigger. We gave up the browser's text size there; the native app still follows the system's.
+- **Text is always the design's size, on every platform** (text scale pinned to 1). Bogdan's iPhone is set to the smallest text size, so the app looked about 18% smaller than the design and the web build. The prototype is judged on its layout, so it ignores the phone's text size (Dynamic Type, Android's font size) and the browser's. A real app would follow them, at least upward. The full view's tabs still wrap under Back and × on a narrow phone. The iOS widget and Live Activity already used fixed sizes.
 
 ## Back from a plan to the itinerary (26 Oct)
 - **A plan opened from the itinerary has Back, and Back returns to the itinerary in the same sheet** (Bogdan: the navigation happens inside the itinerary). The itinerary and the full view are the same surface in the same place, so Back just brings the itinerary back there, with the day filter as it was. × still closes everything.

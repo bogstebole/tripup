@@ -23,10 +23,9 @@ class WebPhoneFrame extends StatelessWidget {
   Widget build(BuildContext context) {
     final window = MediaQuery.of(context);
     final app = KeyedSubtree(key: _screen, child: child);
-    if (!kIsWeb) return app;
-    // On the web the text keeps the phone app's size: Flutter reads the browser's font size (a browser setting, or a
-    // page zoomed on a phone) as a text scale, which made every label render bigger than on the phone
-    if (window.size.width < TokDim.webFrameMinWindow) return MediaQuery(data: window.copyWith(textScaler: TextScaler.noScaling), child: app);
+    // The text is always the design's size: the phone's text size setting (Dynamic Type, Android's font size) and the
+    // browser's font size don't scale it. The prototype is judged on its layout, so it looks the same on every phone
+    if (!kIsWeb || window.size.width < TokDim.webFrameMinWindow) return MediaQuery(data: window.copyWith(textScaler: TextScaler.noScaling), child: app);
     const phone = Size(TokDim.webFrameWidth, TokDim.webFrameHeight);
     return ColoredBox(
       color: context.tok.bgMuted,

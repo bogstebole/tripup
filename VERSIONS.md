@@ -655,6 +655,10 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Final UI, iteration 1.70: text size fixed everywhere (branch `fix/fixed-text-size`)
+- Bogdan's phone uses the smallest text size, and the native app followed it. Now the text scale is 1 on iOS, Android and the web (web_phone_frame.dart), so the app always looks like the design (DECISIONS: The web on a phone doesn't zoom).
+- Checked on the simulator: at extra-small and at the default text size, Your trips is identical. Installed on Bogdan's iPhone 15.
+
 ### Web, iteration 1.69: no zoom on phones (branch `fix/web-mobile-zoom`)
 - **index.html:** locks the viewport, re-locking it whenever Flutter rewrites it, and stops Safari's gesture events. It sets `touch-action: none`, `overflow: hidden` and `text-size-adjust: 100%`.
 - **web_phone_frame.dart:** text scale is 1 on the web, with or without the phone frame (DECISIONS: The web on a phone doesn't zoom).
