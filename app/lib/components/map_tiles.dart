@@ -24,6 +24,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:executor_lib/executor_lib.dart';
@@ -63,6 +64,9 @@ class MapSource {
 
   /// Tiles that come with the app, already drawn, as 'z-x-y' (empty off Android, or if the style has changed).
   final Set<String> bundled;
+
+  /// The deepest zoom of the baked tiles (null without them).
+  late final int? bakedMaxZoom = bundled.isEmpty ? null : bundled.map((t) => int.parse(t.split('-').first)).reduce(math.max);
 
   /// Where the vector tiles come from (the network, through one connection pool).
   final TileProviders tiles;
@@ -172,12 +176,14 @@ abstract final class MapTiles {
     }
   }
 
-  /// 32-bit FNV-1a of [text]'s UTF-16 code units, as hex (the bake tool computes the same).
+  /// 32-bit FNV-1a of [text]'s UTF-16 code units, as hex (the bake tool computes the same). The prime is 2^24 + 403,
+  /// multiplied in two parts: on the web numbers are doubles, and h × prime in one go (up to 2^56) loses its low bits,
+  /// so the web never matched the baked tiles.
   static String fnv1a(String text) {
     var h = 0x811c9dc5;
     for (final c in text.codeUnits) {
       h ^= c;
-      h = (h * 0x01000193) & 0xffffffff;
+      h = (((h << 24) & 0xffffffff) + h * 403) & 0xffffffff;
     }
     return h.toRadixString(16).padLeft(8, '0');
   }
@@ -287,7 +293,9 @@ class _TripTileLayerState extends State<TripTileLayer> {
   @override
   Widget build(BuildContext context) => fm.TileLayer(
         maxZoom: 18,
-        maxNativeZoom: 18,
+        // On the web, zooming in past the baked tiles enlarges them instead of drawing finer ones: every tile drawn
+        // there holds the main thread for a moment, and a deep pinch needs many at once. Deep zoom is a little softer.
+        maxNativeZoom: kIsWeb ? widget.source.bakedMaxZoom ?? 18 : 18,
         evictErrorTileStrategy: fm.EvictErrorTileStrategy.notVisible,
         tileProvider: _provider,
       );
