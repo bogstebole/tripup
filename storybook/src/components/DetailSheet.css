@@ -65,6 +65,7 @@
 .tu-sheet__face { display: grid; place-items: center; width: var(--d-sticker-row); height: var(--d-sticker-row); flex: none; }
 
 /* The tabs and Close, as far in from the sides as from the top: concentric with the sheet's corners */
+.tu-sheet__lead { display: flex; align-items: center; gap: var(--space-xs); }
 .tu-sheet__bar { position: absolute; top: 0; left: var(--d-surface-inset); right: var(--d-surface-inset); z-index: 2; display: flex; align-items: center; justify-content: space-between; padding-top: var(--d-surface-head-inset); }
 
 /* Menu: a plain list; under each dish's photo and text, the price, who else picked it, and Add */

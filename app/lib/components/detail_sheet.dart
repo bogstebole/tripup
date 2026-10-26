@@ -50,12 +50,15 @@ enum MenuFilter {
 /// one fades out. Every page scrolls up under the header; pulling the header, or a page past its top, pulls the
 /// sheet down ([onHeaderDragUpdate] / [onHeaderDragEnd]).
 class DetailSheet extends StatefulWidget {
-  const DetailSheet({super.key, required this.plan, this.onClose, this.onHeaderDragUpdate, this.onHeaderDragEnd, this.onScan, this.onSettle, this.mapOf});
+  const DetailSheet({super.key, required this.plan, this.onClose, this.onBack, this.onHeaderDragUpdate, this.onHeaderDragEnd, this.onScan, this.onSettle, this.mapOf});
   final Plan plan;
 
   /// A small still map of a place with its sticker, for plans without photos.
   final Widget Function(LatLng at, String sticker)? mapOf;
   final VoidCallback? onClose;
+
+  /// Back to where the details were opened from (the itinerary), in the same sheet; null when they grew out of Up next.
+  final VoidCallback? onBack;
 
   /// Scan the bill (offered only while the dinner is on), and see who owes what once it's in.
   final VoidCallback? onScan, onSettle;
@@ -179,6 +182,8 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(TokDim.surfaceHeadSide, TokDim.surfaceHeadInset, TokDim.surfaceHeadSide, 0),
                 child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                  Row(mainAxisSize: MainAxisSize.min, spacing: TokSpace.xs, children: [
+                  if (widget.onBack != null) TuButton(icon: TuIcons.back, label: 'Back', size: TuButtonSize.sm, onTap: widget.onBack),
                   SegmentedTabs(
                     tabs: [for (final p in _pages) p.label],
                     index: _tab,
@@ -191,6 +196,7 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
                       });
                     },
                   ),
+                  ]),
                   TuButton(icon: TuIcons.close, label: 'Close', size: TuButtonSize.sm, onTap: widget.onClose),
                 ]),
               ),

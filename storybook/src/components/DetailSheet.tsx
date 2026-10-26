@@ -1,4 +1,4 @@
-import { Banknote, Calendar, Check, Clock, Globe, MapPin, Phone, Truck, X, type LucideIcon } from 'lucide-react';
+import { ArrowLeft, Banknote, Calendar, Check, Clock, Globe, MapPin, Phone, Truck, X, type LucideIcon } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion, type MotionValue, type Variants } from 'motion/react';
 import { createContext, useContext, useState, type CSSProperties, type ReactNode } from 'react';
 import tokens from '../../../design-system/tokens.json';
@@ -65,6 +65,9 @@ export interface DetailSheetProps {
   tab?: DetailTab;
   onTabChange?: (tab: DetailTab) => void;
   onClose?: () => void;
+  /** Back to where the details were opened from (the itinerary), in the same sheet; leave it out when they grew out of
+   *  Up next. */
+  onBack?: () => void;
   /** The plan is on (its time has come and someone is there): it opens on Group (the tabs keep their order), Group
    *  says who's here, and its footer offers Scan the bill. */
   active?: boolean;
@@ -166,7 +169,10 @@ export function DetailSheet(p: DetailSheetProps) {
   return (
     <article className="tu-sheet tu-surface tu-surface--sheet" aria-label={p.name}>
       <motion.div className="tu-sheet__bar" style={{ opacity: p.contentOpacity }}>
-        <SegmentedTabs tabs={tabs} value={tab} onChange={t => select(t as DetailTab)} />
+        <span className="tu-sheet__lead">
+          {p.onBack && <Button icon={ArrowLeft} label="Back" size="sm" onClick={p.onBack} />}
+          <SegmentedTabs tabs={tabs} value={tab} onChange={t => select(t as DetailTab)} />
+        </span>
         <Button icon={X} label="Close" size="sm" onClick={p.onClose} />
       </motion.div>
       <motion.div className="tu-sheet__pages" style={{ opacity: p.contentOpacity }}>

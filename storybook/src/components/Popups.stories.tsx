@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { animate, AnimatePresence, motion, useMotionValue, usePresence, useReducedMotion, useTransform } from 'motion/react';
+import { animate, AnimatePresence, motion, useMotionValue, usePresence, usePresenceData, useReducedMotion, useTransform } from 'motion/react';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import {
@@ -75,9 +75,11 @@ type PollSlot = { subtitle: string; page: ReactNode; card?: ReactNode; expanded?
  * Closing, it leaves the way pop-ups do: down, past the bottom edge (spring-collapse), its content fading over the same
  * part of the way. Reduced motion: it's there at once, and gone at once. The backdrop under it stays as it was.
  */
-function PlanDetails({ plan, now, onClose }: { plan: Plan; now: Date; onClose: () => void }) {
+function PlanDetails({ plan, now, onClose, onBack }: { plan: Plan; now: Date; onClose: () => void; onBack: () => void }) {
   const reduce = !!useReducedMotion();
   const [present, safeToRemove] = usePresence();
+  // Back to the itinerary: it goes at once, the itinerary coming back in the same place
+  const atOnce = !!usePresenceData();
   const open = useMotionValue(reduce ? 1 : 0.45);
   // 1 once it's leaving: then it slides down as it closes (opening, it stays where the pop-up was)
   const leaving = useMotionValue(0);
@@ -89,7 +91,7 @@ function PlanDetails({ plan, now, onClose }: { plan: Plan; now: Date; onClose: (
       const run = animate(open, 1, { type: 'spring', duration: m['spring-snap'].duration, bounce: m['spring-snap'].bounce });
       return () => run.stop();
     }
-    if (reduce) return safeToRemove();
+    if (reduce || atOnce) return safeToRemove();
     leaving.set(1);
     const run = animate(open, 0, { type: 'spring', duration: m['spring-collapse'].duration, bounce: m['spring-collapse'].bounce });
     run.then(safeToRemove);
@@ -103,7 +105,7 @@ function PlanDetails({ plan, now, onClose }: { plan: Plan; now: Date; onClose: (
   });
   return (
     <motion.div style={{ position: 'absolute', inset: 0, pointerEvents: 'auto', transform }}>
-      <DetailSheet {...planDetails(plan)} people={PEOPLE} now={now} faces={faces} onClose={onClose} contentOpacity={content} />
+      <DetailSheet {...planDetails(plan)} people={PEOPLE} now={now} faces={faces} onClose={onClose} onBack={onBack} contentOpacity={content} />
     </motion.div>
   );
 }
@@ -156,14 +158,22 @@ function Screen({ start = null, open: shown, onOpen, money, moneyTab, itinerary,
   const moneyFlow = money ?? ownMoney;
   // A plan opened from the itinerary: its details, in the pop-up's place (the pop-up goes as they come)
   const [details, setDetails] = useState<Plan | null>(null);
+  // Back from them: the itinerary comes back in the same place, its day filter as it was
+  const [back, setBack] = useState(false);
   const openDetails = (plan: Plan) => {
+    setBack(false);
     setDetails(plan);
     setOpen(null);
+  };
+  const backToItinerary = () => {
+    setBack(true);
+    setDetails(null);
+    setOpen('itinerary');
   };
   const [lastOpen, setLastOpen] = useState(open);
   if (open !== lastOpen) {
     setLastOpen(open);
-    if (open === 'itinerary') setPlanDays([]);
+    if (open === 'itinerary' && !back) setPlanDays([]);
     if (open === 'money') moneyFlow.reset();
     if (open === 'add') {
       setAddStep('choose');
@@ -241,6 +251,7 @@ function Screen({ start = null, open: shown, onOpen, money, moneyTab, itinerary,
             {open && current && (
               <TripSheet
                 key={open}
+                inPlace={back && open === 'itinerary'}
                 title={current.title}
                 subtitle={current.subtitle}
                 compact={open === 'add' && addStep !== 'plan'}
@@ -254,8 +265,8 @@ function Screen({ start = null, open: shown, onOpen, money, moneyTab, itinerary,
               </TripSheet>
             )}
           </AnimatePresence>
-          <AnimatePresence>
-            {details && <PlanDetails key={details.id} plan={details} now={itinerary?.now ?? TRIP_NOW} onClose={() => setDetails(null)} />}
+          <AnimatePresence custom={back}>
+            {details && <PlanDetails key={details.id} plan={details} now={itinerary?.now ?? TRIP_NOW} onClose={() => setDetails(null)} onBack={backToItinerary} />}
           </AnimatePresence>
         </div>
         {children}

@@ -110,6 +110,11 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
   - It's a tool for the demo, not part of the product, so it isn't in Storybook.
 - **The story should play out from the situation, not from special controls** (Bogdan, 23 Oct). When the group gets to the restaurant (a geofence), the dinner turns active and its actions appear; nothing is built for one case like "two people skip the wine".
 
+## Back from a plan to the itinerary (26 Oct)
+- **A plan opened from the itinerary has Back, and Back returns to the itinerary in the same sheet** (Bogdan: the navigation happens inside the itinerary). The itinerary and the full view are the same surface in the same place, so Back just brings the itinerary back there, with the day filter as it was. × still closes everything.
+- From Up next there's no Back: the full view grew out of the card, so closing it is the way back.
+- We didn't make the details a step inside the pop-up (a Back plus a title, like Money's): the full view keeps its own tabs, and the Back sits before them.
+
 ## The dinner, the bill, squared up (built 24 Oct)
 
 - **The dinner turns "Now" by itself.** Once its time has come (from a quarter of an hour before) and someone is inside its geofence, the card says "Now", with a dot, and "You're here" once I'm in. The mini pin says "Now". Nobody presses anything.
