@@ -655,6 +655,13 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Final UI, iteration 1.64: the full view's tabs wrap under Back and × (branch `feat/detail-header-wrap`)
+- When the tabs don't fit between Back and Close, they go on a second row under them, and the header grows by a row.
+  - App: DetailSheet measures the tabs' labels against the sheet's width.
+  - Storybook: DetailSheet measures the bar, with a `tu-sheet--stacked` class.
+- Checked: the simulator at the Accessibility Medium text size (Brasserie from the itinerary: Back and × on top, Overview · Menu · Group under them). Storybook Pop-ups · Itinerary at its phone width stacks too.
+- Figma is unchanged: at 440 wide everything fits on one row.
+
 ### Final UI, iteration 1.63: Back from a plan to the itinerary (branch `feat/itinerary-back`)
 - Bogdan: details opened from the itinerary need Back to it, inside the same sheet. The full view's header now has Back before the tabs when it came from the itinerary, and Back brings the itinerary back in place, with its day filter (DECISIONS: Back from a plan to the itinerary).
 - App: `DetailSheet.onBack`, `_backToItinerary` in trip_screen.dart. Storybook: DetailSheet `onBack`, TripSheet `inPlace`, Pop-ups · Itinerary. Figma: Sheet header gets a Back boolean (Lead frame: Back + tabs, 8 apart), and Plan the days gets a third screen, "Plan details · from the itinerary", with a "Tap a plan" connector.

@@ -112,6 +112,7 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 
 ## Back from a plan to the itinerary (26 Oct)
 - **A plan opened from the itinerary has Back, and Back returns to the itinerary in the same sheet** (Bogdan: the navigation happens inside the itinerary). The itinerary and the full view are the same surface in the same place, so Back just brings the itinerary back there, with the day filter as it was. × still closes everything.
+- **Tabs that don't fit between Back and × go on a row of their own under them** (Bogdan). With Back, three tabs and × need about 318 pt. A phone or a text size that leaves less moves the tabs to a second row, and the page starts lower. We didn't shrink the tabs or drop Menu.
 - From Up next there's no Back: the full view grew out of the card, so closing it is the way back.
 - We didn't make the details a step inside the pop-up (a Back plus a title, like Money's): the full view keeps its own tabs, and the Back sits before them.
 

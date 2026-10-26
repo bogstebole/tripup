@@ -122,11 +122,50 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
 
   late final _pull = _Pull((dy) => widget.onHeaderDragUpdate?.call(DragUpdateDetails(globalPosition: Offset.zero, delta: Offset(0, dy), primaryDelta: dy)));
 
-  /// The header's height: its top inset, then the taller of the tab bar and the close button.
-  static double get _headerHeight => TokDim.surfaceHeadInset + math.max(TokDim.segmentHeight + TokDim.segmentTrackPadding * 2, TokDim.buttonSm);
+  static const _trackHeight = TokDim.segmentHeight + TokDim.segmentTrackPadding * 2;
+
+  /// The tabs don't fit between Back and Close (a narrow phone, large text): then they go on a row of their own under
+  /// them. Set in [build] from the sheet's width.
+  bool _stacked = false;
+
+  /// The header's height: its top inset, then the taller of the tab bar and the buttons, or both rows when stacked.
+  double get _headerHeight => TokDim.surfaceHeadInset + (_stacked ? TokDim.buttonSm + TokSpace.xs + _trackHeight : math.max(_trackHeight, TokDim.buttonSm));
+
+  /// How wide the tab bar is: each label with its padding, the gaps between them, the track around them.
+  double _tabsWidth(BuildContext context) {
+    final style = TokText.bodySm.copyWith(fontWeight: TokWeight.medium);
+    final scaler = MediaQuery.textScalerOf(context);
+    var w = TokDim.segmentTrackPadding * 2 + TokDim.segmentGap * (_pages.length - 1);
+    for (final p in _pages) {
+      final tp = TextPainter(text: TextSpan(text: p.label, style: style), textDirection: TextDirection.ltr, textScaler: scaler)..layout();
+      w += tp.width + TokSpace.sm * 2;
+      tp.dispose();
+    }
+    return w;
+  }
+
+  Widget _tabs() => SegmentedTabs(
+        tabs: [for (final p in _pages) p.label],
+        index: _tab,
+        onChanged: (i) {
+          _under.value = 0;   // the new page starts at its top
+          setState(() {
+            _dir = (i - _tab).sign;
+            _tab = i;
+            _filtered = false;   // the list arrives with its page again
+          });
+        },
+      );
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => LayoutBuilder(builder: (context, box) {
+        final room = box.maxWidth - TokDim.surfaceBodySide * 2 - TokDim.surfaceHeadSide * 2;
+        final buttons = TokDim.buttonSm + TokSpace.xs + (widget.onBack != null ? TokDim.buttonSm + TokSpace.xs : 0);
+        _stacked = _tabsWidth(context) + buttons > room;
+        return _build(context);
+      });
+
+  Widget _build(BuildContext context) {
     final t = context.tok;
     final header = _headerHeight, solid = header / (header + TokDim.sheetTopFade);
     // The tabs and close sit in a header over the page; content scrolls up under it, through a blur and the surface's white
@@ -178,26 +217,19 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
               behavior: HitTestBehavior.opaque,
               onVerticalDragUpdate: widget.onHeaderDragUpdate,
               onVerticalDragEnd: widget.onHeaderDragEnd,
-              // The tabs and Close sit 24 from the sides, on the same edge as the page and its footer
+              // The tabs and Close sit 24 from the sides, on the same edge as the page and its footer; tabs that don't fit
+              // between Back and Close go on a row under them
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(TokDim.surfaceHeadSide, TokDim.surfaceHeadInset, TokDim.surfaceHeadSide, 0),
-                child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                  Row(mainAxisSize: MainAxisSize.min, spacing: TokSpace.xs, children: [
-                  if (widget.onBack != null) TuButton(icon: TuIcons.back, label: 'Back', size: TuButtonSize.sm, onTap: widget.onBack),
-                  SegmentedTabs(
-                    tabs: [for (final p in _pages) p.label],
-                    index: _tab,
-                    onChanged: (i) {
-                      _under.value = 0;   // the new page starts at its top
-                      setState(() {
-                        _dir = (i - _tab).sign;
-                        _tab = i;
-                        _filtered = false;   // the list arrives with its page again
-                      });
-                    },
-                  ),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.xs, children: [
+                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                    Row(mainAxisSize: MainAxisSize.min, spacing: TokSpace.xs, children: [
+                      if (widget.onBack != null) TuButton(icon: TuIcons.back, label: 'Back', size: TuButtonSize.sm, onTap: widget.onBack),
+                      if (!_stacked) _tabs(),
+                    ]),
+                    TuButton(icon: TuIcons.close, label: 'Close', size: TuButtonSize.sm, onTap: widget.onClose),
                   ]),
-                  TuButton(icon: TuIcons.close, label: 'Close', size: TuButtonSize.sm, onTap: widget.onClose),
+                  if (_stacked) _tabs(),
                 ]),
               ),
             ),
