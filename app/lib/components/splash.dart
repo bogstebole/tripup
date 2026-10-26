@@ -9,6 +9,7 @@ import 'package:flutter/widgets.dart';
 import '../data.dart';
 import '../design/theme.dart';
 import '../design/tokens.dart';
+import 'web_phone_frame.dart';
 import 'basics.dart';
 import 'map_shapes.dart';
 import 'plan_pin.dart' show lerpDouble, smoothstep;
@@ -100,7 +101,7 @@ class _SplashState extends State<Splash> with TickerProviderStateMixin {
   ({Offset center, double height})? _onCard(({String sticker, Offset center, double height, double tilt}) s) {
     final box = widget.cardKey.currentContext?.findRenderObject();
     if (box is! RenderBox || !box.attached || !box.hasSize) return null;
-    final card = box.localToGlobal(Offset.zero) & box.size;
+    final card = box.localToGlobal(Offset.zero, ancestor: WebPhoneFrame.screen) & box.size;
     final scale = math.max(card.width / homeMapFrame.width, card.height / homeMapFrame.height);
     final origin = card.topLeft + Offset((card.width - homeMapFrame.width * scale) / 2, 0);
     return (center: origin + s.center * scale, height: s.height * scale);

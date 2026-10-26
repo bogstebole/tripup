@@ -8,6 +8,7 @@ import 'package:flutter/widgets.dart';
 import '../data.dart';
 import '../design/theme.dart';
 import '../design/tokens.dart';
+import 'web_phone_frame.dart';
 import 'basics.dart';
 import 'glass.dart';
 import 'stagger.dart';
@@ -75,7 +76,7 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
   void _found() {
     if (!mounted) return;
     final box = _paperKey.currentContext?.findRenderObject() as RenderBox?;
-    if (box != null) _paper = box.localToGlobal(Offset.zero) & box.size;
+    if (box != null) _paper = box.localToGlobal(Offset.zero, ancestor: WebPhoneFrame.screen) & box.size;
     HapticFeedback.mediumImpact(); // the frame catches the paper
     if (_reduce) {
       setState(() => _phase = _Phase.review);
