@@ -223,8 +223,9 @@ class _TripSheetState extends State<TripSheet> {
       shaderCallback: (r) => LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [solid, solid, solid.withValues(alpha: 0)],
-        stops: [0, 1 - TokDim.sheetFade / r.height, 1],
+        // Eased, not linear, over sheet/fade: the page melts into the bottom instead of stopping at a line
+        colors: [solid, for (var i = 0; i <= 8; i++) solid.withValues(alpha: 1 - (i / 8) * (i / 8) * (3 - 2 * i / 8))],
+        stops: [0, for (var i = 0; i <= 8; i++) 1 - TokDim.sheetFade / r.height * (1 - i / 8)],
       ).createShader(r),
       child: child,
     );

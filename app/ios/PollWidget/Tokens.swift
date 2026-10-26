@@ -441,7 +441,7 @@ enum TokDim {
   static let sheetInset: CGFloat = 16
   static let sheetBackdropBlur: CGFloat = 2.5
   static let tripOpenBlur: CGFloat = 12
-  static let sheetFade: CGFloat = 16
+  static let sheetFade: CGFloat = 40
   static let sheetTopFade: CGFloat = 32
   static let sheetCompactHeight: CGFloat = 480
   static let sheetTopBlur: CGFloat = 8
