@@ -655,6 +655,10 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Final UI, iteration 1.68: a softer bottom fade (branch `fix/sheet-bottom-fade`)
+- Bogdan: the fade behind the bill's summary looked sharp. sheet/fade goes from 16 to 40 (space/3xl), and the mask is eased instead of linear, in the app (trip_sheet, detail_sheet), Storybook (TripSheet.css, DetailSheet.css) and Figma. In Figma that's the variable and the 15 sheet "Bottom fade" rectangles, each with 9 eased stops.
+- Checked on the simulator (the bill). Installed on Bogdan's iPhone 15.
+
 ### Final UI, iteration 1.67: the bill's summary in a grey block (branch `feat/bill-summary-box`)
 - Bogdan's sketch: shares, a line and the total in one bg/muted block. It has radius/card, md top and bottom, xs at the sides, and the total md in. The footer's top border is gone, the line is border/strong, and share cells are 56.
 - Figma: The bill (126:5932) brought fully to the new layout. That covers the total out of the page, "How it splits" removed, the Summary block, and Who paid as a soft 56 button. Bogdan's separate draft frame (209:8183) is gone from the file.

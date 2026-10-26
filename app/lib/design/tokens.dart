@@ -453,7 +453,7 @@ abstract final class TokDim {
   static const double sheetInset = 16;
   static const double sheetBackdropBlur = 2.5;
   static const double tripOpenBlur = 12;
-  static const double sheetFade = 16;
+  static const double sheetFade = 40;
   static const double sheetTopFade = 32;
   static const double sheetCompactHeight = 480;
   static const double sheetTopBlur = 8;

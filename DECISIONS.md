@@ -115,6 +115,7 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 - **The total moved into the footer,** under everyone's share, so it stays in view while the lines scroll. The explanation line ("Each line goes to whoever picked it…") went: tapping a line shows it.
 - **Who paid is a soft button,** as tall as Add to the trip's money next to it.
 - **The summary sits in a grey block** (Bogdan's idea, tried on 26 Oct): everyone's share, a line, the total. It separates the result from the lines above, so the footer lost its top edge. On grey the line takes border/strong; border/default is the same zinc as the grey. A share cell is 56 wide (it was 64), so all five fit on a 393-wide phone.
+- **A page fades out at its bottom over 40, eased** (sheet/fade: space/3xl, smoothstep in 8 steps, as the header's fade). It was 16 and linear. With the footer's edge gone, the list cut off hard above the grey block (Bogdan). It applies to every pop-up and the full view.
 - **Figma's Bill line has an Expanded state now:** the line with everyone at the table under it, the ones who had it full and the others faded, as in the app.
 
 ## Back from a plan to the itinerary (26 Oct)

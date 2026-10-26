@@ -19,7 +19,8 @@
   gap: var(--space-md);
   scrollbar-width: none;
   /* Content scrolling past the sheet's bottom edge fades out over the last few px instead of being cut off */
-  mask-image: linear-gradient(to bottom, black calc(100% - var(--d-sheet-fade)), transparent);
+  /* Eased over sheet/fade, not linear: the page melts into the bottom */
+  mask-image: linear-gradient(to bottom, black 0, rgb(0 0 0 / 1.0) calc(100% - var(--d-sheet-fade) * 1.0), rgb(0 0 0 / 0.957) calc(100% - var(--d-sheet-fade) * 0.875), rgb(0 0 0 / 0.844) calc(100% - var(--d-sheet-fade) * 0.75), rgb(0 0 0 / 0.684) calc(100% - var(--d-sheet-fade) * 0.625), rgb(0 0 0 / 0.5) calc(100% - var(--d-sheet-fade) * 0.5), rgb(0 0 0 / 0.316) calc(100% - var(--d-sheet-fade) * 0.375), rgb(0 0 0 / 0.156) calc(100% - var(--d-sheet-fade) * 0.25), rgb(0 0 0 / 0.043) calc(100% - var(--d-sheet-fade) * 0.125), rgb(0 0 0 / 0.0) calc(100% - var(--d-sheet-fade) * 0.0));
   /* Starts under the header; room at the end for the last block to scroll clear of the bottom fade */
   padding-top: calc(var(--header) + var(--space-xs) + var(--space-md));
   padding-bottom: calc(var(--d-sheet-fade) + var(--space-xs));
