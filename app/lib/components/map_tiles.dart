@@ -5,14 +5,17 @@
 // like the Huawei Y7 (Android 8.1, slow cores) about half a second a tile, and the first screen needed 24 of them,
 // downloaded one TLS connection each, so the map took over 20 s there and the trip's opening stalled behind it (see
 // VERSIONS.md, Android performance). So here:
-//  - On Android, the tiles around Lisbon come with the app, already drawn (assets/map/tiles/, baked on the Android
-//    emulator by tools/bake_map_tiles.sh with this same code): no download and no drawing for them. They're only used
-//    while the style is the one they were drawn with (its hash is in the index).
+//  - On Android and the web, the tiles around Lisbon come with the app, already drawn (assets/map/tiles/, baked on the
+//    Android emulator by tools/bake_map_tiles.sh with this same code): no download and no drawing for them. They're
+//    only used while the style is the one they were drawn with (its hash is in the index). On the web drawing a tile
+//    takes the main thread for 100–250 ms, a hitch each time one appears.
 //  - Loading starts right after the first frame (Your trips): reading the style and the bundle's index only.
 //  - The tile list (TileJSON, which names this week's tiles) is kept on disk; only the first launch waits for it.
 //  - One HTTP connection pool for every tile, instead of a new TLS handshake per tile.
 //  - Drawing on the phone (the parsed style, the tile workers) is set up a second after the first frame, or when the
 //    first tile needs it.
+//  - On the web, a drawn tile stays in memory only. vector_map_tiles would also encode it as a PNG and write it to
+//    the browser's storage, on the main thread (the web has no isolates): the map's worst hitches while it moves.
 //
 // vector_map_tiles' own VectorTileLayer can't do the baked tiles, the shared client or the late setup, so the layer is
 // put together here from the package's parts (`src/` imports, the version pinned in pubspec.yaml); it draws exactly
@@ -21,6 +24,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:executor_lib/executor_lib.dart';
 import 'package:flutter/foundation.dart';
@@ -33,11 +37,17 @@ import 'package:path_provider/path_provider.dart';
 import 'package:vector_map_tiles/src/cache/byte_storage_factory.dart';
 import 'package:vector_map_tiles/src/cache/caches.dart';
 import 'package:vector_map_tiles/src/executors/shared_executor.dart';
-import 'package:vector_map_tiles/src/raster/raster_tile_provider.dart';
+import 'package:vector_map_tiles/src/raster/future_tile_provider.dart';
+import 'package:vector_map_tiles/src/raster/storage_image_cache.dart';
 import 'package:vector_map_tiles/src/raster/tile_loader.dart';
+import 'package:vector_map_tiles/src/stream/caches_tile_provider.dart';
+import 'package:vector_map_tiles/src/stream/delay_provider.dart';
+import 'package:vector_map_tiles/src/stream/tile_processor.dart';
 import 'package:vector_map_tiles/src/stream/tile_supplier_raster.dart';
+import 'package:vector_map_tiles/src/stream/tileset_executor_preprocessor.dart';
+import 'package:vector_map_tiles/src/stream/tileset_ui_preprocessor.dart';
 import 'package:vector_map_tiles/vector_map_tiles.dart';
-import 'package:vector_tile_renderer/vector_tile_renderer.dart' show Theme, ThemeReader;
+import 'package:vector_tile_renderer/vector_tile_renderer.dart' show Theme, ThemeReader, TilesetPreprocessor;
 
 import '../startup_timings.dart';
 
@@ -58,7 +68,11 @@ class MapSource {
   final TileProviders tiles;
 
   late final Theme theme = ThemeReader().read(_style);
-  late final Executor _executor = acquireSharedExecutor(concurrency: VectorTileLayer.defaultConcurrency);
+  late final Executor _executor = acquireSharedExecutor(concurrency: _concurrency);
+
+  /// Tiles drawn at once. On the web there are no isolates, so they're all drawn on the main thread, and four at once
+  /// end up in one frame: a hitch of a third of a second when zooming. One at a time, frames get out between tiles.
+  static const _concurrency = kIsWeb ? 1 : VectorTileLayer.defaultConcurrency;
   late final Caches _caches = () {
     final caches = Caches(
       executor: _executor,
@@ -79,7 +93,8 @@ class MapSource {
 
   /// Tiles drawn on the phone, as VectorTileLayer's raster mode draws them.
   late final fm.TileProvider drawn = () {
-    final provider = createRasterTileProvider(theme, null, _caches, _raster, _executor, TileOffset.DEFAULT, Duration.zero, VectorTileLayer.defaultConcurrency);
+    final loader = this.loader();
+    final provider = FutureTileProvider(loader: loader.loadTile, themeIdentity: loader.themeIdentity);
     StartupTimings.mark('Map: tile workers ready');
     return provider;
   }();
@@ -87,9 +102,32 @@ class MapSource {
   /// Sets up drawing on the phone ahead of the first tile that needs it.
   void warmUp() => drawn;
 
-  /// A loader that draws one tile at a time, the way the layer does (for baking the bundled tiles).
-  TileLoader loader() =>
-      createTileLoader(theme, null, _caches, _raster, _executor, TileOffset.DEFAULT, Duration.zero, VectorTileLayer.defaultConcurrency);
+  /// A loader that draws one tile at a time, the way the layer does (also for baking the bundled tiles). The package's
+  /// createTileLoader, but on the web with [_MemoryOnlyImages].
+  TileLoader loader() {
+    final supplier = DelayProvider(
+      CachesTileProvider(
+        _caches,
+        TileProcessor(_executor),
+        TilesetExecutorPreprocessor(TilesetPreprocessor(theme), _executor),
+        TilesetUiPreprocessor(TilesetPreprocessor(theme, initializeGeometry: true)),
+      ),
+      Duration.zero,
+    ).orDelegate();
+    final images = kIsWeb ? _MemoryOnlyImages(theme, _caches.storageCache) : StorageImageCache(theme, _caches.storageCache);
+    return TileLoader(theme, null, _caches.atlasImageCache?.retrieve, supplier, _raster, TileOffset.DEFAULT, images, _concurrency);
+  }
+}
+
+/// Drawn tiles that aren't kept in the browser's storage: neither encoded as PNGs nor looked up there (see the top).
+class _MemoryOnlyImages extends StorageImageCache {
+  _MemoryOnlyImages(super.theme, super.delegate);
+
+  @override
+  Future<ui.Image?> retrieve(TileIdentity tile) async => null;
+
+  @override
+  Future<void> put(TileIdentity tile, ui.Image image) async {}
 }
 
 abstract final class MapTiles {
@@ -118,9 +156,10 @@ abstract final class MapTiles {
     return s;
   }
 
-  /// The baked tiles, if they were drawn with this style (Android only: elsewhere the labels' system font differs).
+  /// The baked tiles, if they were drawn with this style. On Android and the web: the style's Noto Sans isn't there,
+  /// so both draw the labels in Roboto, as the baked tiles have them; on iOS they're San Francisco.
   static Future<Set<String>> _bundle(String hash) async {
-    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return const {};
+    if (!kIsWeb && defaultTargetPlatform != TargetPlatform.android) return const {};
     try {
       final index = jsonDecode(await rootBundle.loadString('$bundleDir/index.json')) as Map<String, dynamic>;
       if (index['style'] != hash) {

@@ -310,6 +310,8 @@ From the research (`process/research/tripup-competitive-research-v3-en.md`, Paym
 - **Android: an APK through Firebase App Distribution.** It's free, and testers get a link by email and install it. We didn't go through Google Play's internal testing, because it needs a paid Play account and a review.
 - **No Android phone here, so it's checked on the Android emulator on the Mac.** That shows layout and behaviour, but not real speed; the first Android testers will tell us that.
 - **The web link (Vercel) is the fallback for anyone else:** https://tripup-three.vercel.app (built 25 Oct, `tools/deploy_web.sh`). The task needs a public URL anyway, but it runs slower in a phone browser than the app does. It's the whole app as Flutter's web build, static files on Vercel's free plan; nothing in it needs a server.
+- **On a computer the web app sits in a phone frame** (25 Oct, Bogdan: it looked blown up). A browser window is far wider than a phone, and the app stretched across it enlarges whatever is sized from the screen. In the frame it looks as on the phone. In a phone's browser it fills the screen.
+- **On the web, the map doesn't draw what it can avoid drawing:** the baked tiles are used there too, drawn tiles aren't stored as PNGs, and one tile is drawn at a time. The web has no background threads, so every tile drawn there freezes the screen for a moment (see VERSIONS, the web build).
 
 ## Performance (decided 23 Oct)
 

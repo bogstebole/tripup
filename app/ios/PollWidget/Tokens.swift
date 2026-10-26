@@ -467,6 +467,11 @@ enum TokDim {
   static let bankHud: CGFloat = 160
   static let bankHudIcon: CGFloat = 64
   static let payAmountSticker: CGFloat = 48
+  static let webFrameWidth: CGFloat = 440
+  static let webFrameHeight: CGFloat = 956
+  static let webFrameRadius: CGFloat = 40
+  static let webFrameMinWindow: CGFloat = 600
+  static let webFrameMargin: CGFloat = 24
 }
 
 enum TokText {

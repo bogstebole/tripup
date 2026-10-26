@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/physics.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
@@ -977,8 +978,11 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   /// Once the full view rests open, the backdrop's blur stops changing too.
   void _holdStill() => _hold(_still, () => _covered && !_closing && !_popClosing && !_open.isAnimating && !_pop.isAnimating);
 
-  /// Pictures [held] right after this frame is drawn, if [when] still holds then.
+  /// Pictures [held] right after this frame is drawn, if [when] still holds then. Not on the web: there taking the
+  /// picture reads the whole screen back from the GPU, a hitch right as the full view starts to open, which costs more
+  /// than drawing what's under it live.
   void _hold(_Held held, bool Function() when) {
+    if (kIsWeb) return;
     SchedulerBinding.instance.addPostFrameCallback((_) {
       if (!mounted || held.image != null || !when()) return;
       final box = held.key.currentContext?.findRenderObject();
