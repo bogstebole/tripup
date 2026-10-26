@@ -655,6 +655,14 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Figma: gaps instead of spacer frames (26 Oct)
+- Bogdan: no empty frames for space, only gap sizes. All 18 spacer frames on Final UI and Components are gone.
+  - Where the spacing was uneven, the rows that share a gap are now grouped, and the gap sits on the group: Why's lines, the Group pages' people, Plan something's times, Ren's invite and recap, the bank approval's top.
+  - The poll option's Details fills its row.
+  - The bank approval uses space-between.
+  - The bars that were centered with a "Balance" frame (Ren's phone, the camera) now center the middle, with the side button set to absolute.
+- Every gap is bound to a space variable. Checked on screenshots: the bank approval, Ren's invite and recap, the camera, Plan something · when, Group.
+
 ### Storybook: computed dimensions show their value (branch `fix/storybook-computed-dims`)
 - Foundations → Component dimensions showed "undefined px" for every token computed by formula since 1.59 (surface/radius, chip/radius and the rest). It now reads them from the built CSS, so surface/radius says 48 px.
 - Found while taking process shots for the case study video (`releases/case-study/`, not in git).
