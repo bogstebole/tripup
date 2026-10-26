@@ -37,6 +37,12 @@ function dimension(v, seen = []) {
     if (val === undefined) throw new Error('unknown dimension ' + v);
     return val;
   }
+  // Another component dimension, as it is: "{surface/inset}"
+  const bare = /^\{([^.}]+)\}$/.exec(v);
+  if (bare && bare[1] in t.component.dimension) {
+    if (seen.includes(bare[1])) throw new Error('circular dimension ' + [...seen, bare[1]].join(' → '));
+    return dimension(t.component.dimension[bare[1]], [...seen, bare[1]]);
+  }
   // A size that follows from others, as arithmetic on references: "{space.md} + {button/lg} / 2". A bare name is
   // another component dimension. Used for concentric corners: a container's radius is its padding plus the radius of
   // what sits in its corner, so the two curves stay parallel.

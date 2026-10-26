@@ -375,7 +375,8 @@ abstract final class TokDim {
   static const double buttonIcon = 16;
   static const double buttonPillHeight = 32;
   static const double iconStroke = 2;
-  static const double surfaceRadius = 44;
+  static const double surfaceInset = 24;
+  static const double surfaceRadius = 48;
   static const double surfaceEdgeWidth = 1;
   static const double chipHeight = 40;
   static const double chipGap = 2;
@@ -484,9 +485,10 @@ abstract final class TokDim {
   static const double webFrameRadius = 40;
   static const double webFrameMinWindow = 600;
   static const double webFrameMargin = 24;
+  static const double surfaceBodySide = 16;
   static const double surfaceHeadInset = 24;
   static const double surfaceHeadSide = 8;
-  static const double surfaceFootInset = 16;
+  static const double surfaceFootInset = 24;
   static const double surfaceFootSide = 8;
   static const double widgetMidRadius = 28;
   static const double homeCardPadding = 29;

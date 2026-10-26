@@ -128,7 +128,7 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
     final header = _headerHeight, solid = header / (header + TokDim.sheetTopFade);
     // The tabs and close sit in a header over the page; content scrolls up under it, through a blur and the surface's white
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
+      padding: const EdgeInsets.symmetric(horizontal: TokDim.surfaceBodySide),
       child: NotificationListener<ScrollNotification>(
         onNotification: _onScroll,
         child: Stack(children: [
@@ -175,7 +175,7 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
               behavior: HitTestBehavior.opaque,
               onVerticalDragUpdate: widget.onHeaderDragUpdate,
               onVerticalDragEnd: widget.onHeaderDragEnd,
-              // The tabs and Close sit 16 from the sides, on the same edge as the page and its footer
+              // The tabs and Close sit 24 from the sides, on the same edge as the page and its footer
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(TokDim.surfaceHeadSide, TokDim.surfaceHeadInset, TokDim.surfaceHeadSide, 0),
                 child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
