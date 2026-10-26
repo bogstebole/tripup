@@ -153,7 +153,7 @@ class _TripSheetState extends State<TripSheet> {
                     padding: const EdgeInsets.only(top: TokDim.surfaceHeadInset),
                     child: Row(children: [
                       // A step back slides in before the title (and out again), the title moving over for it; the
-                      // buttons sit as far in from the sides as from the top, so they're concentric with the corners
+                      // buttons and the title sit 16 from the sides, on the same edge as the content and the footer
                       AnimatedSize(
                         duration: TokMotion.enter,
                         curve: TokMotion.easeOut,

@@ -175,7 +175,7 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
               behavior: HitTestBehavior.opaque,
               onVerticalDragUpdate: widget.onHeaderDragUpdate,
               onVerticalDragEnd: widget.onHeaderDragEnd,
-              // The tabs and Close sit as far in from the sides as from the top: concentric with the corners
+              // The tabs and Close sit 16 from the sides, on the same edge as the page and its footer
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(TokDim.surfaceHeadSide, TokDim.surfaceHeadInset, TokDim.surfaceHeadSide, 0),
                 child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [

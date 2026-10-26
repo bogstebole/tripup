@@ -264,6 +264,7 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
   - **Up next:** 28 = 8 + the arrow's 20. The info chips' outer ends became round (radius 20, half their height) to match.
   - **The map's poll:** its places 28 (8 + the vote's 20, now 8 from the corner), the card around them 36. The poll pop-up's places: 34 (12 + Vote's 22).
 - **Where the rule doesn't apply:** where nothing sits in the corner (lists, text, Why's box), or where it already held (Know before you go: 24 = 8 + 16; the owe pill; tabs and dishes with an edge).
+- **One side edge for the whole sheet: 16 (27 Oct).** Bogdan: the header looked lopsided (the title 16 from the left, × 24 from the right) and didn't line up with what's under it. Strictly concentric, the header's round buttons sit 24 from the side, but that pulls them off the edge every row, title and footer button sits on. Alignment wins: everything is 16 from the sides, as the Overview footer always was (`surface/head-side` = `surface/foot-side`). The header buttons keep 24 from the top, so along the diagonal they're still 16 from the corner's curve.
 - **Not chased: the phone's own corner.** With the sheet 16 in, a radius of 44 matches a screen corner of 60. Apple doesn't publish the iPhone 17 Pro Max's; developers report about 55 for the 15 and the 14/15 Pro. Close enough, and the sheet follows what's in it.
 
 ## Paying from the app (25 Oct)
