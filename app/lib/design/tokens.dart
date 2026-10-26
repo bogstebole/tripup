@@ -479,6 +479,11 @@ abstract final class TokDim {
   static const double bankHud = 160;
   static const double bankHudIcon = 64;
   static const double payAmountSticker = 48;
+  static const double webFrameWidth = 440;
+  static const double webFrameHeight = 956;
+  static const double webFrameRadius = 40;
+  static const double webFrameMinWindow = 600;
+  static const double webFrameMargin = 24;
 }
 
 abstract final class TokFont {

@@ -640,6 +640,17 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - Tokens: `spring-pop` (0.4 s, bounce 0.3), `spring-fly` (0.7 s, 0.12), the splash's timings (`splash-*`) and sizes (`splash/dot-scale`, `splash/word`, `splash/sticker`, `splash/ring`); the stickers' places around TripUp are `splashStickers` in `data.dart`. The perf and Figma drivers skip it (`splashOnStart`).
 - **Checked** on the iPhone 17 Pro Max simulator from cold launches, frame by frame, and by the recording's frame times (no gaps over 50 ms during the splash).
 
+### The web build: a phone frame on a computer, and no map hitches (branch `perf/web`)
+- Bogdan: on the web everything looked blown up, and it stuttered. On a computer the app filled the whole window, so what's sized from the screen (the map still on the trip card, its stickers) grew with it. Now a window wider than 600 shows the app in a phone-sized frame in the middle (440 × 956, as the Figma screens, radius 40, on bg/muted), scaled down to fit a shorter window (`WebPhoneFrame`, tokens `web-frame/*`). In a phone's browser and in the app nothing changes.
+- **Measured** with `tools/web_perf.mjs`: the perf driver (`app/perf/trip_perf.dart`, now able to run on the web) in Chromium with the GPU on (Apple M3 Pro), at phone size (390 × 844 at 3×), each frame's gap as the browser saw it. Idle and scrolling were already smooth (120 fps, 1–2 ms a frame); the stutter was single long frames, all of them map tiles and pictures made on the main thread (the web has no isolates):
+  - vector_map_tiles encoded every drawn tile as a PNG and wrote it to the browser's storage (3.7 s of the run). On the web drawn tiles now stay in memory only (`_MemoryOnlyImages`).
+  - Four tiles drawn at once landed in one frame. On the web they're drawn one at a time.
+  - The baked tiles around Lisbon (z12–14) are used on the web too: drawing one there takes 100–250 ms, and they look the same (the style's Noto Sans falls back to Roboto on Android and on the web alike).
+  - Holding what's under the full view as a picture reads the whole screen back from the GPU on the web, a hitch right as it opens. On the web it's drawn live.
+- Longest frame, before → after: launch 2.7 s → 0.14 s, first trip open 1.25 s → 0.04 s, trip open 0.49 → 0.02, full view open 0.45 → 0.03, day filter 0.42 → 0.08, Overview photos 0.15 → 0.09.
+- **Still open:** zooming in past the baked tiles (z15 and up) draws them live, 100–250 ms each, so a deep pinch still hitches (0.39 s in the test). Baking z15 for the demo's streets would fix it; not done.
+- At a computer's window size (1440 × 900 at 2×) the frame costs nothing extra: the same 120 fps idle.
+
 ### The web prototype on Vercel (branch `feat/web-on-vercel`)
 - The whole app as Flutter's web build, on Vercel: **https://tripup-three.vercel.app** (project `tripup`, team bole's projects, production). Static files only; the same code as 1.58.
 - `tools/deploy_web.sh` builds it and deploys it (`--preview` for a preview URL). The build is copied to `~/Library/Caches/tripup-app/vercel/tripup` first, so Vercel's link file stays out of git. The Vercel CLI runs through npx, pinned to 65.2.0.

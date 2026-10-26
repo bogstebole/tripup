@@ -6,6 +6,9 @@
 //   xcrun devicectl device process launch --console --terminate-existing --device <id> com.bogste.tripup
 //   xcrun devicectl device copy from --device <id> --domain-type appDataContainer --domain-identifier com.bogste.tripup \
 //     --source tmp/perf.json --destination perf.json
+// Web: flutter build web --profile -t perf/trip_perf.dart, serve build/web and open it; the PERF lines go to the
+// browser console, and the whole run as one `PERF JSON` line at the end (tools/web_perf.mjs does all of it).
+// --dart-define=LIGHT_EFFECTS=true runs it without the blurs (see lightEffects), to see what they cost.
 // It plays each scenario with synthetic touches at the display's pace, records every frame's UI (build) and raster
 // time, prints one summary line per scenario, writes everything to the app's tmp/perf.json and quits.
 import 'dart:async';
@@ -14,6 +17,7 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
@@ -23,7 +27,9 @@ import 'package:tripup/components/glass.dart';
 import 'package:tripup/components/segmented_tabs.dart';
 import 'package:tripup/components/splash.dart';
 import 'package:tripup/components/toggle_chips.dart';
+import 'package:tripup/design/theme.dart';
 import 'package:tripup/main.dart';
+import 'package:tripup/screens/trip_screen.dart';
 
 typedef Scenario = Future<void> Function(Player p);
 
@@ -52,9 +58,11 @@ Future<void> main() => runAll({for (final e in scenarios.entries) if (_only.isEm
 Future<void> runAll(Map<String, Scenario> plan, {void Function(String key)? before}) async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
+  if (const bool.fromEnvironment('LIGHT_EFFECTS')) lightEffects = true;
   final results = <String, dynamic>{};
   final p = Player(results);
-  final file = File('${Directory.systemTemp.path}/perf.json');
+  // No files on the web: the results go to the console instead
+  final file = kIsWeb ? null : File('${Directory.systemTemp.path}/perf.json');
   for (final MapEntry(:key, :value) in plan.entries) {
     before?.call(key);
     p.prefix = key;
@@ -65,7 +73,12 @@ Future<void> runAll(Map<String, Scenario> plan, {void Function(String key)? befo
       results['$key error'] = '$e';
       debugPrint('PERF $key failed: $e');
     }
-    await file.writeAsString(const JsonEncoder.withIndent('  ').convert(results));   // so far, in case the run stops
+    await file?.writeAsString(const JsonEncoder.withIndent('  ').convert(results));   // so far, in case the run stops
+  }
+  if (file == null) {
+    debugPrint('PERF JSON ${jsonEncode(results)}');
+    debugPrint('PERF DONE');
+    return;
   }
   debugPrint('PERF DONE ${file.path}');
   await Future<void>.delayed(const Duration(seconds: 1));
@@ -241,6 +254,10 @@ class Player {
   var _pointer = 100;
   final _clock = Stopwatch()..start();
 
+  /// From the app's own coordinates to the window's: the same, unless the app sits in a frame (the web build on a
+  /// wide window, see WebPhoneFrame), where drags have to land inside it.
+  Offset Function(Offset) _toWindow = (o) => o;
+
   static bool openButton(Widget w) => w is TuButton && w.icon == TuIcons.forward;
   static bool tripCard(Widget w) => w is TuButton && w.label.startsWith('Open ');
   static bool money(Widget w) => w.runtimeType.toString() == '_CrewButton';
@@ -262,6 +279,11 @@ class Player {
       await tap(tripCard);
       await wait(2500);
     }
+    final screen = _find((w) => w is TripScreen, null);
+    if (screen != null) {
+      _toWindow = screen.localToGlobal;
+      return screen.size;
+    }
     final view = WidgetsBinding.instance.platformDispatcher.implicitView!;
     return view.physicalSize / view.devicePixelRatio;
   }
@@ -277,7 +299,9 @@ class Player {
     final timings = <FrameTiming>[];
     void add(List<FrameTiming> t) => timings.addAll(t);
     SchedulerBinding.instance.addTimingsCallback(add);
+    if (kIsWeb) debugPrint('PERF MARK start $prefix$suffix');   // the browser times its own frames between the marks
     await action();
+    if (kIsWeb) debugPrint('PERF MARK end $prefix$suffix');
     await wait(2000);   // the engine reports timings in batches
     SchedulerBinding.instance.removeTimingsCallback(add);
     final summary = _summary(timings);
@@ -291,16 +315,18 @@ class Player {
   Future<void> drag(Offset from, Offset by, {int ms = 600, bool fling = false}) async {
     final id = _pointer++, steps = math.max(1, (ms / 16.667).round());
     final step = by / steps.toDouble();
-    var at = from;
-    _send(PointerDownEvent(pointer: id, position: at, timeStamp: _clock.elapsed));
+    var at = from, was = _toWindow(from);
+    _send(PointerDownEvent(pointer: id, position: was, timeStamp: _clock.elapsed));
     await _frame();
     for (var i = 0; i < steps; i++) {
       at += step;
-      _send(PointerMoveEvent(pointer: id, position: at, delta: step, timeStamp: _clock.elapsed));
+      final now = _toWindow(at);
+      _send(PointerMoveEvent(pointer: id, position: now, delta: now - was, timeStamp: _clock.elapsed));
+      was = now;
       await _frame();
     }
     if (!fling) await wait(150);
-    _send(PointerUpEvent(pointer: id, position: at, timeStamp: _clock.elapsed));
+    _send(PointerUpEvent(pointer: id, position: was, timeStamp: _clock.elapsed));
   }
 
   /// Two fingers moving apart (zoom in) or together (zoom out) around [center].
@@ -308,19 +334,23 @@ class Player {
     final a = _pointer++, b = _pointer++, steps = math.max(1, (ms / 16.667).round());
     final step = Offset((toGap - fromGap) / 2 / steps, 0);
     var pa = center - Offset(fromGap / 2, 0), pb = center + Offset(fromGap / 2, 0);
-    _send(PointerDownEvent(pointer: a, position: pa, timeStamp: _clock.elapsed));
-    _send(PointerDownEvent(pointer: b, position: pb, timeStamp: _clock.elapsed));
+    var wa = _toWindow(pa), wb = _toWindow(pb);
+    _send(PointerDownEvent(pointer: a, position: wa, timeStamp: _clock.elapsed));
+    _send(PointerDownEvent(pointer: b, position: wb, timeStamp: _clock.elapsed));
     await _frame();
     for (var i = 0; i < steps; i++) {
       pa -= step;
       pb += step;
-      _send(PointerMoveEvent(pointer: a, position: pa, delta: -step, timeStamp: _clock.elapsed));
-      _send(PointerMoveEvent(pointer: b, position: pb, delta: step, timeStamp: _clock.elapsed));
+      final na = _toWindow(pa), nb = _toWindow(pb);
+      _send(PointerMoveEvent(pointer: a, position: na, delta: na - wa, timeStamp: _clock.elapsed));
+      _send(PointerMoveEvent(pointer: b, position: nb, delta: nb - wb, timeStamp: _clock.elapsed));
+      wa = na;
+      wb = nb;
       await _frame();
     }
     await wait(150);
-    _send(PointerUpEvent(pointer: a, position: pa, timeStamp: _clock.elapsed));
-    _send(PointerUpEvent(pointer: b, position: pb, timeStamp: _clock.elapsed));
+    _send(PointerUpEvent(pointer: a, position: wa, timeStamp: _clock.elapsed));
+    _send(PointerUpEvent(pointer: b, position: wb, timeStamp: _clock.elapsed));
   }
 
   /// Taps the first widget matching [test] (inside one matching [within], if given) that a touch would reach.
