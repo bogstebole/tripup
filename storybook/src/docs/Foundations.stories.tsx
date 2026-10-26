@@ -56,6 +56,9 @@ const px = (v: string | number) => {
   const [, group, key] = /^\{(\w+)\.(.+)\}$/.exec(v) ?? [];
   return (tokens as unknown as Record<string, Record<string, number>>)[group]?.[key];
 };
+// A computed one ("{space.md} + {button/lg} / 2", or another component dimension) is read from the built CSS
+const value = (k: string, v: string | number) =>
+  px(v) ?? parseFloat(getComputedStyle(document.documentElement).getPropertyValue(`--d-${kebab(k)}`));
 
 export const ComponentDimensions: Story = {
   name: 'Component dimensions',
@@ -65,7 +68,7 @@ export const ComponentDimensions: Story = {
       rows={Object.entries(tokens.component.dimension).map(([k, v]) => [
         <code>d/{k}</code>,
         <span style={label}>{typeof v === 'string' ? v : ''}</span>,
-        unitless(k) ? px(v) : `${px(v)} px`,
+        unitless(k) ? value(k, v) : `${value(k, v)} px`,
         unitless(k) ? '' : <span style={{ display: 'inline-block', height: 'var(--space-xs)', width: `min(var(--d-${kebab(k)}), var(--space-5xl) * 2)`, background: 'var(--color-bg-brand)', borderRadius: 'var(--radius-sm)' }} />,
         <span style={label}>{DIMENSION_NOTES[k] ?? ''}</span>,
       ])}

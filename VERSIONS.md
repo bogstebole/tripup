@@ -655,6 +655,10 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Storybook: computed dimensions show their value (branch `fix/storybook-computed-dims`)
+- Foundations → Component dimensions showed "undefined px" for every token computed by formula since 1.59 (surface/radius, chip/radius and the rest). It now reads them from the built CSS, so surface/radius says 48 px.
+- Found while taking process shots for the case study video (`releases/case-study/`, not in git).
+
 ### Final UI, iteration 1.61: one inset of 24 for sheets (branch `feat/sheet-even-inset`)
 - Bogdan: after 1.60 the top (24) looked bigger than the sides (16). Everything in a sheet now sits 24 from every edge, and the sheet's radius is 48 (DECISIONS, Concentric corners).
 - New tokens `surface/inset` (24) and `surface/body-side` (16, the sheet's own padding, rows add their 8). `surface/radius`, `head-inset`, `foot-inset`, `head-side` and `foot-side` follow from them. `build-tokens.mjs` takes a bare component dimension (`{surface/inset}`).
