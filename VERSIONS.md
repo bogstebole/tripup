@@ -655,6 +655,10 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Figma: the Wireflow page (27 Oct)
+- A new first page, Wireflow, with the section "Wireflow · the thinking". It has a note on what it is, then 10 mid-fi screens (390×844) in one row, each with a Decision / State / Interaction note under it, and 9 labelled connectors (DECISIONS: A wireflow page, as the brief asks). Colours are bound to the file's variables.
+- Checked on a screenshot of the whole section.
+
 ### Final UI, iteration 1.71: a smaller type scale (branch `feat/smaller-type`)
 - All 12 text tokens are about 18% smaller and rounded (DECISIONS: A smaller type scale). The smallest is 11.
 - tokens.json → tokens.dart, tokens.css, Tokens.swift, tokens.xml. Figma: the 24 typography variables, plus the Live Activity and Island text by hand.
