@@ -224,43 +224,55 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
       onClose: widget.onClose,
       footer: Container(
         padding: const EdgeInsets.fromLTRB(TokDim.surfaceFootSide, TokSpace.sm, TokDim.surfaceFootSide, TokDim.surfaceFootInset),
-        decoration: BoxDecoration(
-          border: Border(
-            top: BorderSide(color: t.borderDefault, width: TokDim.surfaceEdgeWidth),
-          ),
-        ),
         child: Column(
           spacing: TokSpace.sm,
           children: [
-            // What each person had, to the cent; side by side while they fit, scrolling sideways once they don't
-            LayoutBuilder(
-              builder: (context, box) {
-                final fits = table.length * TokSpace.x5xl <= box.maxWidth;
-                final cells = [
-                  for (final id in table)
-                    SizedBox(
-                      width: fits ? box.maxWidth / table.length : TokSpace.x5xl,
-                      child: Column(
-                        spacing: TokSpace.x3xs,
-                        children: [
-                          Sticker(personById(id).sticker, size: StickerSize.avatar),
-                          Text(euros(shares[id] ?? 0), style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textDefault)),
-                        ],
-                      ),
-                    ),
-                ];
-                return fits ? Row(children: cells) : SingleChildScrollView(scrollDirection: Axis.horizontal, child: Row(children: cells));
-              },
-            ),
-            SizedBox(height: TokDim.surfaceEdgeWidth, width: double.infinity, child: ColoredBox(color: t.borderDefault)),
-            // The total, big: it's the number everyone checks first, and it stays in view under the lines
-            Padding(
-              padding: const EdgeInsets.fromLTRB(TokSpace.xs, 0, TokSpace.xs, TokSpace.sm),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
+            // The summary in a grey block of its own: everyone's share, then the total. It sets itself apart from the
+            // lines above, so the footer needs no edge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs, vertical: TokSpace.md),
+              decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.card)),
+              child: Column(
+                spacing: TokSpace.md,
                 children: [
-                  Expanded(child: Text('Total', style: TokText.labelLg.copyWith(color: t.textDefault))),
-                  Text(euros(_bill.total), style: TokText.headingLg.copyWith(color: t.textDefault)),
+                // What each person had, to the cent; side by side while they fit, scrolling sideways once they don't
+                LayoutBuilder(
+                  builder: (context, box) {
+                    // Each share needs about an amount's width (€59.12); five fit on a 393-wide phone
+                    const cell = TokSpace.x4xl + TokSpace.xs;
+                    final fits = table.length * cell <= box.maxWidth;
+                    final cells = [
+                      for (final id in table)
+                        SizedBox(
+                          width: fits ? box.maxWidth / table.length : cell,
+                          child: Column(
+                            spacing: TokSpace.x3xs,
+                            children: [
+                              Sticker(personById(id).sticker, size: StickerSize.avatar),
+                              Text(euros(shares[id] ?? 0), style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textDefault)),
+                            ],
+                          ),
+                        ),
+                    ];
+                    return fits ? Row(children: cells) : SingleChildScrollView(scrollDirection: Axis.horizontal, child: Row(children: cells));
+                  },
+                ),
+                // On the grey, the line needs the stronger border to show
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
+                  child: SizedBox(height: TokDim.surfaceEdgeWidth, width: double.infinity, child: ColoredBox(color: t.borderStrong)),
+                ),
+                // The total, big: it's the number everyone checks first, and it stays in view under the lines
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: TokSpace.md),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Expanded(child: Text('Total', style: TokText.labelLg.copyWith(color: t.textDefault))),
+                      Text(euros(_bill.total), style: TokText.headingLg.copyWith(color: t.textDefault)),
+                    ],
+                  ),
+                ),
                 ],
               ),
             ),

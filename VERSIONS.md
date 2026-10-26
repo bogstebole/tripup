@@ -655,6 +655,11 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Final UI, iteration 1.67: the bill's summary in a grey block (branch `feat/bill-summary-box`)
+- Bogdan's sketch: shares, a line and the total in one bg/muted block. It has radius/card, md top and bottom, xs at the sides, and the total md in. The footer's top border is gone, the line is border/strong, and share cells are 56.
+- Figma: The bill (126:5932) brought fully to the new layout. That covers the total out of the page, "How it splits" removed, the Summary block, and Who paid as a soft 56 button. Bogdan's separate draft frame (209:8183) is gone from the file.
+- Checked on the simulator, in Storybook (Pop-ups · Scan the bill) and in Figma.
+
 ### Final UI, iteration 1.66: the bill line's faces next to the quantity (branch `fix/bill-line-faces`)
 - Bogdan, in Figma (Bill line 211:8478): the faces sit right after "3 × €23.90", xs apart, and the total fills the rest, aligned to the end. Before, they floated in the middle. App, Storybook and Figma.
 - Checked on the simulator. Installed on Bogdan's iPhone 15.

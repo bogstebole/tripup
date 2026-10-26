@@ -55,7 +55,8 @@
 .tu-paper__rule { display: block; height: var(--d-surface-edge-width); margin: var(--space-2xs) 0; background: var(--c-scan-ink); }
 
 /* The bill's page: the total, then each line, and the faces to change who had it */
-.tu-bill__rule { height: var(--d-surface-edge-width); background: var(--color-border-default); }
+/* On the grey, the line needs the stronger border to show */
+.tu-bill__rule { height: var(--d-surface-edge-width); margin: 0 var(--space-xs); background: var(--color-border-strong); }
 /* A line: the dish on its own row, then quantity × price and the faces, the total at the end */
 .tu-bill__line { display: flex; flex-direction: column; gap: var(--space-sm); width: 100%; padding: var(--space-sm) var(--space-xs); text-align: left; color: var(--color-text-default); transition: transform var(--press-ms) var(--ease-out); }
 .tu-bill__line:active { transform: scale(var(--press-scale)); }
@@ -64,7 +65,7 @@
 .tu-bill__meta { display: flex; align-items: center; gap: var(--space-xs); }
 .tu-bill__meta > :last-child { margin-left: auto; }
 .tu-bill__qty { color: var(--color-text-muted); }
-.tu-bill__total { display: flex; align-items: flex-end; gap: var(--space-sm); padding: 0 var(--space-xs) var(--space-sm); color: var(--color-text-default); }
+.tu-bill__total { display: flex; align-items: flex-end; gap: var(--space-sm); padding: 0 var(--space-md); color: var(--color-text-default); }
 .tu-bill__total-label { flex: 1 1 0; min-width: 0; }
 .tu-bill__amount { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-3xs); flex: none; color: var(--color-text-default); }
 /* Every face of whoever had it, overlapped, the later ones on top */
@@ -89,11 +90,12 @@
 .tu-bill__face:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: var(--space-3xs); }
 
 /* Under the page: what each person had, then who paid and Add */
-.tu-bill__footer { display: flex; flex-direction: column; gap: var(--space-sm); padding: var(--space-sm) var(--d-surface-foot-side) var(--d-surface-foot-inset); border-top: var(--d-surface-edge-width) solid var(--color-border-default); }
+.tu-bill__footer { display: flex; flex-direction: column; gap: var(--space-sm); padding: var(--space-sm) var(--d-surface-foot-side) var(--d-surface-foot-inset); }
+.tu-bill__summary { display: flex; flex-direction: column; gap: var(--space-md); padding: var(--space-md) var(--space-xs); border-radius: var(--radius-card); background: var(--color-bg-muted); }
 /* Each person at least 5xl wide: the cells share the width while they fit, and scroll sideways once they don't */
 .tu-bill__shares { display: flex; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; }
 .tu-bill__shares::-webkit-scrollbar { display: none; }
-.tu-bill__share { flex: 1 0 var(--space-5xl); display: flex; flex-direction: column; align-items: center; gap: var(--space-3xs); color: var(--color-text-default); }
+.tu-bill__share { flex: 1 0 calc(var(--space-4xl) + var(--space-xs)); display: flex; flex-direction: column; align-items: center; gap: var(--space-3xs); color: var(--color-text-default); }
 .tu-bill__actions { display: flex; align-items: center; gap: var(--space-sm); }
 
 /* Who paid: their face, "You paid" and a chevron up, where the menu opens */
