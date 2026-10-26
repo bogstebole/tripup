@@ -8,7 +8,8 @@
 //     --source tmp/perf.json --destination perf.json
 // Web: flutter build web --profile -t perf/trip_perf.dart, serve build/web and open it; the PERF lines go to the
 // browser console, and the whole run as one `PERF JSON` line at the end (tools/web_perf.mjs does all of it).
-// --dart-define=LIGHT_EFFECTS=true runs it without the blurs (see lightEffects), to see what they cost.
+// Blurs as the app decides (see lightEffects: off on the web and old Android); --dart-define=LIGHT_EFFECTS=true or
+// =false forces them off or on, to see what they cost.
 // It plays each scenario with synthetic touches at the display's pace, records every frame's UI (build) and raster
 // time, prints one summary line per scenario, writes everything to the app's tmp/perf.json and quits.
 import 'dart:async';
@@ -30,6 +31,7 @@ import 'package:tripup/components/toggle_chips.dart';
 import 'package:tripup/design/theme.dart';
 import 'package:tripup/main.dart';
 import 'package:tripup/screens/trip_screen.dart';
+import 'package:tripup/startup_timings.dart';
 
 typedef Scenario = Future<void> Function(Player p);
 
@@ -58,7 +60,8 @@ Future<void> main() => runAll({for (final e in scenarios.entries) if (_only.isEm
 Future<void> runAll(Map<String, Scenario> plan, {void Function(String key)? before}) async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
-  if (const bool.fromEnvironment('LIGHT_EFFECTS')) lightEffects = true;
+  const light = String.fromEnvironment('LIGHT_EFFECTS');
+  lightEffects = light.isEmpty ? await StartupTimings.weakGraphics() : light == 'true';
   final results = <String, dynamic>{};
   final p = Player(results);
   // No files on the web: the results go to the console instead

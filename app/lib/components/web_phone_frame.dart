@@ -12,10 +12,18 @@ class WebPhoneFrame extends StatelessWidget {
   const WebPhoneFrame({super.key, required this.child});
   final Widget child;
 
+  static final _screen = GlobalKey();
+
+  /// The app's screen, to measure where something sits on it (`localToGlobal(..., ancestor: WebPhoneFrame.screen)`):
+  /// in the frame the window's coordinates are off by the frame's place and scale. Without a frame it's the window.
+  /// The same key holds the app with or without the frame, so resizing the window across the line keeps its state.
+  static RenderObject? get screen => _screen.currentContext?.findRenderObject();
+
   @override
   Widget build(BuildContext context) {
-    final screen = MediaQuery.of(context);
-    if (!kIsWeb || screen.size.width < TokDim.webFrameMinWindow) return child;
+    final window = MediaQuery.of(context);
+    final app = KeyedSubtree(key: _screen, child: child);
+    if (!kIsWeb || window.size.width < TokDim.webFrameMinWindow) return app;
     const phone = Size(TokDim.webFrameWidth, TokDim.webFrameHeight);
     return ColoredBox(
       color: context.tok.bgMuted,
@@ -30,8 +38,8 @@ class WebPhoneFrame extends StatelessWidget {
             decoration: BoxDecoration(borderRadius: BorderRadius.circular(TokDim.webFrameRadius), boxShadow: TokShadow.elevationOverlay),
             // Everything inside lays itself out for the phone's screen, not the window
             child: MediaQuery(
-              data: screen.copyWith(size: phone, padding: EdgeInsets.zero, viewPadding: EdgeInsets.zero, viewInsets: EdgeInsets.zero),
-              child: child,
+              data: window.copyWith(size: phone, padding: EdgeInsets.zero, viewPadding: EdgeInsets.zero, viewInsets: EdgeInsets.zero),
+              child: app,
             ),
           ),
         ),

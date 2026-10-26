@@ -30,6 +30,7 @@ import '../components/stagger.dart';
 import '../components/toast.dart';
 import '../components/trip_pages.dart';
 import '../components/trip_sheet.dart';
+import '../components/web_phone_frame.dart';
 import '../data.dart';
 import '../platform/poll_activity.dart';
 import '../design/theme.dart';
@@ -912,7 +913,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     final box = _cardKey.currentContext?.findRenderObject() as RenderBox?;
     if (box == null) return;
     _sheetPlan = null;
-    _from = box.localToGlobal(Offset.zero) & box.size;
+    _from = box.localToGlobal(Offset.zero, ancestor: WebPhoneFrame.screen) & box.size;
     _drag.value = 0;
     _closing = false;
     setState(() => _sheet = true);

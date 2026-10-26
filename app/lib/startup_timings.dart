@@ -22,10 +22,12 @@ abstract final class StartupTimings {
   static final _clock = Stopwatch();
   static const _channel = MethodChannel('tripup/startup');
 
-  /// Whether this phone draws with Skia on Android (before 10), whose GPUs can't afford the app's blurs: see
-  /// [lightEffects]. Anywhere else, or if the question fails, no.
+  /// Whether this phone draws with Skia on Android (before 10), whose GPUs can't afford the app's blurs, or this is
+  /// the web, where every new blur strength first compiles a GPU program (a hitch of up to half a second as a trip
+  /// opens): see [lightEffects]. Anywhere else, or if the question fails, no.
   static Future<bool> weakGraphics() async {
-    if (kIsWeb || !Platform.isAndroid) return false;
+    if (kIsWeb) return true;
+    if (!Platform.isAndroid) return false;
     try {
       return (await _channel.invokeMethod<int>('sdk') ?? 99) < 29;
     } on PlatformException {
