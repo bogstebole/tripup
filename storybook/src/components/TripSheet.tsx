@@ -19,6 +19,8 @@ const blur = `blur(${m['enter-blur']}px)`;
 
 export interface TripSheetProps {
   title: string;
+  /** It comes back in place (Back from a plan's details): already where it sits, so it doesn't rise. */
+  inPlace?: boolean;
   /** A line on what the pop-up is for, at the top of its page (not in the header, so the header stays one line). */
   subtitle?: string;
   /** The page, top to bottom. The sheet scrolls it, and opens at its top. */
@@ -51,7 +53,7 @@ export interface TripSheetProps {
  * shows in the header: a back button slides in before the title (enter-ms, ease-out), and a new title fades in as the
  * old one fades out (enter-ms in, fade-ms out).
  */
-export function TripSheet({ title, subtitle, children, onClose, compact, footer, top, onBack, centered }: TripSheetProps) {
+export function TripSheet({ title, subtitle, children, onClose, compact, footer, top, onBack, centered, inPlace }: TripSheetProps) {
   const reduce = useReducedMotion();
   const scroll = useRef<HTMLDivElement>(null);
   // How far the page has scrolled under the header, 0–1 over the top fade's height
@@ -72,7 +74,7 @@ export function TripSheet({ title, subtitle, children, onClose, compact, footer,
     <motion.article
       className={['tu-trip-sheet', 'tu-surface', 'tu-surface--sheet', compact && 'tu-trip-sheet--compact', footer != null && 'tu-trip-sheet--footer', top != null && 'tu-trip-sheet--top'].filter(Boolean).join(' ')}
       aria-label={title}
-      initial={reduce ? { opacity: 0 } : { transform: away }}
+      initial={inPlace ? false : reduce ? { opacity: 0 } : { transform: away }}
       animate={reduce ? { opacity: 1, transition: { duration: m['fade-ms'] / 1000, ease } } : { transform: here, transition: { duration: m['enter-ms'] / 1000, ease } }}
       variants={leave}
       exit="leave"

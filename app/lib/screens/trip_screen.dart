@@ -151,6 +151,9 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
 
   /// A plan opened from the itinerary, whose details show in the full view instead of Up next's.
   Plan? _sheetPlan;
+
+  /// The details were opened from the itinerary, so their header has Back to it.
+  bool _fromItinerary = false;
   Plan get _detailPlan => _sheetPlan ?? _upNext;
 
   bool get _reduce => MediaQuery.maybeDisableAnimationsOf(context) ?? false;
@@ -215,6 +218,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
         setState(() {
           _sheet = _closing = false;
           _sheetPlan = null;
+          _fromItinerary = false;
         });
         final then = _afterSheet;
         _afterSheet = null;
@@ -913,6 +917,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     final box = _cardKey.currentContext?.findRenderObject() as RenderBox?;
     if (box == null) return;
     _sheetPlan = null;
+    _fromItinerary = false;
     _from = box.localToGlobal(Offset.zero, ancestor: WebPhoneFrame.screen) & box.size;
     _drag.value = 0;
     _closing = false;
@@ -933,6 +938,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     HapticFeedback.selectionClick();
     setState(() {
       _sheetPlan = p;
+      _fromItinerary = true;
       _from = to;
       _drag.value = 0;
       _closing = false;
@@ -950,6 +956,23 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     springTo(_open, 1, TokMotion.springSnap).whenCompleteOrCancel(() {
       if (mounted && _sheet) _pop.value = 0;
     });
+  }
+
+  /// Back from a plan's details to the itinerary: the same surface in the same place, so the itinerary simply comes
+  /// back in it (its rows staggering in), with the day filter as it was.
+  void _backToItinerary() {
+    HapticFeedback.selectionClick();
+    _open.stop();
+    setState(() {
+      _popup = _Popup.itinerary;
+      _popClosing = false;
+      _sheet = _closing = false;
+      _sheetPlan = null;
+      _fromItinerary = false;
+    });
+    _open.value = 0;
+    _pop.value = 1;
+    _popDrag.value = 0;
   }
 
   void _closeSheet({double velocity = 0}) {
@@ -1439,6 +1462,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
                                   plan: _detailPlan,
                                   mapOf: _mapOf,
                                   onClose: () => _closeSheet(),
+                                  onBack: _fromItinerary ? _backToItinerary : null,
                                   onScan: _scan,
                                   onSettle: _settleUp,
                                   onHeaderDragUpdate: (d) => _drag.value = math.max(0, _drag.value + d.delta.dy),

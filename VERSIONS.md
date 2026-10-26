@@ -655,6 +655,11 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Final UI, iteration 1.63: Back from a plan to the itinerary (branch `feat/itinerary-back`)
+- Bogdan: details opened from the itinerary need Back to it, inside the same sheet. The full view's header now has Back before the tabs when it came from the itinerary, and Back brings the itinerary back in place, with its day filter (DECISIONS: Back from a plan to the itinerary).
+- App: `DetailSheet.onBack`, `_backToItinerary` in trip_screen.dart. Storybook: DetailSheet `onBack`, TripSheet `inPlace`, Pop-ups · Itinerary. Figma: Sheet header gets a Back boolean (Lead frame: Back + tabs, 8 apart), and Plan the days gets a third screen, "Plan details · from the itinerary", with a "Tap a plan" connector.
+- Checked on the iPhone 17 Pro Max simulator: Itinerary → Tram 28 → Back → Itinerary → ×; Up next → full view has no Back. Also checked Storybook Pop-ups · Itinerary and Figma Plan the days.
+
 ### Final UI, iteration 1.62: Ren's recap has a footer (branch `fix/recap-footer`)
 - Bogdan: on "Welcome, Ren" the button should be fixed at the bottom, like a footer, not at the end of the list. Open the trip now stays at the bottom over an eased fade of the screen's colour (the action bar's), and the recap scrolls up under it.
 - App (join.dart), Storybook (Join: a sticky footer) and Figma (Ren's phone · The trip so far: an absolute Footer frame at the bottom).
