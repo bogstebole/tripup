@@ -118,6 +118,15 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 - **A page fades out at its bottom over 40, eased** (sheet/fade: space/3xl, smoothstep in 8 steps, as the header's fade). It was 16 and linear. With the footer's edge gone, the list cut off hard above the grey block (Bogdan). It applies to every pop-up and the full view.
 - **Figma's Bill line has an Expanded state now:** the line with everyone at the table under it, the ones who had it full and the others faded, as in the app.
 
+## A smaller type scale (26 Oct)
+- **Every text style is about 18% smaller, rounded to whole sizes with even line heights.** Bogdan's phone was set to the smallest system text size, and he liked how the app looked there better than the design's size. Once the app stopped following the system size (1.70), the tokens themselves took that look.
+  - display 30/36, heading xl 24/30, lg 20/26, md 16/22, sm 15/22.
+  - body lg 15/22, md 13/20, sm 12/16.
+  - label lg 13/20, md 12/16, sm 11/14; caption 11/14.
+- **The smallest stays at 11.** 18% off 12 would be 10, under Apple's 11 pt minimum (Material's is 12), so label-sm and caption stop at 11.
+- **Changed at the source, not with a global scale factor.** tokens.json feeds the app, Storybook, the iOS widget and Android. Figma's typography variables are now raw values instead of aliases to the Tailwind size scale, which has no 11, 13 or 15. The Live Activity's unbound text in Figma was scaled by hand. Buttons, cards and spacing keep their sizes; only the text is smaller.
+- We didn't keep the old sizes and scale the whole app: the design file would then show a size the app never draws.
+
 ## The web on a phone doesn't zoom (26 Oct)
 - **The page itself never zooms or scrolls.** Bogdan: on his phone the web build looked blown up, showed a scrollbar and lagged. Flutter writes its own viewport tag, which allows pinch zoom up to 5×. One pinch or double tap zoomed the whole app and made the canvas redraw at that size. index.html now locks the viewport (max 1, no user scaling), turns off the browser's own touch gestures, and stops Safari's pinch events. Flutter handles every gesture itself.
 - **Text is always the design's size, on every platform** (text scale pinned to 1). Bogdan's iPhone is set to the smallest text size, so the app looked about 18% smaller than the design and the web build. The prototype is judged on its layout, so it ignores the phone's text size (Dynamic Type, Android's font size) and the browser's. A real app would follow them, at least upward. The full view's tabs still wrap under Back and × on a narrow phone. The iOS widget and Live Activity already used fixed sizes.

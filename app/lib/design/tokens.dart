@@ -505,18 +505,18 @@ abstract final class TokFont {
 }
 
 abstract final class TokText {
-  static const display = TextStyle(fontFamily: TokFont.display, fontSize: 36, height: 1.111111, fontWeight: FontWeight.w700, letterSpacing: 0, leadingDistribution: TextLeadingDistribution.even);
-  static const headingXl = TextStyle(fontFamily: TokFont.display, fontSize: 30, height: 1.2, fontWeight: FontWeight.w700, letterSpacing: 0, leadingDistribution: TextLeadingDistribution.even);
-  static const headingLg = TextStyle(fontFamily: TokFont.display, fontSize: 24, height: 1.333333, fontWeight: FontWeight.w700, letterSpacing: 0, leadingDistribution: TextLeadingDistribution.even);
-  static const headingMd = TextStyle(fontFamily: TokFont.display, fontSize: 20, height: 1.4, fontWeight: FontWeight.w700, letterSpacing: 0, leadingDistribution: TextLeadingDistribution.even);
-  static const headingSm = TextStyle(fontFamily: TokFont.display, fontSize: 18, height: 1.555556, fontWeight: FontWeight.w700, letterSpacing: 0, leadingDistribution: TextLeadingDistribution.even);
-  static const bodyLg = TextStyle(fontFamily: TokFont.sans, fontSize: 18, height: 1.555556, fontWeight: FontWeight.w400, letterSpacing: 0, leadingDistribution: TextLeadingDistribution.even);
-  static const bodyMd = TextStyle(fontFamily: TokFont.sans, fontSize: 16, height: 1.5, fontWeight: FontWeight.w400, letterSpacing: 0, leadingDistribution: TextLeadingDistribution.even);
-  static const bodySm = TextStyle(fontFamily: TokFont.sans, fontSize: 14, height: 1.428571, fontWeight: FontWeight.w400, letterSpacing: 0, leadingDistribution: TextLeadingDistribution.even);
-  static const labelLg = TextStyle(fontFamily: TokFont.sans, fontSize: 16, height: 1.5, fontWeight: FontWeight.w500, letterSpacing: 0, leadingDistribution: TextLeadingDistribution.even);
-  static const labelMd = TextStyle(fontFamily: TokFont.sans, fontSize: 14, height: 1.428571, fontWeight: FontWeight.w500, letterSpacing: 0, leadingDistribution: TextLeadingDistribution.even);
-  static const labelSm = TextStyle(fontFamily: TokFont.sans, fontSize: 12, height: 1.333333, fontWeight: FontWeight.w500, letterSpacing: 0, leadingDistribution: TextLeadingDistribution.even);
-  static const caption = TextStyle(fontFamily: TokFont.sans, fontSize: 12, height: 1.333333, fontWeight: FontWeight.w400, letterSpacing: 0, leadingDistribution: TextLeadingDistribution.even);
+  static const display = TextStyle(fontFamily: TokFont.display, fontSize: 30, height: 1.2, fontWeight: FontWeight.w700, letterSpacing: 0, leadingDistribution: TextLeadingDistribution.even);
+  static const headingXl = TextStyle(fontFamily: TokFont.display, fontSize: 24, height: 1.25, fontWeight: FontWeight.w700, letterSpacing: 0, leadingDistribution: TextLeadingDistribution.even);
+  static const headingLg = TextStyle(fontFamily: TokFont.display, fontSize: 20, height: 1.3, fontWeight: FontWeight.w700, letterSpacing: 0, leadingDistribution: TextLeadingDistribution.even);
+  static const headingMd = TextStyle(fontFamily: TokFont.display, fontSize: 16, height: 1.375, fontWeight: FontWeight.w700, letterSpacing: 0, leadingDistribution: TextLeadingDistribution.even);
+  static const headingSm = TextStyle(fontFamily: TokFont.display, fontSize: 15, height: 1.466667, fontWeight: FontWeight.w700, letterSpacing: 0, leadingDistribution: TextLeadingDistribution.even);
+  static const bodyLg = TextStyle(fontFamily: TokFont.sans, fontSize: 15, height: 1.466667, fontWeight: FontWeight.w400, letterSpacing: 0, leadingDistribution: TextLeadingDistribution.even);
+  static const bodyMd = TextStyle(fontFamily: TokFont.sans, fontSize: 13, height: 1.538462, fontWeight: FontWeight.w400, letterSpacing: 0, leadingDistribution: TextLeadingDistribution.even);
+  static const bodySm = TextStyle(fontFamily: TokFont.sans, fontSize: 12, height: 1.333333, fontWeight: FontWeight.w400, letterSpacing: 0, leadingDistribution: TextLeadingDistribution.even);
+  static const labelLg = TextStyle(fontFamily: TokFont.sans, fontSize: 13, height: 1.538462, fontWeight: FontWeight.w500, letterSpacing: 0, leadingDistribution: TextLeadingDistribution.even);
+  static const labelMd = TextStyle(fontFamily: TokFont.sans, fontSize: 12, height: 1.333333, fontWeight: FontWeight.w500, letterSpacing: 0, leadingDistribution: TextLeadingDistribution.even);
+  static const labelSm = TextStyle(fontFamily: TokFont.sans, fontSize: 11, height: 1.272727, fontWeight: FontWeight.w500, letterSpacing: 0, leadingDistribution: TextLeadingDistribution.even);
+  static const caption = TextStyle(fontFamily: TokFont.sans, fontSize: 11, height: 1.272727, fontWeight: FontWeight.w400, letterSpacing: 0, leadingDistribution: TextLeadingDistribution.even);
 }
 
 abstract final class TokWeight {
