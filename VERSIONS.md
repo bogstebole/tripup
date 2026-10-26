@@ -655,6 +655,11 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Final UI, iteration 1.62: Ren's recap has a footer (branch `fix/recap-footer`)
+- Bogdan: on "Welcome, Ren" the button should be fixed at the bottom, like a footer, not at the end of the list. Open the trip now stays at the bottom over an eased fade of the screen's colour (the action bar's), and the recap scrolls up under it.
+- App (join.dart), Storybook (Join: a sticky footer) and Figma (Ren's phone · The trip so far: an absolute Footer frame at the bottom).
+- Checked: the iPhone 17 Pro Max simulator, at rest and scrolled to the end; Storybook Ren · trip so far; Figma. Not yet on Bogdan's iPhone 15 (it couldn't be reached).
+
 ### Figma: gaps instead of spacer frames (26 Oct)
 - Bogdan: no empty frames for space, only gap sizes. All 18 spacer frames on Final UI and Components are gone.
   - Where the spacing was uneven, the rows that share a gap are now grouped, and the gap sits on the group: Why's lines, the Group pages' people, Plan something's times, Ren's invite and recap, the bank approval's top.

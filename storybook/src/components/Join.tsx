@@ -121,6 +121,7 @@ function Recap({ now, poll, name, onJoined }: { now: Date; poll: PollState; name
   const undecided = dinnerChoice(now, poll) == null;
   const crew = PEOPLE.filter(p => onTrip(p, now) && p.id !== REN);
   return (
+    <>
     <StaggerIn>
       <div key="welcome" className="tu-join__welcome">
         <h1 className="text-heading-lg">Welcome, {name.trim()}</h1>
@@ -153,8 +154,12 @@ function Recap({ now, poll, name, onJoined }: { now: Date; poll: PollState; name
       <p key="rule" className="text-body-sm tu-join__rule">
         You share costs from today on. The {euros(SPENT_SO_FAR)} spent before you joined stays with the {NUMBERS[crew.length] ?? crew.length} of them.
       </p>
-      <TextButton key="open" className="tu-join__open" label="Open the trip" size="lg" wide onClick={onJoined} />
     </StaggerIn>
+    {/* Open the trip stays at the bottom, as a footer; the recap scrolls up under its fade */}
+    <div className="tu-join__footer" style={{ background: easedFade('var(--color-bg-canvas)', { from: 'calc(var(--d-action-bar-fade-start) * 100%)', to: 'top' }) }}>
+      <TextButton className="tu-join__open" label="Open the trip" size="lg" wide onClick={onJoined} />
+    </div>
+    </>
   );
 }
 

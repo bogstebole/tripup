@@ -157,8 +157,12 @@ class _JoinFlowState extends State<JoinFlow> {
     final next = [for (final p in tripPlans) if (p.start.add(planLasts).isAfter(now)) p].take(3).toList();
     final undecided = dinnerChoice(now) == null;
     final crew = [for (final p in people) if (onTrip(p, now) && p.id != 'ren') p];
-    return ListView(
-      padding: EdgeInsets.fromLTRB(TokSpace.md, pad.top + TokSpace.x5xl, TokSpace.md, pad.bottom + TokSpace.xl),
+    // Open the trip stays at the bottom, as a footer; the recap scrolls up under its fade
+    final bottom = math.max(pad.bottom, TokSpace.md);
+    final footer = TokSpace.xl + TokDim.buttonLg + bottom;
+    return Stack(children: [
+      ListView(
+      padding: EdgeInsets.fromLTRB(TokSpace.md, pad.top + TokSpace.x5xl, TokSpace.md, footer + TokSpace.md),
       children: [
         StaggerIn(children: [
           Padding(
@@ -204,11 +208,20 @@ class _JoinFlowState extends State<JoinFlow> {
               style: TokText.bodySm.copyWith(color: t.textDefault),
             ),
           ),
-          const SizedBox(height: TokSpace.xl),
-          TuTextButton(label: 'Open the trip', size: TuButtonSize.lg, wide: true, onTap: widget.onJoined),
         ]),
       ],
-    );
+      ),
+      Positioned(
+        left: 0,
+        right: 0,
+        bottom: 0,
+        child: Container(
+          padding: EdgeInsets.fromLTRB(TokSpace.md, TokSpace.xl, TokSpace.md, bottom),
+          decoration: BoxDecoration(gradient: easedFade(t.bgCanvas, from: TokDim.actionBarFadeStart, up: true)),
+          child: StaggerIn(children: [TuTextButton(label: 'Open the trip', size: TuButtonSize.lg, wide: true, onTap: widget.onJoined)]),
+        ),
+      ),
+    ]);
   }
 }
 

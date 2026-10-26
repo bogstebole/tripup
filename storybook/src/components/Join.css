@@ -78,4 +78,6 @@
 .tu-join__stickers { display: flex; align-items: center; padding: 0 var(--space-xs); }
 .tu-join__stickers > * + * { margin-left: calc(var(--d-sticker-overlap) * -1); }
 .tu-join__rule { padding: 0 var(--space-xs); color: var(--color-text-default); }
-.tu-join__open { margin-top: var(--space-xl); }
+.tu-join__page:not(.tu-join__page--invite) { padding-bottom: 0; }
+/* The recap's footer: stuck to the bottom of the page while it scrolls, the screen's full width over an eased fade */
+.tu-join__footer { position: sticky; bottom: 0; margin: var(--space-md) calc(var(--space-md) * -1) 0; padding: var(--space-xl) var(--space-md) var(--space-md); }
