@@ -110,6 +110,12 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
   - It's a tool for the demo, not part of the product, so it isn't in Storybook.
 - **The story should play out from the situation, not from special controls** (Bogdan, 23 Oct). When the group gets to the restaurant (a geofence), the dinner turns active and its actions appear; nothing is built for one case like "two people skip the wine".
 
+## The bill, laid out again (Bogdan, 26 Oct)
+- **A line is the dish on its own row, then quantity × price · who had it · the total.** Bogdan's Figma layout (Final UI 209:8483). Long dish names get the full width instead of wrapping next to the amount. The names left the subtitle: the faces already say who.
+- **The total moved into the footer,** under everyone's share, so it stays in view while the lines scroll. The explanation line ("Each line goes to whoever picked it…") went: tapping a line shows it.
+- **Who paid is a soft button,** as tall as Add to the trip's money next to it.
+- **Figma's Bill line has an Expanded state now:** the line with everyone at the table under it, the ones who had it full and the others faded, as in the app.
+
 ## Back from a plan to the itinerary (26 Oct)
 - **A plan opened from the itinerary has Back, and Back returns to the itinerary in the same sheet** (Bogdan: the navigation happens inside the itinerary). The itinerary and the full view are the same surface in the same place, so Back just brings the itinerary back there, with the day filter as it was. × still closes everything.
 - **Tabs that don't fit between Back and × go on a row of their own under them** (Bogdan). With Back, three tabs and × need about 318 pt. A phone or a text size that leaves less moves the tabs to a second row, and the page starts lower. We didn't shrink the tabs or drop Menu.
