@@ -488,17 +488,17 @@ enum TokDim {
 }
 
 enum TokText {
-  static let display = Font.system(size: 36, weight: .bold)
-  static let headingXl = Font.system(size: 30, weight: .bold)
-  static let headingLg = Font.system(size: 24, weight: .bold)
-  static let headingMd = Font.system(size: 20, weight: .bold)
-  static let headingSm = Font.system(size: 18, weight: .bold)
-  static let bodyLg = Font.system(size: 18, weight: .regular)
-  static let bodyMd = Font.system(size: 16, weight: .regular)
-  static let bodySm = Font.system(size: 14, weight: .regular)
-  static let labelLg = Font.system(size: 16, weight: .medium)
-  static let labelMd = Font.system(size: 14, weight: .medium)
-  static let labelSm = Font.system(size: 12, weight: .medium)
-  static let caption = Font.system(size: 12, weight: .regular)
+  static let display = Font.system(size: 30, weight: .bold)
+  static let headingXl = Font.system(size: 24, weight: .bold)
+  static let headingLg = Font.system(size: 20, weight: .bold)
+  static let headingMd = Font.system(size: 16, weight: .bold)
+  static let headingSm = Font.system(size: 15, weight: .bold)
+  static let bodyLg = Font.system(size: 15, weight: .regular)
+  static let bodyMd = Font.system(size: 13, weight: .regular)
+  static let bodySm = Font.system(size: 12, weight: .regular)
+  static let labelLg = Font.system(size: 13, weight: .medium)
+  static let labelMd = Font.system(size: 12, weight: .medium)
+  static let labelSm = Font.system(size: 11, weight: .medium)
+  static let caption = Font.system(size: 11, weight: .regular)
 }
 
