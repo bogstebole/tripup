@@ -1,6 +1,6 @@
 import { ArrowLeft, Banknote, Calendar, Check, Clock, Globe, MapPin, Phone, Truck, X, type LucideIcon } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion, type MotionValue, type Variants } from 'motion/react';
-import { createContext, useContext, useState, type CSSProperties, type ReactNode } from 'react';
+import { createContext, useContext, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import realMenu from '../../../app/assets/data/brasserie-menu.json';
 import { billShares, billTotal, euros, eurosIn, isHere, MY_ID, personById, TRIP_NOW, walkLabel, type Bill, type LatLng, type Person, type PlaceDetail } from '../data';
@@ -155,6 +155,26 @@ export function DetailSheet(p: DetailSheetProps) {
     leave: (d: number) => ({ opacity: 0, transform: reduce || !d ? 'none' : `translate(${-d * slide}px, 0px)`, filter: blur, transition: { duration: reduce ? 0 : m['fade-ms'] / 1000, ease } }),
   };
 
+  // Whether the tabs fit between Back and Close: measured against the bar's width (a narrow phone, large text)
+  const barRef = useRef<HTMLDivElement>(null);
+  const tabsRef = useRef<HTMLSpanElement>(null);
+  const [stacked, setStacked] = useState(false);
+  useLayoutEffect(() => {
+    const bar = barRef.current;
+    if (!bar) return;
+    const check = () => {
+      // The tab bar's own width (its row may be the bar's full width once stacked)
+      const tabs = tabsRef.current?.firstElementChild as HTMLElement | null;
+      if (!tabs) return;
+      const css = getComputedStyle(bar), px = (v: string) => parseFloat(css.getPropertyValue(v));
+      const buttons = (px('--d-button-sm') + px('--space-xs')) * (p.onBack ? 2 : 1);
+      setStacked(tabs.offsetWidth + buttons > bar.clientWidth);
+    };
+    check();
+    const ro = new ResizeObserver(check);
+    ro.observe(bar);
+    return () => ro.disconnect();
+  }, [p.onBack, tabs.length]);
   const dishes = SECTIONS.flatMap(s => s.items);
   const pickers = new Set([...dishes.flatMap(i => (i.pickedBy ?? []).filter(id => id !== 'ari')), ...(added.size ? ['ari'] : [])]);
   const picksOf = (id: string) => dishes.filter(d => (id === 'ari' ? added.has(d.name) : d.pickedBy?.includes(id)));
@@ -166,14 +186,17 @@ export function DetailSheet(p: DetailSheetProps) {
   const here = p.people.filter(x => isHere(x, p.now ?? TRIP_NOW)).length;
   const site = p.details?.find(d => d.kind === 'website');
 
+  const tabBar = <span ref={tabsRef} className="tu-sheet__tabs"><SegmentedTabs tabs={tabs} value={tab} onChange={t => select(t as DetailTab)} /></span>;
   return (
-    <article className="tu-sheet tu-surface tu-surface--sheet" aria-label={p.name}>
-      <motion.div className="tu-sheet__bar" style={{ opacity: p.contentOpacity }}>
+    <article className={stacked ? 'tu-sheet tu-sheet--stacked tu-surface tu-surface--sheet' : 'tu-sheet tu-surface tu-surface--sheet'} aria-label={p.name}>
+      <motion.div ref={barRef} className="tu-sheet__bar" style={{ opacity: p.contentOpacity }}>
         <span className="tu-sheet__lead">
           {p.onBack && <Button icon={ArrowLeft} label="Back" size="sm" onClick={p.onBack} />}
-          <SegmentedTabs tabs={tabs} value={tab} onChange={t => select(t as DetailTab)} />
+          {!stacked && tabBar}
         </span>
         <Button icon={X} label="Close" size="sm" onClick={p.onClose} />
+        {/* Tabs that don't fit between Back and Close go on a row of their own under them */}
+        {stacked && tabBar}
       </motion.div>
       <motion.div className="tu-sheet__pages" style={{ opacity: p.contentOpacity }}>
         <Stagger.Provider value={block}>
