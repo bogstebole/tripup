@@ -655,6 +655,12 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Storybook: a clean shell for reviewers (branch `chore/storybook-clean`)
+- **Shell:** no setup checklist ("Get started 37%") in the sidebar or the menu, no "What's new" notifications, no telemetry (main.ts). The addons panel starts hidden (press A to show it) and the sidebar says "TripUp · design system" (manager.ts, new).
+- **Introduction:** the "In Figma → token used" table was showing raw pipes (MDX here has no GFM tables). It's an HTML table now.
+- **Checked:** all 68 stories and doc pages loaded headless with no errors or empty canvases. The Introduction and the shell were checked on screenshots.
+- Storybook shots for the case study video re-taken (`releases/case-study/` 23–27).
+
 ### Final UI, iteration 1.64: the full view's tabs wrap under Back and × (branch `feat/detail-header-wrap`)
 - When the tabs don't fit between Back and Close, they go on a second row under them, and the header grows by a row.
   - App: DetailSheet measures the tabs' labels against the sheet's width.
