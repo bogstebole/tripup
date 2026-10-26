@@ -118,6 +118,22 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 - **A page fades out at its bottom over 40, eased** (sheet/fade: space/3xl, smoothstep in 8 steps, as the header's fade). It was 16 and linear. With the footer's edge gone, the list cut off hard above the grey block (Bogdan). It applies to every pop-up and the full view.
 - **Figma's Bill line has an Expanded state now:** the line with everyone at the table under it, the ones who had it full and the others faded, as in the app.
 
+## A wireflow page, as the brief asks (27 Oct)
+- **The brief wants a wireflow: ten screens or fewer, real content, in a section of its own, showing how the app works.** Our lo-fi wireflow lived only as an image in process/, and Final UI has far more than ten screens, spread across epics. So Figma has a **Wireflow** page now, placed first. It holds 10 mid-fi screens in one row, built with Final UI as the reference, as the step that would have come before it.
+- **Mid-fi on purpose:** grey boxes for the map, photos and stickers, Geist only, blue only for the one main action, all real text. It reads as "checking the flow", not as the final look.
+- **The brief's scenario, start to end:**
+  1. Your trips.
+  2. The trip map with Up next.
+  3. Ren joins mid-trip.
+  4. The dinner poll.
+  5. The poll closes.
+  6. The place's menu.
+  7. Everyone's there (the geofence).
+  8. The scanned bill.
+  9. Settle up.
+  10. Squared up.
+- **Under each screen** sit the decision it tests, the state that changed, and the interaction to the next one (from this file). The connectors carry that interaction.
+
 ## A smaller type scale (26 Oct)
 - **Every text style is about 18% smaller, rounded to whole sizes with even line heights.** Bogdan's phone was set to the smallest system text size, and he liked how the app looked there better than the design's size. Once the app stopped following the system size (1.70), the tokens themselves took that look.
   - display 30/36, heading xl 24/30, lg 20/26, md 16/22, sm 15/22.
