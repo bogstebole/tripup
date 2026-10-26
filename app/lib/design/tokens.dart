@@ -485,7 +485,7 @@ abstract final class TokDim {
   static const double webFrameMinWindow = 600;
   static const double webFrameMargin = 24;
   static const double surfaceHeadInset = 24;
-  static const double surfaceHeadSide = 16;
+  static const double surfaceHeadSide = 8;
   static const double surfaceFootInset = 16;
   static const double surfaceFootSide = 8;
   static const double widgetMidRadius = 28;

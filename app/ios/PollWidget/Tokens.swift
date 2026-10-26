@@ -473,7 +473,7 @@ enum TokDim {
   static let webFrameMinWindow: CGFloat = 600
   static let webFrameMargin: CGFloat = 24
   static let surfaceHeadInset: CGFloat = 24
-  static let surfaceHeadSide: CGFloat = 16
+  static let surfaceHeadSide: CGFloat = 8
   static let surfaceFootInset: CGFloat = 16
   static let surfaceFootSide: CGFloat = 8
   static let widgetMidRadius: CGFloat = 28

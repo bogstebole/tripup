@@ -655,6 +655,11 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Final UI, iteration 1.60: one side edge for sheets (branch `fix/sheet-edge-alignment`)
+- Bogdan: the sheet header was lopsided (title 16 in, × 24 in) and didn't line up with the content or the footer. The header's title, Back, tabs and × now sit 16 from the sides, like every row and the footer's buttons; 24 from the top stays (DECISIONS, Concentric corners).
+- `surface/head-side` is now `{surface/foot-inset} - {space.xs}` (8, inside the sheet's 8). App, Storybook (Trip sheet header, Detail sheet bar) and Figma (the variable, so Pop-up header and Sheet header follow).
+- Checked: Figma Sheet header both variants; installed on Bogdan's iPhone 15.
+
 ### The web build: the baked map tiles, for real this time (branch `fix/web-zoom-baked`)
 - **Correction:** the web never used the baked tiles, although `perf/web` said so. The style's FNV-1a hash came out wrong in the browser (numbers there are doubles, and h × prime, up to 2^56, lost its low bits), so the web took them for another style's and drew every tile live; the "baked vs drawn" screenshots compared drawn with drawn. The prime is now multiplied in two parts (2^24 and 403), the same result everywhere (`f816c147`, as the bake). On the web the map's first screen is now 24 baked tiles in 0.5 s, none drawn (before: 24 drawn, 4.4 s).
 - **On the web, zooming in past the baked tiles enlarges them** (`maxNativeZoom` = the deepest baked zoom, 14) instead of drawing finer ones. Deep zoom is a little softer (Bogdan's call).

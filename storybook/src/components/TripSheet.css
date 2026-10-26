@@ -48,7 +48,7 @@
 .tu-trip-sheet__top-fade { grid-area: 1 / 1; align-self: start; z-index: 1; height: calc(var(--header) + var(--d-sheet-top-fade)); pointer-events: none; }
 
 /* One line: Back (for a step inside the pop-up), the title, Close, all on the buttons' centre line. The buttons sit as
-   far in from the sides as from the top (surface/head-inset), so they're concentric with the sheet's corners */
+   surface/head-inset from the top and 16 from the sides, on the same edge as the content and the footer */
 .tu-trip-sheet__head { grid-area: 1 / 1; align-self: start; z-index: 2; display: flex; align-items: center; padding-top: var(--d-surface-head-inset); }
 .tu-trip-sheet__head > .tu-btn:last-child { margin-right: var(--d-surface-head-side); }
 /* The back button's slot: cut at its right edge, so the button shows as the slot opens; room for its shadow
