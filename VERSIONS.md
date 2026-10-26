@@ -655,6 +655,12 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Final UI, iteration 1.61: one inset of 24 for sheets (branch `feat/sheet-even-inset`)
+- Bogdan: after 1.60 the top (24) looked bigger than the sides (16). Everything in a sheet now sits 24 from every edge, and the sheet's radius is 48 (DECISIONS, Concentric corners).
+- New tokens `surface/inset` (24) and `surface/body-side` (16, the sheet's own padding, rows add their 8). `surface/radius`, `head-inset`, `foot-inset`, `head-side` and `foot-side` follow from them. `build-tokens.mjs` takes a bare component dimension (`{surface/inset}`).
+- App, Storybook (TripSheet, DetailSheet) and Figma (the variables; the 22 Pop-up and Full view frames' side padding bound to `surface/body-side`).
+- Checked: the iPhone 17 Pro Max simulator (Overview, Money); Figma Money and Overview; installed on Bogdan's iPhone 15.
+
 ### Final UI, iteration 1.60: one side edge for sheets (branch `fix/sheet-edge-alignment`)
 - Bogdan: the sheet header was lopsided (title 16 in, × 24 in) and didn't line up with the content or the footer. The header's title, Back, tabs and × now sit 16 from the sides, like every row and the footer's buttons; 24 from the top stays (DECISIONS, Concentric corners).
 - `surface/head-side` is now `{surface/foot-inset} - {space.xs}` (8, inside the sheet's 8). App, Storybook (Trip sheet header, Detail sheet bar) and Figma (the variable, so Pop-up header and Sheet header follow).

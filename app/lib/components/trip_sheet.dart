@@ -10,8 +10,8 @@ import 'progressive_blur.dart';
 
 /// One of the footer's pop-ups (itinerary, money, add): the full view's surface, a header with Back (for a step inside
 /// it), the title and Close on one line, a page that scrolls up under the header, and a footer with the page's actions.
-/// Its corners are concentric with what sits in them: the footer's big buttons [TokDim.surfaceFootInset] in, the
-/// header's round buttons [TokDim.surfaceHeadInset] in, both a radius of [TokDim.surfaceRadius] around.
+/// Everything sits [TokDim.surfaceInset] from every edge (header, content, footer), and the corners of
+/// [TokDim.surfaceRadius] are about concentric with both the header's round buttons and the footer's big ones.
 /// Every pop-up is built the same way: going back and closing in the header, doing things in the footer. It rises from
 /// the bottom (see TripScreen); the header is also a handle for pulling it back down.
 class TripSheet extends StatefulWidget {
@@ -95,7 +95,7 @@ class _TripSheetState extends State<TripSheet> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(TokDim.surfaceRadius),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
+          padding: const EdgeInsets.symmetric(horizontal: TokDim.surfaceBodySide),
           child: Column(children: [
             Expanded(child: NotificationListener<ScrollNotification>(
             onNotification: (n) {
@@ -153,7 +153,7 @@ class _TripSheetState extends State<TripSheet> {
                     padding: const EdgeInsets.only(top: TokDim.surfaceHeadInset),
                     child: Row(children: [
                       // A step back slides in before the title (and out again), the title moving over for it; the
-                      // buttons and the title sit 16 from the sides, on the same edge as the content and the footer
+                      // buttons and the title sit 24 from the sides, on the same edge as the content and the footer
                       AnimatedSize(
                         duration: TokMotion.enter,
                         curve: TokMotion.easeOut,

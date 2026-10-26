@@ -188,7 +188,8 @@
   --d-button-icon: 16px;
   --d-button-pill-height: 32px;
   --d-icon-stroke: 2px;
-  --d-surface-radius: 44px;
+  --d-surface-inset: 24px;
+  --d-surface-radius: 48px;
   --d-surface-edge-width: 1px;
   --d-chip-height: 40px;
   --d-chip-gap: 2px;
@@ -297,9 +298,10 @@
   --d-web-frame-radius: 40px;
   --d-web-frame-min-window: 600px;
   --d-web-frame-margin: 24px;
+  --d-surface-body-side: 16px;
   --d-surface-head-inset: 24px;
   --d-surface-head-side: 8px;
-  --d-surface-foot-inset: 16px;
+  --d-surface-foot-inset: 24px;
   --d-surface-foot-side: 8px;
   --d-widget-mid-radius: 28px;
   --d-home-card-padding: 29px;
