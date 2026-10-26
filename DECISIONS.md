@@ -111,7 +111,7 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 - **The story should play out from the situation, not from special controls** (Bogdan, 23 Oct). When the group gets to the restaurant (a geofence), the dinner turns active and its actions appear; nothing is built for one case like "two people skip the wine".
 
 ## The bill, laid out again (Bogdan, 26 Oct)
-- **A line is the dish on its own row, then quantity × price · who had it · the total.** Bogdan's Figma layout (Final UI 209:8483). Long dish names get the full width instead of wrapping next to the amount. The names left the subtitle: the faces already say who.
+- **A line is the dish on its own row, then quantity × price with the faces right next to it, and the total at the far end.** (First the faces sat in the middle. Bogdan moved them next to the quantity, so the price and who had it read as one thing.) Bogdan's Figma layout (Final UI 209:8483). Long dish names get the full width instead of wrapping next to the amount. The names left the subtitle: the faces already say who.
 - **The total moved into the footer,** under everyone's share, so it stays in view while the lines scroll. The explanation line ("Each line goes to whoever picked it…") went: tapping a line shows it.
 - **Who paid is a soft button,** as tall as Add to the trip's money next to it.
 - **Figma's Bill line has an Expanded state now:** the line with everyone at the table under it, the ones who had it full and the others faded, as in the app.

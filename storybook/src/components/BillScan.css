@@ -56,11 +56,13 @@
 
 /* The bill's page: the total, then each line, and the faces to change who had it */
 .tu-bill__rule { height: var(--d-surface-edge-width); background: var(--color-border-default); }
-/* A line: the dish on its own row, then quantity × price · faces · total */
+/* A line: the dish on its own row, then quantity × price and the faces, the total at the end */
 .tu-bill__line { display: flex; flex-direction: column; gap: var(--space-sm); width: 100%; padding: var(--space-sm) var(--space-xs); text-align: left; color: var(--color-text-default); transition: transform var(--press-ms) var(--ease-out); }
 .tu-bill__line:active { transform: scale(var(--press-scale)); }
 .tu-bill__line:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: calc(var(--space-3xs) * -1); }
-.tu-bill__meta { display: flex; align-items: center; justify-content: space-between; gap: var(--space-xs); }
+/* Quantity × price and the faces together, the total at the far end */
+.tu-bill__meta { display: flex; align-items: center; gap: var(--space-xs); }
+.tu-bill__meta > :last-child { margin-left: auto; }
 .tu-bill__qty { color: var(--color-text-muted); }
 .tu-bill__total { display: flex; align-items: flex-end; gap: var(--space-sm); padding: 0 var(--space-xs) var(--space-sm); color: var(--color-text-default); }
 .tu-bill__total-label { flex: 1 1 0; min-width: 0; }

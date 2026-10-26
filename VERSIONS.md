@@ -655,6 +655,10 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Final UI, iteration 1.66: the bill line's faces next to the quantity (branch `fix/bill-line-faces`)
+- Bogdan, in Figma (Bill line 211:8478): the faces sit right after "3 × €23.90", xs apart, and the total fills the rest, aligned to the end. Before, they floated in the middle. App, Storybook and Figma.
+- Checked on the simulator. Installed on Bogdan's iPhone 15.
+
 ### Final UI, iteration 1.65: the bill's new layout (branch `feat/bill-line-layout`)
 - Bogdan's Figma bill sheet (209:8186) and Bill line (209:8483), everywhere (DECISIONS: The bill, laid out again). Each line has the dish on its own row, then quantity × price, the faces and the total. The total sits in the footer under the shares, the explanation line is gone, and Who paid is a soft 56 button.
 - **Figma:** Bill line is a component set, Expanded=no|yes. The yes state shows the picker under the line, with Nic faded and his face hidden. Bogdan's frame is now an instance, and the subtitles lost their names on both bill screens.

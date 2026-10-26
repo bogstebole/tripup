@@ -300,14 +300,14 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
                     spacing: TokSpace.sm,
                     children: [
                       Text(item?.name ?? line.printed, style: TokText.labelLg.copyWith(color: t.textDefault)),
+                      // Quantity × price and the faces of who had it together, the total at the far end
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         spacing: TokSpace.xs,
                         children: [
                           Text('${line.qty} × ${euros(line.unit)}', style: TokText.bodySm.copyWith(color: t.textMuted)),
                           // Every face, overlapped (there's room for the whole table)
                           Overlapped(overlap: TokDim.chipFaceOverlap, children: [for (final id in who) Sticker(personById(id).sticker, size: StickerSize.chip)]),
-                          Text(euros(line.total), style: TokText.labelLg.copyWith(color: t.textDefault)),
+                          Expanded(child: Text(euros(line.total), textAlign: TextAlign.end, style: TokText.labelLg.copyWith(color: t.textDefault))),
                         ],
                       ),
                       // Who had it: everyone at the table, the ones who had it full, the others faded; tap to change
