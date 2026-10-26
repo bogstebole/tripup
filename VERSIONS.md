@@ -640,6 +640,21 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - Tokens: `spring-pop` (0.4 s, bounce 0.3), `spring-fly` (0.7 s, 0.12), the splash's timings (`splash-*`) and sizes (`splash/dot-scale`, `splash/word`, `splash/sticker`, `splash/ring`); the stickers' places around TripUp are `splashStickers` in `data.dart`. The perf and Figma drivers skip it (`splashOnStart`).
 - **Checked** on the iPhone 17 Pro Max simulator from cold launches, frame by frame, and by the recording's frame times (no gaps over 50 ms during the splash).
 
+### Final UI, iteration 1.59: concentric corners (branch `feat/concentric-radii`)
+- Bogdan: the radii felt too small all round. Every container that holds a shape in its corner now has a radius of its padding plus that shape's radius (DECISIONS, Concentric corners):
+  - sheets 44, their header buttons 24 in, the footer 16 in;
+  - the trip card 51;
+  - Up next 28, with round-ended info chips;
+  - the map's poll 36 around places of 28;
+  - the poll pop-up's places 34.
+- `build-tokens.mjs` evaluates dimension expressions. New tokens: `surface/head-inset`, `surface/head-side`, `surface/foot-inset`, `surface/foot-side`, `widget/mid-radius`, `home/card-padding`, `home/card-radius`, `home/now-pill-inset`, `poll/place-radius`, `poll/radius`, `poll/option-radius`. `surface/radius` and `chip/radius` are computed now.
+- The full view grows from Up next's 28 to its own 44 as it opens. The trip's opening squares off from the card's 51.
+- Storybook the same. Figma: the variables with their formulas, Pop-up header, Sheet header, Sheet footer, Money footer, Trip card, Up next card, Mini pin, Poll card and Poll place rebound; the screens' footers; the bill's Add at lg. The Read me states the rule.
+- **Checked:**
+  - on the iPhone 17 Pro Max simulator: Your trips, the map, Money, Pay Maya, the full view, the open poll and the bill;
+  - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
+  - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
+
 ### The web build: the baked map tiles, for real this time (branch `fix/web-zoom-baked`)
 - **Correction:** the web never used the baked tiles, although `perf/web` said so. The style's FNV-1a hash came out wrong in the browser (numbers there are doubles, and h × prime, up to 2^56, lost its low bits), so the web took them for another style's and drew every tile live; the "baked vs drawn" screenshots compared drawn with drawn. The prime is now multiplied in two parts (2^24 and 403), the same result everywhere (`f816c147`, as the bake). On the web the map's first screen is now 24 baked tiles in 0.5 s, none drawn (before: 24 drawn, 4.4 s).
 - **On the web, zooming in past the baked tiles enlarges them** (`maxNativeZoom` = the deepest baked zoom, 14) instead of drawing finer ones. Deep zoom is a little softer (Bogdan's call).

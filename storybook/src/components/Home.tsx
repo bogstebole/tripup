@@ -276,7 +276,7 @@ export function HomeLayer({ inTrip, trip, ...home }: HomeLayerProps) {
   };
   // Its corners square up over the last 30% of the way
   const corner = () => (air ? 1 - smoothstep(0.7, 1, p()) : 0);
-  const radius = useTransform(() => `calc(var(--d-surface-radius) * ${corner()})`);
+  const radius = useTransform(() => `calc(var(--d-home-card-radius) * ${corner()})`);
   const left = useTransform(() => box().left), top = useTransform(() => box().top);
   const width = useTransform(() => box().width), height = useTransform(() => box().height);
   // What shows when: the card's words leave first, the live trip arrives near full size
@@ -292,7 +292,7 @@ export function HomeLayer({ inTrip, trip, ...home }: HomeLayerProps) {
   const clip = useTransform(() => {
     const { screen } = frame.get(), r = box();
     if (!air || p() >= 1) return 'none';
-    return `inset(${r.top}px ${screen.width - r.left - r.width}px ${screen.height - r.top - r.height}px ${r.left}px round calc(var(--d-surface-radius) * ${corner()}))`;
+    return `inset(${r.top}px ${screen.width - r.left - r.width}px ${screen.height - r.top - r.height}px ${r.left}px round calc(var(--d-home-card-radius) * ${corner()}))`;
   });
   const stillOpacity = useTransform(() => (air ? 1 : 0));
   const wordsOpacity = useTransform(() => (air ? 1 - smoothstep(0, 0.25, p()) : 0));

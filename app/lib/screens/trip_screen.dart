@@ -658,7 +658,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           final moving = !_inTrip && !_reduce;
           final screen = Offset.zero & size, card = _homeCard ?? screen;
           final rect = moving ? Rect.lerp(card, screen, p)! : screen;
-          final radius = BorderRadius.circular(moving ? TokDim.surfaceRadius * (1 - smoothstep(0.7, 1, p)) : 0);
+          final radius = BorderRadius.circular(moving ? TokDim.homeCardRadius * (1 - smoothstep(0.7, 1, p)) : 0);
           final scale = rect.width / size.width;
           // What shows when: the card's words leave first, the live trip arrives near full size
           final words = moving ? 1 - smoothstep(0, 0.25, p) : 0.0;
@@ -1382,6 +1382,8 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
         final sheetOp = smoothstep(0.3, 0.8, p);
         final seam = TokMotion.crossfadeBlur * 4 * midOp * sheetOp;
         final sx = rect.width / to.width;
+        // The card's corners grow into the sheet's (each concentric with what's in it)
+        final corner = BorderRadius.circular(ui.lerpDouble(_sheetPlan != null ? TokDim.surfaceRadius : TokDim.widgetMidRadius, TokDim.surfaceRadius, p)!);
         return Stack(children: [
           Positioned.fromRect(
             rect: rect,
@@ -1391,9 +1393,9 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
                 scale: shrink,
                 alignment: Alignment.topCenter,
                 child: Container(
-                  decoration: surfaceDecoration(context, BorderRadius.circular(TokDim.surfaceRadius)),
+                  decoration: surfaceDecoration(context, corner),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(TokDim.surfaceRadius),
+                    borderRadius: corner,
                     child: crossfadeSeam(sigma: seam, child: Stack(children: [
                       if (midOp > 0)
                         // The card's own content at its own width, scaled with the surface from its top edge

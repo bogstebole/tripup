@@ -31,6 +31,8 @@
 /* The poll on the map: as wide as its place gives it, as tall as its content up to its place's height (open, the
    places scroll past that); md in at the top, xs on the other sides */
 .tu-poll-card { display: flex; flex-direction: column; width: 100%; max-height: 100%; padding: var(--space-md) var(--space-xs) var(--space-xs); text-align: left; pointer-events: auto; }
+/* Concentric with the places in it, xs in from its sides and bottom */
+.tu-poll-card.tu-surface { border-radius: var(--d-poll-radius); }
 /* The head, one button: the live line, the question and the meta line, md in from the sides, sm between them */
 .tu-poll-card__head {
   flex: none;
@@ -69,7 +71,8 @@
 
 /* A place in the open poll: a grey card, its name and facts by its sticker, md under them its bar, md under that
    Details, its voters and the vote */
-.tu-poll-option { display: flex; flex-direction: column; gap: var(--space-md); padding: var(--space-xs); border-radius: var(--radius-card); background: var(--color-bg-subtle); }
+/* Concentric with its vote button, xs in from the corner */
+.tu-poll-option { display: flex; flex-direction: column; gap: var(--space-md); padding: var(--space-xs); border-radius: var(--d-poll-place-radius); background: var(--color-bg-subtle); }
 .tu-poll-option__head { display: flex; align-items: center; gap: var(--space-xs); padding: var(--space-xs) var(--space-xs) 0; }
 .tu-poll-option__text { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2xs); }
 .tu-poll-option__name { max-width: 100%; color: var(--color-text-default); }
@@ -81,7 +84,7 @@
 .tu-poll-option__sticker { height: var(--d-poll-option-sticker); }
 .tu-poll-option__bar { padding: 0 var(--space-xs); }
 /* Details on the left (as tall as a top-bar button), then who voted and the round check, xs from the right */
-.tu-poll-option__foot { display: flex; align-items: center; padding-right: var(--space-xs); }
+.tu-poll-option__foot { display: flex; align-items: center; }
 .tu-poll-option__details {
   height: var(--d-button-md);
   margin-right: auto;
@@ -105,7 +108,8 @@
 
 /* The pop-up: a line on how it works, then a muted card per place */
 .tu-poll__intro { padding: 0 var(--space-xs); color: var(--color-text-muted); }
-.tu-poll-place { display: flex; flex-direction: column; gap: var(--space-sm); padding: var(--space-sm); border-radius: var(--radius-sheet); background: var(--color-bg-muted); }
+/* Concentric with Vote, sm in from the corner */
+.tu-poll-place { display: flex; flex-direction: column; gap: var(--space-sm); padding: var(--space-sm); border-radius: var(--d-poll-option-radius); background: var(--color-bg-muted); }
 /* Once it has closed, the places that didn't go into tonight step back */
 .tu-poll-place--lost { opacity: var(--d-poll-lost-opacity); }
 .tu-poll-place__head { display: flex; align-items: center; gap: var(--space-sm); }

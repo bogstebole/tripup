@@ -29,13 +29,28 @@ function color(ref, mode) {
   else c = { hex: primitive(path), a: 1 };
   return alpha ? { hex: c.hex, a: c.a * Number(alpha) / 100 } : c;
 }
-function dimension(v) {
+function dimension(v, seen = []) {
   if (typeof v === 'number') return v;
   const m = /^\{(space|radius|size)\.([^}]+)\}$/.exec(v);
-  if (!m) throw new Error('not a dimension reference: ' + v);
-  const val = t[m[1]][m[2]];
-  if (val === undefined) throw new Error('unknown dimension ' + v);
-  return val;
+  if (m) {
+    const val = t[m[1]][m[2]];
+    if (val === undefined) throw new Error('unknown dimension ' + v);
+    return val;
+  }
+  // A size that follows from others, as arithmetic on references: "{space.md} + {button/lg} / 2". A bare name is
+  // another component dimension. Used for concentric corners: a container's radius is its padding plus the radius of
+  // what sits in its corner, so the two curves stay parallel.
+  if (/[-+*/]/.test(v.replace(/\{[^}]+\}/g, ''))) {
+    const expr = v.replace(/\{([^}]+)\}/g, (_, path) => {
+      if (/^(space|radius|size)\./.test(path)) return String(dimension(`{${path}}`));
+      if (!(path in t.component.dimension)) throw new Error(`unknown dimension {${path}} in ${v}`);
+      if (seen.includes(path)) throw new Error('circular dimension ' + [...seen, path].join(' → '));
+      return String(dimension(t.component.dimension[path], [...seen, path]));
+    });
+    if (!/^[\d.\s+\-*/()]+$/.test(expr)) throw new Error('not a dimension expression: ' + v);
+    return Function(`return (${expr})`)();
+  }
+  throw new Error('not a dimension reference: ' + v);
 }
 const modes = ['light', 'dark'];
 const semantic = mode => Object.fromEntries(Object.entries(t.color[mode]).map(([k, v]) => [k, color(v, mode)]));

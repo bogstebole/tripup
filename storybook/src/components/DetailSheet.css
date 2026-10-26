@@ -1,6 +1,6 @@
 /* The tabs and close sit in a header over the page; pages scroll up under it, through a blur and the surface's white */
 .tu-sheet {
-  --header: calc(var(--space-xs) + max(calc(var(--d-segment-height) + var(--d-segment-track-padding) * 2), var(--d-button-sm)));
+  --header: calc(var(--d-surface-head-inset) + max(calc(var(--d-segment-height) + var(--d-segment-track-padding) * 2), var(--d-button-sm)));
   position: relative;
   display: flex;
   flex-direction: column;
@@ -64,7 +64,8 @@
 .tu-sheet__faces > * + * { margin-left: calc(var(--d-avatar-overlap) * -1); }
 .tu-sheet__face { display: grid; place-items: center; width: var(--d-sticker-row); height: var(--d-sticker-row); flex: none; }
 
-.tu-sheet__bar { position: absolute; top: 0; left: var(--space-xs); right: var(--space-xs); z-index: 2; display: flex; align-items: center; justify-content: space-between; padding-top: var(--space-xs); }
+/* The tabs and Close, as far in from the sides as from the top: concentric with the sheet's corners */
+.tu-sheet__bar { position: absolute; top: 0; left: var(--d-surface-head-inset); right: var(--d-surface-head-inset); z-index: 2; display: flex; align-items: center; justify-content: space-between; padding-top: var(--d-surface-head-inset); }
 
 /* Menu: a plain list; under each dish's photo and text, the price, who else picked it, and Add */
 /* Add's touch target reaches past its circle; the row's right inset leaves the circle on the text's edge */
@@ -94,7 +95,7 @@
 .tu-sheet__cost { flex: none; color: var(--color-text-default); }
 /* Its own layer, so the footer can fade with the rest of what's on the sheet (opened in place of a pop-up) */
 .tu-sheet__footer-wrap { flex: none; }
-.tu-sheet__footer { flex: none; display: flex; flex-direction: column; gap: var(--space-md); padding: var(--space-xs) var(--space-xs) var(--space-md); }
+.tu-sheet__footer { flex: none; display: flex; flex-direction: column; gap: var(--space-md); padding: var(--space-xs) var(--d-surface-foot-side) var(--d-surface-foot-inset); }
 .tu-sheet__actions { flex-direction: row; gap: var(--space-xs); }
 .tu-sheet__actions > * { flex: 1 1 0; min-width: 0; }
 .tu-sheet__footer-row { display: flex; align-items: center; gap: var(--space-sm); }

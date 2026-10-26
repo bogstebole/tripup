@@ -254,6 +254,18 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 
 - **Once per launch, the first time into the trip** (Bogdan): that's when "what's next" helps. After it's been made small, browsing the days or the map shouldn't keep pushing it back open; a tap on its pin does. News about it (the poll's winner, a dinner picked by hand) still opens it, since that changes what's next.
 
+## Concentric corners (26 Oct)
+
+- **Bogdan: the corners looked too small everywhere.** The reason: the round shapes inside were rounder than the corners around them. The footer's big buttons (56 tall, radius 28) sat 16 from a sheet corner of 24.
+- **The rule, everywhere a shape sits in a container's corner: outer radius = padding + the inner shape's radius.** Then the two curves run parallel. Apple uses the same rule in iOS 26 ("concentric" corners).
+- **Each radius is a token computed from the others.** It isn't a hand-picked number, so it follows when a button or a padding changes (`tokens.json` now takes expressions like `{space.md} + {button/lg} / 2`). Figma can't compute, so its variables hold the results, and each variable's description says how it's made.
+  - **Sheets** (pop-ups, the full view, the bill): 44 = 16 + 56 ÷ 2. The header's round buttons (40) need 44 − 20 = 24 from the top and sides, so the header moved in (`surface/head-inset`). The footer stays 16 in (`surface/foot-inset`). The bill's Add became a big button like every other footer action.
+  - **Trip card:** 51 = its padding of 29 + the arrow's 22. Happening now sits 4 further in, so it's concentric too.
+  - **Up next:** 28 = 8 + the arrow's 20. The info chips' outer ends became round (radius 20, half their height) to match.
+  - **The map's poll:** its places 28 (8 + the vote's 20, now 8 from the corner), the card around them 36. The poll pop-up's places: 34 (12 + Vote's 22).
+- **Where the rule doesn't apply:** where nothing sits in the corner (lists, text, Why's box), or where it already held (Know before you go: 24 = 8 + 16; the owe pill; tabs and dishes with an edge).
+- **Not chased: the phone's own corner.** With the sheet 16 in, a radius of 44 matches a screen corner of 60. Apple doesn't publish the iPhone 17 Pro Max's; developers report about 55 for the 15 and the 14/15 Pro. Close enough, and the sheet follows what's in it.
+
 ## Paying from the app (25 Oct)
 
 From the research (`process/research/tripup-competitive-research-v3-en.md`, Payments under the hood), now built as a flow in the prototype:

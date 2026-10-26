@@ -231,7 +231,7 @@ function BillReview({ bill, payerMenuOpen, onPayer, onChange, onAdd, onClose }: 
           </div>
           <div className="tu-bill__actions">
             <PayerTrigger payer={bill.paidBy} open={payerMenuOpen} onOpen={onPayer} />
-            <TextButton label="Add to the trip's money" onClick={onAdd} />
+            <TextButton label="Add to the trip's money" size="lg" onClick={onAdd} />
           </div>
         </div>
       }
