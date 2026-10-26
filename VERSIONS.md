@@ -655,6 +655,10 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Storybook online: https://tripup-storybook.vercel.app (26 Oct)
+- **For reviewers:** the component library is on Vercel, as project "tripup-storybook", deployed to production and public. `tools/deploy_storybook.sh` builds Storybook and deploys it the same way as deploy_web.sh: copied outside the repo, static files only. `--preview` gives a preview URL instead.
+- **Checked:** the live site loads Pop-ups · Itinerary with no errors, and index.json answers.
+
 ### Storybook: a clean shell for reviewers (branch `chore/storybook-clean`)
 - **Shell:** no setup checklist ("Get started 37%") in the sidebar or the menu, no "What's new" notifications, no telemetry (main.ts). The addons panel starts hidden (press A to show it) and the sidebar says "TripUp · design system" (manager.ts, new).
 - **Introduction:** the "In Figma → token used" table was showing raw pipes (MDX here has no GFM tables). It's an HTML table now.
