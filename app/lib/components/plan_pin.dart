@@ -293,7 +293,8 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
     final midSize = _midSize!, miniSize = _miniSize!;
     final onMap = Size.lerp(miniSize, midSize, m)!;
     final size = Size.lerp(onMap, edgeSize, e)!;
-    final radius = lerpDouble(TokDim.surfaceRadius, edgeSize.shortestSide / 2, eC);
+    // Concentric with the arrow in the card's corner (and round at the screen's edge)
+    final radius = lerpDouble(TokDim.widgetMidRadius, edgeSize.shortestSide / 2, eC);
 
     // Where the card sits on the map: bottom of the tail on the place
     final tailGap = lerpDouble(TokSpace.x2xs, TokSpace.xs, m.clamp(0.0, 1.0));

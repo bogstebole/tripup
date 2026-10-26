@@ -4,6 +4,8 @@
 .tu-upnext--edge { flex-direction: row; gap: var(--space-3xs); }
 
 .tu-upnext__card { position: relative; overflow: hidden; cursor: pointer; }
+/* Concentric with the arrow in its corner, xs in (the edge pin stays round) */
+.tu-upnext--mid .tu-upnext__card.tu-surface, .tu-upnext--mini .tu-upnext__card.tu-surface { border-radius: var(--d-widget-mid-radius); }
 .tu-upnext--mid .tu-upnext__card { width: var(--d-widget-mid-width); }
 .tu-upnext--mini .tu-upnext__card { width: var(--d-widget-mini-width); }
 .tu-upnext--edge .tu-upnext__card { width: var(--d-widget-edge-size); height: var(--d-widget-edge-size); }

@@ -116,7 +116,8 @@ class _CurrentTrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tok;
-    final radius = BorderRadius.circular(TokDim.surfaceRadius);
+    // Concentric with what sits in its corners: its padding plus the arrow's radius
+    final radius = BorderRadius.circular(TokDim.homeCardRadius);
     return Pressable(
       onTap: onOpen,
       semanticLabel: 'Open $tripTitle',
@@ -169,9 +170,15 @@ class TripCardFace extends StatelessWidget {
         ),
       ),
       Padding(
-        padding: const EdgeInsets.all(TokSpace.xl + TokDim.homeCardEdge),
+        padding: const EdgeInsets.all(TokDim.homeCardPadding),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.md, children: [
-          const Expanded(child: Align(alignment: Alignment.topLeft, child: _HappeningNow())),
+          // A little further in than the words, so the pill is concentric with the card's corner too
+          const Expanded(
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: Padding(padding: EdgeInsets.only(left: TokDim.homeNowPillInset, top: TokDim.homeNowPillInset), child: _HappeningNow()),
+            ),
+          ),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(tripTitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingXl.copyWith(color: t.textDefault)),
             Text('$tripCity · $tripDates', style: TokText.labelMd.copyWith(color: t.textMuted)),

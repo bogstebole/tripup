@@ -81,7 +81,7 @@
 .tu-bill__face:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: var(--space-3xs); }
 
 /* Under the page: what each person had, then who paid and Add */
-.tu-bill__footer { display: flex; flex-direction: column; gap: var(--space-sm); padding: var(--space-sm) var(--space-xs) var(--space-md); border-top: var(--d-surface-edge-width) solid var(--color-border-default); }
+.tu-bill__footer { display: flex; flex-direction: column; gap: var(--space-sm); padding: var(--space-sm) var(--d-surface-foot-side) var(--d-surface-foot-inset); border-top: var(--d-surface-edge-width) solid var(--color-border-default); }
 /* Each person at least 5xl wide: the cells share the width while they fit, and scroll sideways once they don't */
 .tu-bill__shares { display: flex; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; }
 .tu-bill__shares::-webkit-scrollbar { display: none; }

@@ -120,7 +120,7 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
   late final _pull = _Pull((dy) => widget.onHeaderDragUpdate?.call(DragUpdateDetails(globalPosition: Offset.zero, delta: Offset(0, dy), primaryDelta: dy)));
 
   /// The header's height: its top inset, then the taller of the tab bar and the close button.
-  static double get _headerHeight => TokSpace.xs + math.max(TokDim.segmentHeight + TokDim.segmentTrackPadding * 2, TokDim.buttonSm);
+  static double get _headerHeight => TokDim.surfaceHeadInset + math.max(TokDim.segmentHeight + TokDim.segmentTrackPadding * 2, TokDim.buttonSm);
 
   @override
   Widget build(BuildContext context) {
@@ -175,8 +175,9 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
               behavior: HitTestBehavior.opaque,
               onVerticalDragUpdate: widget.onHeaderDragUpdate,
               onVerticalDragEnd: widget.onHeaderDragEnd,
+              // The tabs and Close sit as far in from the sides as from the top: concentric with the corners
               child: Padding(
-                padding: const EdgeInsets.only(top: TokSpace.xs),
+                padding: const EdgeInsets.fromLTRB(TokDim.surfaceHeadSide, TokDim.surfaceHeadInset, TokDim.surfaceHeadSide, 0),
                 child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                   SegmentedTabs(
                     tabs: [for (final p in _pages) p.label],
@@ -291,7 +292,7 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
       Expanded(child: list),
       _enter(children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.xs, TokSpace.xs, TokSpace.md),
+          padding: const EdgeInsets.fromLTRB(TokDim.surfaceFootSide, TokSpace.xs, TokDim.surfaceFootSide, TokDim.surfaceFootInset),
           child: Row(spacing: TokSpace.xs, children: [
             if (site != null)
               Expanded(
@@ -405,7 +406,7 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
             Expanded(child: list),
             _enter(children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.xs, TokSpace.xs, TokSpace.md),
+                padding: const EdgeInsets.fromLTRB(TokDim.surfaceFootSide, TokSpace.xs, TokDim.surfaceFootSide, TokDim.surfaceFootInset),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: TokSpace.md, children: [
                   Row(spacing: TokSpace.sm, children: [
                     Expanded(

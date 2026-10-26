@@ -227,7 +227,7 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
       subtitle: "La Brasserie de L'Entrecôte · ${_bill.lines.length} lines",
       onClose: widget.onClose,
       footer: Container(
-        padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.sm, TokSpace.xs, TokSpace.md),
+        padding: const EdgeInsets.fromLTRB(TokDim.surfaceFootSide, TokSpace.sm, TokDim.surfaceFootSide, TokDim.surfaceFootInset),
         decoration: BoxDecoration(
           border: Border(
             top: BorderSide(color: t.borderDefault, width: TokDim.surfaceEdgeWidth),
@@ -266,7 +266,8 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
                     onPick: (id) => setState(() => _bill = Bill(_bill.lines, _bill.who, id, _bill.at)),
                   ),
                 ),
-                TuTextButton(label: "Add to the trip's money", onTap: () => widget.onAdd(_bill)),
+                // Big, like every footer's main action, and so concentric with the sheet's corner
+                TuTextButton(label: "Add to the trip's money", size: TuButtonSize.lg, onTap: () => widget.onAdd(_bill)),
               ],
             ),
           ],

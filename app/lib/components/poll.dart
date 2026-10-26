@@ -74,7 +74,8 @@ class _PollCardState extends State<PollCard> with SingleTickerProviderStateMixin
     return Container(
       width: width,
       padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.md, TokSpace.xs, TokSpace.xs),
-      decoration: surfaceDecoration(context, BorderRadius.circular(TokDim.surfaceRadius)),
+      // Concentric with the places in it, xs in from its sides and bottom
+      decoration: surfaceDecoration(context, BorderRadius.circular(TokDim.pollRadius)),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         // The head: tapping it opens the poll, or closes it
         Pressable(
@@ -182,7 +183,8 @@ class _Place extends StatelessWidget {
     final muted = TokText.labelMd.copyWith(color: t.textMuted), dot = TokText.labelSm.copyWith(color: t.textMuted);
     return Container(
       padding: const EdgeInsets.all(TokSpace.xs),
-      decoration: BoxDecoration(color: t.bgSubtle, borderRadius: BorderRadius.circular(TokRadius.card)),
+      // Concentric with its vote button, xs in from the corner
+      decoration: BoxDecoration(color: t.bgSubtle, borderRadius: BorderRadius.circular(TokDim.pollPlaceRadius)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: TokSpace.md, children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.xs, TokSpace.xs, 0),
@@ -204,33 +206,31 @@ class _Place extends StatelessWidget {
           ]),
         ),
         Padding(padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs), child: VoteBar(votes: voters.length, ahead: true, onMuted: true)),
-        Padding(
-          padding: const EdgeInsets.only(right: TokSpace.xs),
-          child: Row(children: [
-            Pressable(
-              onTap: onDetails,
-              semanticLabel: 'Details: ${o.name}',
-              child: Container(
-                height: TokDim.buttonMd,
-                padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
-                alignment: Alignment.center,
-                child: Text('Details', style: TokText.bodyMd.copyWith(fontWeight: TokWeight.medium, color: t.textMuted)),
-              ),
+        // Vote xs in from the corner, like everything at the card's edge, so it's concentric with it
+        Row(children: [
+          Pressable(
+            onTap: onDetails,
+            semanticLabel: 'Details: ${o.name}',
+            child: Container(
+              height: TokDim.buttonMd,
+              padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
+              alignment: Alignment.center,
+              child: Text('Details', style: TokText.bodyMd.copyWith(fontWeight: TokWeight.medium, color: t.textMuted)),
             ),
-            const Spacer(),
-            if (voters.isNotEmpty) Padding(padding: const EdgeInsets.only(right: TokSpace.sm), child: Voters(voters)),
-            TuButton(
-              icon: TuIcons.check,
-              label: mine ? 'Your vote: ${o.name}' : 'Vote for ${o.name}',
-              kind: mine ? GlassKind.primary : GlassKind.soft,
-              size: TuButtonSize.sm,
-              onTap: () {
-                HapticFeedback.selectionClick();
-                myVote.value = (option: o.id, at: tripNow());
-              },
-            ),
-          ]),
-        ),
+          ),
+          const Spacer(),
+          if (voters.isNotEmpty) Padding(padding: const EdgeInsets.only(right: TokSpace.sm), child: Voters(voters)),
+          TuButton(
+            icon: TuIcons.check,
+            label: mine ? 'Your vote: ${o.name}' : 'Vote for ${o.name}',
+            kind: mine ? GlassKind.primary : GlassKind.soft,
+            size: TuButtonSize.sm,
+            onTap: () {
+              HapticFeedback.selectionClick();
+              myVote.value = (option: o.id, at: tripNow());
+            },
+          ),
+        ]),
       ]),
     );
   }
@@ -362,7 +362,8 @@ class PollPage extends StatelessWidget {
             opacity: !open && chosen != null && !won ? TokDim.pollLostOpacity : 1,
             child: Container(
               padding: const EdgeInsets.all(TokSpace.sm),
-              decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.sheet)),
+              // Concentric with Vote, sm in from the corner
+              decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokDim.pollOptionRadius)),
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: TokSpace.sm, children: [
                 Row(spacing: TokSpace.sm, children: [
                   SizedBox(width: TokDim.stickerRow, child: Center(child: Sticker(o.sticker, size: StickerSize.row))),

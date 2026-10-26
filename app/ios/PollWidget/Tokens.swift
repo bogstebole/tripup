@@ -363,11 +363,11 @@ enum TokDim {
   static let buttonIcon: CGFloat = 16
   static let buttonPillHeight: CGFloat = 32
   static let iconStroke: CGFloat = 2
-  static let surfaceRadius: CGFloat = 24
+  static let surfaceRadius: CGFloat = 44
   static let surfaceEdgeWidth: CGFloat = 1
   static let chipHeight: CGFloat = 40
   static let chipGap: CGFloat = 2
-  static let chipRadius: CGFloat = 16
+  static let chipRadius: CGFloat = 20
   static let chipFaceOverlap: CGFloat = 10
   static let scanPaperWidth: CGFloat = 296
   static let scanCorner: CGFloat = 24
@@ -472,6 +472,17 @@ enum TokDim {
   static let webFrameRadius: CGFloat = 40
   static let webFrameMinWindow: CGFloat = 600
   static let webFrameMargin: CGFloat = 24
+  static let surfaceHeadInset: CGFloat = 24
+  static let surfaceHeadSide: CGFloat = 16
+  static let surfaceFootInset: CGFloat = 16
+  static let surfaceFootSide: CGFloat = 8
+  static let widgetMidRadius: CGFloat = 28
+  static let homeCardPadding: CGFloat = 29
+  static let homeCardRadius: CGFloat = 51
+  static let homeNowPillInset: CGFloat = 4
+  static let pollPlaceRadius: CGFloat = 28
+  static let pollRadius: CGFloat = 36
+  static let pollOptionRadius: CGFloat = 34
 }
 
 enum TokText {

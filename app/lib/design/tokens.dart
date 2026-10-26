@@ -375,11 +375,11 @@ abstract final class TokDim {
   static const double buttonIcon = 16;
   static const double buttonPillHeight = 32;
   static const double iconStroke = 2;
-  static const double surfaceRadius = 24;
+  static const double surfaceRadius = 44;
   static const double surfaceEdgeWidth = 1;
   static const double chipHeight = 40;
   static const double chipGap = 2;
-  static const double chipRadius = 16;
+  static const double chipRadius = 20;
   static const double chipFaceOverlap = 10;
   static const double scanPaperWidth = 296;
   static const double scanCorner = 24;
@@ -484,6 +484,17 @@ abstract final class TokDim {
   static const double webFrameRadius = 40;
   static const double webFrameMinWindow = 600;
   static const double webFrameMargin = 24;
+  static const double surfaceHeadInset = 24;
+  static const double surfaceHeadSide = 16;
+  static const double surfaceFootInset = 16;
+  static const double surfaceFootSide = 8;
+  static const double widgetMidRadius = 28;
+  static const double homeCardPadding = 29;
+  static const double homeCardRadius = 51;
+  static const double homeNowPillInset = 4;
+  static const double pollPlaceRadius = 28;
+  static const double pollRadius = 36;
+  static const double pollOptionRadius = 34;
 }
 
 abstract final class TokFont {

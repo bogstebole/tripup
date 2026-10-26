@@ -10,6 +10,8 @@ import 'progressive_blur.dart';
 
 /// One of the footer's pop-ups (itinerary, money, add): the full view's surface, a header with Back (for a step inside
 /// it), the title and Close on one line, a page that scrolls up under the header, and a footer with the page's actions.
+/// Its corners are concentric with what sits in them: the footer's big buttons [TokDim.surfaceFootInset] in, the
+/// header's round buttons [TokDim.surfaceHeadInset] in, both a radius of [TokDim.surfaceRadius] around.
 /// Every pop-up is built the same way: going back and closing in the header, doing things in the footer. It rises from
 /// the bottom (see TripScreen); the header is also a handle for pulling it back down.
 class TripSheet extends StatefulWidget {
@@ -54,8 +56,9 @@ class TripSheet extends StatefulWidget {
   /// What [top] adds to the header: a gap, then a row of toggle chips.
   static const double topHeight = TokSpace.sm + TokDim.toggleChipHeight;
 
-  /// The header's height: its top inset, then the taller of the title and the buttons, on one line.
-  static double get headerHeight => TokSpace.xs + math.max(TokText.headingMd.fontSize! * TokText.headingMd.height!, TokDim.buttonSm);
+  /// The header's height: its top inset (the buttons sit concentric with the corners), then the taller of the title
+  /// and the buttons, on one line.
+  static double get headerHeight => TokDim.surfaceHeadInset + math.max(TokText.headingMd.fontSize! * TokText.headingMd.height!, TokDim.buttonSm);
 
   @override
   State<TripSheet> createState() => _TripSheetState();
@@ -147,16 +150,17 @@ class _TripSheetState extends State<TripSheet> {
                   onVerticalDragUpdate: widget.onHeaderDragUpdate,
                   onVerticalDragEnd: widget.onHeaderDragEnd,
                   child: Padding(
-                    padding: const EdgeInsets.only(top: TokSpace.xs),
+                    padding: const EdgeInsets.only(top: TokDim.surfaceHeadInset),
                     child: Row(children: [
-                      // A step back slides in before the title (and out again), the title moving over for it
+                      // A step back slides in before the title (and out again), the title moving over for it; the
+                      // buttons sit as far in from the sides as from the top, so they're concentric with the corners
                       AnimatedSize(
                         duration: TokMotion.enter,
                         curve: TokMotion.easeOut,
                         child: widget.onBack == null
                             ? const SizedBox.shrink()
                             : Padding(
-                                padding: const EdgeInsets.only(right: TokSpace.x2xs),
+                                padding: const EdgeInsets.only(left: TokDim.surfaceHeadSide, right: TokSpace.x2xs),
                                 child: TuButton(icon: TuIcons.back, label: 'Back', size: TuButtonSize.sm, onTap: widget.onBack),
                               ),
                       ),
@@ -175,7 +179,10 @@ class _TripSheetState extends State<TripSheet> {
                           ),
                         ),
                       ),
-                      TuButton(icon: TuIcons.close, label: 'Close', size: TuButtonSize.sm, onTap: widget.onClose),
+                      Padding(
+                        padding: const EdgeInsets.only(right: TokDim.surfaceHeadSide),
+                        child: TuButton(icon: TuIcons.close, label: 'Close', size: TuButtonSize.sm, onTap: widget.onClose),
+                      ),
                     ]),
                   ),
                 ),
@@ -226,7 +233,8 @@ class _TripSheetState extends State<TripSheet> {
 
 /// A pop-up's bottom, in view while its page scrolls: what to do there, as buttons (one wide, or several stacked or side
 /// by side), with what they need above them (Money's total) or a line under them. Every pop-up's actions are here;
-/// going back and closing are in the header.
+/// going back and closing are in the header. Its big buttons sit [TokDim.surfaceFootInset] in from the sheet's sides
+/// and bottom, concentric with its corners.
 class SheetFooter extends StatelessWidget {
   const SheetFooter({super.key, required this.children, this.note});
   final List<Widget> children;
@@ -244,7 +252,7 @@ class SheetFooter extends StatelessWidget {
             Text(note!, textAlign: TextAlign.center, style: TokText.bodySm.copyWith(color: t.textMuted)),
           ]);
     return Container(
-      padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.sm, TokSpace.xs, TokSpace.md),
+      padding: const EdgeInsets.fromLTRB(TokDim.surfaceFootSide, TokSpace.sm, TokDim.surfaceFootSide, TokDim.surfaceFootInset),
       decoration: BoxDecoration(border: Border(top: BorderSide(color: t.borderDefault, width: TokDim.surfaceEdgeWidth))),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: TokSpace.md, children: [...children.take(children.length - 1), last]),
     );
