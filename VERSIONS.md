@@ -659,7 +659,7 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - Bogdan: after 1.60 the top (24) looked bigger than the sides (16). Everything in a sheet now sits 24 from every edge, and the sheet's radius is 48 (DECISIONS, Concentric corners).
 - New tokens `surface/inset` (24) and `surface/body-side` (16, the sheet's own padding, rows add their 8). `surface/radius`, `head-inset`, `foot-inset`, `head-side` and `foot-side` follow from them. `build-tokens.mjs` takes a bare component dimension (`{surface/inset}`).
 - App, Storybook (TripSheet, DetailSheet) and Figma (the variables; the 22 Pop-up and Full view frames' side padding bound to `surface/body-side`).
-- Checked: the iPhone 17 Pro Max simulator (Overview, Money); Figma Money and Overview. Not yet on Bogdan's iPhone 15 (it couldn't be reached; the release build is ready).
+- Checked: the iPhone 17 Pro Max simulator (Overview, Money); Figma Money and Overview. Installed on Bogdan's iPhone 15.
 
 ### Final UI, iteration 1.60: one side edge for sheets (branch `fix/sheet-edge-alignment`)
 - Bogdan: the sheet header was lopsided (title 16 in, × 24 in) and didn't line up with the content or the footer. The header's title, Back, tabs and × now sit 16 from the sides, like every row and the footer's buttons; 24 from the top stays (DECISIONS, Concentric corners).
