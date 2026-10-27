@@ -284,7 +284,7 @@
   --d-action-bar-fade-start: 0;
   --d-splash-dot-scale: 4;
   --d-splash-word: 52px;
-  --d-splash-word-gap: 16px;
+  --d-splash-word-gap: 40px;
   --d-splash-sticker: 40px;
   --d-splash-slide: 160px;
   --d-bank-radius: 12px;
@@ -338,12 +338,13 @@
   --pin-in-at: 0.55;
   --pin-mini-at: 0.35;
   --splash-pop-from: 0.6;
-  --splash-word-at-ms: 220ms;
-  --splash-stickers-at-ms: 80ms;
-  --splash-sticker-stagger-ms: 50ms;
-  --splash-stickers-out-at-ms: 800ms;
-  --splash-leave-at-ms: 1400ms;
-  --splash-leave-stagger-ms: 60ms;
+  --splash-word-at-ms: 330ms;
+  --splash-stickers-at-ms: 120ms;
+  --splash-sticker-stagger-ms: 75ms;
+  --splash-stickers-out-at-ms: 1200ms;
+  --splash-leave-at-ms: 2100ms;
+  --splash-leave-stagger-ms: 90ms;
+  --splash-leave-ms: 400ms;
   --face-id-ms: 900ms;
   --approved-ms: 600ms;
   --swap-in-at: 0.4;

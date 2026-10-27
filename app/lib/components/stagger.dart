@@ -17,6 +17,8 @@ class StaggerIn extends StatefulWidget {
     this.crossAxisAlignment = CrossAxisAlignment.stretch,
     this.from = const Offset(0, TokDim.tabEnterShift),
     this.delay = Duration.zero,
+    this.duration = TokMotion.enter,
+    this.stagger = TokMotion.stagger,
     this.until,
   });
   final List<Widget> children;
@@ -26,6 +28,9 @@ class StaggerIn extends StatefulWidget {
   /// Where each child starts, relative to its place.
   final Offset from;
   final Duration delay;
+
+  /// How long each child takes, and how far apart they start.
+  final Duration duration, stagger;
 
   /// Holds the children back (not there yet) until this is true: Your trips under the splash.
   final ValueListenable<bool>? until;
@@ -39,7 +44,7 @@ class _StaggerInState extends State<StaggerIn> with SingleTickerProviderStateMix
 
   // Past the first few, the rest come in together with the last one, so a long list doesn't drag on
   int get _steps => widget.children.length.clamp(1, TokMotion.staggerMax);
-  Duration get _total => widget.delay + TokMotion.enter + TokMotion.stagger * (TokMotion.staggerMax - 1);
+  Duration get _total => widget.delay + widget.duration + widget.stagger * (TokMotion.staggerMax - 1);
 
   @override
   void initState() {
@@ -80,8 +85,8 @@ class _StaggerInState extends State<StaggerIn> with SingleTickerProviderStateMix
       children: [
         for (var i = 0; i < widget.children.length; i++)
           () {
-            final start = (widget.delay + TokMotion.stagger * (i < _steps ? i : _steps - 1)).inMicroseconds / total;
-            final end = start + TokMotion.enter.inMicroseconds / total;
+            final start = (widget.delay + widget.stagger * (i < _steps ? i : _steps - 1)).inMicroseconds / total;
+            final end = start + widget.duration.inMicroseconds / total;
             final anim = CurvedAnimation(parent: _c, curve: Interval(start, end.clamp(0.0, 1.0), curve: TokMotion.easeOut));
             return AnimatedBuilder(
               animation: anim,

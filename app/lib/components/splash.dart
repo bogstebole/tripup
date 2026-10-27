@@ -15,8 +15,8 @@ import 'plan_pin.dart' show lerpDouble, smoothstep;
 /// Whether the app opens with the splash. The perf and Figma drivers turn it off.
 bool splashOnStart = true;
 
-/// The splash, on Your trips' blue (the launch screen's, so there's no cut). My dot pops in, the app's icon, and small
-/// stickers pop up one after another at random spots all over the screen; "TripUp" comes in under the dot. The
+/// The splash, on Your trips' blue (the launch screen's, so there's no cut). My dot pops in, the app's icon, and breathes
+/// like my location on the map; small stickers pop up one after another at random spots all over the screen; "TripUp" comes in under the dot. The
 /// stickers pop away the way they came, in the same order. Then the dot and TripUp slide out to the left, one after
 /// the other, and Your trips slides in from the right, a row at a time. Under 2 s; a tap skips to the leaving. With
 /// reduced motion the app has none (see TripScreen).
@@ -42,8 +42,12 @@ class _SplashState extends State<Splash> with TickerProviderStateMixin {
   late final _dot = AnimationController.unbounded(vsync: this);
   late final _word = AnimationController(vsync: this, duration: TokMotion.enter);
 
+  /// The dot's blue breathes, as my location does on the map (MeMarker).
+  late final _breathe = AnimationController(vsync: this, duration: TokMotion.pulse);
+  late final _blue = Tween(begin: 1.0, end: TokDim.mePulseScale).animate(CurvedAnimation(parent: _breathe, curve: TokMotion.easeBreathe));
+
   /// 0 → 1 as the dot, then TripUp, slide out.
-  late final _leave = AnimationController(vsync: this, duration: TokMotion.enter + TokMotion.splashLeaveStagger);
+  late final _leave = AnimationController(vsync: this, duration: TokMotion.splashLeave + TokMotion.splashLeaveStagger);
   final _markKey = GlobalKey();
   final _timers = <Timer>[];
   final _random = math.Random();
@@ -70,7 +74,11 @@ class _SplashState extends State<Splash> with TickerProviderStateMixin {
   void _start() {
     _scatter();
     springTo(_dot, 1, TokMotion.springPop);
-    _after(TokMotion.splashWordAt, _word.forward);
+    // Breathing once it has popped in, as TripUp comes
+    _after(TokMotion.splashWordAt, () {
+      _word.forward();
+      _breathe.repeat(reverse: true);
+    });
     for (final (i, c) in _pops.indexed) {
       _after(TokMotion.splashStickersAt + TokMotion.splashStickerStagger * i, () => springTo(c, 1, TokMotion.springPop));
       _after(TokMotion.splashStickersOutAt + TokMotion.splashStickerStagger * i, () => springTo(c, 0, TokMotion.springPop));
@@ -125,7 +133,7 @@ class _SplashState extends State<Splash> with TickerProviderStateMixin {
     }
     setState(() {});
     // Your trips comes in once TripUp is half way out, so the two don't read over each other
-    _after(TokMotion.splashLeaveStagger + TokMotion.enter ~/ 2, widget.onLeave);
+    _after(TokMotion.splashLeaveStagger + TokMotion.splashLeave ~/ 2, widget.onLeave);
     _leave.forward().whenCompleteOrCancel(() {
       if (mounted) widget.onDone();
     });
@@ -138,6 +146,7 @@ class _SplashState extends State<Splash> with TickerProviderStateMixin {
     }
     _dot.dispose();
     _word.dispose();
+    _breathe.dispose();
     _leave.dispose();
     for (final c in _pops) {
       c.dispose();
@@ -155,8 +164,8 @@ class _SplashState extends State<Splash> with TickerProviderStateMixin {
         animation: Listenable.merge([_dot, _word, _leave, ..._pops]),
         builder: (context, _) {
           final pop = _dot.value, word = TokMotion.easeOut.transform(_word.value);
-          // Each slides for enter-ms, TripUp splash-leave-stagger-ms after the dot
-          final step = TokMotion.enter.inMicroseconds / _leave.duration!.inMicroseconds;
+          // Each slides for splash-leave-ms, TripUp splash-leave-stagger-ms after the dot
+          final step = TokMotion.splashLeave.inMicroseconds / _leave.duration!.inMicroseconds;
           final dotOut = Interval(0, step, curve: TokMotion.easeOut).transform(_leave.value);
           final wordOut = Interval(1 - step, 1, curve: TokMotion.easeOut).transform(_leave.value);
           return Stack(clipBehavior: Clip.none, children: [
@@ -172,7 +181,7 @@ class _SplashState extends State<Splash> with TickerProviderStateMixin {
                       opacity: smoothstep(0, 0.5, pop),
                       child: Transform.scale(
                         scale: lerpDouble(TokMotion.splashPopFrom, 1, pop),
-                        child: SizedBox.square(dimension: TokDim.meDot * TokDim.splashDotScale, child: const FittedBox(child: MeDot(ring: true))),
+                        child: SizedBox.square(dimension: TokDim.meDot * TokDim.splashDotScale, child: FittedBox(child: MeDot(ring: true, breathe: _blue))),
                       ),
                     ),
                   ),
