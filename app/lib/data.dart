@@ -250,22 +250,25 @@ const plans = [
 
 /// Places already visited: stickers on the map, the trip's history.
 class Visited {
-  const Visited(this.name, this.sticker, this.at, this.tilt, this.day);
+  const Visited(this.name, this.sticker, this.at, this.tilt, this.day, this.kind);
   final String name, sticker;
+
+  /// What kind of place it is (Church, Park), under its name on Ren's catch-up.
+  final String kind;
   final LatLng at;
   final double tilt;
   final int day;
 }
 
 const visited = [
-  Visited('Igreja de São João de Brito', 'azulejo', LatLng(38.7560, -9.1462), -5, 12),
-  Visited('Jardim do Campo Grande', 'galo', LatLng(38.7600, -9.1500), 6, 12),
-  Visited('Estádio José Alvalade', 'caravel', LatLng(38.7612, -9.1608), -4, 12),
-  Visited('Teatro Maria Matos', 'guitar', LatLng(38.7465, -9.1390), -10, 12),
-  Visited('Pastelaria Versailles', 'nata', LatLng(38.7395, -9.1458), -8, 13),
-  Visited('Mercado de Arroios', 'sardine-tin', LatLng(38.7340, -9.1350), 4, 13),
-  Visited('Torre de Belém', 'belem', LatLng(38.6916, -9.2160), -6, 13),
-  Visited('Padrão dos Descobrimentos', 'padrao', LatLng(38.6936, -9.2057), 5, 13),
+  Visited('Igreja de São João de Brito', 'sao-joao-de-brito', LatLng(38.7560, -9.1462), -5, 12, 'Church'),
+  Visited('Jardim do Campo Grande', 'campo-grande', LatLng(38.7600, -9.1500), 6, 12, 'Park'),
+  Visited('Estádio José Alvalade', 'alvalade', LatLng(38.7612, -9.1608), -4, 12, 'Stadium'),
+  Visited('Teatro Maria Matos', 'maria-matos', LatLng(38.7465, -9.1390), -10, 12, 'Theatre'),
+  Visited('Pastelaria Versailles', 'versailles', LatLng(38.7395, -9.1458), -8, 13, 'Café'),
+  Visited('Mercado de Arroios', 'mercado-arroios', LatLng(38.7340, -9.1350), 4, 13, 'Market'),
+  Visited('Torre de Belém', 'belem', LatLng(38.6916, -9.2160), -6, 13, 'Tower'),
+  Visited('Padrão dos Descobrimentos', 'padrao', LatLng(38.6936, -9.2057), 5, 13, 'Monument'),
 ];
 
 const me = LatLng(38.7478, -9.1475);

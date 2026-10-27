@@ -43,7 +43,8 @@ class TripSheet extends StatefulWidget {
 
   final String title;
 
-  /// A line on what the pop-up is for, at the top of its page (not in the header, so the header stays one line).
+  /// A line under the title, in the header: a fact about what's in the pop-up (the trip's dates, who the money goes
+  /// to, the poll's state), not a description of it.
   final String? subtitle;
 
   /// The page, top to bottom. The sheet scrolls it, and opens at its top.
@@ -77,7 +78,18 @@ class _TripSheetState extends State<TripSheet> {
     if (old.title != widget.title && _scroll.hasClients) _scroll.jumpTo(0);
   }
 
-  double get _header => TripSheet.headerHeight + (widget.top != null ? TripSheet.topHeight : 0);
+  /// The header's height at this width: the title line, then the subtitle (wrapped between the buttons) when there's one.
+  double _headOf(BuildContext context, double width) {
+    final row = TripSheet.headerHeight - TokDim.surfaceHeadInset, title = TokText.headingMd.fontSize! * TokText.headingMd.height!;
+    if (widget.subtitle == null) return TripSheet.headerHeight;
+    final words = width - (widget.onBack != null ? TokDim.surfaceHeadSide + TokDim.buttonSm + TokSpace.x2xs : 0) - TokSpace.xs - TokSpace.md - TokDim.buttonSm - TokDim.surfaceHeadSide;
+    final sub = TextPainter(
+      text: TextSpan(text: widget.subtitle, style: TokText.bodySm),
+      textDirection: TextDirection.ltr,
+      textScaler: MediaQuery.textScalerOf(context),
+    )..layout(maxWidth: math.max(0, words));
+    return TokDim.surfaceHeadInset + math.max(row, (row - title) / 2 + title + TokSpace.x3xs + sub.height);
+  }
 
   @override
   void dispose() {
@@ -89,7 +101,15 @@ class _TripSheetState extends State<TripSheet> {
   @override
   Widget build(BuildContext context) {
     final t = context.tok;
-    final header = _header, solid = header / (header + TokDim.sheetTopFade);
+    return LayoutBuilder(builder: (context, outer) {
+    final head = _headOf(context, outer.maxWidth - TokDim.surfaceBodySide * 2);
+    // A step with a longer subtitle (Money to Pay) moves the page down with the header, on screen: ease in and out
+    return TweenAnimationBuilder<double>(
+      tween: Tween(end: head + (widget.top != null ? TripSheet.topHeight : 0)),
+      duration: TokMotion.enter,
+      curve: TokMotion.easeInOut,
+      builder: (context, header, _) {
+    final solid = header / (header + TokDim.sheetTopFade);
     return DecoratedBox(
       decoration: surfaceDecoration(context, BorderRadius.circular(TokDim.surfaceRadius)),
       child: ClipRRect(
@@ -116,10 +136,10 @@ class _TripSheetState extends State<TripSheet> {
                         physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
                         padding: pad,
                         child: !widget.centered
-                            ? Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [_subtitle(context), widget.child])
+                            ? widget.child
                             : ConstrainedBox(
                                 constraints: BoxConstraints(minHeight: math.max(0, box.maxHeight - pad.vertical)),
-                                child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [_subtitle(context), widget.child])),
+                                child: Center(child: widget.child),
                               ),
                       );
                     },
@@ -151,7 +171,7 @@ class _TripSheetState extends State<TripSheet> {
                   onVerticalDragEnd: widget.onHeaderDragEnd,
                   child: Padding(
                     padding: const EdgeInsets.only(top: TokDim.surfaceHeadInset),
-                    child: Row(children: [
+                    child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       // A step back slides in before the title (and out again), the title moving over for it; the
                       // buttons and the title sit 24 from the sides, on the same edge as the content and the footer
                       AnimatedSize(
@@ -166,17 +186,14 @@ class _TripSheetState extends State<TripSheet> {
                       ),
                       Expanded(
                         child: Padding(
-                          padding: const EdgeInsets.fromLTRB(TokSpace.xs, 0, TokSpace.md, 0),
-                          // A new title fades in once the old one has mostly gone (a step inside the pop-up), so they never read
-                          // over each other
-                          child: AnimatedSwitcher(
-                            duration: TokMotion.enter,
-                            reverseDuration: TokMotion.fade,
-                            switchInCurve: TokMotion.swapIn,
-                            switchOutCurve: TokMotion.easeOut,
-                            layoutBuilder: (current, previous) => Stack(alignment: Alignment.centerLeft, children: [...previous, ?current]),
-                            child: Text(widget.title, key: ValueKey(widget.title), maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingMd.copyWith(color: t.textDefault)),
-                          ),
+                          padding: EdgeInsets.fromLTRB(TokSpace.xs, _titleTop, TokSpace.md, 0),
+                          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: TokSpace.x3xs, children: [
+                            // A new title fades in once the old one has mostly gone (a step inside the pop-up), so they
+                            // never read over each other
+                            _swap(Text(widget.title, key: ValueKey(widget.title), maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingMd.copyWith(color: t.textDefault))),
+                            if (widget.subtitle != null)
+                              _swap(Text(widget.subtitle!, key: ValueKey(widget.subtitle), style: TokText.bodySm.copyWith(color: t.textMuted))),
+                          ]),
                         ),
                       ),
                       Padding(
@@ -188,7 +205,7 @@ class _TripSheetState extends State<TripSheet> {
                 ),
               ),
               if (widget.top != null)
-                Positioned(left: 0, right: 0, top: TripSheet.headerHeight + TokSpace.sm, height: TokDim.toggleChipHeight, child: widget.top!),
+                Positioned(left: 0, right: 0, top: header - TripSheet.topHeight + TokSpace.sm, height: TokDim.toggleChipHeight, child: widget.top!),
             ]),
           )),
             ?widget.footer,
@@ -196,23 +213,22 @@ class _TripSheetState extends State<TripSheet> {
         ),
       ),
     );
+      },
+    );
+    });
   }
 
-  /// The pop-up's line at the top of its page, lined up with the page's text; when a step changes it, the new line
-  /// comes in once the old one has mostly gone.
-  Widget _subtitle(BuildContext context) => AnimatedSwitcher(
+  /// How far the title sits down from the top of the buttons, so the two share a centre line.
+  static double get _titleTop => (TripSheet.headerHeight - TokDim.surfaceHeadInset - TokText.headingMd.fontSize! * TokText.headingMd.height!) / 2;
+
+  /// A new line comes in once the old one has mostly gone, so they never read over each other.
+  Widget _swap(Widget child) => AnimatedSwitcher(
         duration: TokMotion.enter,
         reverseDuration: TokMotion.fade,
         switchInCurve: TokMotion.swapIn,
         switchOutCurve: TokMotion.easeOut,
         layoutBuilder: (current, previous) => Stack(alignment: Alignment.topLeft, children: [...previous, ?current]),
-        child: widget.subtitle == null
-            ? const SizedBox(key: ValueKey(null), width: double.infinity)
-            : Padding(
-                key: ValueKey(widget.subtitle),
-                padding: const EdgeInsets.fromLTRB(TokSpace.xs, 0, TokSpace.xs, TokSpace.md),
-                child: Text(widget.subtitle!, style: TokText.bodySm.copyWith(color: context.tok.textMuted)),
-              ),
+        child: child,
       );
 
   /// The page fades out over its last few pixels at the bottom instead of being cut off.
@@ -299,9 +315,8 @@ class SheetRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tok;
-    // A thumbnail's muted square sits a little further out than the text around it, so its picture lines up instead
     final row = Padding(
-      padding: EdgeInsets.symmetric(horizontal: leading is RowThumb ? TokSpace.x3xs : TokSpace.xs, vertical: TokSpace.xs + TokSpace.x3xs),
+      padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs, vertical: TokSpace.sm),
       child: Row(spacing: TokSpace.sm, children: [
         ?leading,
         Expanded(
@@ -318,7 +333,8 @@ class SheetRow extends StatelessWidget {
 }
 
 /// A place's thumbnail at the start of a [SheetRow]: its sticker (or an icon, for what has no place yet) on a muted
-/// square, so stickers and icons read as the same kind of thing down a list.
+/// square, so stickers and icons read as the same kind of thing down a list. The sticker is the row's full height,
+/// cut off by the square's corners.
 class RowThumb extends StatelessWidget {
   const RowThumb({super.key, this.sticker, this.icon, this.tilt = 0});
   final String? sticker;
@@ -333,8 +349,9 @@ class RowThumb extends StatelessWidget {
       width: TokDim.stickerRow,
       height: TokDim.stickerRow,
       alignment: Alignment.center,
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.control)),
-      child: sticker != null ? Sticker(sticker!, size: StickerSize.mini, tilt: tilt) : LucideIcon(icon!, size: TokSize.iconMd, color: t.iconBrand),
+      child: sticker != null ? Sticker(sticker!, size: StickerSize.row, tilt: tilt) : LucideIcon(icon!, size: TokSize.iconMd, color: t.iconBrand),
     );
   }
 }

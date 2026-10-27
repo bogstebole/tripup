@@ -9,6 +9,8 @@
 .tu-day-block__line { padding: var(--space-xs) 0; }
 .tu-day { display: flex; align-items: center; gap: var(--space-xs); padding: 0 var(--space-xs) var(--space-2xs); }
 .tu-day h3 { margin: 0; }
+/* Today's tag at the far end of the line */
+.tu-day .tu-tag { margin-left: auto; }
 .tu-day__empty { padding: var(--space-xs); color: var(--color-text-muted); }
 /* A small brand pill next to a heading */
 .tu-tag { padding: var(--space-3xs) var(--space-xs); border-radius: var(--radius-pill); background: var(--color-bg-brand-subtle); color: var(--color-text-brand); }

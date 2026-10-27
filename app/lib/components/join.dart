@@ -176,16 +176,6 @@ class _JoinFlowState extends State<JoinFlow> {
             title: 'Alfama flat',
             subtitle: 'Airbnb · until ${tripDays.last} May · ${personById('maya').name} booked it',
           )),
-          SheetSection('Been so far', subtitle: '${visited.length} places in $days days'),
-          _card(context, Padding(
-            padding: const EdgeInsets.all(TokSpace.x3xs + TokSpace.xs),
-            // One line of thumbnails, shrunk to fit on a narrower phone rather than leaving one alone on a second line
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Row(spacing: TokSpace.xs, children: [for (final v in visited) RowThumb(sticker: v.sticker, tilt: v.tilt)]),
-            ),
-          )),
           const SheetSection('Coming up'),
           _card(context, Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             if (undecided)
@@ -197,6 +187,17 @@ class _JoinFlowState extends State<JoinFlow> {
               ),
             for (final p in next) SheetRow(leading: RowThumb(sticker: p.sticker), title: p.name, subtitle: p.startsAt),
           ])),
+          SheetSection('Been so far', subtitle: '${visited.length} places in $days days'),
+          // Two to a row, each with its name and what it is, so he can see what they've done; the page scrolls
+          Column(spacing: TokSpace.xs, children: [
+            for (var i = 0; i < visited.length; i += 2)
+              IntrinsicHeight(
+                child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: TokSpace.xs, children: [
+                  Expanded(child: _PlaceTile(visited[i])),
+                  Expanded(child: i + 1 < visited.length ? _PlaceTile(visited[i + 1]) : const SizedBox.shrink()),
+                ]),
+              ),
+          ]),
           const SheetSection('Money'),
           _card(context, Padding(
             padding: const EdgeInsets.all(TokSpace.sm),
@@ -219,6 +220,37 @@ class _JoinFlowState extends State<JoinFlow> {
         ),
       ),
     ]);
+  }
+}
+
+/// A place they've been, on Ren's catch-up: its sticker on a muted block, then its name and what it is, and the day.
+class _PlaceTile extends StatelessWidget {
+  const _PlaceTile(this.place);
+  final Visited place;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tok;
+    return _card(context, Padding(
+      padding: const EdgeInsets.all(TokSpace.x2xs),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Container(
+          height: TokDim.recapPlacePhoto,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.control)),
+          padding: const EdgeInsets.all(TokSpace.sm),
+          // A wide place (the stadium) gets narrower instead of running off the block
+          child: FittedBox(fit: BoxFit.scaleDown, child: Sticker(place.sticker, height: TokDim.recapPlaceSticker, tilt: place.tilt)),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(TokSpace.x2xs, TokSpace.sm, TokSpace.x2xs, TokSpace.xs),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x3xs, children: [
+            Text(place.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: TokText.labelLg.copyWith(color: t.textDefault)),
+            Text('${place.kind} · ${weekdayShort(DateTime(tripYear, tripMonth, place.day))} ${place.day}', style: TokText.bodySm.copyWith(color: t.textMuted)),
+          ]),
+        ),
+      ]),
+    ));
   }
 }
 

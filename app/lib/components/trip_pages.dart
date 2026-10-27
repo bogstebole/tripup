@@ -87,7 +87,8 @@ class ItineraryPage extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(TokSpace.xs, 0, TokSpace.xs, TokSpace.x2xs),
               child: Row(spacing: TokSpace.xs, children: [
                 Text('${weekdayShort(DateTime(tripYear, tripMonth, day))} $day', style: TokText.headingSm.copyWith(color: day < today ? t.textMuted : t.textDefault)),
-                Text('Day ${tripDays.indexOf(day) + 1}', style: TokText.bodySm.copyWith(color: t.textMuted)),
+                // Today's tag at the far end of the line
+                Expanded(child: Text('Day ${tripDays.indexOf(day) + 1}', style: TokText.bodySm.copyWith(color: t.textMuted))),
                 if (day == today) _Tag('Today'),
               ]),
             ),

@@ -655,6 +655,13 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Final UI, iteration 1.75: subtitles in the header, Ren's places in a grid with real stickers (branch `feat/header-subtitle`)
+- Bogdan: move the intro lines that carry facts (the itinerary's dates, Pay, the bank, the poll) into the header under the title; on Ren's page, Coming up before Been so far, and Been so far as a grid of two with a clear name and what each place is, ideally a real photo of it as a sticker.
+- From Bogdan's Sheet row in his Figma copy (`aQVG7fNUtl2TbvvEkbbKsI`, node 110:2890): the sticker fills the muted square (row height, clipped), rows stay 12/8, Today's tag at the end of the day's line, 8 around the day line. 1.74's 10/2 rows are undone.
+- App: `TripSheet` lays the subtitle out under the title and grows the header for it (measured at its width, the page eases down with it); `Visited` gets a kind; Ren's recap reordered with a `_PlaceTile` grid; new tokens `recap/place-photo` 128 and `recap/place-sticker` 88. Storybook the same (the header measured with a ResizeObserver).
+- New stickers: `sao-joao-de-brito`, `campo-grande`, `alvalade`, `maria-matos`, `versailles`, `mercado-arroios` (full size in `Assets/stickers-app-full/`, credits in `Assets/stickers-places-credits.md`).
+- **Checked:** in a web build at 440 wide (Itinerary, Pay Maya, Your bank, the poll, Ren's trip so far scrolled to the end) and in Storybook (the same, plus the stickers in the grid).
+
 ### Final UI, iteration 1.74: list thumbnails, tighter rows, Ren's recap in cards (branch `feat/sheet-polish`)
 - Bogdan: drop the intro line under Add to the trip and Plan something; Sheet row thumbnails on a muted background, 10 vertical padding, 2 at the side, 8 around the day dividers (was 16); Ren's trip so far looked empty and odd with icons where thumbnails should be.
 - App: `RowThumb` (new, in `trip_sheet.dart`) in the itinerary, Plan something's places and Ren's recap; Sheet row padding; the day line; Add's header lines gone; Ren's recap on cards. Storybook the same (`RowThumb`, `.tu-join__card`).

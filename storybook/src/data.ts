@@ -252,17 +252,17 @@ export const planDetails = (p: Plan) =>
     ? { ...EVENT, at: p.at }
     : { name: p.name, sticker: p.sticker, at: p.at, rating: p.rating ?? '', cuisine: p.cuisine ?? '', photos: [], about: '', tips: [], whenLong: whenLong(planStart(p)) };
 
-/** Places already visited: stickers on the map, the trip's history (tilt in degrees). */
-export type Visited = { name: string; sticker: string; tilt: number; day: number };
+/** Places already visited: stickers on the map, the trip's history (tilt in degrees; kind under the name on Ren's catch-up). */
+export type Visited = { name: string; sticker: string; tilt: number; day: number; kind: string };
 export const VISITED: Visited[] = [
-  { name: 'Igreja de São João de Brito', sticker: 'azulejo', tilt: -5, day: 12 },
-  { name: 'Jardim do Campo Grande', sticker: 'galo', tilt: 6, day: 12 },
-  { name: 'Estádio José Alvalade', sticker: 'caravel', tilt: -4, day: 12 },
-  { name: 'Teatro Maria Matos', sticker: 'guitar', tilt: -10, day: 12 },
-  { name: 'Pastelaria Versailles', sticker: 'nata', tilt: -8, day: 13 },
-  { name: 'Mercado de Arroios', sticker: 'sardine-tin', tilt: 4, day: 13 },
-  { name: 'Torre de Belém', sticker: 'belem', tilt: -6, day: 13 },
-  { name: 'Padrão dos Descobrimentos', sticker: 'padrao', tilt: 5, day: 13 },
+  { name: 'Igreja de São João de Brito', sticker: 'sao-joao-de-brito', tilt: -5, day: 12, kind: 'Church' },
+  { name: 'Jardim do Campo Grande', sticker: 'campo-grande', tilt: 6, day: 12, kind: 'Park' },
+  { name: 'Estádio José Alvalade', sticker: 'alvalade', tilt: -4, day: 12, kind: 'Stadium' },
+  { name: 'Teatro Maria Matos', sticker: 'maria-matos', tilt: -10, day: 12, kind: 'Theatre' },
+  { name: 'Pastelaria Versailles', sticker: 'versailles', tilt: -8, day: 13, kind: 'Café' },
+  { name: 'Mercado de Arroios', sticker: 'mercado-arroios', tilt: 4, day: 13, kind: 'Market' },
+  { name: 'Torre de Belém', sticker: 'belem', tilt: -6, day: 13, kind: 'Tower' },
+  { name: 'Padrão dos Descobrimentos', sticker: 'padrao', tilt: 5, day: 13, kind: 'Monument' },
 ];
 
 // ---------- Money: what the trip has cost so far (the money pop-up)

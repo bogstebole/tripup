@@ -34,6 +34,8 @@
   scrollbar-width: none;
   /* Starts under the header; room at the end for the last row to scroll clear of the bottom fade */
   padding-top: calc(var(--header) + var(--space-md));
+  /* A step with a longer subtitle (Money to Pay) moves the page down with the header, on screen */
+  transition: padding-top var(--enter-ms) var(--ease-in-out);
   padding-bottom: calc(var(--d-sheet-fade) + var(--space-xs));
   /* Content scrolling past the bottom edge fades out over the last few px instead of being cut off */
   /* Eased over sheet/fade, not linear: the page melts into the bottom */
@@ -48,20 +50,21 @@
 /* The surface's white behind the header, solid to the header's bottom, then an eased fade (opacity follows the scroll) */
 .tu-trip-sheet__top-fade { grid-area: 1 / 1; align-self: start; z-index: 1; height: calc(var(--header) + var(--d-sheet-top-fade)); pointer-events: none; }
 
-/* One line: Back (for a step inside the pop-up), the title, Close, all on the buttons' centre line. The buttons sit as
-   surface/head-inset from the top and 24 from the sides, on the same edge as the content and the footer */
-.tu-trip-sheet__head { grid-area: 1 / 1; align-self: start; z-index: 2; display: flex; align-items: center; padding-top: var(--d-surface-head-inset); }
+/* Back (for a step inside the pop-up), the title, Close, on the buttons' centre line; a subtitle wraps under the title,
+   between the buttons. The buttons sit surface/head-inset from the top and 24 from the sides, on the same edge as the
+   content and the footer */
+.tu-trip-sheet__head { grid-area: 1 / 1; align-self: start; z-index: 2; display: flex; align-items: flex-start; padding-top: var(--d-surface-head-inset); }
 .tu-trip-sheet__head > .tu-btn:last-child { margin-right: var(--d-surface-head-side); }
 /* The back button's slot: cut at its right edge, so the button shows as the slot opens; room for its shadow
    everywhere else */
 .tu-trip-sheet__back { display: flex; flex: none; clip-path: inset(calc(var(--space-xl) * -1) 0 calc(var(--space-xl) * -1) calc(var(--space-xl) * -1)); }
 .tu-trip-sheet__back > .tu-btn { margin: 0 var(--space-2xs) 0 var(--d-surface-head-side); }
-/* The title; while a step changes it, the old and the new share the spot */
-.tu-trip-sheet__titles { flex: 1 1 0; min-width: 0; display: grid; align-items: center; padding: 0 var(--space-md) 0 var(--space-xs); color: var(--color-text-default); }
-.tu-trip-sheet__title { grid-area: 1 / 1; min-width: 0; }
+/* The title and the line under it; while a step changes one, the old and the new share the spot */
+.tu-trip-sheet__titles { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: var(--space-3xs); padding: calc((max(var(--text-heading-md--line-height), var(--d-button-sm)) - var(--text-heading-md--line-height)) / 2) var(--space-md) 0 var(--space-xs); color: var(--color-text-default); }
+.tu-trip-sheet__swap { display: grid; min-width: 0; }
+.tu-trip-sheet__swap > * { grid-area: 1 / 1; min-width: 0; }
 .tu-trip-sheet__title h2 { margin: 0; }
-/* The pop-up's line on what it's for, at the top of its page, lined up with the page's text */
-.tu-trip-sheet__intro { margin: 0; padding: 0 var(--space-xs) var(--space-md); color: var(--color-text-muted); }
+.tu-trip-sheet__sub { margin: 0; color: var(--color-text-muted); }
 
 /* A pop-up's bottom (SheetFooter): its actions, over a hairline; a line under the last one sits closer to it. Its big
    buttons are surface/foot-inset from the sheet's sides and bottom, concentric with its corners */
@@ -75,7 +78,7 @@
 .tu-sheet-section h3 { margin: 0; }
 .tu-sheet-section__sub { color: var(--color-text-muted); }
 
-.tu-sheet-row { display: flex; align-items: center; gap: var(--space-sm); width: 100%; padding: calc(var(--space-xs) + var(--space-3xs)) var(--space-xs); color: var(--color-text-default); text-align: left; }
+.tu-sheet-row { display: flex; align-items: center; gap: var(--space-sm); width: 100%; padding: var(--space-sm) var(--space-xs); color: var(--color-text-default); text-align: left; }
 .tu-sheet-row--tap { border-radius: var(--radius-card); transition: transform var(--press-ms) var(--ease-out); }
 .tu-sheet-row--tap:active { transform: scale(var(--press-scale)); }
 .tu-sheet-row--tap:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: calc(var(--space-3xs) * -1); }
@@ -87,5 +90,4 @@
 
 .tu-hairline { height: var(--d-surface-edge-width); margin: 0 var(--space-xs); background: var(--color-border-default); }
 .tu-slot { display: grid; place-items: center; flex: none; }
-.tu-sheet-row--thumb { padding-inline: var(--space-3xs); }
-.tu-row-thumb { display: grid; place-items: center; flex: none; width: var(--d-sticker-row); height: var(--d-sticker-row); border-radius: var(--radius-control); background: var(--color-bg-muted); }
+.tu-row-thumb { display: grid; place-items: center; flex: none; width: var(--d-sticker-row); height: var(--d-sticker-row); border-radius: var(--radius-control); overflow: hidden; background: var(--color-bg-muted); }

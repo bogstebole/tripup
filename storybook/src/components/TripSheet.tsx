@@ -1,6 +1,6 @@
 import { ArrowLeft, X } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion, type Variants } from 'motion/react';
-import { Children, isValidElement, useEffect, useRef, useState, type ReactNode } from 'react';
+import { Children, isValidElement, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import { Button } from './Button';
 import { easedFade } from './easedFade';
@@ -22,7 +22,8 @@ export interface TripSheetProps {
   title: string;
   /** It comes back in place (Back from a plan's details): already where it sits, so it doesn't rise. */
   inPlace?: boolean;
-  /** A line on what the pop-up is for, at the top of its page (not in the header, so the header stays one line). */
+  /** A line under the title, in the header: a fact about what's in the pop-up (the trip's dates, who the money goes
+   *  to, the poll's state), not a description of it. */
   subtitle?: string;
   /** The page, top to bottom. The sheet scrolls it, and opens at its top. */
   children: ReactNode;
@@ -43,8 +44,8 @@ export interface TripSheetProps {
 
 /**
  * One of the footer's pop-ups (itinerary, money, add): the full view's surface, a header with Back (for a step inside
- * it), the title and Close on one line, a page that scrolls up under the header (the pop-up's line on what it's for at
- * its top), and a footer with the page's actions. Every pop-up is built the same way: going back and closing in the
+ * it), the title and Close on one line (a line under the title when there's one), a page that scrolls up under the
+ * header, and a footer with the page's actions. Every pop-up is built the same way: going back and closing in the
  * header, doing things in the footer. It rises from the bottom in the full view's place, from
  * just past the bottom edge (its own height plus the inset), and goes back down quicker than it came; with reduced
  * motion it only fades. Put it in AnimatePresence so it can leave; with `custom` true on that AnimatePresence it goes at
@@ -54,11 +55,28 @@ export interface TripSheetProps {
  * shows in the header: a back button slides in before the title (enter-ms, ease-out), and a new title fades in as the
  * old one fades out (enter-ms in, fade-ms out).
  */
+// A new line in the header comes in once the old one has mostly gone (swap-in-at of enter-ms), so they never read over each other
+const swap = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1, transition: { duration: (m['enter-ms'] * (1 - m['swap-in-at'])) / 1000, delay: (m['enter-ms'] * m['swap-in-at']) / 1000, ease } },
+  exit: { opacity: 0, transition: { duration: m['fade-ms'] / 1000, ease } },
+};
+
 export function TripSheet({ title, subtitle, children, onClose, compact, footer, top, onBack, centered, inPlace }: TripSheetProps) {
   const reduce = useReducedMotion();
   const scroll = useRef<HTMLDivElement>(null);
   // How far the page has scrolled under the header, 0–1 over the top fade's height
   const [under, setUnder] = useState(0);
+  // The header's height as drawn: the title line, and the subtitle under it wrapped between the buttons
+  const head = useRef<HTMLDivElement>(null);
+  const [headH, setHeadH] = useState<number>();
+  useLayoutEffect(() => {
+    const el = head.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setHeadH(el.offsetHeight));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   // Full transform strings, so Motion runs them on the compositor
   const away = `translate(0px, calc(100% + ${inset}px))`;
@@ -79,14 +97,14 @@ export function TripSheet({ title, subtitle, children, onClose, compact, footer,
       animate={reduce ? { opacity: 1, transition: { duration: m['fade-ms'] / 1000, ease } } : { transform: here, transition: { duration: m['enter-ms'] / 1000, ease } }}
       variants={leave}
       exit="leave"
+      style={headH != null ? ({ '--title-head': `${headH}px` } as CSSProperties) : undefined}
     >
       <div ref={scroll} className={centered ? 'tu-trip-sheet__scroll tu-trip-sheet__scroll--centered' : 'tu-trip-sheet__scroll'} onScroll={e => setUnder(Math.min(1, e.currentTarget.scrollTop / topFade))}>
-        {subtitle && <p className="text-body-sm tu-trip-sheet__intro">{subtitle}</p>}
         {children}
       </div>
       {/* The header's white shows once the page goes under it, so a page at rest isn't faded at the top */}
       <div className="tu-trip-sheet__top-fade" aria-hidden style={{ opacity: under, background: easedFade('var(--c-surface-top)', { from: 'var(--header)' }) }} />
-      <div className="tu-trip-sheet__head">
+      <div ref={head} className="tu-trip-sheet__head">
         {/* A step back slides in before the title (and out again), the title moving over for it */}
         <AnimatePresence initial={false}>
           {onBack && (
@@ -104,17 +122,20 @@ export function TripSheet({ title, subtitle, children, onClose, compact, footer,
         {/* A new title fades in once the old one has mostly gone (a step inside the pop-up: swap-in-at of enter-ms),
             so they never read over each other */}
         <div className="tu-trip-sheet__titles">
-          <AnimatePresence initial={false}>
-            <motion.div
-              key={title}
-              className="tu-trip-sheet__title"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1, transition: { duration: (m['enter-ms'] * (1 - m['swap-in-at'])) / 1000, delay: (m['enter-ms'] * m['swap-in-at']) / 1000, ease } }}
-              exit={{ opacity: 0, transition: { duration: m['fade-ms'] / 1000, ease } }}
-            >
-              <h2 className="text-heading-md tu-ellipsis">{title}</h2>
-            </motion.div>
-          </AnimatePresence>
+          <div className="tu-trip-sheet__swap">
+            <AnimatePresence initial={false}>
+              <motion.div key={title} className="tu-trip-sheet__title" {...swap}>
+                <h2 className="text-heading-md tu-ellipsis">{title}</h2>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+          {subtitle && (
+            <div className="tu-trip-sheet__swap">
+              <AnimatePresence initial={false}>
+                <motion.p key={subtitle} className="text-body-sm tu-trip-sheet__sub" {...swap}>{subtitle}</motion.p>
+              </AnimatePresence>
+            </div>
+          )}
         </div>
         <Button icon={X} label="Close" size="sm" onClick={onClose} />
       </div>
@@ -199,19 +220,18 @@ export function SheetRow({ leading, title, subtitle, tone, trailing, onClick }: 
       {trailing}
     </>
   );
-  // A thumbnail's muted square sits a little further out than the text around it, so its picture lines up instead
-  const cls = ['tu-sheet-row', isValidElement(leading) && leading.type === RowThumb && 'tu-sheet-row--thumb'].filter(Boolean).join(' ');
   return onClick
-    ? <button type="button" className={`${cls} tu-sheet-row--tap`} onClick={onClick}>{body}</button>
-    : <div className={cls}>{body}</div>;
+    ? <button type="button" className="tu-sheet-row tu-sheet-row--tap" onClick={onClick}>{body}</button>
+    : <div className="tu-sheet-row">{body}</div>;
 }
 
 /**
  * A place's thumbnail at the start of a SheetRow: its sticker (or an icon, for what has no place yet) on a muted
- * square, so stickers and icons read as the same kind of thing down a list.
+ * square, so stickers and icons read as the same kind of thing down a list. The sticker is the row's full height,
+ * cut off by the square's corners.
  */
 export function RowThumb({ sticker, tilt, children }: { sticker?: string; tilt?: number; children?: ReactNode }) {
-  return <span className="tu-row-thumb">{sticker ? <Sticker name={sticker} size="mini" tilt={tilt} /> : children}</span>;
+  return <span className="tu-row-thumb">{sticker ? <Sticker name={sticker} size="row" tilt={tilt} /> : children}</span>;
 }
 
 /** A thin divider between rows, inset to the rows' text. */
