@@ -161,7 +161,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    homeCardStickersShown.value = !_splash;
+    homeIn.value = !_splash;
     // The map's style and tiles load right after the first frame (Your trips), not before it; draw it once they're ready
     SchedulerBinding.instance.addPostFrameCallback((_) => MapTiles.start());
     MapTiles.source.addListener(_sceneChanged);
@@ -1351,11 +1351,8 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
         if (_splash)
           Positioned.fill(
             child: Splash(
-              cardKey: _homeCardKey,
-              onDone: () {
-                homeCardStickersShown.value = true;
-                setState(() => _splash = false);
-              },
+              onLeave: () => homeIn.value = true,
+              onDone: () => setState(() => _splash = false),
             ),
           ),
       ]),

@@ -472,8 +472,8 @@ abstract final class TokDim {
   static const double splashDotScale = 4;
   static const double splashWord = 52;
   static const double splashWordGap = 16;
-  static const double splashSticker = 88;
-  static const double splashRing = 160;
+  static const double splashSticker = 40;
+  static const double splashSlide = 160;
   static const double bankRadius = 12;
   static const double bankButton = 56;
   static const double bankLogo = 32;
@@ -553,7 +553,6 @@ abstract final class TokMotion {
   static const springSnap = TokSpring(0.35, 0);
   static const springOpen = TokSpring(0.45, 0);
   static const springPop = TokSpring(0.4, 0.3);
-  static const springFly = TokSpring(0.7, 0.12);
   static const double crossfadeBlur = 2;
   static const double enterBlur = 4;
   static const double morphEnterScale = 0.9;
@@ -580,9 +579,11 @@ abstract final class TokMotion {
   static const double pinMiniAt = 0.35;
   static const double splashPopFrom = 0.6;
   static const splashWordAt = Duration(milliseconds: 220);
-  static const splashStickersAt = Duration(milliseconds: 500);
-  static const splashStickerStagger = Duration(milliseconds: 70);
-  static const splashAssembleAt = Duration(milliseconds: 1250);
+  static const splashStickersAt = Duration(milliseconds: 80);
+  static const splashStickerStagger = Duration(milliseconds: 50);
+  static const splashStickersOutAt = Duration(milliseconds: 800);
+  static const splashLeaveAt = Duration(milliseconds: 1400);
+  static const splashLeaveStagger = Duration(milliseconds: 60);
   static const faceId = Duration(milliseconds: 900);
   static const approved = Duration(milliseconds: 600);
   static const double swapInAt = 0.4;

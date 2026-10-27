@@ -12,7 +12,8 @@ import 'stagger.dart';
 
 /// Your trips, on the brand blue. The one you're on is a big card: a still of the city with places you've been as
 /// stickers, "Happening now", its name and dates, who's on it, and the way in. Under it, the trip coming up and the
-/// ones before, as rows. Tapping the current one goes into its map.
+/// ones before, as rows. Tapping the current one goes into its map. On a cold start it waits under the splash and
+/// slides in from the right, a row at a time, as the splash's mark slides out to the left ([homeIn]).
 class TripsHome extends StatelessWidget {
   const TripsHome({super.key, required this.onOpen, this.cardKey});
   final VoidCallback onOpen;
@@ -33,11 +34,10 @@ class TripsHome extends StatelessWidget {
             child: ListView(
               padding: EdgeInsets.fromLTRB(0, pad.top + TokSpace.md, 0, pad.bottom + TokDim.homeBottomFade),
               children: [
-                StaggerIn(children: [
+                StaggerIn(until: homeIn, from: const Offset(TokDim.splashSlide, 0), children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: TokSpace.md),
-                    child: Column(children: [
-                      Row(spacing: TokSpace.sm, children: [
+                    child: Row(spacing: TokSpace.sm, children: [
                         Expanded(
                           // A long press shows the startup timings (hidden, for testers' phones)
                           child: GestureDetector(
@@ -57,12 +57,12 @@ class TripsHome extends StatelessWidget {
                             child: Center(child: Sticker(personById(myId).sticker, size: StickerSize.avatar)),
                           ),
                         ),
-                      ]),
-                      const SizedBox(height: TokDim.homeHeaderGap),
-                      _CurrentTrip(key: cardKey, onOpen: onOpen),
                     ]),
                   ),
-                  const SizedBox(height: TokSpace.xl),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(TokSpace.md, TokDim.homeHeaderGap, TokSpace.md, TokSpace.xl),
+                    child: _CurrentTrip(key: cardKey, onOpen: onOpen),
+                  ),
                   _section(context, 'Coming up', [for (final trip in upcomingTrips) _TripRow(trip: trip)]),
                   _section(context, 'Previous trips', [for (final trip in pastTrips) _TripRow(trip: trip)], count: pastTrips.length),
                 ]),
@@ -201,8 +201,8 @@ class TripCardFace extends StatelessWidget {
   }
 }
 
-/// Whether the card's stickers show: not while the splash's copies of them are flying onto the card.
-final homeCardStickersShown = ValueNotifier(true);
+/// Whether Your trips' rows have come in: on a cold start they're held back under the splash until its mark leaves.
+final homeIn = ValueNotifier(true);
 
 /// The still of the city with its stickers, at the design's size (the card scales it to fit).
 class _HomeMap extends StatelessWidget {
@@ -228,12 +228,7 @@ class _HomeMap extends StatelessWidget {
             Positioned(
               left: s.center.dx,
               top: s.center.dy,
-              // Hidden while the splash's copies fly here
-              child: ValueListenableBuilder(
-                valueListenable: homeCardStickersShown,
-                child: FractionalTranslation(translation: const Offset(-0.5, -0.5), child: Sticker(s.sticker, height: s.height, tilt: s.tilt)),
-                builder: (context, shown, child) => Opacity(opacity: shown ? 1 : 0, child: child),
-              ),
+              child: FractionalTranslation(translation: const Offset(-0.5, -0.5), child: Sticker(s.sticker, height: s.height, tilt: s.tilt)),
             ),
         ]),
       );

@@ -655,6 +655,13 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Final UI, iteration 1.72: the splash scatters, then the page slides in (branch `feature/splash-scatter`)
+- Bogdan's sequence: my dot pops in; small stickers (40 high) pop up one by one at random spots all over the screen, a different layout every launch (one per cell of a 3 × 4 grid, clear of the mark); TripUp comes in; the stickers pop away in the order they came; the dot and then TripUp slide out to the left; Your trips slides in from the right, a row at a time (header, trip card, Coming up, Previous trips). The stickers no longer fly onto the trip card (DECISIONS: The splash, reworked).
+- Tokens: `splash/sticker` 40, `splash/slide` 160 (replaces `splash/ring`), `splash-stickers-at-ms` 80, `splash-sticker-stagger-ms` 50, new `splash-stickers-out-at-ms` 800, `splash-leave-at-ms` 1400 and `splash-leave-stagger-ms` 60 (replace `splash-assemble-at-ms`); `spring-fly` is gone. `StaggerIn` can wait (`until`), which holds Your trips back until the mark leaves.
+- The old splash (1.44) is in git at 64c9756.
+- **Checked** on the iPhone 17 Pro Max simulator from cold launches, frame by frame: `Assets/splash-1.72-simulator.mov` (not in git), `process/splash/splash-1.72-frames.png`, `process/splash/splash-1.72-handover.png`. Not caught on a recording: the tap that skips ahead.
+- Not yet in the case study's clip, the APK or Figma's Open the app story.
+
 ### Android APK at 1.71 (27 Oct)
 - `releases/TripUp-android-1.71.apk` (34.1 MB, arm64, versionCode 6), built from main at d891a72 with `flutter build apk --release --no-tree-shake-icons --target-platform android-arm64`. The old `releases/TripUp-android.apk` (24 Oct, about 1.45) is kept.
 - Checked on the Android emulator (Pixel 8, Android 16): Your trips, the trip with Up next, and the full view. They show the 1.61 sheet inset and the 1.71 type scale. The baked map tiles still match the map style, so they weren't re-baked.

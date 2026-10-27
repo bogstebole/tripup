@@ -285,8 +285,8 @@
   --d-splash-dot-scale: 4;
   --d-splash-word: 52px;
   --d-splash-word-gap: 16px;
-  --d-splash-sticker: 88px;
-  --d-splash-ring: 160px;
+  --d-splash-sticker: 40px;
+  --d-splash-slide: 160px;
   --d-bank-radius: 12px;
   --d-bank-button: 56px;
   --d-bank-logo: 32px;
@@ -339,9 +339,11 @@
   --pin-mini-at: 0.35;
   --splash-pop-from: 0.6;
   --splash-word-at-ms: 220ms;
-  --splash-stickers-at-ms: 500ms;
-  --splash-sticker-stagger-ms: 70ms;
-  --splash-assemble-at-ms: 1250ms;
+  --splash-stickers-at-ms: 80ms;
+  --splash-sticker-stagger-ms: 50ms;
+  --splash-stickers-out-at-ms: 800ms;
+  --splash-leave-at-ms: 1400ms;
+  --splash-leave-stagger-ms: 60ms;
   --face-id-ms: 900ms;
   --approved-ms: 600ms;
   --swap-in-at: 0.4;

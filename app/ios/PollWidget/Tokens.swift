@@ -460,8 +460,8 @@ enum TokDim {
   static let splashDotScale: CGFloat = 4
   static let splashWord: CGFloat = 52
   static let splashWordGap: CGFloat = 16
-  static let splashSticker: CGFloat = 88
-  static let splashRing: CGFloat = 160
+  static let splashSticker: CGFloat = 40
+  static let splashSlide: CGFloat = 160
   static let bankRadius: CGFloat = 12
   static let bankButton: CGFloat = 56
   static let bankLogo: CGFloat = 32

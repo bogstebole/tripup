@@ -926,11 +926,11 @@ const homeMapStickers = [
   (sticker: 'caravel', center: Offset(228.07, 129.65), height: 23.55, tilt: 0.0),
 ];
 
-/// Where the card's stickers pop up on the splash before they fly onto it, in [homeMapStickers]' order: an angle around
-/// TripUp (radians, 0 to the right, clockwise), how far out (times `splash/ring`), and a playful tilt (degrees).
+/// The stickers that pop up all over the splash: the places of the trips on Your trips and the people on them, so
+/// they're loaded for that screen anyway. Each launch takes a random few, at random spots, tilted up to
+/// [splashStickerTilt] degrees either way.
 const splashStickers = [
-  (angle: -1.05, reach: 1.0, tilt: -8.0),
-  (angle: -2.36, reach: 0.9, tilt: 10.0),
-  (angle: 0.44, reach: 0.95, tilt: 6.0),
-  (angle: 2.62, reach: 0.85, tilt: -10.0),
+  'belem', 'galo', 'azulejo', 'caravel', 'brandenburg', 'windmill', 'sushi', 'pho',
+  'person-01', 'person-02', 'person-03', 'person-04', 'person-05',
 ];
+const splashStickerTilt = 12.0;
