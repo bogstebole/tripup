@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/widgets.dart';
 
 import '../design/theme.dart';
@@ -7,7 +8,7 @@ import '../design/tokens.dart';
 
 /// Children arrive one after another: each fades in, sharpens from a light blur and settles into place from
 /// [from] (Emil: 30–80 ms stagger, ease-out, under 300 ms each). Waits [delay] first, so whatever is leaving
-/// has mostly gone. Runs once when it's built.
+/// has mostly gone. Runs once when it's built, or once [until] turns true.
 class StaggerIn extends StatefulWidget {
   const StaggerIn({
     super.key,
@@ -16,6 +17,7 @@ class StaggerIn extends StatefulWidget {
     this.crossAxisAlignment = CrossAxisAlignment.stretch,
     this.from = const Offset(0, TokDim.tabEnterShift),
     this.delay = Duration.zero,
+    this.until,
   });
   final List<Widget> children;
   final double spacing;
@@ -24,6 +26,9 @@ class StaggerIn extends StatefulWidget {
   /// Where each child starts, relative to its place.
   final Offset from;
   final Duration delay;
+
+  /// Holds the children back (not there yet) until this is true: Your trips under the splash.
+  final ValueListenable<bool>? until;
 
   @override
   State<StaggerIn> createState() => _StaggerInState();
@@ -42,12 +47,25 @@ class _StaggerInState extends State<StaggerIn> with SingleTickerProviderStateMix
     _c = AnimationController(vsync: this, duration: _total);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      (MediaQuery.maybeDisableAnimationsOf(context) ?? false) ? _c.value = 1 : _c.forward();
+      if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) {
+        _c.value = 1;
+      } else if (widget.until?.value ?? true) {
+        _c.forward();
+      } else {
+        widget.until!.addListener(_go);
+      }
     });
+  }
+
+  void _go() {
+    if (!widget.until!.value) return;
+    widget.until!.removeListener(_go);
+    _c.forward();
   }
 
   @override
   void dispose() {
+    widget.until?.removeListener(_go);
     _c.dispose();
     super.dispose();
   }

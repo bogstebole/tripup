@@ -337,6 +337,15 @@ From the research (`process/research/tripup-competitive-research-v3-en.md`, Paym
 - **Delight is allowed here:** it's seen once per cold start, so the stickers pop with a bouncier spring than the rest of the app (`spring-pop`).
 - **What we didn't do:** a long amo-style collage (11 s is for a website, not a cold start), more stickers than the card has (they'd have nowhere to land), or a logo that writes itself (there's no script logo to draw).
 
+## The splash, reworked (27 Oct, Bogdan)
+
+- **Stickers everywhere, then gone; the page slides in** (Bogdan, after seeing the case study's clip): my dot pops in, small stickers pop up one by one at random spots all over the screen, TripUp comes in, the stickers pop away the way they came, in the same order, then the dot and TripUp slide out to the left, one after the other, and Your trips slides in from the right, a row at a time.
+- **Random, but never messy:** at most one sticker per cell of a 3 × 4 grid inside the safe area, a random spot in the cell and a random tilt (up to 12°), clear of the mark by a sticker's height. So they're everywhere and in a different place every launch, but never on top of each other or of TripUp. They pop in a random order, not row by row.
+- **Small** (`splash/sticker` 40, was 88), and only stickers Your trips shows anyway (the trips' places and the people), so they cost nothing extra to load.
+- **One direction:** the mark leaves left and the rows come from the right by the same `splash/slide` (160), so it reads as one page pushing the next. The mark fades late, so the slide is what you see; Your trips starts once TripUp is half way out, so the two never read over each other.
+- **Same length as before,** under 2 s from the first frame (stickers in from 80 ms, 50 ms apart; out from 800 ms; the mark leaves at 1.4 s). A tap still skips to the leaving; still none with reduced motion.
+- **What we didn't do:** keep the stickers flying onto the trip card (Bogdan dropped it), stickers at fixed places (it should feel random), or a full-screen slide off the edge for the mark (the rows would have had to come from as far, and arrive late).
+
 ## Mini pin ↔ Up next: one content at a time (25 Oct)
 
 - **Swap the content, not morph it** (Bogdan: everything overlapped). The surface still grows and shrinks as one object with its spring; what's on it swaps like the Dynamic Island's: the old leaves, the surface changes size, the new comes in. Two layouts are never on screen together.
