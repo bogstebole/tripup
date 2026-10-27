@@ -655,6 +655,25 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Figma: the splash at 1.73 (27 Oct)
+- Open the app (Final UI) shows the new sequence in its four screens:
+  - the dot, with the first stickers popping up;
+  - TripUp, with all twelve stickers, using one launch's scatter from the app's grid, each 40 high;
+  - sliding out, with the dot ahead of TripUp;
+  - Your trips coming in from the right.
+- The connectors carry the 1.73 times, and the story card's acceptance criteria describe the new sequence.
+- Variables:
+  - `splash/sticker` is now `{space/3xl}` (40);
+  - `splash/ring` is renamed `splash/slide` (160);
+  - `splash/word-gap` was already 40 in Figma.
+- Splash mark: the Use text in its description, docs card and components.json now covers the breathing dot and the scatter.
+- **Checked** on screenshots of Open the app and of the Splash mark section.
+
+### Android APK and iPhone at 1.73 (27 Oct)
+- `releases/TripUp-android-1.73.apk` (34.1 MB, arm64). It was built from main with the build number raised to 7 (`1.0.0+7`), so it installs over 1.71 as an update. The command is the same as for 1.71, and the 1.71 APK is kept.
+- Bogdan's iPhone 15 was updated in place to the 1.73 release build with devicectl, without uninstalling. It now shows 1.0.0 (7).
+- The case study's APK link on Google Drive still serves the 1.71 file. To keep the link, Bogdan uploads 1.73 as a new version of the same Drive file (Manage versions).
+
 ### Final UI, iteration 1.73: the splash, slower, with a breathing dot (branch `feature/splash-slower`)
 - Bogdan, on the Vercel preview of 1.72: slow it down, 40 between the dot and TripUp, and make the dot pulse a little.
 - About 1.5× slower: `splash-word-at-ms` 330, `splash-stickers-at-ms` 120, `splash-sticker-stagger-ms` 75, `splash-stickers-out-at-ms` 1200, `splash-leave-at-ms` 2100, `splash-leave-stagger-ms` 90, new `splash-leave-ms` 400 (each slide, and each of Your trips' rows; `StaggerIn` takes a duration and stagger now). `splash/word-gap` is `{space.3xl}` (40).
