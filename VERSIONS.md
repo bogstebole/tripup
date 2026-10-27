@@ -655,6 +655,10 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Figma: the wireflow at 440×956 (27 Oct)
+- The 10 wireflow screens and their notes are now 440 wide, and the screens are 956 tall, the same as Final UI (DECISIONS: One reference device). They sit 640 apart, and the connectors follow them. The Up next card is centred on the map in screens 2 and 5.
+- Checked on screenshots of the whole flow and of screens 2, 4 and 5.
+
 ### Figma: the Wireflow page (27 Oct)
 - A new first page, Wireflow, with the section "Wireflow · the thinking". It has a note on what it is, then 10 mid-fi screens (390×844) in one row, each with a Decision / State / Interaction note under it, and 9 labelled connectors (DECISIONS: A wireflow page, as the brief asks). Colours are bound to the file's variables.
 - Checked on a screenshot of the whole section.
