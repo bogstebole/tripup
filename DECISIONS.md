@@ -120,6 +120,7 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 
 ## A wireflow page, as the brief asks (27 Oct)
 - **The brief wants a wireflow: ten screens or fewer, real content, in a section of its own, showing how the app works.** Our lo-fi wireflow lived only as an image in process/, and Final UI has far more than ten screens, spread across epics. So Figma has a **Wireflow** page now, placed first. It holds 10 mid-fi screens in one row, built with Final UI as the reference, as the step that would have come before it.
+- **One reference device: 440×956 (iPhone 17 Pro Max), with no scaling.** The brief asks for one device at its own size. Final UI and the web frame were already 440×956, and the wireflow started at 390×844, so it was moved to 440×956 too. We didn't move everything to Bogdan's iPhone 15 (393×852): it's only the test phone, and 85 Final UI screens are already drawn at 440.
 - **Mid-fi on purpose:** grey boxes for the map, photos and stickers, Geist only, blue only for the one main action, all real text. It reads as "checking the flow", not as the final look.
 - **The brief's scenario, start to end:**
   1. Your trips.
