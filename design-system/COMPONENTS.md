@@ -131,7 +131,7 @@ Me: my sticker in a soft glass circle, top right of Your trips.
 
 The splash's mark on a cold start: my dot (the app icon's motif, four times the map's, with its ring) and TripUp in the display face, centred on Your trips' blue.
 
-- Use: Step=dot while the dot pops in (TripUp is there but not yet showing, so the dot sits where it ends up); Step=word once TripUp has come in. Small stickers pop up at random spots all over the screen and pop away again (Sticker instances, splash/sticker high); then the dot and TripUp slide out to the left (splash/slide) as Your trips slides in from the right.
+- Use: Step=dot while the dot pops in (TripUp is there but not yet showing, so the dot sits where it ends up); Step=word once TripUp has come in; in the app the dot's blue then breathes like my location on the map. Small stickers pop up at random spots all over the screen and pop away again (Sticker instances, splash/sticker high); then the dot and TripUp slide out to the left (splash/slide) as Your trips slides in from the right.
 - Props: Step=dot|word.
 - Code: Splash · app/lib/components/splash.dart
 - Figma: node 159:6442 · key c96ff46358b0776facdb6a3728f2adb0faf06b7a · properties: Step=dot|word (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=159-6443)
