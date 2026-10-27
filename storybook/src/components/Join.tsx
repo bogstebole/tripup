@@ -2,7 +2,7 @@
 // lib/components/join.dart.
 import { BedDouble, Vote, X } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { useRef, useState, type CSSProperties } from 'react';
+import { useRef, useState } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import {
   clockTime, DINNER, dinnerChoice, euros, MY_NAME, onTrip, PEOPLE, personById, planStart, plansAhead, POLL_OPENS, pollOpen, SPENT_SO_FAR,
@@ -135,8 +135,6 @@ function Recap({ now, poll, name, onJoined }: { now: Date; poll: PollState; name
           subtitle={`Airbnb · until ${lastDay} May · ${personById('maya').name} booked it`}
         />
       </div>
-      <SheetSection key="been" title="Been so far" subtitle={`${VISITED.length} places in ${days} days`} />
-      <div key="stickers" className="tu-join__card tu-join__been" style={{ '--n': VISITED.length } as CSSProperties}>{VISITED.map(v => <RowThumb key={v.name} sticker={v.sticker} tilt={v.tilt} />)}</div>
       <SheetSection key="coming" title="Coming up" />
       <div key="next" className="tu-join__card">
         {/* Tonight's dinner, while the poll hasn't decided it: his vote counts too */}
@@ -150,6 +148,19 @@ function Recap({ now, poll, name, onJoined }: { now: Date; poll: PollState; name
         )}
         {next.map(p => (
           <SheetRow key={p.id} leading={<RowThumb sticker={p.sticker} />} title={p.name} subtitle={startsAt(planStart(p), now)} />
+        ))}
+      </div>
+      <SheetSection key="been" title="Been so far" subtitle={`${VISITED.length} places in ${days} days`} />
+      {/* Two to a row, each with its name and what it is, so he can see what they've done; the page scrolls */}
+      <div key="places" className="tu-join__places">
+        {VISITED.map(v => (
+          <div key={v.name} className="tu-join__card tu-join__place">
+            <span className="tu-join__place-photo"><Sticker name={v.sticker} className="tu-join__place-sticker" tilt={v.tilt} /></span>
+            <span className="tu-join__place-words">
+              <span className="text-label-lg tu-join__place-name">{v.name}</span>
+              <span className="text-body-sm tu-join__muted">{v.kind} · {TRIP_DAYS.find(d => d.day === v.day)?.label}</span>
+            </span>
+          </div>
         ))}
       </div>
       <SheetSection key="money" title="Money" />

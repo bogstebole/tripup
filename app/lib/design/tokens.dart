@@ -480,6 +480,8 @@ abstract final class TokDim {
   static const double bankHud = 160;
   static const double bankHudIcon = 64;
   static const double payAmountSticker = 48;
+  static const double recapPlacePhoto = 128;
+  static const double recapPlaceSticker = 88;
   static const double webFrameWidth = 440;
   static const double webFrameHeight = 956;
   static const double webFrameRadius = 40;
