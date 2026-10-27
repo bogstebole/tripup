@@ -655,6 +655,11 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Android APK at 1.71 (27 Oct)
+- `releases/TripUp-android-1.71.apk` (34.1 MB, arm64, versionCode 6), built from main at d891a72 with `flutter build apk --release --no-tree-shake-icons --target-platform android-arm64`. The old `releases/TripUp-android.apk` (24 Oct, about 1.45) is kept.
+- Checked on the Android emulator (Pixel 8, Android 16): Your trips, the trip with Up next, and the full view. They show the 1.61 sheet inset and the 1.71 type scale. The baked map tiles still match the map style, so they weren't re-baked.
+- The case study's APK link still needs the new file uploaded (Bogdan).
+
 ### Figma: the wireflow at 440×956 (27 Oct)
 - The 10 wireflow screens and their notes are now 440 wide, and the screens are 956 tall, the same as Final UI (DECISIONS: One reference device). They sit 640 apart, and the connectors follow them. The Up next card is centred on the map in screens 2 and 5.
 - Checked on screenshots of the whole flow and of screens 2, 4 and 5.
