@@ -275,6 +275,7 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 - **Names an agent can't misread:** sections, cards and components share one name; text layers are named by role (What, Props, Code); property names follow the code's parameters, and no component has two properties with the same name (Sheet row's and Icon row's colour variant became Subtitle color = `subtitleColor`, Payment row's became State).
 - **An index in the repo:** `design-system/COMPONENTS.md`, built from `design-system/components.json` (the hand-written docs plus node ids, component keys and property APIs), split by category with an index on top, so an agent can find a component without opening Figma.
 - **What we didn't do:** Code Connect (it needs a paid Organization plan and a published library; the description and documentation link carry the same pointer to the code), and Dev Mode annotations (Figma's MCP docs don't say they reach the agent; descriptions demonstrably do).
+- **Built for speed, not as a production design system** (27 Oct, Bogdan). The components are set up so he can work fast and change things quickly. A real design system would be agreed with the devs first: sizes, themes and the rest through variable modes, and a different component architecture. That setup and its full documentation would take a lot of time, so it was a conscious choice not to do it here. The Read me on Components says so ("How these are built"), so nobody reads the structure as not knowing better.
 
 ## Getting there from the details, and one backdrop (24 Oct)
 
