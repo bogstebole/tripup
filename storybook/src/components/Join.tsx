@@ -2,7 +2,7 @@
 // lib/components/join.dart.
 import { BedDouble, Vote, X } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { useRef, useState } from 'react';
+import { useRef, useState, type CSSProperties } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import {
   clockTime, DINNER, dinnerChoice, euros, MY_NAME, onTrip, PEOPLE, personById, planStart, plansAhead, POLL_OPENS, pollOpen, SPENT_SO_FAR,
@@ -11,7 +11,7 @@ import {
 import { Button, TextButton } from './Button';
 import { easedFade } from './easedFade';
 import { Sticker } from './Sticker';
-import { SheetRow, SheetSection, Slot, StaggerIn } from './TripSheet';
+import { RowThumb, SheetRow, SheetSection, StaggerIn } from './TripSheet';
 import './Join.css';
 
 const m = tokens.motion;
@@ -123,37 +123,41 @@ function Recap({ now, poll, name, onJoined }: { now: Date; poll: PollState; name
   return (
     <>
     <StaggerIn>
+      {/* Each part of the trip on a card of its own, its heading above it, so the page reads as a few clear blocks */}
       <div key="welcome" className="tu-join__welcome">
         <h1 className="text-heading-lg">Welcome, {name.trim()}</h1>
-        <p className="text-body-sm tu-join__muted">Here's the trip so far, so you're caught up.</p>
       </div>
       <SheetSection key="stay" title="Where you're staying" />
-      <SheetRow
-        key="flat"
-        leading={<Slot><BedDouble className="tu-join__lead" strokeWidth={2} absoluteStrokeWidth aria-hidden /></Slot>}
-        title="Alfama flat"
-        subtitle={`Airbnb · until ${lastDay} May · ${personById('maya').name} booked it`}
-      />
-      <SheetSection key="been" title="Been so far" subtitle={`${VISITED.length} places in ${days} days`} />
-      <span key="stickers" className="tu-join__stickers">{VISITED.map(v => <Sticker key={v.name} name={v.sticker} size="row" tilt={v.tilt} />)}</span>
-      <SheetSection key="coming" title="Coming up" />
-      {/* Tonight's dinner, while the poll hasn't decided it: his vote counts too */}
-      {undecided && (
+      <div key="flat" className="tu-join__card">
         <SheetRow
-          key="poll"
-          leading={<Slot><Vote className="tu-join__lead" strokeWidth={2} absoluteStrokeWidth aria-hidden /></Slot>}
-          title={`Dinner tonight, ${clockTime(DINNER)}`}
-          subtitle={pollOpen(now, poll) ? 'Poll open: where? Your vote counts too' : `A poll opens at ${clockTime(POLL_OPENS)}: you can vote`}
-          tone="brand"
+          leading={<RowThumb><BedDouble className="tu-join__lead" strokeWidth={2} absoluteStrokeWidth aria-hidden /></RowThumb>}
+          title="Alfama flat"
+          subtitle={`Airbnb · until ${lastDay} May · ${personById('maya').name} booked it`}
         />
-      )}
-      {next.map(p => (
-        <SheetRow key={p.id} leading={<Slot><Sticker name={p.sticker} size="row" /></Slot>} title={p.name} subtitle={startsAt(planStart(p), now)} />
-      ))}
+      </div>
+      <SheetSection key="been" title="Been so far" subtitle={`${VISITED.length} places in ${days} days`} />
+      <div key="stickers" className="tu-join__card tu-join__been" style={{ '--n': VISITED.length } as CSSProperties}>{VISITED.map(v => <RowThumb key={v.name} sticker={v.sticker} tilt={v.tilt} />)}</div>
+      <SheetSection key="coming" title="Coming up" />
+      <div key="next" className="tu-join__card">
+        {/* Tonight's dinner, while the poll hasn't decided it: his vote counts too */}
+        {undecided && (
+          <SheetRow
+            leading={<RowThumb><Vote className="tu-join__lead" strokeWidth={2} absoluteStrokeWidth aria-hidden /></RowThumb>}
+            title={`Dinner tonight, ${clockTime(DINNER)}`}
+            subtitle={pollOpen(now, poll) ? 'Poll open: where? Your vote counts too' : `A poll opens at ${clockTime(POLL_OPENS)}: you can vote`}
+            tone="brand"
+          />
+        )}
+        {next.map(p => (
+          <SheetRow key={p.id} leading={<RowThumb sticker={p.sticker} />} title={p.name} subtitle={startsAt(planStart(p), now)} />
+        ))}
+      </div>
       <SheetSection key="money" title="Money" />
-      <p key="rule" className="text-body-sm tu-join__rule">
-        You share costs from today on. The {euros(SPENT_SO_FAR)} spent before you joined stays with the {NUMBERS[crew.length] ?? crew.length} of them.
-      </p>
+      <div key="rule" className="tu-join__card">
+        <p className="text-body-sm tu-join__rule">
+          You share costs from today on. The {euros(SPENT_SO_FAR)} spent before you joined stays with the {NUMBERS[crew.length] ?? crew.length} of them.
+        </p>
+      </div>
     </StaggerIn>
     {/* Open the trip stays at the bottom, as a footer; the recap scrolls up under its fade */}
     <div className="tu-join__footer" style={{ background: easedFade('var(--color-bg-canvas)', { from: 'calc(var(--d-action-bar-fade-start) * 100%)', to: 'top' }) }}>

@@ -6,7 +6,7 @@
 /* Itinerary: each day a heading ("Thu 14 · Day 3 · Today"), then where we've been and what's planned, its text on the
    rows' left edge; a hairline between days, md above and below it (no grey blocks, as on a place's Group page) */
 .tu-day-block { display: flex; flex-direction: column; }
-.tu-day-block__line { padding: var(--space-md) 0; }
+.tu-day-block__line { padding: var(--space-xs) 0; }
 .tu-day { display: flex; align-items: center; gap: var(--space-xs); padding: 0 var(--space-xs) var(--space-2xs); }
 .tu-day h3 { margin: 0; }
 .tu-day__empty { padding: var(--space-xs); color: var(--color-text-muted); }

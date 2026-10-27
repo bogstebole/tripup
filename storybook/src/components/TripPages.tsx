@@ -16,7 +16,7 @@ import { BankLayer } from './BankApp';
 import { useTripNotice } from './Notice';
 import { SegmentedTabs } from './SegmentedTabs';
 import { ToggleChip } from './ToggleChips';
-import { Hairline, SheetFooter, SheetRow, SheetSection, Slot, StaggerIn } from './TripSheet';
+import { Hairline, RowThumb, SheetFooter, SheetRow, SheetSection, Slot, StaggerIn } from './TripSheet';
 import './TripPages.css';
 
 const m = tokens.motion;
@@ -71,7 +71,7 @@ export function ItineraryPage({ onPick, onOpen, poll, onPoll, now = TRIP_NOW, da
           ...VISITED.filter(v => v.day === day).map(v => (
             <SheetRow
               key={v.name}
-              leading={<Slot><Sticker name={v.sticker} size="row" tilt={v.tilt} /></Slot>}
+              leading={<RowThumb sticker={v.sticker} tilt={v.tilt} />}
               title={v.name}
               subtitle="Been there"
               onClick={onPick && (() => onPick(v.name))}
@@ -82,7 +82,7 @@ export function ItineraryPage({ onPick, onOpen, poll, onPoll, now = TRIP_NOW, da
             ? [
                 <SheetRow
                   key="dinner-slot"
-                  leading={<Slot><MapPin className="tu-pages__lead" strokeWidth={2} absoluteStrokeWidth aria-hidden /></Slot>}
+                  leading={<RowThumb><MapPin className="tu-pages__lead" strokeWidth={2} absoluteStrokeWidth aria-hidden /></RowThumb>}
                   title="Dinner"
                   subtitle={pollOpen(now, poll) ? `Poll open · ${votesIn(now, poll)} of ${DINNER_TABLE.length} voted` : pollClosed(now, poll) ? 'No place yet: pick one' : `Poll at ${clockTime(POLL_OPENS)}`}
                   tone="brand"
@@ -94,7 +94,7 @@ export function ItineraryPage({ onPick, onOpen, poll, onPoll, now = TRIP_NOW, da
           ...plans.filter(p => p.day === day).map(p => (
             <SheetRow
               key={p.id}
-              leading={<Slot><Sticker name={p.sticker} size="row" /></Slot>}
+              leading={<RowThumb sticker={p.sticker} />}
               title={p.name}
               subtitle={[p === next && 'Up next', timeUntil(planStart(p), now), planEnd(p) && `until ${clockTime(planEnd(p)!)}`].filter(Boolean).join(' · ')}
               tone={p === next ? 'brand' : undefined}
@@ -573,8 +573,8 @@ export type AddStep = 'choose' | 'plan' | 'invite';
 /** The pop-up's title and the line at the top of its page, for each step (the app's `AddPage.headerOf`); Invite's page
  *  says it itself. */
 export const addHeaderOf = (step: AddStep): { title: string; subtitle?: string } => ({
-  choose: { title: 'Add to the trip', subtitle: 'A plan, or someone new' },
-  plan: { title: 'Plan something', subtitle: 'Find a place, pick a time, send it' },
+  choose: { title: 'Add to the trip' },
+  plan: { title: 'Plan something' },
   invite: { title: 'Invite someone' },
 })[step];
 
@@ -788,7 +788,7 @@ function PlanSearch({ query, onQuery, onPick }: { query: string; onQuery: (q: st
       {withHairlines(shown, s => (
         <SheetRow
           key={s.id}
-          leading={<Slot><Sticker name={s.sticker} size="row" /></Slot>}
+          leading={<RowThumb sticker={s.sticker} />}
           title={s.name}
           subtitle={placeLine(s)}
           trailing={<ArrowRight className="tu-choice__arrow" strokeWidth={2} absoluteStrokeWidth aria-hidden />}

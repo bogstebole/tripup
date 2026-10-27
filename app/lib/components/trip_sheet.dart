@@ -299,8 +299,9 @@ class SheetRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tok;
+    // A thumbnail's muted square sits a little further out than the text around it, so its picture lines up instead
     final row = Padding(
-      padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs, vertical: TokSpace.sm),
+      padding: EdgeInsets.symmetric(horizontal: leading is RowThumb ? TokSpace.x3xs : TokSpace.xs, vertical: TokSpace.xs + TokSpace.x3xs),
       child: Row(spacing: TokSpace.sm, children: [
         ?leading,
         Expanded(
@@ -313,5 +314,27 @@ class SheetRow extends StatelessWidget {
       ]),
     );
     return onTap == null ? row : Pressable(onTap: onTap, semanticLabel: title, child: row);
+  }
+}
+
+/// A place's thumbnail at the start of a [SheetRow]: its sticker (or an icon, for what has no place yet) on a muted
+/// square, so stickers and icons read as the same kind of thing down a list.
+class RowThumb extends StatelessWidget {
+  const RowThumb({super.key, this.sticker, this.icon, this.tilt = 0});
+  final String? sticker;
+  /// A Lucide icon name (TuIcons).
+  final String? icon;
+  final double tilt;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tok;
+    return Container(
+      width: TokDim.stickerRow,
+      height: TokDim.stickerRow,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.control)),
+      child: sticker != null ? Sticker(sticker!, size: StickerSize.mini, tilt: tilt) : LucideIcon(icon!, size: TokSize.iconMd, color: t.iconBrand),
+    );
   }
 }
