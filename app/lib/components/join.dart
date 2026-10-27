@@ -164,50 +164,47 @@ class _JoinFlowState extends State<JoinFlow> {
       ListView(
       padding: EdgeInsets.fromLTRB(TokSpace.md, pad.top + TokSpace.x5xl, TokSpace.md, footer + TokSpace.md),
       children: [
+        // Each part of the trip on a card of its own, its heading above it, so the page reads as a few clear blocks
         StaggerIn(children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x2xs, children: [
-              Text('Welcome, ${_name.text.trim()}', style: TokText.headingLg.copyWith(color: t.textDefault)),
-              Text("Here's the trip so far, so you're caught up.", style: TokText.bodySm.copyWith(color: t.textMuted)),
-            ]),
+            child: Text('Welcome, ${_name.text.trim()}', style: TokText.headingLg.copyWith(color: t.textDefault)),
           ),
           const SheetSection("Where you're staying"),
-          SheetRow(
-            leading: SizedBox(width: TokDim.stickerRow, child: Center(child: LucideIcon(TuIcons.stay, size: TokSize.iconMd, color: t.iconBrand))),
+          _card(context, SheetRow(
+            leading: const RowThumb(icon: TuIcons.stay),
             title: 'Alfama flat',
             subtitle: 'Airbnb · until ${tripDays.last} May · ${personById('maya').name} booked it',
-          ),
+          )),
           SheetSection('Been so far', subtitle: '${visited.length} places in $days days'),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
-            child: Align(
+          _card(context, Padding(
+            padding: const EdgeInsets.all(TokSpace.x3xs + TokSpace.xs),
+            // One line of thumbnails, shrunk to fit on a narrower phone rather than leaving one alone on a second line
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
               alignment: Alignment.centerLeft,
-              child: Overlapped(overlap: TokDim.stickerOverlap, children: [for (final v in visited) Sticker(v.sticker, size: StickerSize.row, tilt: v.tilt)]),
+              child: Row(spacing: TokSpace.xs, children: [for (final v in visited) RowThumb(sticker: v.sticker, tilt: v.tilt)]),
             ),
-          ),
+          )),
           const SheetSection('Coming up'),
-          if (undecided)
-            SheetRow(
-              leading: SizedBox(width: TokDim.stickerRow, child: Center(child: LucideIcon(TuIcons.poll, size: TokSize.iconMd, color: t.iconBrand))),
-              title: 'Dinner tonight, 5 PM',
-              subtitle: pollOpen(now) ? 'Poll open: where? Your vote counts too' : 'A poll opens at ${clockTime(pollOpens)}: you can vote',
-              subtitleColor: t.textBrand,
-            ),
-          for (final p in next)
-            SheetRow(
-              leading: SizedBox(width: TokDim.stickerRow, child: Center(child: Sticker(p.sticker, size: StickerSize.row))),
-              title: p.name,
-              subtitle: p.startsAt,
-            ),
+          _card(context, Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            if (undecided)
+              SheetRow(
+                leading: const RowThumb(icon: TuIcons.poll),
+                title: 'Dinner tonight, 5 PM',
+                subtitle: pollOpen(now) ? 'Poll open: where? Your vote counts too' : 'A poll opens at ${clockTime(pollOpens)}: you can vote',
+                subtitleColor: t.textBrand,
+              ),
+            for (final p in next) SheetRow(leading: RowThumb(sticker: p.sticker), title: p.name, subtitle: p.startsAt),
+          ])),
           const SheetSection('Money'),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
+          _card(context, Padding(
+            padding: const EdgeInsets.all(TokSpace.sm),
             child: Text(
               'You share costs from today on. The ${euros(spentSoFar)} spent before you joined stays with the ${_numbers[crew.length] ?? crew.length} of them.',
               style: TokText.bodySm.copyWith(color: t.textDefault),
             ),
-          ),
+          )),
         ]),
       ],
       ),
@@ -224,5 +221,12 @@ class _JoinFlowState extends State<JoinFlow> {
     ]);
   }
 }
+
+/// A white card on Ren's grey page, holding one part of the recap.
+Widget _card(BuildContext context, Widget child) => Container(
+      padding: const EdgeInsets.all(TokSpace.x2xs),
+      decoration: BoxDecoration(color: context.tok.bgDefault, borderRadius: BorderRadius.circular(TokRadius.card)),
+      child: child,
+    );
 
 const _numbers = {2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six'};

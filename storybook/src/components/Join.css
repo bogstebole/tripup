@@ -75,9 +75,13 @@
 .tu-join__welcome { display: flex; flex-direction: column; gap: var(--space-2xs); padding: 0 var(--space-xs); color: var(--color-text-default); }
 .tu-join__welcome h1 { margin: 0; }
 /* Where they've been, overlapped, from the left */
-.tu-join__stickers { display: flex; align-items: center; padding: 0 var(--space-xs); }
-.tu-join__stickers > * + * { margin-left: calc(var(--d-sticker-overlap) * -1); }
-.tu-join__rule { padding: 0 var(--space-xs); color: var(--color-text-default); }
+.tu-join__card { display: flex; flex-direction: column; padding: var(--space-2xs); border-radius: var(--radius-card); background: var(--color-bg-default); }
+.tu-join__been { flex-direction: row; gap: var(--space-xs); padding: calc(var(--space-2xs) + var(--space-3xs) + var(--space-xs)); }
+/* One line of thumbnails (--n of them), shrunk to fit on a narrower phone rather than leaving one alone on a second line */
+.tu-join__been { container-type: inline-size; }
+.tu-join__been > .tu-row-thumb { --s: min(var(--d-sticker-row), (100cqi - (var(--n) - 1) * var(--space-xs)) / var(--n)); width: var(--s); height: var(--s); }
+.tu-join__been img { height: calc(var(--s) - var(--d-sticker-row) + var(--d-sticker-mini)) !important; }
+.tu-join__rule { margin: 0; padding: var(--space-sm); color: var(--color-text-default); }
 .tu-join__page:not(.tu-join__page--invite) { padding-bottom: 0; }
 /* The recap's footer: stuck to the bottom of the page while it scrolls, the screen's full width over an eased fade */
 .tu-join__footer { position: sticky; bottom: 0; margin: var(--space-md) calc(var(--space-md) * -1) 0; padding: var(--space-xl) var(--space-md) var(--space-md); }

@@ -4,6 +4,7 @@ import { Children, isValidElement, useEffect, useRef, useState, type ReactNode }
 import tokens from '../../../design-system/tokens.json';
 import { Button } from './Button';
 import { easedFade } from './easedFade';
+import { Sticker } from './Sticker';
 import './Surface.css';
 import './TripSheet.css';
 
@@ -198,9 +199,19 @@ export function SheetRow({ leading, title, subtitle, tone, trailing, onClick }: 
       {trailing}
     </>
   );
+  // A thumbnail's muted square sits a little further out than the text around it, so its picture lines up instead
+  const cls = ['tu-sheet-row', isValidElement(leading) && leading.type === RowThumb && 'tu-sheet-row--thumb'].filter(Boolean).join(' ');
   return onClick
-    ? <button type="button" className="tu-sheet-row tu-sheet-row--tap" onClick={onClick}>{body}</button>
-    : <div className="tu-sheet-row">{body}</div>;
+    ? <button type="button" className={`${cls} tu-sheet-row--tap`} onClick={onClick}>{body}</button>
+    : <div className={cls}>{body}</div>;
+}
+
+/**
+ * A place's thumbnail at the start of a SheetRow: its sticker (or an icon, for what has no place yet) on a muted
+ * square, so stickers and icons read as the same kind of thing down a list.
+ */
+export function RowThumb({ sticker, tilt, children }: { sticker?: string; tilt?: number; children?: ReactNode }) {
+  return <span className="tu-row-thumb">{sticker ? <Sticker name={sticker} size="mini" tilt={tilt} /> : children}</span>;
 }
 
 /** A thin divider between rows, inset to the rows' text. */

@@ -655,6 +655,12 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Final UI, iteration 1.74: list thumbnails, tighter rows, Ren's recap in cards (branch `feat/sheet-polish`)
+- Bogdan: drop the intro line under Add to the trip and Plan something; Sheet row thumbnails on a muted background, 10 vertical padding, 2 at the side, 8 around the day dividers (was 16); Ren's trip so far looked empty and odd with icons where thumbnails should be.
+- App: `RowThumb` (new, in `trip_sheet.dart`) in the itinerary, Plan something's places and Ren's recap; Sheet row padding; the day line; Add's header lines gone; Ren's recap on cards. Storybook the same (`RowThumb`, `.tu-join__card`).
+- Figma not touched: Bogdan's Sheet row edit wasn't in the file yet when I read it.
+- **Checked:** Add and Plan something (search and a picked place) and the itinerary on the iPhone 17 Pro Max simulator; Ren's trip so far in a web build at 440 wide; Storybook Pop-ups / Itinerary and Screens / Ren · trip so far.
+
 ### Figma: the splash at 1.73 (27 Oct)
 - Open the app (Final UI) shows the new sequence in its four screens:
   - the dot, with the first stickers popping up;

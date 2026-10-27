@@ -290,6 +290,14 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 - **Pay stays in Money's pill, and the pill moves down** (Bogdan, on second thought): Pay is the action on that one debt (like Vote on a place), so it keeps its pill, but the pill sits at the bottom just above the footer, where the thumb reaches, and stays in view while the lists scroll. The page opens straight on its tabs.
 - **Once I've paid, the pill goes** (Bogdan): the note at the top ("You paid Maya €181.50") is the success, and the row turning Paid is the record; a green pill that stays says it a third time. The same once everyone has paid: "Lisbon is squared up" is a note, not a banner.
 
+## Lists: thumbnails on a square, fewer intro lines (27 Oct, Bogdan)
+
+- **No intro line under Add's header** (Bogdan): "A plan, or someone new" and "Find a place, pick a time, send it" read like they ended up there by accident, and the choices below already say it. Gone. If a pop-up ever needs a line like that, it goes in the header under the title, not floating between the header and the page.
+- **Every place in a list sits on a muted square** (`bg/muted`, `radius/control`, 40): the sticker at the mini size inside it. Things without a place yet (tonight's dinner, the flat, the poll) get their icon on the same square, so stickers and icons read as one kind of thing instead of icons standing in where a picture should be. Faces and bank logos stay as they are: they aren't places.
+- **Tighter rows** (Bogdan): 10 top and bottom (was 12), and a row with a thumbnail sits 2 from the side (was 8), so the square lines up with the text around it. The line between days has 8 above and below (was 16).
+- **Ren's "trip so far" in blocks:** each part (where you're staying, been so far, coming up, money) on a white card under its heading, and no "Here's the trip so far" line. On the grey page the rows looked scattered and empty, and the muted squares disappeared into it. "Been so far" is now a line of the same thumbnails (it shrinks on a narrower phone instead of leaving one alone on a second line).
+- **What we didn't do:** a map of where they've been on Ren's page (more to draw for a page he reads once), or moving the other intro lines (the itinerary's dates, Pay's and the bank's notes, the poll's status) into the header yet: those carry facts, not just a description, so that's Bogdan's call.
+
 ## Text buttons without icons (25 Oct)
 
 - **The label says it.** Icons had crept onto buttons that leave the app or use the phone (Website, Directions, the camera, the clipboard), but not consistently (Pay has none), and the words already say where each goes. So none; Bogdan chose it over keeping Directions and Scan the bill.

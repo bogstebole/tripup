@@ -52,7 +52,7 @@ class ItineraryPage extends StatelessWidget {
           final rows = <Widget>[
             for (final v in been)
               SheetRow(
-                leading: _slot(Sticker(v.sticker, size: StickerSize.row, tilt: v.tilt)),
+                leading: RowThumb(sticker: v.sticker, tilt: v.tilt),
                 title: v.name,
                 subtitle: 'Been there',
                 onTap: onPick == null ? null : () => onPick!(v.at),
@@ -60,7 +60,7 @@ class ItineraryPage extends StatelessWidget {
             // Tonight's slot, until the poll has picked a place
             if (day == today && dinnerChoice(now) == null)
               SheetRow(
-                leading: _slot(LucideIcon(TuIcons.places, size: TokSize.iconMd, color: t.iconBrand)),
+                leading: const RowThumb(icon: TuIcons.places),
                 title: 'Dinner',
                 subtitle: pollOpen(now)
                     ? 'Poll open · ${votesIn(now)} of ${dinnerTable.length} voted'
@@ -73,7 +73,7 @@ class ItineraryPage extends StatelessWidget {
               ),
             for (final p in planned)
               SheetRow(
-                leading: _slot(Sticker(p.sticker, size: StickerSize.row)),
+                leading: RowThumb(sticker: p.sticker),
                 title: p.name,
                 subtitle: [if (p == next) 'Up next', p.eta, if (p.end case final end?) 'until ${clockTime(end)}'].join(' · '),
                 subtitleColor: p == next ? t.textBrand : null,
@@ -82,7 +82,7 @@ class ItineraryPage extends StatelessWidget {
               ),
           ];
           return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            if (k > 0) const Padding(padding: EdgeInsets.symmetric(vertical: TokSpace.md), child: Hairline()),
+            if (k > 0) const Padding(padding: EdgeInsets.symmetric(vertical: TokSpace.xs), child: Hairline()),
             Padding(
               padding: const EdgeInsets.fromLTRB(TokSpace.xs, 0, TokSpace.xs, TokSpace.x2xs),
               child: Row(spacing: TokSpace.xs, children: [
@@ -681,8 +681,8 @@ class AddPage extends StatefulWidget {
 
   /// The pop-up's title and the line at the top of its page, for each step (Invite's page says it itself).
   static (String, String?) headerOf(AddStep step) => switch (step) {
-        AddStep.choose => ('Add to the trip', 'A plan, or someone new'),
-        AddStep.plan => ('Plan something', 'Find a place, pick a time, send it'),
+        AddStep.choose => ('Add to the trip', null),
+        AddStep.plan => ('Plan something', null),
         AddStep.invite => ('Invite someone', null),
       };
 
@@ -863,7 +863,7 @@ class _AddPageState extends State<AddPage> {
       for (final (i, s) in shown.indexed) ...[
         if (i > 0) const Hairline(),
         SheetRow(
-          leading: _slot(Sticker(s.sticker, size: StickerSize.row)),
+          leading: RowThumb(sticker: s.sticker),
           title: s.name,
           subtitle: '${s.kind} · ${s.area} · ${walkLabel(s.at, now)}',
           trailing: LucideIcon(TuIcons.forward, size: TokSize.iconSm, color: t.iconMuted),
