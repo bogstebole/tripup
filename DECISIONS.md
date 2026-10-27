@@ -345,6 +345,7 @@ From the research (`process/research/tripup-competitive-research-v3-en.md`, Paym
 - **One direction:** the mark leaves left and the rows come from the right by the same `splash/slide` (160), so it reads as one page pushing the next. The mark fades late, so the slide is what you see; Your trips starts once TripUp is half way out, so the two never read over each other.
 - **Same length as before,** under 2 s from the first frame (stickers in from 80 ms, 50 ms apart; out from 800 ms; the mark leaves at 1.4 s). A tap still skips to the leaving; still none with reduced motion.
 - **What we didn't do:** keep the stickers flying onto the trip card (Bogdan dropped it), stickers at fixed places (it should feel random), or a full-screen slide off the edge for the mark (the rows would have had to come from as far, and arrive late).
+- **Slower, and the dot breathes** (Bogdan, on the preview: it all happens too fast): about 1.5× slower, under 3 s (stickers 75 ms apart, held for 1.2 s; the mark leaves at 2.1 s, each slide 400 ms, and Your trips' rows come in at the same pace). The gap between the dot and TripUp is 40 (was 16). The dot's blue breathes the way my location does on the map (same scale, curve and `pulse-ms`), so the mark reads as live, not as a logo.
 
 ## Mini pin ↔ Up next: one content at a time (25 Oct)
 

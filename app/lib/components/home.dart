@@ -34,7 +34,13 @@ class TripsHome extends StatelessWidget {
             child: ListView(
               padding: EdgeInsets.fromLTRB(0, pad.top + TokSpace.md, 0, pad.bottom + TokDim.homeBottomFade),
               children: [
-                StaggerIn(until: homeIn, from: const Offset(TokDim.splashSlide, 0), children: [
+                StaggerIn(
+                  until: homeIn,
+                  // At the splash's pace, from where its mark went
+                  from: const Offset(TokDim.splashSlide, 0),
+                  duration: TokMotion.splashLeave,
+                  stagger: TokMotion.splashLeaveStagger,
+                  children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: TokSpace.md),
                     child: Row(spacing: TokSpace.sm, children: [
