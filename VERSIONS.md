@@ -660,6 +660,7 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - About 1.5× slower: `splash-word-at-ms` 330, `splash-stickers-at-ms` 120, `splash-sticker-stagger-ms` 75, `splash-stickers-out-at-ms` 1200, `splash-leave-at-ms` 2100, `splash-leave-stagger-ms` 90, new `splash-leave-ms` 400 (each slide, and each of Your trips' rows; `StaggerIn` takes a duration and stagger now). `splash/word-gap` is `{space.3xl}` (40).
 - The dot's blue breathes like MeMarker's on the map (`me/pulse-scale`, `ease-breathe`, `pulse-ms`), from when TripUp comes in.
 - **Checked** on the iPhone 17 Pro Max simulator from a cold launch: `Assets/splash-1.73-simulator.mov` (not in git), `process/splash/splash-1.73-frames.png`, `process/splash/splash-1.73-dot-breathing.png`.
+- On the web: Vercel production (https://tripup-three.vercel.app) from main at 6009475, 27 Oct, after Bogdan checked the preview.
 
 ### Final UI, iteration 1.72: the splash scatters, then the page slides in (branch `feature/splash-scatter`)
 - Bogdan's sequence: my dot pops in; small stickers (40 high) pop up one by one at random spots all over the screen, a different layout every launch (one per cell of a 3 × 4 grid, clear of the mark); TripUp comes in; the stickers pop away in the order they came; the dot and then TripUp slide out to the left; Your trips slides in from the right, a row at a time (header, trip card, Coming up, Previous trips). The stickers no longer fly onto the trip card (DECISIONS: The splash, reworked).
