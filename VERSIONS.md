@@ -661,6 +661,7 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - App: `TripSheet` lays the subtitle out under the title and grows the header for it (measured at its width, the page eases down with it); `Visited` gets a kind; Ren's recap reordered with a `_PlaceTile` grid; new tokens `recap/place-photo` 128 and `recap/place-sticker` 88. Storybook the same (the header measured with a ResizeObserver).
 - New stickers: `sao-joao-de-brito`, `campo-grande`, `alvalade`, `maria-matos`, `versailles`, `mercado-arroios` (full size in `Assets/stickers-app-full/`, credits in `Assets/stickers-places-credits.md`).
 - **Checked:** in a web build at 440 wide (Itinerary, Pay Maya, Your bank, the poll, Ren's trip so far scrolled to the end) and in Storybook (the same, plus the stickers in the grid).
+- On Vercel production (28 Oct): the web app at https://tripup-three.vercel.app and Storybook at https://tripup-storybook.vercel.app. Not on the iPhone or in an APK yet.
 
 ### Final UI, iteration 1.74: list thumbnails, tighter rows, Ren's recap in cards (branch `feat/sheet-polish`)
 - Bogdan: drop the intro line under Add to the trip and Plan something; Sheet row thumbnails on a muted background, 10 vertical padding, 2 at the side, 8 around the day dividers (was 16); Ren's trip so far looked empty and odd with icons where thumbnails should be.
