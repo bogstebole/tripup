@@ -2,7 +2,7 @@
 
 Generated from design-system/components.json by design-system/build-components-doc.mjs. Don't edit by hand.
 
-Every component the Figma screens are built from: 93 entries on the page Components (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=143-83), one section each.
+Every component the Figma screens are built from: 96 entries on the page Components (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=143-83), one section each.
 The Flutter app (app/lib) is the source of truth; each component is drawn 1:1 from its widget.
 
 ## How to read it
@@ -18,13 +18,13 @@ The Flutter app (app/lib) is the source of truth; each component is drawn 1:1 fr
 
 - Buttons: Button, Text button, Add button
 - System: Status bar, Home indicator
-- Your trips: Trip card, Trip still / Lisbon, Happening now, Trip row, Avatar button, Splash mark
+- Your trips: Home hero, Trip still / Lisbon, Happening now, Trip row, Avatar button, Splash mark
 - Map: Top bar, Toggle chip, Demo button, Action bar, Crew button, Plan pin, Up next card, Mini pin, Pin tail, Edge pin, Edge arrow, Info chip, Rating line, Face pile, Me marker
 - Scenes: Scene / Trip map · 2:10 PM, Scene / Trip map · 2:30 PM, Scene / Trip map · 3:00 PM, Scene / Trip map · 3:56 PM, Scene / Trip map · plan sent, Scene / Trip map · 5 PM, Map / Lisbon today, Map / Lisbon · Gulbenkian
 - Full view: Sheet header, Segmented tabs, Segment, Page title, Photo carousel, Know tip, Fact row, Menu row, Dish sticker, Person row, More picks, Hairline
-- Pop-ups: Pop-up header, Sheet footer, Sheet section, Sheet row, Icon row, Day heading, Tag, Segmented tabs / wide, Owe pill, Payment row, Why, Money footer, Add choice, Search field, Place map, Time row, Link pill, Text field, Phone pill, Toast, Pay amount, Pay line, Bank logo
+- Pop-ups: Pop-up header, Sheet footer, Sheet section, Sheet row, Icon row, Day heading, Tag, Segmented tabs / wide, Owe pill, Payment row, Why, Money footer, Add choice, Search field, Place map, Time row, Link pill, Text field, Phone pill, Toast, Pay amount, Pay line, Bank logo, Moment, Place tile
 - Poll: Poll card, Poll place, Vote bar, Live dot
-- Bill: Scan frame, Receipt, Bill line, Share, Payer
+- Bill: Scan frame, Receipt, Bill line, Add/remove mark, Share, Payer
 - Paying: Face ID, Bank approval
 - Live Activity: Live Activity, Activity place, Activity mark, Activity bar, Island / compact, Island / expanded, Notification, Notification actions, App icon, Wallpaper
 - Assets: Icon set, Sticker library, Photo set
@@ -37,12 +37,12 @@ The raised bodies people tap. Soft for most actions, primary (brand blue) for th
 
 Round icon button: every icon-only action in TripUp (back, close, add, the arrow into a trip).
 
-- Use: When the icon alone says the action. Kind=primary only for the one main action on a screen. States: Kind=soft|primary × Size=sm|md|lg, all six. Pressed has no look of its own: the whole button scales to 0.97 (press-scale) while held.
+- Use: When the icon alone says the action. Kind=primary only for the one main action on a screen; Kind=danger only for taking something away. Kind=soft|primary|danger × Size=sm|md|lg.
 - Avoid: Actions that need words: use Text button.
-- Props: Kind → kind (GlassKind.soft | primary) · Size → size (TuButtonSize sm 40 | md 44 | lg 56) · Icon → icon (a TuIcons entry). Code also takes label (read by screen readers) and onTap.
+- Props: Kind → kind (GlassKind.soft | primary | danger) · Size → size (TuButtonSize sm 40 | md 44 | lg 56) · Icon → icon (a TuIcons entry). Code also takes label and onTap.
 - Code: TuButton · app/lib/components/glass.dart
 - Storybook: Components/Button
-- Figma: node 93:1579 · key 78bc87d2d8d1fb1582876f9415e423fae99a33c4 · properties: Icon (instance swap), Kind=soft|primary, Size=sm|md|lg (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=143-159)
+- Figma: node 93:1579 · key 78bc87d2d8d1fb1582876f9415e423fae99a33c4 · properties: Icon (instance swap), Kind=soft|primary|danger, Size=sm|md|lg (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=143-159)
 
 ### Text button
 
@@ -88,13 +88,15 @@ iOS home indicator at the bottom of every screen frame.
 
 The home screen: every trip, the one that's on as a big card.
 
-### Trip card
+### Home hero
 
-The trip you're on, the big card on Your trips: the city still with stickers, Happening now, the trip's name, city and dates, who's on it, and the arrow in. Tapping anywhere opens the trip.
+The trip you are on, over its own map at the top of Your trips: Happening now, its name big with a sticker edge, the city and dates, who is on it standing on See trip details.
 
-- Props: Title → the trip's name (one line, ends in …) · City and dates.
-- Code: _CurrentTrip, TripCardFace · app/lib/components/home.dart
-- Storybook: Screens/Trip
+- Use: Once, at the top of Your trips, centred under the header. The name is Display at 40 with a 4 white edge and Elevation/Raised; the faces carry Elevation/Raised too. The faces stand 8 over the button, which is at least space/xl wider than them on each side. Going in, each part fades, blurs and moves up on its own while the map zooms to the trip.
+- Avoid: A card or a still of the map behind it: the live map is the background.
+- Props: Title → tripTitle · City and dates → tripCity · tripDates (data.dart). Code takes onOpen.
+- Code: _HeroFace, _HeroTitle, _WayIn, _Raised · app/lib/components/home.dart
+- Storybook: Screens/Trip · Your trips
 - Figma: node 96:1448 · key bd6b333bd054d2c658156caceeb5531b312e341c · properties: Title (text), City and dates (text) (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=144-803)
 
 ### Trip still / Lisbon
@@ -106,9 +108,12 @@ The picture on the Trip card: the city's still with its landmark stickers. The a
 
 ### Happening now
 
-Small glass pill with a green dot: the trip is on right now. Sits on the Trip card.
+The trip is on now: a plain white pill over its name, the green bead, Happening now and which day of the trip it is (muted).
 
-- Code: _HappeningNow · app/lib/components/home.dart
+- Use: Once, over the trip name in Home hero. Plain bg/default, no glass and no shadow: glass is only for what can be tapped.
+- Avoid: A glass or button look: it would read as tappable.
+- Code: _HappeningNow, _NowDot · app/lib/components/home.dart
+- Storybook: Screens/Trip · Your trips
 - Figma: node 95:1494 · key 42e811b963eb7ecf259068ba19014ed7656edfde (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=144-836)
 
 ### Trip row
@@ -451,18 +456,21 @@ A heading inside a pop-up's page, with an optional line under it (space/lg or sp
 
 ### Sheet row
 
-One line in a pop-up's list: a sticker, a name (up to two lines), a line under it (brand for Up next), and what sits at the end: a time, an arrow, a button, or nothing.
+A row in a pop-up list: a muted square thumb, a title and subtitle, and what sits at its end.
 
+- Use: Trailing=time for a plan (Opens: the chevron after the time); chevron for a row that opens something; unfold / fold for a row that opens in place (the chevron turns half a turn); button for a row with its own action; none for a row you only read. The chevron is tertiary: icon/muted, no background.
+- Avoid: A hand-made arrow, or a chevron on a row that does nothing.
 - Props: Title → title · Subtitle → subtitle · Subtitle color=muted|brand → subtitleColor · End · Sticker → leading · Sticker shown (off for a picked place, whose sticker is on the map above) · Trailing=time|arrow|button|none → trailing.
-- Code: SheetRow · app/lib/components/trip_sheet.dart
-- Figma: node 110:2890 · key 7a6cc965ca8f256ec7571317104ec4d221560b06 · properties: Title (text), Subtitle (text), End (text), Sticker (instance swap), Sticker shown (boolean), Trailing=time|arrow|button|none, Subtitle color=muted|brand (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=146-1069)
+- Code: SheetRow, RowChevron, RowThumb · app/lib/components/trip_sheet.dart
+- Storybook: Pop-ups · Itinerary
+- Figma: node 110:2890 · key 7a6cc965ca8f256ec7571317104ec4d221560b06 · properties: Title (text), Subtitle (text), End (text), Sticker (instance swap), Sticker shown (boolean), Opens (boolean), Trailing=time|button|none|chevron|unfold|fold, Subtitle color=muted|brand (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=146-1069)
 
 ### Icon row
 
-A Sheet row with an icon instead of a sticker: the trip so far in Join (where they're staying, dinner tonight).
+A row whose thumb is an icon, for what has no place yet (the stay, tonight's dinner): the icon in brand on the same muted square as a sticker thumb.
 
 - Props: Title · Subtitle · Subtitle color=muted|brand · Icon.
-- Code: JoinFlow · app/lib/components/join.dart
+- Code: SheetRow, RowThumb · app/lib/components/trip_sheet.dart
 - Figma: node 116:3998 · key 7d3792a57e53a3bc1ac96382d709881d752abc03 · properties: Title (text), Subtitle (text), Icon (instance swap), Subtitle color=muted|brand (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=146-1112)
 
 ### Day heading
@@ -616,6 +624,28 @@ A bank's mark in Your bank's list: its first letter on a muted disc, bank/logo w
 - Storybook: Money · your bank
 - Figma: node 176:6565 · key fe8e5b9cdfe5043ebe1c78167839ba389aadaee1 · properties: Letter (text) (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=176-6689)
 
+### Moment
+
+One moment on a visit's timeline: the time, a brand dot on a line down to the next moment, and what happened.
+
+- Use: In A place we have been, under What happened: Got there (with the faces), each thing paid there, then Left. Last=yes on the final one: no line after its dot.
+- Avoid: A timeline for plans ahead: those are Sheet rows.
+- Props: Time → clockTime · Title, Subtitle · Faces → below · Amount → trailing · Last → last.
+- Code: _Moment, VisitPage · app/lib/components/trip_pages.dart
+- Storybook: Pop-ups · Itinerary · a place we've been
+- Figma: node 278:1255 · key 3728fba4a55ae6612361bcd6e4ab7011ef2a0013 · properties: Time (text), Title (text), Subtitle (text), Faces (boolean), Amount shown (boolean), Amount (text), Last=no|yes (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=278-1228)
+
+### Place tile
+
+A place we have been, on Ren's catch-up: its sticker on a muted block, then its name, what it is and the day.
+
+- Use: Two to a row in Been so far, the same height, xs apart.
+- Avoid: A tile for a plan ahead: those are Sheet rows.
+- Props: Name → place.name · Kind and day → kind · weekday day · Sticker → place.sticker.
+- Code: _PlaceTile · app/lib/components/join.dart
+- Storybook: Screens/Trip · Ren's phone · trip so far
+- Figma: node 278:1222 · key 777097534c9526e1bd6ba8d981697a2b59b6ac2d · properties: Name (text), Kind and day (text), Sticker (instance swap) (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=278-1256)
+
 ## Poll
 
 Choosing dinner: the poll on the map.
@@ -672,11 +702,25 @@ The paper bill the camera reads: La Brasserie's real items and prices.
 
 ### Bill line
 
-One line of the scanned bill: the menu dish it matched, quantity × price and who had it; its total and their faces. Tap it to change who had it.
+One line of the scanned bill: what it is, what it comes to and how many at what price, and who had it.
 
-- Props: Title · Subtitle · Amount · Face 2–5.
-- Code: BillScan · app/lib/components/bill_scan.dart
-- Figma: node 124:5327 · key 4e2678336eb34c38740a6b28c0145ec07eace2a8 · properties: Title (text), Subtitle (text), Amount (text), Face 2 (boolean), Face 3 (boolean), Face 4 (boolean), Face 5 (boolean) (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=147-1360)
+- Use: State=assigned: who had it on a soft pill with a chevron down. State=nobody: a round soft button with user-plus. State=open: a round chevron up, and a muted block with everyone at the table, each with the Add/remove mark. Opening and closing are separate moves (about 420 and 360 ms), every face blurring a little while it moves.
+- Avoid: Opening a line by itself, or a split-evenly note.
+- Props: State → open / who.isEmpty · Title → item name · Amount → euros(total) · Subtitle → qty × unit · Face 2–5 → who had it.
+- Code: _BillLine, _AddRemove · app/lib/components/bill_scan.dart
+- Storybook: Pop-ups · Scan the bill
+- Figma: node 124:5327 · key 4e2678336eb34c38740a6b28c0145ec07eace2a8 · properties: Title (text), Subtitle (text), Amount (text), Face 2–5 (boolean), State=assigned|open|nobody (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=147-1360)
+
+### Add/remove mark
+
+The small round mark at a face's top-right in an open bill line: soft with a plus for someone who did not have it, red with a minus for someone who did.
+
+- Use: Only on the people in an open Bill line. The sm button's glass at 0.4 (16 of 40); it turns from one into the other on the spot (fade-ms).
+- Avoid: As a button on its own: the whole person is the tap target.
+- Props: On → on (had it).
+- Code: _AddRemove · app/lib/components/bill_scan.dart
+- Storybook: Pop-ups · Scan the bill
+- Figma: node 274:1263 · key 5262df7d8f6d881f49bc3547ed04951af52e2fd2 · properties: On=no|yes (https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task?node-id=274-1245)
 
 ### Share
 

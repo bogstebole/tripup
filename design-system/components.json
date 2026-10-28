@@ -10,15 +10,15 @@
         {
           "name": "Button",
           "what": "Round icon button: every icon-only action in TripUp (back, close, add, the arrow into a trip).",
-          "use": "When the icon alone says the action. Kind=primary only for the one main action on a screen. States: Kind=soft|primary × Size=sm|md|lg, all six. Pressed has no look of its own: the whole button scales to 0.97 (press-scale) while held.",
+          "use": "When the icon alone says the action. Kind=primary only for the one main action on a screen; Kind=danger only for taking something away. Kind=soft|primary|danger × Size=sm|md|lg.",
           "avoid": "Actions that need words: use Text button.",
-          "props": "Kind → kind (GlassKind.soft | primary) · Size → size (TuButtonSize sm 40 | md 44 | lg 56) · Icon → icon (a TuIcons entry). Code also takes label (read by screen readers) and onTap.",
+          "props": "Kind → kind (GlassKind.soft | primary | danger) · Size → size (TuButtonSize sm 40 | md 44 | lg 56) · Icon → icon (a TuIcons entry). Code also takes label and onTap.",
           "code": "TuButton · app/lib/components/glass.dart",
           "story": "Components/Button",
           "section": "143:159",
           "id": "93:1579",
           "key": "78bc87d2d8d1fb1582876f9415e423fae99a33c4",
-          "figmaProps": "Icon (instance swap), Kind=soft|primary, Size=sm|md|lg"
+          "figmaProps": "Icon (instance swap), Kind=soft|primary|danger, Size=sm|md|lg"
         },
         {
           "name": "Text button",
@@ -77,15 +77,17 @@
       "about": "The home screen: every trip, the one that's on as a big card.",
       "components": [
         {
-          "name": "Trip card",
-          "what": "The trip you're on, the big card on Your trips: the city still with stickers, Happening now, the trip's name, city and dates, who's on it, and the arrow in. Tapping anywhere opens the trip.",
-          "props": "Title → the trip's name (one line, ends in …) · City and dates.",
-          "code": "_CurrentTrip, TripCardFace · app/lib/components/home.dart",
-          "story": "Screens/Trip",
+          "name": "Home hero",
+          "what": "The trip you are on, over its own map at the top of Your trips: Happening now, its name big with a sticker edge, the city and dates, who is on it standing on See trip details.",
+          "props": "Title → tripTitle · City and dates → tripCity · tripDates (data.dart). Code takes onOpen.",
+          "code": "_HeroFace, _HeroTitle, _WayIn, _Raised · app/lib/components/home.dart",
+          "story": "Screens/Trip · Your trips",
           "section": "144:803",
           "id": "96:1448",
           "key": "bd6b333bd054d2c658156caceeb5531b312e341c",
-          "figmaProps": "Title (text), City and dates (text)"
+          "figmaProps": "Title (text), City and dates (text)",
+          "use": "Once, at the top of Your trips, centred under the header. The name is Display at 40 with a 4 white edge and Elevation/Raised; the faces carry Elevation/Raised too. The faces stand 8 over the button, which is at least space/xl wider than them on each side. Going in, each part fades, blurs and moves up on its own while the map zooms to the trip.",
+          "avoid": "A card or a still of the map behind it: the live map is the background."
         },
         {
           "name": "Trip still / Lisbon",
@@ -97,11 +99,14 @@
         },
         {
           "name": "Happening now",
-          "what": "Small glass pill with a green dot: the trip is on right now. Sits on the Trip card.",
-          "code": "_HappeningNow · app/lib/components/home.dart",
+          "what": "The trip is on now: a plain white pill over its name, the green bead, Happening now and which day of the trip it is (muted).",
+          "code": "_HappeningNow, _NowDot · app/lib/components/home.dart",
           "section": "144:836",
           "id": "95:1494",
-          "key": "42e811b963eb7ecf259068ba19014ed7656edfde"
+          "key": "42e811b963eb7ecf259068ba19014ed7656edfde",
+          "use": "Once, over the trip name in Home hero. Plain bg/default, no glass and no shadow: glass is only for what can be tapped.",
+          "avoid": "A glass or button look: it would read as tappable.",
+          "story": "Screens/Trip · Your trips"
         },
         {
           "name": "Trip row",
@@ -519,19 +524,22 @@
         },
         {
           "name": "Sheet row",
-          "what": "One line in a pop-up's list: a sticker, a name (up to two lines), a line under it (brand for Up next), and what sits at the end: a time, an arrow, a button, or nothing.",
+          "what": "A row in a pop-up list: a muted square thumb, a title and subtitle, and what sits at its end.",
           "props": "Title → title · Subtitle → subtitle · Subtitle color=muted|brand → subtitleColor · End · Sticker → leading · Sticker shown (off for a picked place, whose sticker is on the map above) · Trailing=time|arrow|button|none → trailing.",
-          "code": "SheetRow · app/lib/components/trip_sheet.dart",
+          "code": "SheetRow, RowChevron, RowThumb · app/lib/components/trip_sheet.dart",
           "section": "146:1069",
           "id": "110:2890",
           "key": "7a6cc965ca8f256ec7571317104ec4d221560b06",
-          "figmaProps": "Title (text), Subtitle (text), End (text), Sticker (instance swap), Sticker shown (boolean), Trailing=time|arrow|button|none, Subtitle color=muted|brand"
+          "figmaProps": "Title (text), Subtitle (text), End (text), Sticker (instance swap), Sticker shown (boolean), Opens (boolean), Trailing=time|button|none|chevron|unfold|fold, Subtitle color=muted|brand",
+          "use": "Trailing=time for a plan (Opens: the chevron after the time); chevron for a row that opens something; unfold / fold for a row that opens in place (the chevron turns half a turn); button for a row with its own action; none for a row you only read. The chevron is tertiary: icon/muted, no background.",
+          "avoid": "A hand-made arrow, or a chevron on a row that does nothing.",
+          "story": "Pop-ups · Itinerary"
         },
         {
           "name": "Icon row",
-          "what": "A Sheet row with an icon instead of a sticker: the trip so far in Join (where they're staying, dinner tonight).",
+          "what": "A row whose thumb is an icon, for what has no place yet (the stay, tonight's dinner): the icon in brand on the same muted square as a sticker thumb.",
           "props": "Title · Subtitle · Subtitle color=muted|brand · Icon.",
-          "code": "JoinFlow · app/lib/components/join.dart",
+          "code": "SheetRow, RowThumb · app/lib/components/trip_sheet.dart",
           "section": "146:1112",
           "id": "116:3998",
           "key": "7d3792a57e53a3bc1ac96382d709881d752abc03",
@@ -722,6 +730,32 @@
           "id": "176:6565",
           "key": "fe8e5b9cdfe5043ebe1c78167839ba389aadaee1",
           "figmaProps": "Letter (text)"
+        },
+        {
+          "name": "Moment",
+          "what": "One moment on a visit's timeline: the time, a brand dot on a line down to the next moment, and what happened.",
+          "use": "In A place we have been, under What happened: Got there (with the faces), each thing paid there, then Left. Last=yes on the final one: no line after its dot.",
+          "avoid": "A timeline for plans ahead: those are Sheet rows.",
+          "props": "Time → clockTime · Title, Subtitle · Faces → below · Amount → trailing · Last → last.",
+          "code": "_Moment, VisitPage · app/lib/components/trip_pages.dart",
+          "story": "Pop-ups · Itinerary · a place we've been",
+          "section": "278:1228",
+          "id": "278:1255",
+          "key": "3728fba4a55ae6612361bcd6e4ab7011ef2a0013",
+          "figmaProps": "Time (text), Title (text), Subtitle (text), Faces (boolean), Amount shown (boolean), Amount (text), Last=no|yes"
+        },
+        {
+          "name": "Place tile",
+          "what": "A place we have been, on Ren's catch-up: its sticker on a muted block, then its name, what it is and the day.",
+          "use": "Two to a row in Been so far, the same height, xs apart.",
+          "avoid": "A tile for a plan ahead: those are Sheet rows.",
+          "props": "Name → place.name · Kind and day → kind · weekday day · Sticker → place.sticker.",
+          "code": "_PlaceTile · app/lib/components/join.dart",
+          "story": "Screens/Trip · Ren's phone · trip so far",
+          "section": "278:1256",
+          "id": "278:1222",
+          "key": "777097534c9526e1bd6ba8d981697a2b59b6ac2d",
+          "figmaProps": "Name (text), Kind and day (text), Sticker (instance swap)"
         }
       ]
     },
@@ -792,13 +826,29 @@
         },
         {
           "name": "Bill line",
-          "what": "One line of the scanned bill: the menu dish it matched, quantity × price and who had it; its total and their faces. Tap it to change who had it.",
-          "props": "Title · Subtitle · Amount · Face 2–5.",
-          "code": "BillScan · app/lib/components/bill_scan.dart",
+          "what": "One line of the scanned bill: what it is, what it comes to and how many at what price, and who had it.",
+          "props": "State → open / who.isEmpty · Title → item name · Amount → euros(total) · Subtitle → qty × unit · Face 2–5 → who had it.",
+          "code": "_BillLine, _AddRemove · app/lib/components/bill_scan.dart",
           "section": "147:1360",
           "id": "124:5327",
           "key": "4e2678336eb34c38740a6b28c0145ec07eace2a8",
-          "figmaProps": "Title (text), Subtitle (text), Amount (text), Face 2 (boolean), Face 3 (boolean), Face 4 (boolean), Face 5 (boolean)"
+          "figmaProps": "Title (text), Subtitle (text), Amount (text), Face 2–5 (boolean), State=assigned|open|nobody",
+          "use": "State=assigned: who had it on a soft pill with a chevron down. State=nobody: a round soft button with user-plus. State=open: a round chevron up, and a muted block with everyone at the table, each with the Add/remove mark. Opening and closing are separate moves (about 420 and 360 ms), every face blurring a little while it moves.",
+          "avoid": "Opening a line by itself, or a split-evenly note.",
+          "story": "Pop-ups · Scan the bill"
+        },
+        {
+          "name": "Add/remove mark",
+          "what": "The small round mark at a face's top-right in an open bill line: soft with a plus for someone who did not have it, red with a minus for someone who did.",
+          "use": "Only on the people in an open Bill line. The sm button's glass at 0.4 (16 of 40); it turns from one into the other on the spot (fade-ms).",
+          "avoid": "As a button on its own: the whole person is the tap target.",
+          "props": "On → on (had it).",
+          "code": "_AddRemove · app/lib/components/bill_scan.dart",
+          "story": "Pop-ups · Scan the bill",
+          "section": "274:1245",
+          "id": "274:1263",
+          "key": "5262df7d8f6d881f49bc3547ed04951af52e2fd2",
+          "figmaProps": "On=no|yes"
         },
         {
           "name": "Share",
