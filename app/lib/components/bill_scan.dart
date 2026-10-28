@@ -517,9 +517,11 @@ class _PayerPickerState extends State<_PayerPicker> with SingleTickerProviderSta
 /// opens the line: everyone at the table in a grey block, the ones who had it full with a red minus, the others faded
 /// with a plus; a tap on a person adds or takes them off.
 ///
+/// Every face and person sharpens from a little blur as it comes in, and blurs as it goes (enter-blur).
 /// Opening is one move: the pill's faces leave one after another, the pill gives way to a round chevron (up), the block
-/// grows, and the people come in one after another (about 420 ms, ease-out). Closing runs it back, a little quicker.
-/// With reduced motion it only fades.
+/// grows, and the people come in one after another (about 420 ms, ease-out). Closing is its own move, quicker, in the
+/// order things go back: the people leave (the last first), the block folds away at once, the chevron turns back into
+/// the pill and the faces drop into it one after another (about 360 ms). With reduced motion it only fades.
 class _BillLine extends StatefulWidget {
   const _BillLine({super.key, required this.line, required this.who, required this.table, required this.open, required this.onOpen, required this.onToggle});
   final BillLine line;
@@ -531,6 +533,9 @@ class _BillLine extends StatefulWidget {
   /// How long opening takes: the faces leaving, the block growing, the last person landing.
   static Duration get opening => _blockAt + _peopleAt + _peopleStagger * (dinnerTable.length - 1) + TokMotion.fade;
 
+  /// How long closing takes: to the last face back in the pill.
+  static Duration get closing => _facesBackAt + _faceStagger * (dinnerTable.length - 1) + _faceBack;
+
   @override
   State<_BillLine> createState() => _BillLineState();
 }
@@ -541,14 +546,26 @@ const _faceStagger = Duration(milliseconds: 25);
 const _blockAt = Duration(milliseconds: 60);         // the block starts growing
 const _peopleAt = Duration(milliseconds: 60);        // after the block starts, the first person
 const _peopleStagger = Duration(milliseconds: 30);
+// Closing
+const _personOut = Duration(milliseconds: 120);      // each person leaving the block, the last first
+const _personOutStagger = Duration(milliseconds: 20);
+const _blockShutAt = Duration(milliseconds: 60);
+const _blockShut = Duration(milliseconds: 220);
+const _pillBackAt = Duration(milliseconds: 80);      // the chevron turns back into the pill
+const _facesBackAt = Duration(milliseconds: 120);    // the first face back in the pill
+const _faceBack = Duration(milliseconds: 140);
 
 class _BillLineState extends State<_BillLine> with SingleTickerProviderStateMixin {
-  late final _c = AnimationController(vsync: this, duration: _BillLine.opening, reverseDuration: _BillLine.opening * 0.75, value: widget.open ? 1 : 0);
+  /// 0 closed, 1 open. Opening runs it up on the opening's steps; closing runs it down on the closing's ([_closing]).
+  late final _c = AnimationController(vsync: this, duration: _BillLine.opening, reverseDuration: _BillLine.closing, value: widget.open ? 1 : 0);
+  bool _closing = false;
 
   @override
   void didUpdateWidget(_BillLine old) {
     super.didUpdateWidget(old);
-    if (widget.open != old.open) widget.open ? _c.forward() : _c.reverse();
+    if (widget.open == old.open) return;
+    _closing = !widget.open;
+    widget.open ? _c.forward() : _c.reverse();
   }
 
   @override
@@ -559,12 +576,15 @@ class _BillLineState extends State<_BillLine> with SingleTickerProviderStateMixi
 
   bool get _reduce => MediaQuery.maybeDisableAnimationsOf(context) ?? false;
 
-  /// How far a step of the opening is, from [at] for [length] (0–1, ease-out); with reduced motion, all of it at once.
-  double _step(Duration at, Duration length) {
+  /// How open a part is (0–1): opening, on its step from [openAt] for [openFor]; closing, on its own step from
+  /// [shutAt] for [shutFor] (both ease-out). With reduced motion, all of it at once.
+  double _part(Duration openAt, Duration openFor, Duration shutAt, Duration shutFor) {
     if (_reduce) return _c.value;
-    final total = _BillLine.opening.inMicroseconds;
-    final a = (at.inMicroseconds / total).clamp(0.0, 1.0), b = ((at + length).inMicroseconds / total).clamp(0.0, 1.0);
-    return Interval(a, b, curve: TokMotion.easeOut).transform(_c.value);
+    double step(Duration at, Duration length, Duration total, double t) {
+      final a = (at.inMicroseconds / total.inMicroseconds).clamp(0.0, 1.0), b = ((at + length).inMicroseconds / total.inMicroseconds).clamp(0.0, 1.0);
+      return Interval(a, b, curve: TokMotion.easeOut).transform(t);
+    }
+    return _closing ? 1 - step(shutAt, shutFor, _BillLine.closing, 1 - _c.value) : step(openAt, openFor, _BillLine.opening, _c.value);
   }
 
   @override
@@ -573,7 +593,7 @@ class _BillLineState extends State<_BillLine> with SingleTickerProviderStateMixi
   Widget _line(BuildContext context) {
     final t = context.tok;
     final item = menuItemNamed(widget.line.item);
-    final block = _step(_blockAt, TokMotion.enter);
+    final block = _part(_blockAt, TokMotion.enter, _blockShutAt, _blockShut);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs, vertical: TokSpace.sm),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -606,7 +626,12 @@ class _BillLineState extends State<_BillLine> with SingleTickerProviderStateMixi
               decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.card)),
               child: Row(children: [
                 for (final (j, id) in widget.table.indexed)
-                  Expanded(child: _arriving(_step(_blockAt + _peopleAt + _peopleStagger * j, TokMotion.fade), _person(context, id))),
+                  Expanded(
+                    child: _arriving(
+                      _part(_blockAt + _peopleAt + _peopleStagger * j, TokMotion.fade, _personOutStagger * (widget.table.length - 1 - j), _personOut),
+                      _person(context, id),
+                    ),
+                  ),
               ]),
             ),
             ),
@@ -616,17 +641,24 @@ class _BillLineState extends State<_BillLine> with SingleTickerProviderStateMixi
     );
   }
 
-  /// A part coming in on its own step: it fades in and rises a little (only fades with reduced motion).
+  /// A part coming in on its own step: it fades in, sharpens from a blur and rises a little (only fades with reduced
+  /// motion); leaving, the other way.
   Widget _arriving(double v, Widget child) => Opacity(
         opacity: v,
-        child: Transform.translate(offset: Offset(0, _reduce ? 0 : (1 - v) * TokSpace.xs), child: child),
+        child: _blurred(1 - v, Transform.translate(offset: Offset(0, _reduce ? 0 : (1 - v) * TokSpace.xs), child: child)),
       );
+
+  /// Blurred by [out] of enter-blur while a part is half in or out (none with reduced motion or light effects).
+  Widget _blurred(double out, Widget child) {
+    final b = _reduce || lightEffects ? 0.0 : TokMotion.enterBlur * out;
+    return ImageFiltered(enabled: b >= 0.05 && out < 1, imageFilter: ui.ImageFilter.blur(sigmaX: b, sigmaY: b), child: child);
+  }
 
   /// The line's end: the faces on a pill (or the add-a-person button), giving way to a round chevron while it's open.
   Widget _control(BuildContext context) {
     final t = context.tok;
     final who = widget.who;
-    final swap = _step(_faceStagger * (who.length - 1 < 0 ? 0 : who.length - 1), _faceOut);
+    final swap = _part(_faceStagger * (who.length - 1 < 0 ? 0 : who.length - 1), _faceOut, _pillBackAt, _faceOut);
     final closed = who.isEmpty
         ? Glass(kind: GlassKind.soft, width: TokDim.buttonSm, height: TokDim.buttonSm, radius: BorderRadius.circular(TokRadius.pill), child: Center(child: LucideIcon(TuIcons.invite, size: TokSize.iconSm, color: t.iconDefault)))
         : Glass(
@@ -639,10 +671,10 @@ class _BillLineState extends State<_BillLine> with SingleTickerProviderStateMixi
               Overlapped(overlap: TokDim.chipFaceOverlap, children: [
                 for (final (k, id) in who.indexed)
                   () {
-                    final v = _step(_faceStagger * k, _faceOut);
+                    final v = _part(_faceStagger * k, _faceOut, _facesBackAt + _faceStagger * k, _faceBack);
                     return Opacity(
                       opacity: 1 - v,
-                      child: Transform.scale(scale: _reduce ? 1 : 1 - (1 - TokMotion.morphEnterScale) * v, child: Sticker(personById(id).sticker, size: StickerSize.chip)),
+                      child: _blurred(v, Transform.scale(scale: _reduce ? 1 : 1 - (1 - TokMotion.morphEnterScale) * v, child: Sticker(personById(id).sticker, size: StickerSize.chip))),
                     );
                   }(),
               ]),
