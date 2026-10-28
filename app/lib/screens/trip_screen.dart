@@ -74,9 +74,14 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   bool _banking = false;
 
   /// Your trips over the trip's map: 1 is the list, 0 is in the trip. Your trips is an overlay on the trip: going in,
-  /// its parts leave one after another (see [HomeLeave]) while the map under it zooms in to the trip and the trip's
-  /// pins and controls arrive ([_enter]). Back runs it the other way, the parts arriving top to bottom ([_homeBack]).
+  /// its parts leave one after another (see [HomeLeave]) while the map under it zooms in to the trip; once the last
+  /// has gone the trip's pins and controls arrive ([_enter], [_enterLater]). Back runs it the other way, the parts
+  /// arriving top to bottom ([_homeBack]).
   late final _home = AnimationController(vsync: this, value: 1);
+
+  /// Starts the trip's entrance when Your trips' last part has gone: the entrance waits open-delay-ms itself, so this
+  /// runs that much before.
+  Timer? _enterLater;
   final _homeKey = GlobalKey();
 
   /// Your trips is coming back (its parts arrive), rather than leaving.
@@ -594,7 +599,10 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       if (!mounted) return;
       _home.animateTo(0, duration: HomeLeave.total);
       _flyCamera(startCenter, startZoom, spring: TokMotion.springOpen);
-      _enter.forward(from: 0);
+      _enterLater?.cancel();
+      _enterLater = Timer(HomeLeave.total - TokMotion.openDelay, () {
+        if (mounted) _enter.forward(from: 0);
+      });
       setState(() {});
     });
   }
@@ -604,6 +612,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   void _goHome() {
     if (_onHome) return;
     final (center, zoom) = _homeView();
+    _enterLater?.cancel();
     setState(() => _homeBack = true);
     if (_reduce) {
       _map.move(center, zoom);
@@ -1031,6 +1040,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     _drag.dispose();
     _pop.dispose();
     _home.dispose();
+    _enterLater?.cancel();
     _enter.dispose();
     _popDrag.dispose();
     addedPlans.removeListener(_sceneChanged);
