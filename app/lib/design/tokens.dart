@@ -282,6 +282,7 @@ abstract final class TokShadow {
 abstract final class TokInset {
   static const buttonSoft = [InsetShadow(offset: Offset(0, -1), blur: 1, spread: 0, color: Color(0x40FFFFFF)), InsetShadow(offset: Offset(0, -8), blur: 3.2, spread: -4.8, color: Color(0xFFD4D4D8)), InsetShadow(offset: Offset(0, 3.2), blur: 3.2, spread: 0, color: Color(0xFFFFFFFF))];
   static const buttonPrimary = [InsetShadow(offset: Offset(0, -1), blur: 2, spread: 0, color: Color(0xFF0284C7)), InsetShadow(offset: Offset(0, -8), blur: 3.2, spread: -4.8, color: Color(0xFF1E3A8A)), InsetShadow(offset: Offset(0, 3.2), blur: 3.2, spread: 0, color: Color(0xFF0284C7))];
+  static const buttonDanger = [InsetShadow(offset: Offset(0, -1), blur: 2, spread: 0, color: Color(0xFFF87171)), InsetShadow(offset: Offset(0, -8), blur: 3.2, spread: -4.8, color: Color(0xFF7F1D1D)), InsetShadow(offset: Offset(0, 3.2), blur: 3.2, spread: 0, color: Color(0xFFF87171))];
 }
 
 /// Apple-style spring: perceived duration (s) and bounce (0 = no overshoot).

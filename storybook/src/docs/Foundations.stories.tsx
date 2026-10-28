@@ -111,7 +111,7 @@ export const SpaceAndRadius: Story = {
   ),
 };
 
-const INSET_BG: Record<string, string> = { 'button-soft': 'var(--color-bg-muted)', 'button-primary': 'var(--palette-blue-700)' };
+const INSET_BG: Record<string, string> = { 'button-soft': 'var(--color-bg-muted)', 'button-primary': 'var(--palette-blue-700)', 'button-danger': 'var(--color-bg-danger)' };
 
 export const Shadows: Story = {
   render: () => (

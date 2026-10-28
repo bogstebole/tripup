@@ -8,6 +8,8 @@
 }
 .tu-btn--soft { background: var(--color-bg-muted); color: var(--color-icon-default); box-shadow: var(--inset-button-soft), var(--shadow-slightly-raised); }
 .tu-btn--primary { background: var(--palette-blue-700); color: var(--color-icon-on-brand); box-shadow: var(--inset-button-primary), var(--shadow-slightly-raised); }
+/* Taking something away (a person off a bill line): primary's glass on red */
+.tu-btn--danger { background: var(--color-bg-danger); color: var(--color-icon-on-brand); box-shadow: var(--inset-button-danger), var(--shadow-slightly-raised); }
 .tu-btn--sm { width: var(--d-button-sm); height: var(--d-button-sm); }
 .tu-btn--md { width: var(--d-button-md); height: var(--d-button-md); }
 .tu-btn--lg { width: var(--d-button-lg); height: var(--d-button-lg); }

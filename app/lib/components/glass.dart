@@ -6,7 +6,8 @@ import '../design/theme.dart';
 import '../design/tokens.dart';
 import 'stagger.dart';
 
-enum GlassKind { soft, primary }
+/// Soft for most things, primary for the one main action, danger for taking something away (a person off a bill line).
+enum GlassKind { soft, primary, danger }
 
 /// The glass body shared by buttons, the people pill and tappable rows: fill, pressed-in edge, slight lift.
 class Glass extends StatelessWidget {
@@ -21,17 +22,16 @@ class Glass extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tok;
-    final soft = kind == GlassKind.soft;
     return Container(
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: soft ? t.bgMuted : TokPalette.blue700,
+        color: switch (kind) { GlassKind.soft => t.bgMuted, GlassKind.primary => TokPalette.blue700, GlassKind.danger => t.bgDanger },
         borderRadius: radius,
         boxShadow: TokShadow.slightlyRaised,
       ),
       child: CustomPaint(
-        painter: InsetShadowPainter(soft ? TokInset.buttonSoft : TokInset.buttonPrimary, radius),
+        painter: InsetShadowPainter(switch (kind) { GlassKind.soft => TokInset.buttonSoft, GlassKind.primary => TokInset.buttonPrimary, GlassKind.danger => TokInset.buttonDanger }, radius),
         child: Padding(padding: padding ?? EdgeInsets.zero, child: child),
       ),
     );

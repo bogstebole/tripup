@@ -1,6 +1,7 @@
 // Scanning the dinner's bill: the camera finds the paper, reads it, and every line lands on whoever had it.
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -54,8 +55,8 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
   void _edit(int i) {
     setState(() => _editing = _editing == i ? null : i);
     if (_editing == null) return;
-    // Once its faces have grown in, scroll so the whole line shows
-    Future.delayed(TokMotion.enter, () {
+    // Once its people have come in, scroll so the whole line shows
+    Future.delayed(_BillLine.opening, () {
       final at = _lineKeys[i].currentContext;
       if (mounted && at != null && at.mounted) Scrollable.ensureVisible(at, alignment: 0.5, duration: TokMotion.enter, curve: TokMotion.easeOut);
     });
@@ -85,7 +86,6 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
     HapticFeedback.mediumImpact(); // the frame catches the paper
     if (_reduce) {
       setState(() => _phase = _Phase.review);
-      _askFirst();
       return;
     }
     _lock.forward().whenComplete(() {
@@ -95,21 +95,8 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
         if (!mounted) return;
         HapticFeedback.lightImpact();
         setState(() => _phase = _Phase.review);
-        _askFirst();
       });
     });
-  }
-
-  /// A line nobody has claimed opens by itself once the bill is up, so the faces to tap are right there.
-  void _askFirst() {
-    final first = _bill.unclaimed.firstOrNull;
-    if (first != null) Future.delayed(TokMotion.enter, () => mounted && _editing == null ? _edit(first) : null);
-  }
-
-  /// Everyone at the table had it (the faces fill in at once).
-  void _everyone(int line) {
-    HapticFeedback.selectionClick();
-    setState(() => _bill = Bill(_bill.lines, [for (var i = 0; i < _bill.lines.length; i++) i == line ? [...dinnerTable] : _bill.who[i]], _bill.paidBy, _bill.at));
   }
 
   void _toggle(int line, String id) {
@@ -291,15 +278,6 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
                     ],
                   ),
                 ),
-                // While a line has nobody, say what happens to it if it stays that way
-                if (_bill.unclaimed.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: TokSpace.md),
-                    child: Text(
-                      _bill.unclaimed.length == 1 ? 'If nobody takes the line left, it splits evenly' : 'If nobody takes the ${_bill.unclaimed.length} lines left, they split evenly',
-                      style: TokText.bodySm.copyWith(color: t.textMuted),
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -324,83 +302,15 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
         children: [
           for (final (i, line) in _bill.lines.indexed) ...[
             if (i > 0) const Hairline(),
-            () {
-              final who = _bill.who[i];
-              final item = menuItemNamed(line.item);
-              // The dish on its own line, then quantity × price, who had it and the line's total; tap to open who had it
-              return Pressable(
-                key: _lineKeys[i],
-                onTap: () => _edit(i),
-                semanticLabel: '${item?.name ?? line.printed}, ${euros(line.total)}',
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs, vertical: TokSpace.sm),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    spacing: TokSpace.sm,
-                    children: [
-                      Text(item?.name ?? line.printed, style: TokText.labelLg.copyWith(color: t.textDefault)),
-                      // Quantity × price and the faces of who had it together, the total at the far end
-                      Row(
-                        spacing: TokSpace.xs,
-                        children: [
-                          Text('${line.qty} × ${euros(line.unit)}', style: TokText.bodySm.copyWith(color: t.textMuted)),
-                          // Every face, overlapped (there's room for the whole table); nobody yet asks who
-                          if (who.isEmpty)
-                            Text('Who had it?', style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textBrand))
-                          else
-                            Overlapped(overlap: TokDim.chipFaceOverlap, children: [for (final id in who) Sticker(personById(id).sticker, size: StickerSize.chip)]),
-                          Expanded(child: Text(euros(line.total), textAlign: TextAlign.end, style: TokText.labelLg.copyWith(color: t.textDefault))),
-                          // It opens in place to change who had it
-                          RowChevron(expanded: _editing == i),
-                        ],
-                      ),
-                      // Who had it: everyone at the table, the ones who had it full, the others faded; tap to change
-                      AnimatedSize(
-                        duration: TokMotion.enter,
-                        curve: TokMotion.easeOut,
-                        alignment: Alignment.topCenter,
-                        child: _editing != i
-                            ? const SizedBox(width: double.infinity)
-                            : Container(
-                                padding: const EdgeInsets.symmetric(vertical: TokSpace.sm),
-                                decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.card)),
-                                child: Column(
-                                  spacing: TokSpace.sm,
-                                  children: [
-                                Row(
-                                  children: [
-                                    for (final id in table)
-                                      Expanded(
-                                        child: Pressable(
-                                          onTap: () => _toggle(i, id),
-                                          semanticLabel: '${personById(id).name}: ${who.contains(id) ? 'had it' : "didn't have it"}',
-                                          child: AnimatedOpacity(
-                                            opacity: who.contains(id) ? 1 : _scanOffOpacity,
-                                            duration: TokMotion.fade,
-                                            curve: TokMotion.easeOut,
-                                            child: Column(
-                                              spacing: TokSpace.x3xs,
-                                              children: [
-                                                Sticker(personById(id).sticker, size: StickerSize.avatar),
-                                                Text(personById(id).name, style: TokText.labelMd.copyWith(color: t.textDefault)),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                                // A line for the whole table (a bottle, a starter) in one tap
-                                if (who.length < table.length) TuTextButton(label: 'Everyone had it', kind: GlassKind.soft, size: TuButtonSize.sm, onTap: () => _everyone(i)),
-                                  ],
-                                ),
-                              ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }(),
+            _BillLine(
+              key: _lineKeys[i],
+              line: line,
+              who: _bill.who[i],
+              table: table,
+              open: _editing == i,
+              onOpen: () => _edit(i),
+              onToggle: (id) => _toggle(i, id),
+            ),
           ],
         ],
       ),
@@ -601,3 +511,234 @@ class _PayerPickerState extends State<_PayerPicker> with SingleTickerProviderSta
     );
   }
 }
+
+/// One line of the bill: the dish, then what it comes to (and how many at what price), and at the end who had it.
+/// Whoever had it are faces on a soft pill with a chevron; a line nobody has yet is a round add-a-person button. Either
+/// opens the line: everyone at the table in a grey block, the ones who had it full with a red minus, the others faded
+/// with a plus; a tap on a person adds or takes them off.
+///
+/// Opening is one move: the pill's faces leave one after another, the pill gives way to a round chevron (up), the block
+/// grows, and the people come in one after another (about 420 ms, ease-out). Closing runs it back, a little quicker.
+/// With reduced motion it only fades.
+class _BillLine extends StatefulWidget {
+  const _BillLine({super.key, required this.line, required this.who, required this.table, required this.open, required this.onOpen, required this.onToggle});
+  final BillLine line;
+  final List<String> who, table;
+  final bool open;
+  final VoidCallback onOpen;
+  final ValueChanged<String> onToggle;
+
+  /// How long opening takes: the faces leaving, the block growing, the last person landing.
+  static Duration get opening => _blockAt + _peopleAt + _peopleStagger * (dinnerTable.length - 1) + TokMotion.fade;
+
+  @override
+  State<_BillLine> createState() => _BillLineState();
+}
+
+// The opening's steps (its own timing: a quick move people make many times over a bill)
+const _faceOut = Duration(milliseconds: 100);       // each face leaving the pill
+const _faceStagger = Duration(milliseconds: 25);
+const _blockAt = Duration(milliseconds: 60);         // the block starts growing
+const _peopleAt = Duration(milliseconds: 60);        // after the block starts, the first person
+const _peopleStagger = Duration(milliseconds: 30);
+
+class _BillLineState extends State<_BillLine> with SingleTickerProviderStateMixin {
+  late final _c = AnimationController(vsync: this, duration: _BillLine.opening, reverseDuration: _BillLine.opening * 0.75, value: widget.open ? 1 : 0);
+
+  @override
+  void didUpdateWidget(_BillLine old) {
+    super.didUpdateWidget(old);
+    if (widget.open != old.open) widget.open ? _c.forward() : _c.reverse();
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  bool get _reduce => MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+
+  /// How far a step of the opening is, from [at] for [length] (0–1, ease-out); with reduced motion, all of it at once.
+  double _step(Duration at, Duration length) {
+    if (_reduce) return _c.value;
+    final total = _BillLine.opening.inMicroseconds;
+    final a = (at.inMicroseconds / total).clamp(0.0, 1.0), b = ((at + length).inMicroseconds / total).clamp(0.0, 1.0);
+    return Interval(a, b, curve: TokMotion.easeOut).transform(_c.value);
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(animation: _c, builder: (context, _) => _line(context));
+
+  Widget _line(BuildContext context) {
+    final t = context.tok;
+    final item = menuItemNamed(widget.line.item);
+    final block = _step(_blockAt, TokMotion.enter);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs, vertical: TokSpace.sm),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Pressable(
+          onTap: widget.onOpen,
+          semanticLabel: '${item?.name ?? widget.line.printed}, ${euros(widget.line.total)}',
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: TokSpace.sm, children: [
+            Text(item?.name ?? widget.line.printed, style: TokText.labelLg.copyWith(color: t.textDefault)),
+            Row(spacing: TokSpace.xs, children: [
+              // What it comes to, and how many at what price
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(euros(widget.line.total), style: TokText.bodyLg.copyWith(fontWeight: TokWeight.semibold, color: t.textDefault)),
+                  Text('${widget.line.qty} × ${euros(widget.line.unit)}', style: TokText.bodySm.copyWith(color: t.textMuted)),
+                ]),
+              ),
+              _control(context),
+            ]),
+          ]),
+        ),
+        // Everyone at the table, in a grey block that grows under the line
+        ClipRect(
+          child: Align(
+            alignment: Alignment.topCenter,
+            heightFactor: block,
+            child: block <= 0 ? const SizedBox(width: double.infinity) : Padding(
+            padding: const EdgeInsets.only(top: TokSpace.sm),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: TokSpace.sm),
+              decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.card)),
+              child: Row(children: [
+                for (final (j, id) in widget.table.indexed)
+                  Expanded(child: _arriving(_step(_blockAt + _peopleAt + _peopleStagger * j, TokMotion.fade), _person(context, id))),
+              ]),
+            ),
+            ),
+          ),
+        ),
+      ]),
+    );
+  }
+
+  /// A part coming in on its own step: it fades in and rises a little (only fades with reduced motion).
+  Widget _arriving(double v, Widget child) => Opacity(
+        opacity: v,
+        child: Transform.translate(offset: Offset(0, _reduce ? 0 : (1 - v) * TokSpace.xs), child: child),
+      );
+
+  /// The line's end: the faces on a pill (or the add-a-person button), giving way to a round chevron while it's open.
+  Widget _control(BuildContext context) {
+    final t = context.tok;
+    final who = widget.who;
+    final swap = _step(_faceStagger * (who.length - 1 < 0 ? 0 : who.length - 1), _faceOut);
+    final closed = who.isEmpty
+        ? Glass(kind: GlassKind.soft, width: TokDim.buttonSm, height: TokDim.buttonSm, radius: BorderRadius.circular(TokRadius.pill), child: Center(child: LucideIcon(TuIcons.invite, size: TokSize.iconSm, color: t.iconDefault)))
+        : Glass(
+            kind: GlassKind.soft,
+            height: TokDim.buttonSm,
+            radius: BorderRadius.circular(TokRadius.pill),
+            padding: const EdgeInsets.symmetric(horizontal: TokSpace.sm),
+            child: Row(mainAxisSize: MainAxisSize.min, spacing: TokSpace.xs, children: [
+              // The faces leave one after another as the line opens
+              Overlapped(overlap: TokDim.chipFaceOverlap, children: [
+                for (final (k, id) in who.indexed)
+                  () {
+                    final v = _step(_faceStagger * k, _faceOut);
+                    return Opacity(
+                      opacity: 1 - v,
+                      child: Transform.scale(scale: _reduce ? 1 : 1 - (1 - TokMotion.morphEnterScale) * v, child: Sticker(personById(id).sticker, size: StickerSize.chip)),
+                    );
+                  }(),
+              ]),
+              LucideIcon(TuIcons.unfold, size: TokSize.iconSm, color: t.iconDefault),
+            ]),
+          );
+    final opened = Glass(kind: GlassKind.soft, width: TokDim.buttonSm, height: TokDim.buttonSm, radius: BorderRadius.circular(TokRadius.pill), child: Center(child: LucideIcon(TuIcons.fold, size: TokSize.iconSm, color: t.iconDefault)));
+    // One gives way to the other on the spot, a little blurred while both show
+    final v = swap, blur = _reduce || lightEffects ? 0.0 : TokMotion.enterBlur * 4 * v * (1 - v);
+    return ImageFiltered(
+      enabled: blur >= 0.05,
+      imageFilter: ui.ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+      child: Stack(alignment: Alignment.centerRight, children: [
+        Opacity(opacity: 1 - v, child: closed),
+        Opacity(opacity: v, child: opened),
+      ]),
+    );
+  }
+
+  /// A person in the open line: their face with a minus (red) if they had it, or faded with a plus if not; a tap adds
+  /// or takes them off.
+  Widget _person(BuildContext context, String id) {
+    final t = context.tok;
+    final had = widget.who.contains(id);
+    return Pressable(
+      onTap: () => widget.onToggle(id),
+      semanticLabel: '${personById(id).name}: ${had ? 'had it, tap to take off' : "didn't have it, tap to add"}',
+      child: Column(spacing: TokSpace.x3xs, children: [
+        Stack(clipBehavior: Clip.none, children: [
+          AnimatedOpacity(
+            opacity: had ? 1 : _scanOffOpacity,
+            duration: TokMotion.fade,
+            curve: TokMotion.easeOut,
+            child: Sticker(personById(id).sticker, size: StickerSize.avatar),
+          ),
+          // At the face's top-right corner
+          Positioned(right: -TokSpace.xs, top: -TokSpace.x2xs, child: _AddRemove(on: had)),
+        ]),
+        AnimatedOpacity(
+          opacity: had ? 1 : _scanOffOpacity,
+          duration: TokMotion.fade,
+          curve: TokMotion.easeOut,
+          child: Text(personById(id).name, style: TokText.labelMd.copyWith(color: t.textDefault)),
+        ),
+      ]),
+    );
+  }
+}
+
+/// The small add/remove mark on a person: a small round button (the sm button's glass, at [_markScale]) with a plus,
+/// soft, for someone who didn't have it; red with a minus for someone who did. It turns from one into the other on the
+/// spot: the glass fades from soft to red and the plus's upright bar folds away into the minus (fade-ms, ease-out).
+class _AddRemove extends StatelessWidget {
+  const _AddRemove({required this.on});
+  final bool on;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tok;
+    final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    final round = BorderRadius.circular(TokRadius.pill);
+    return TweenAnimationBuilder<double>(
+      tween: Tween(end: on ? 1 : 0),
+      duration: TokMotion.fade,
+      curve: TokMotion.easeOut,
+      builder: (context, v, _) {
+        final bar = Color.lerp(t.iconDefault, t.iconOnBrand, v)!;
+        return SizedBox.square(
+          dimension: TokDim.buttonSm * _markScale,
+          child: OverflowBox(
+            maxWidth: TokDim.buttonSm,
+            maxHeight: TokDim.buttonSm,
+            child: Transform.scale(
+              scale: _markScale,
+              child: Stack(alignment: Alignment.center, children: [
+                Opacity(opacity: 1 - v, child: Glass(kind: GlassKind.soft, width: TokDim.buttonSm, height: TokDim.buttonSm, radius: round)),
+                Opacity(opacity: v, child: Glass(kind: GlassKind.danger, width: TokDim.buttonSm, height: TokDim.buttonSm, radius: round)),
+                // The minus's bar, and the plus's upright one folding away (gone at once with reduced motion)
+                _bar(bar),
+                Transform.scale(scaleY: reduce ? (on ? 0 : 1) : 1 - v, child: RotatedBox(quarterTurns: 1, child: _bar(bar))),
+              ]),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _bar(Color color) => Container(
+        width: _markBar,
+        height: _markBar * _markThickness,
+        decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(TokRadius.pill)),
+      );
+}
+
+// The mark is the sm button's glass at this scale (16 of 40), so its edge and shadow shrink with it, as in Figma
+const double _markScale = 0.4;
+const double _markBar = 15;        // the bars, at the button's size: 6 long on the mark
+const double _markThickness = 1 / 3;
