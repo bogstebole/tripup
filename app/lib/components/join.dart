@@ -9,6 +9,7 @@ import '../data.dart';
 import '../design/theme.dart';
 import '../design/tokens.dart';
 import 'basics.dart';
+import 'detail_sheet.dart' show openDirections, openWebsite;
 import 'glass.dart';
 import 'progressive_blur.dart';
 import 'stagger.dart';
@@ -154,8 +155,11 @@ class _JoinFlowState extends State<JoinFlow> {
     final t = context.tok;
     final now = tripNow();
     final days = visited.map((v) => v.day).toSet().length;
-    final next = [for (final p in tripPlans) if (p.start.add(planLasts).isAfter(now)) p].take(3).toList();
-    final undecided = dinnerChoice(now) == null;
+    // Tonight's dinner is in as a plan even before the poll picks the place: he's told when, not asked to vote
+    final next = [
+      for (final p in tripPlans) if (p.start.add(planLasts).isAfter(now)) p,
+      if (dinnerChoice(now) == null) pollOptionById(dinnerSlotId).plan,
+    ]..sort((a, b) => a.start.compareTo(b.start));
     final crew = [for (final p in people) if (onTrip(p, now) && p.id != 'ren') p];
     // Open the trip stays at the bottom, as a footer; the recap scrolls up under its fade
     final bottom = math.max(pad.bottom, TokSpace.md);
@@ -171,21 +175,24 @@ class _JoinFlowState extends State<JoinFlow> {
             child: Text('Welcome, ${_name.text.trim()}', style: TokText.headingLg.copyWith(color: t.textDefault)),
           ),
           const SheetSection("Where you're staying"),
-          _card(context, SheetRow(
-            leading: const RowThumb(icon: TuIcons.stay),
-            title: 'Alfama flat',
-            subtitle: 'Airbnb · until ${tripDays.last} May · ${personById('maya').name} booked it',
-          )),
+          // The flat: where it is, and the booking
+          _card(context, Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            SheetRow(
+              leading: RowThumb(sticker: stay.sticker),
+              title: stay.name,
+              subtitle: 'Airbnb · until ${tripDays.last} May · ${personById('maya').name} booked it',
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(TokSpace.sm, 0, TokSpace.sm, TokSpace.sm),
+              child: Row(spacing: TokSpace.xs, children: [
+                Expanded(child: TuTextButton(label: 'Directions', kind: GlassKind.soft, wide: true, onTap: () => openDirections(stay.at, stay.name))),
+                Expanded(child: TuTextButton(label: 'Open in Airbnb', kind: GlassKind.soft, wide: true, onTap: () => openWebsite(stay.link))),
+              ]),
+            ),
+          ])),
           const SheetSection('Coming up'),
           _card(context, Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            if (undecided)
-              SheetRow(
-                leading: const RowThumb(icon: TuIcons.poll),
-                title: 'Dinner tonight, 5 PM',
-                subtitle: pollOpen(now) ? 'Poll open: where? Your vote counts too' : 'A poll opens at ${clockTime(pollOpens)}: you can vote',
-                subtitleColor: t.textBrand,
-              ),
-            for (final p in next) SheetRow(leading: RowThumb(sticker: p.sticker), title: p.name, subtitle: p.startsAt),
+            for (final p in next.take(4)) SheetRow(leading: RowThumb(sticker: p.sticker), title: p.name, subtitle: p.startsAt),
           ])),
           SheetSection('Been so far', subtitle: '${visited.length} places in $days days'),
           // Two to a row, each with its name and what it is, so he can see what they've done; the page scrolls

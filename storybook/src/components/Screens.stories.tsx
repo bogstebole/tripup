@@ -174,7 +174,7 @@ export const RenInvite: Story = {
 };
 export const RenTripSoFar: Story = {
   name: "Ren's phone · trip so far",
-  parameters: { docs: { description: { story: 'Just after Join, for someone arriving mid-trip: "Welcome, Ren", then where they\'re staying (a bed: Alfama flat, Airbnb until 21 May, Maya booked it), Been so far (8 places in 2 days, every sticker), Coming up (tonight\'s dinner while the poll hasn\'t decided it, in brand blue with a ballot box: "A poll opens at 2:30 PM: you can vote", "Poll open: where? Your vote counts too" once it\'s open; then the next three plans) and the rule for money: "The €726.00 spent before you joined stays with the four of them." Open the trip closes his phone, back on Ari\'s map, and everyone hears "Ren joined the trip" at the top.' } } },
+  parameters: { docs: { description: { story: 'Just after Join, for someone arriving mid-trip: "Welcome, Ren", then where they\'re staying (the flat\'s building as a sticker: Alfama flat, Airbnb until 21 May, Maya booked it, with Directions and Open in Airbnb under it, both soft), Been so far (8 places in 2 days, every sticker), Coming up (the next four plans, tonight\'s dinner among them at 5 PM as if already decided, even while the poll hasn\'t picked the place) and the rule for money: "The €726.00 spent before you joined stays with the four of them." Open the trip closes his phone, back on Ari\'s map, and everyone hears "Ren joined the trip" at the top.' } } },
   render: () => <Joining start="recap" />,
 };
 

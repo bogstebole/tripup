@@ -76,6 +76,9 @@
 .tu-join__welcome h1 { margin: 0; }
 /* Where they've been, overlapped, from the left */
 .tu-join__card { display: flex; flex-direction: column; padding: var(--space-2xs); border-radius: var(--radius-card); background: var(--color-bg-default); }
+/* The flat's Directions and Open in Airbnb, side by side under it */
+.tu-join__stay-actions { display: flex; gap: var(--space-xs); padding: 0 var(--space-sm) var(--space-sm); }
+.tu-join__stay-actions > * { flex: 1; }
 /* Been so far: two to a row, a card each (sticker on a muted block, then the name, what it is and the day) */
 .tu-join__places { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-xs); }
 .tu-join__place { padding: calc(var(--space-2xs) * 2); }

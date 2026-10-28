@@ -471,6 +471,10 @@ class Expense {
   double shareOf(String id) => shares?[id] ?? (split.contains(id) && shares == null ? amount / split.length : 0);
 }
 
+/// Where we're staying: Maya's Airbnb in Alfama, on Largo Santa Luzia. Its sticker is a photo of the street's
+/// building; the link goes to Airbnb's trips, where the booking is.
+const stay = (name: 'Alfama flat', sticker: 'alfama-flat', at: LatLng(38.71165, -9.13040), link: 'www.airbnb.com/trips');
+
 const expenses = [
   Expense('Groceries and drinks', 46, 'leo', ['ari', 'maya', 'nic', 'leo'], 13, place: 'Mercado de Arroios', minute: 10 * 60 + 50),
   Expense('Tuk-tuk tour', 80, 'nic', ['ari', 'maya', 'nic', 'leo'], 13, place: 'Torre de Belém', minute: 13 * 60 + 40),

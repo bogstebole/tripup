@@ -1,11 +1,11 @@
 // Joining a trip mid-way, from the invite link: what the new person sees on their own phone. The app has the same in
 // lib/components/join.dart.
-import { BedDouble, Vote, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useRef, useState } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import {
-  clockTime, DINNER, dinnerChoice, euros, MY_NAME, onTrip, PEOPLE, personById, planStart, plansAhead, POLL_OPENS, pollOpen, SPENT_SO_FAR,
+  DINNER_SLOT_ID, dinnerChoice, euros, MY_NAME, onTrip, PEOPLE, personById, PLAN_LASTS_MS, planStart, plansWith, SPENT_SO_FAR, STAY,
   startsAt, TRIP, TRIP_DAYS, TRIP_NOW, VISITED, type PollState,
 } from '../data';
 import { Button, TextButton } from './Button';
@@ -117,8 +117,8 @@ function Invite({ now, name, onName, onJoin }: { now: Date; name: string; onName
 /** The trip so far, for someone arriving in the middle of it. */
 function Recap({ now, poll, name, onJoined }: { now: Date; poll: PollState; name: string; onJoined?: () => void }) {
   const days = new Set(VISITED.map(v => v.day)).size;
-  const next = plansAhead(now, poll).slice(0, 3);
-  const undecided = dinnerChoice(now, poll) == null;
+  // Tonight's dinner is in as a plan even before the poll picks the place: he's told when, not asked to vote
+  const next = plansWith(dinnerChoice(now, poll) ?? DINNER_SLOT_ID).filter(p => planStart(p).getTime() + PLAN_LASTS_MS > now.getTime()).slice(0, 4);
   const crew = PEOPLE.filter(p => onTrip(p, now) && p.id !== REN);
   return (
     <>
@@ -128,24 +128,20 @@ function Recap({ now, poll, name, onJoined }: { now: Date; poll: PollState; name
         <h1 className="text-heading-lg">Welcome, {name.trim()}</h1>
       </div>
       <SheetSection key="stay" title="Where you're staying" />
+      {/* The flat: where it is, and the booking */}
       <div key="flat" className="tu-join__card">
         <SheetRow
-          leading={<RowThumb><BedDouble className="tu-join__lead" strokeWidth={2} absoluteStrokeWidth aria-hidden /></RowThumb>}
-          title="Alfama flat"
+          leading={<RowThumb sticker={STAY.sticker} />}
+          title={STAY.name}
           subtitle={`Airbnb · until ${lastDay} May · ${personById('maya').name} booked it`}
         />
+        <div className="tu-join__stay-actions">
+          <TextButton label="Directions" variant="soft" wide onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${STAY.at[0]},${STAY.at[1]}&travelmode=walking`, '_blank', 'noopener')} />
+          <TextButton label="Open in Airbnb" variant="soft" wide onClick={() => window.open(STAY.link, '_blank', 'noopener')} />
+        </div>
       </div>
       <SheetSection key="coming" title="Coming up" />
       <div key="next" className="tu-join__card">
-        {/* Tonight's dinner, while the poll hasn't decided it: his vote counts too */}
-        {undecided && (
-          <SheetRow
-            leading={<RowThumb><Vote className="tu-join__lead" strokeWidth={2} absoluteStrokeWidth aria-hidden /></RowThumb>}
-            title={`Dinner tonight, ${clockTime(DINNER)}`}
-            subtitle={pollOpen(now, poll) ? 'Poll open: where? Your vote counts too' : `A poll opens at ${clockTime(POLL_OPENS)}: you can vote`}
-            tone="brand"
-          />
-        )}
         {next.map(p => (
           <SheetRow key={p.id} leading={<RowThumb sticker={p.sticker} />} title={p.name} subtitle={startsAt(planStart(p), now)} />
         ))}
