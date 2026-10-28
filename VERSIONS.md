@@ -660,7 +660,7 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - Since 1.81 the trip's entrance started with the tap: its pins and first control came in at 220 ms, while Your trips' parts were leaving until 620 ms (13 parts since the pill and the sticky header). Now the entrance starts when the last part has gone: its clock starts 400 ms in, so with its own open-delay-ms the first pin and control arrive at 620. The map's zoom still starts with the tap. Back is as it was.
 - It all lands in about 1.15 s instead of a second. App and Storybook (the story's description too).
 - **Checked:** `flutter analyze` and `tsc` are clean; frames of a local web release build: Your trips is fully gone before the trip's top bar, pins and chips come in.
-- On Bogdan's iPhone 15 as build 18 (`1.0.0+18`), updated in place with devicectl, for him to try before it goes to Vercel.
+- On Bogdan's iPhone 15 as build 18 (`1.0.0+18`), updated in place with devicectl; he tried it there first. Then web and Storybook deployed to Vercel (production).
 
 - Bogdan: the name had no raised shadow. It did on the phone, but the web (and Android before 10) skipped it with the light effects. Now the name and the faces get elevation-raised on the web too; old Android still skips it (it's a blur of the shape).
 - Happening now is lifted by elevation-raised as well (a box shadow, so everywhere). Still plain `bg/default` with no inset, so it doesn't read as a button.
