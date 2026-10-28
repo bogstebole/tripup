@@ -655,7 +655,13 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
-### Figma: up to date with 1.74–1.87 (branch `figma/sync-187`)
+### Final UI, iteration 1.88: Your trips lifted on the web too, bigger dates and headings (branch `fix/web-hero-raised`)
+- Bogdan: the name had no raised shadow. It did on the phone, but the web (and Android before 10) skipped it with the light effects. Now the name and the faces get elevation-raised on the web too; old Android still skips it (it's a blur of the shape).
+- Happening now is lifted by elevation-raised as well (a box shadow, so everywhere). Still plain `bg/default` with no inset, so it doesn't read as a button.
+- Lisbon · 12 May – 21 May goes from label-md (12) to body-lg medium (15); Coming up and Previous trips from heading-sm (15) to heading-lg (20), the size of the Your trips header.
+- App and Storybook. Not in Figma yet.
+- **Checked:** `flutter analyze` and `tsc` are clean; a local web release build at 440 wide shows the name, faces and pill lifted.
+
 - Bogdan: once it's all done, update Figma. The main file now matches the app at 1.87.
 - **Variables:** the Component colours collection is gone and Component size is now Component, with the 28 tokens Figma can bind (out of 31 in `tokens.json`; `me/pulse-scale` and the two fade starts can't bind to anything in Figma). Before deleting, every layer bound to a removed token was rebound to what it pointed at (`button/soft-bg` → `bg/muted`), or kept its value where the token was a one-component number. 1.76's 4 px fixes went in on the way (28, 50, 4). `surface/inset` is an alias of `space/xl` again. New effect style Button/Danger (`inset.button-danger`).
 - **Components:** Button has Kind=danger. Trip card is now **Home hero** (same node, so both Your trips screens follow): Happening now, the name at 40 with a 4 white edge and Elevation/Raised, the city and dates, the raised faces 8 over See trip details (at least 24 wider than the faces each side). Happening now is the plain white pill with "· Day 3 of 10". Bill line is State=assigned|nobody|open; new **Add/remove mark**. Sheet row has chevrons (chevron, unfold, fold, and Opens after a time) and the muted thumb; Icon row's icon sits on the same square. New **Moment** (a visit's timeline) and **Place tile** (Ren's catch-up), and six place stickers uploaded from `app/assets/stickers`.

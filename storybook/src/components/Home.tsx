@@ -123,7 +123,7 @@ function Section({ title, trips, count, part: i }: { title: string; trips: TripS
   }, []);
   return (
     <section className="tu-home__section">
-      <h2 ref={ref} className={`text-heading-sm tu-home__heading ${h.className}`} style={h.style} data-light={light || undefined}>
+      <h2 ref={ref} className={`text-heading-lg tu-home__heading ${h.className}`} style={h.style} data-light={light || undefined}>
         {title}
         {count != null && <span className="tu-home__count"> {count}</span>}
       </h2>
@@ -159,7 +159,7 @@ function HomeHeroFace({ now = TRIP_NOW, onOpen }: { now?: Date; onOpen?: () => v
             <span className="text-label-md weight-semibold">Happening now<span className="tu-home-now__day"> · Day {TRIP_DAYS.findIndex(d => d.day === TODAY) + 1} of {TRIP_DAYS.length}</span></span>
           </span>
           <span {...part(PART.title)} style={{ ...part(PART.title).style, alignSelf: 'stretch' }}><TripName title={TRIP.title} /></span>
-          <span className={`text-label-md ${part(PART.dates).className}`} style={part(PART.dates).style}>{TRIP.city} · {TRIP.dates}</span>
+          <span className={`text-body-lg weight-medium ${part(PART.dates).className}`} style={part(PART.dates).style}>{TRIP.city} · {TRIP.dates}</span>
         </div>
         {/* The button at least space-xl wider than the faces on each side */}
         <div className="tu-home-face__way-in">

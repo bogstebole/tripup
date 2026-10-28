@@ -2,6 +2,7 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
@@ -260,7 +261,7 @@ class _HeadingState extends State<_Heading> {
         TextSpan(text: widget.title),
         if (widget.count != null) TextSpan(text: ' ${widget.count}', style: TextStyle(color: color.withValues(alpha: 0.7))),
       ]),
-      style: TokText.headingSm.copyWith(color: color),
+      style: TokText.headingLg.copyWith(color: color),
     );
   }
 }
@@ -390,7 +391,7 @@ class _HeroFace extends StatelessWidget {
                   const HomePart(index: HomePart.now, child: _HappeningNow()),
                   Column(spacing: TokSpace.xs, children: [
                     HomePart(index: HomePart.title, child: _Raised(child: _HeroTitle(style: TokText.display.copyWith(fontSize: _heroTitle, color: t.textDefault)))),
-                    HomePart(index: HomePart.dates, child: Text('$tripCity · $tripDates', style: TokText.labelMd.copyWith(color: t.textDefault))),
+                    HomePart(index: HomePart.dates, child: Text('$tripCity · $tripDates', style: TokText.bodyLg.copyWith(fontWeight: TokWeight.medium, color: t.textDefault))),
                   ]),
                 ]),
                 _WayIn(crew: crew, onOpen: onOpen),
@@ -481,14 +482,15 @@ class _WayInState extends State<_WayIn> {
 }
 
 /// Lifted off the map by elevation-raised, following the shape itself (the faces' outlines, the title's white edge): each
-/// of the token's shadows is the child again, in its colour, blurred and moved. None with light effects (it's a blur).
+/// of the token's shadows is the child again, in its colour, blurred and moved. On the web too (only the title and the
+/// faces), but not on old Android with light effects (it's a blur).
 class _Raised extends StatelessWidget {
   const _Raised({required this.child});
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    if (lightEffects) return child;
+    if (lightEffects && !kIsWeb) return child;
     return Stack(clipBehavior: Clip.none, children: [
       for (final s in TokShadow.elevationRaised)
         Positioned.fill(
@@ -507,8 +509,8 @@ class _Raised extends StatelessWidget {
   }
 }
 
-/// The trip is on now: a plain white pill over its name (not glass: glass is for what can be tapped), the green bead,
-/// "Happening now" and which day of the trip it is.
+/// The trip is on now: a plain white pill over its name (not glass: glass is for what can be tapped), lifted off the map
+/// by elevation-raised like the name, the green bead, "Happening now" and which day of the trip it is.
 class _HappeningNow extends StatelessWidget {
   const _HappeningNow();
 
@@ -518,7 +520,7 @@ class _HappeningNow extends StatelessWidget {
     return Container(
       height: TokSpace.x2xl,
       padding: const EdgeInsets.symmetric(horizontal: TokSpace.sm),
-      decoration: BoxDecoration(color: t.bgDefault, borderRadius: BorderRadius.circular(TokRadius.pill)),
+      decoration: BoxDecoration(color: t.bgDefault, borderRadius: BorderRadius.circular(TokRadius.pill), boxShadow: TokShadow.elevationRaised),
       child: Row(mainAxisSize: MainAxisSize.min, spacing: TokSpace.xs, children: [
         const _NowDot(),
         Text.rich(
