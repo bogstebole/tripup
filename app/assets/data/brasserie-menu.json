@@ -149,10 +149,7 @@
     {
      "name": "Fries",
      "price": "€3.60",
-     "photo": "fries",
-     "pickedBy": [
-      "leo"
-     ]
+     "photo": "fries"
     }
    ]
   },
@@ -168,10 +165,7 @@
     {
      "name": "Chocolate fondant with ice cream",
      "price": "€6.50",
-     "photo": "fondant",
-     "pickedBy": [
-      "maya"
-     ]
+     "photo": "fondant"
     },
     {
      "name": "Mille-feuille",

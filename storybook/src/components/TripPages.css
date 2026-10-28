@@ -116,3 +116,17 @@
 /* Money's footer for each step: the old one fades out over the new one, both from the bottom */
 .tu-money-footers { display: grid; align-items: end; }
 .tu-money-footers__one { grid-area: 1 / 1; min-width: 0; }
+
+/* A place we've been: the place on a muted block, then its timeline */
+.tu-visit__place { display: grid; place-items: center; height: calc(var(--space-5xl) * 2); padding: var(--space-sm); border-radius: var(--radius-card); background: var(--color-bg-muted); }
+.tu-visit__sticker { height: calc(var(--space-5xl) + var(--space-xl)); max-width: 100%; object-fit: contain; }
+.tu-visit__faces { display: flex; padding-top: var(--space-2xs); }
+.tu-visit__faces > * + * { margin-left: calc(var(--d-chip-face-overlap) * -1); }
+.tu-moment { display: flex; align-items: flex-start; gap: var(--space-sm); padding: 0 var(--space-xs); }
+.tu-moment__time { width: calc(var(--space-4xl) + var(--space-xs)); flex: none; padding-top: var(--space-3xs); }
+.tu-moment__rail { align-self: stretch; display: flex; flex-direction: column; align-items: center; flex: none; padding-top: var(--space-2xs); }
+.tu-moment__rail::after { content: ''; flex: 1; width: var(--d-surface-edge-width); margin-top: var(--space-2xs); background: var(--color-border-default); }
+.tu-moment--last .tu-moment__rail::after { display: none; }
+.tu-moment__dot { width: var(--space-xs); height: var(--space-xs); border-radius: var(--radius-pill); background: var(--color-bg-brand); }
+.tu-moment__what { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: var(--space-3xs); padding-bottom: var(--space-lg); }
+.tu-moment--last .tu-moment__what { padding-bottom: 0; }

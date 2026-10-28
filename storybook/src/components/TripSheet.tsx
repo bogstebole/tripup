@@ -1,4 +1,4 @@
-import { ArrowLeft, X } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronRight, X } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion, type Variants } from 'motion/react';
 import { Children, isValidElement, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import tokens from '../../../design-system/tokens.json';
@@ -202,12 +202,18 @@ export interface SheetRowProps {
   tone?: 'brand' | 'success';
   /** An amount, a time, a button. */
   trailing?: ReactNode;
-  /** Makes the whole row a button (the itinerary's stops: show it on the map). */
+  /** Makes the whole row a button (a place we've been opens what happened there; a plan, its details). */
   onClick?: () => void;
+  /** For a row that opens in place (Settle up's why): whether it's open now. Left out for a row that opens something. */
+  expanded?: boolean;
 }
 
-/** One line in a pop-up's list: something on the left, a name and a line under it, and whatever sits at the end. */
-export function SheetRow({ leading, title, subtitle, tone, trailing, onClick }: SheetRowProps) {
+/**
+ * One line in a pop-up's list: something on the left, a name and a line under it, and whatever sits at the end. A row
+ * that does something ends in a chevron, with no background (it only says the row can be tapped; the whole row is the
+ * target): pointing right when it opens something, down when it opens in place, turning up while it's open.
+ */
+export function SheetRow({ leading, title, subtitle, tone, trailing, onClick, expanded }: SheetRowProps) {
   const body = (
     <>
       {leading}
@@ -216,11 +222,20 @@ export function SheetRow({ leading, title, subtitle, tone, trailing, onClick }: 
         {subtitle && <span className={['text-body-sm', 'tu-sheet-row__sub', tone && `tu-sheet-row__sub--${tone}`].filter(Boolean).join(' ')}>{subtitle}</span>}
       </span>
       {trailing}
+      {onClick && <RowChevron expanded={expanded} />}
     </>
   );
   return onClick
-    ? <button type="button" className="tu-sheet-row tu-sheet-row--tap" onClick={onClick}>{body}</button>
+    ? <button type="button" className="tu-sheet-row tu-sheet-row--tap" aria-expanded={expanded} onClick={onClick}>{body}</button>
     : <div className="tu-sheet-row">{body}</div>;
+}
+
+/** The end of a row that can be tapped: a chevron, no background. Right for a row that opens something; down for one
+ *  that opens in place, turning to point up while it's open (a turn on screen: ease in and out). */
+export function RowChevron({ expanded }: { expanded?: boolean }) {
+  return expanded === undefined
+    ? <ChevronRight className="tu-row-chevron" strokeWidth={2} absoluteStrokeWidth aria-hidden />
+    : <ChevronDown className="tu-row-chevron tu-row-chevron--turns" data-open={expanded || undefined} strokeWidth={2} absoluteStrokeWidth aria-hidden />;
 }
 
 /**

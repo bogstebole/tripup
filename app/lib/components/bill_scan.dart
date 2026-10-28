@@ -85,6 +85,7 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
     HapticFeedback.mediumImpact(); // the frame catches the paper
     if (_reduce) {
       setState(() => _phase = _Phase.review);
+      _askFirst();
       return;
     }
     _lock.forward().whenComplete(() {
@@ -94,14 +95,26 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
         if (!mounted) return;
         HapticFeedback.lightImpact();
         setState(() => _phase = _Phase.review);
+        _askFirst();
       });
     });
+  }
+
+  /// A line nobody has claimed opens by itself once the bill is up, so the faces to tap are right there.
+  void _askFirst() {
+    final first = _bill.unclaimed.firstOrNull;
+    if (first != null) Future.delayed(TokMotion.enter, () => mounted && _editing == null ? _edit(first) : null);
+  }
+
+  /// Everyone at the table had it (the faces fill in at once).
+  void _everyone(int line) {
+    HapticFeedback.selectionClick();
+    setState(() => _bill = Bill(_bill.lines, [for (var i = 0; i < _bill.lines.length; i++) i == line ? [...dinnerTable] : _bill.who[i]], _bill.paidBy, _bill.at));
   }
 
   void _toggle(int line, String id) {
     final who = [..._bill.who[line]];
     who.contains(id) ? who.remove(id) : who.add(id);
-    if (who.isEmpty) return; // someone always has it
     HapticFeedback.selectionClick();
     setState(() => _bill = Bill(_bill.lines, [for (var i = 0; i < _bill.lines.length; i++) i == line ? who : _bill.who[i]], _bill.paidBy, _bill.at));
   }
@@ -225,7 +238,7 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
 
     return TripSheet(
       title: 'The bill',
-      subtitle: "La Brasserie de L'Entrecôte · ${_bill.lines.length} lines",
+      subtitle: "La Brasserie de L'Entrecôte · ${_bill.lines.length} lines${switch (_bill.unclaimed.length) { 0 => '', 1 => ' · 1 nobody has yet', final n => ' · $n nobody has yet' }}",
       onClose: widget.onClose,
       footer: Container(
         padding: const EdgeInsets.fromLTRB(TokDim.surfaceFootSide, TokSpace.sm, TokDim.surfaceFootSide, TokDim.surfaceInset),
@@ -278,6 +291,15 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
                     ],
                   ),
                 ),
+                // While a line has nobody, say what happens to it if it stays that way
+                if (_bill.unclaimed.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: TokSpace.md),
+                    child: Text(
+                      _bill.unclaimed.length == 1 ? 'If nobody takes the line left, it splits evenly' : 'If nobody takes the ${_bill.unclaimed.length} lines left, they split evenly',
+                      style: TokText.bodySm.copyWith(color: t.textMuted),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -322,9 +344,14 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
                         spacing: TokSpace.xs,
                         children: [
                           Text('${line.qty} × ${euros(line.unit)}', style: TokText.bodySm.copyWith(color: t.textMuted)),
-                          // Every face, overlapped (there's room for the whole table)
-                          Overlapped(overlap: TokDim.chipFaceOverlap, children: [for (final id in who) Sticker(personById(id).sticker, size: StickerSize.chip)]),
+                          // Every face, overlapped (there's room for the whole table); nobody yet asks who
+                          if (who.isEmpty)
+                            Text('Who had it?', style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textBrand))
+                          else
+                            Overlapped(overlap: TokDim.chipFaceOverlap, children: [for (final id in who) Sticker(personById(id).sticker, size: StickerSize.chip)]),
                           Expanded(child: Text(euros(line.total), textAlign: TextAlign.end, style: TokText.labelLg.copyWith(color: t.textDefault))),
+                          // It opens in place to change who had it
+                          RowChevron(expanded: _editing == i),
                         ],
                       ),
                       // Who had it: everyone at the table, the ones who had it full, the others faded; tap to change
@@ -337,7 +364,10 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
                             : Container(
                                 padding: const EdgeInsets.symmetric(vertical: TokSpace.sm),
                                 decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.card)),
-                                child: Row(
+                                child: Column(
+                                  spacing: TokSpace.sm,
+                                  children: [
+                                Row(
                                   children: [
                                     for (final id in table)
                                       Expanded(
@@ -358,6 +388,10 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
                                           ),
                                         ),
                                       ),
+                                  ],
+                                ),
+                                // A line for the whole table (a bottle, a starter) in one tap
+                                if (who.length < table.length) TuTextButton(label: 'Everyone had it', kind: GlassKind.soft, size: TuButtonSize.sm, onTap: () => _everyone(i)),
                                   ],
                                 ),
                               ),

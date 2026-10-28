@@ -87,6 +87,10 @@
 .tu-sheet-row__sub { color: var(--color-text-muted); }
 .tu-sheet-row__sub--brand { color: var(--color-text-brand); }
 .tu-sheet-row__sub--success { color: var(--color-text-success); }
+.tu-row-chevron { width: var(--size-icon-sm); height: var(--size-icon-sm); flex: none; color: var(--color-icon-muted); }
+.tu-row-chevron--turns { transition: transform var(--enter-ms) var(--ease-in-out); }
+.tu-row-chevron--turns[data-open] { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) { .tu-row-chevron--turns { transition: none; } }
 
 .tu-hairline { height: var(--d-surface-edge-width); margin: 0 var(--space-xs); background: var(--color-border-default); }
 .tu-slot { display: grid; place-items: center; flex: none; }

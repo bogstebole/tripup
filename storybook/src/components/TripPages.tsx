@@ -5,9 +5,9 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useEffect, useLayoutEffect, useRef, useState, type ReactElement, type ReactNode } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import {
-  accountOf, balanceLeft, BANK_CONFIRM_MS, BANKS, clockTime, dayName, DINNER, DINNER_TABLE, dinnerChoice, euros, INVITE_LINK, isPaid, LISBON_PLACES, MARK_CONFIRM_MS, MY_ID, payLine, payReference, PEOPLE,
+  accountOf, atMinute, balanceLeft, spentAt, BANK_CONFIRM_MS, BANKS, clockTime, dayName, DINNER, DINNER_TABLE, dinnerChoice, euros, INVITE_LINK, isPaid, LISBON_PLACES, MARK_CONFIRM_MS, MY_ID, payLine, payReference, PEOPLE,
   personById, placeById, placeMatches, planEnd, planStart, plansWith, POLL_OPENS, pollClosed, pollOpen, PRE_DINNER, shareOf,
-  timeUntil, TODAY, tripDate, TRIP_DAYS, TRIP_NOW, VISITED, votesIn, walkLabel, walkMinutes, type Bank, type Money, type Paying, type Payment, type PlaceSpot,
+  timeUntil, TODAY, tripDate, TRIP_DAYS, TRIP_NOW, VISITED, votesIn, walkLabel, walkMinutes, type Visited, type Bank, type Money, type Paying, type Payment, type PlaceSpot,
   type Plan, type PollState,
 } from '../data';
 import { TextButton } from './Button';
@@ -32,8 +32,8 @@ const withHairlines = <T,>(items: T[], row: (x: T) => ReactElement) => items.fla
 export const ITINERARY_SUBTITLE = `${TRIP_DAYS[0].day}–${TRIP_DAYS[TRIP_DAYS.length - 1].day} May · Day ${TRIP_DAYS.findIndex(d => d.day === TODAY) + 1} of ${TRIP_DAYS.length}`;
 
 export interface ItineraryPageProps {
-  /** Tapping a place we've been: show it on the map. */
-  onPick?: (place: string) => void;
+  /** Tapping a place we've been: what happened there, in the same pop-up (see VisitPage). */
+  onVisit?: (place: Visited) => void;
   /** Tapping a plan: open its details, right there. */
   onOpen?: (plan: Plan) => void;
   /** The dinner poll, while it decides tonight's dinner (my vote, an Undo, a place picked by hand). Leave it out for
@@ -52,12 +52,12 @@ export interface ItineraryPageProps {
 /**
  * Every day of the trip: today first, then the days ahead, then the ones behind us, a hairline between days (as on a
  * place's Group page): where we've been, what's planned, and today marked. It opens on today. Its filter shows only
- * the days picked. Tapping a place we've been shows it on the map (the pop-up closes and the map flies there); tapping
+ * the days picked. Tapping a place we've been opens what happened there, in the same pop-up (see VisitPage); tapping
  * a plan opens its details right there, in the pop-up's place. While the dinner poll hasn't decided, today has a Dinner
  * slot at 5 PM instead of the place ("Poll open · 3 of 5 voted"), which opens the poll. A plan with an end says until
  * when ("In 2 hrs · until 8 PM").
  */
-export function ItineraryPage({ onPick, onOpen, poll, onPoll, now = TRIP_NOW, days = [], added = [] }: ItineraryPageProps) {
+export function ItineraryPage({ onVisit, onOpen, poll, onPoll, now = TRIP_NOW, days = [], added = [] }: ItineraryPageProps) {
   const dinner = poll && (dinnerChoice(now, poll) ?? null);
   const plans = [...plansWith(dinner), ...added].sort((x, y) => planStart(x).getTime() - planStart(y).getTime());
   const next = plans.find(p => planStart(p) > now);
@@ -73,8 +73,8 @@ export function ItineraryPage({ onPick, onOpen, poll, onPoll, now = TRIP_NOW, da
               key={v.name}
               leading={<RowThumb sticker={v.sticker} tilt={v.tilt} />}
               title={v.name}
-              subtitle="Been there"
-              onClick={onPick && (() => onPick(v.name))}
+              subtitle={`Been there · ${clockTime(atMinute(v.day, v.arrived))}`}
+              onClick={onVisit && (() => onVisit(v))}
             />
           )),
           // Tonight's slot, until the poll has picked a place
@@ -116,6 +116,94 @@ export function ItineraryPage({ onPick, onOpen, poll, onPoll, now = TRIP_NOW, da
         );
       })}
     </StaggerIn>
+  );
+}
+
+/** The itinerary's two steps, one at a time like Money's: the days, or a place we've been. The pop-up's header follows
+ *  (see visitHeaderOf), with Back to the days; the old page fades out with a blur as the new one fades in. */
+export function ItineraryFlow({ visit, list }: { visit?: Visited | null; list: ReactNode }) {
+  const reduce = useReducedMotion();
+  return (
+    <div className="tu-add-steps">
+      <AnimatePresence initial={false}>
+        <motion.div
+          key={visit?.name ?? 'days'}
+          className="tu-add-steps__step"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, transition: { duration: m['enter-ms'] / 1000, ease } }}
+          exit={{ opacity: 0, filter: reduce ? 'none' : `blur(${m['enter-blur']}px)`, pointerEvents: 'none', transition: { duration: m['fade-ms'] / 1000, ease } }}
+        >
+          {visit ? <VisitPage visit={visit} /> : list}
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+}
+
+const lengthOf = (minutes: number) => (minutes < 60 ? `${minutes} min` : `${Math.floor(minutes / 60)} h${minutes % 60 ? ` ${minutes % 60} min` : ''}`);
+const namesOf = (ids: string[]) => {
+  const names = ids.map(name);
+  return names.length < 2 ? names.join('') : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+};
+
+/** A place's header: its name; the facts under it (what it is, the day, how long, what was spent). */
+export const visitHeaderOf = (v: Visited) => {
+  const spent = spentAt(v).reduce((sum, e) => sum + e.amount, 0);
+  return {
+    title: v.name,
+    subtitle: [v.kind, `${atMinute(v.day, 0).toLocaleDateString('en-GB', { weekday: 'short' })} ${v.day} May`, lengthOf(v.left - v.arrived), spent ? `${euros(spent)} spent` : 'Nothing spent'].join(' · '),
+  };
+};
+
+/** A place's footer: show it on the map (the pop-up closes and the map flies there). */
+export const VisitFooter = ({ onMap }: { onMap?: () => void }) => (
+  <SheetFooter>
+    <TextButton label="Show on the map" variant="soft" size="lg" wide onClick={onMap} />
+  </SheetFooter>
+);
+
+/**
+ * A place we've been, as it went: the place big, on a muted block like Ren's catch-up tiles, then a timeline: when we
+ * got there and who came, what was paid there (who paid, how it's split, my part), and when we left. A dot per moment
+ * on a line that runs down to the next.
+ */
+export function VisitPage({ visit: v }: { visit: Visited }) {
+  return (
+    <StaggerIn>
+      <div key="place" className="tu-visit__place">
+        <Sticker name={v.sticker} tilt={v.tilt} className="tu-visit__sticker" />
+      </div>
+      <SheetSection key="what" title="What happened" top="lg" />
+      <Moment key="in" at={atMinute(v.day, v.arrived)} title="Got there" subtitle={namesOf(v.who)}>
+        <span className="tu-visit__faces">{v.who.map(id => <Sticker key={id} name={personById(id).sticker} size="chip" />)}</span>
+      </Moment>
+      {spentAt(v).map(e => (
+        <Moment
+          key={e.title}
+          at={atMinute(v.day, e.minute!)}
+          title={e.title}
+          subtitle={`${e.paidBy === MY_ID ? 'You' : name(e.paidBy)} paid · split ${e.split.length} ways${shareOf(e, MY_ID) ? ` · yours ${euros(shareOf(e, MY_ID))}` : ''}`}
+          trailing={<span className="text-label-lg tu-pages__strong">{euros(e.amount)}</span>}
+        />
+      ))}
+      <Moment key="out" at={atMinute(v.day, v.left)} title="Left" subtitle={`${lengthOf(v.left - v.arrived)} there`} last />
+    </StaggerIn>
+  );
+}
+
+/** One moment on a visit's timeline: the time, a dot on a line down to the next moment, and what happened. */
+function Moment({ at, title, subtitle, trailing, last, children }: { at: Date; title: string; subtitle?: string; trailing?: ReactNode; last?: boolean; children?: ReactNode }) {
+  return (
+    <div className={`tu-moment${last ? ' tu-moment--last' : ''}`}>
+      <span className="text-label-md weight-semibold tu-pages__strong tu-moment__time">{clockTime(at)}</span>
+      <span className="tu-moment__rail" aria-hidden><span className="tu-moment__dot" /></span>
+      <span className="tu-moment__what">
+        <span className="text-label-lg tu-pages__strong">{title}</span>
+        {subtitle && <span className="text-body-sm tu-pages__muted">{subtitle}</span>}
+        {children}
+      </span>
+      {trailing}
+    </div>
   );
 }
 
@@ -185,6 +273,7 @@ export function MoneyPage({ money = PRE_DINNER, made = [], tab: firstTab = 'Sett
                       tone={paid(p) ? 'success' : undefined}
                       trailing={<span className="text-label-lg tu-pages__strong">{euros(p.amount)}</span>}
                       onClick={() => setWhy(w => (w === key(p) ? null : key(p)))}
+                      expanded={why === key(p)}
                     />
                     {/* Where the amount comes from: it opens under the row, and closes a little quicker */}
                     <AnimatePresence initial={false}>
@@ -395,8 +484,8 @@ export function PayPage({ money = PRE_DINNER, pay, bank, onChangeBank }: { money
         <SheetRow
           title={`Why ${euros(pay.amount)}`}
           subtitle={why ? 'Hide why' : 'What you had, and what you paid'}
-          trailing={why ? <ChevronUp className="tu-pay-line__arrow" strokeWidth={2} absoluteStrokeWidth aria-hidden /> : <ChevronDown className="tu-pay-line__arrow" strokeWidth={2} absoluteStrokeWidth aria-hidden />}
           onClick={() => setWhy(w => !w)}
+          expanded={why}
         />
         <AnimatePresence initial={false}>
           {why && (
@@ -450,7 +539,6 @@ export function BankPage({ onPick }: { onPick?: (bank: Bank) => void }) {
           key={b.id}
           leading={<BankLogo bank={b} />}
           title={b.name}
-          trailing={<ChevronRight className="tu-pay-line__arrow" strokeWidth={2} absoluteStrokeWidth aria-hidden />}
           onClick={onPick && (() => onPick(b))}
         />
       ))}
@@ -791,7 +879,6 @@ function PlanSearch({ query, onQuery, onPick }: { query: string; onQuery: (q: st
           leading={<RowThumb sticker={s.sticker} />}
           title={s.name}
           subtitle={placeLine(s)}
-          trailing={<ArrowRight className="tu-choice__arrow" strokeWidth={2} absoluteStrokeWidth aria-hidden />}
           onClick={() => onPick(s)}
         />
       ))}

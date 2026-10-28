@@ -4,11 +4,11 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useEffect, useLayoutEffect, useRef, useState, type Ref } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import {
-  billShares, billTotal, BRASSERIE_BILL, DINNER_TABLE, euros, lineTotal, menuItemNamed, MY_ID, personById, scannedBill, type Bill,
+  billShares, billTotal, BRASSERIE_BILL, DINNER_TABLE, euros, lineTotal, menuItemNamed, MY_ID, personById, scannedBill, unclaimedOf, type Bill,
 } from '../data';
 import { Button, TextButton } from './Button';
 import { Sticker } from './Sticker';
-import { Hairline, Slot, StaggerIn, TripSheet } from './TripSheet';
+import { Hairline, RowChevron, Slot, StaggerIn, TripSheet } from './TripSheet';
 import './Surface.css';
 import './BillScan.css';
 
@@ -207,14 +207,25 @@ function BillReview({ bill, payerMenuOpen, onPayer, onChange, onAdd, onClose }: 
   };
   const toggle = (line: number, id: string) => {
     const had = bill.who[line].includes(id) ? bill.who[line].filter(x => x !== id) : [...bill.who[line], id];
-    if (!had.length) return; // someone always has it
     onChange({ ...bill, who: bill.who.map((w, i) => (i === line ? had : w)) });
   };
+  // Everyone at the table had it (a bottle, a starter), in one tap
+  const everyone = (line: number) => onChange({ ...bill, who: bill.who.map((w, i) => (i === line ? [...table] : w)) });
+  // A line nobody has claimed opens by itself once the bill is up, so the faces to tap are right there
+  const unclaimed = unclaimedOf(bill);
+  useEffect(() => {
+    const first = unclaimedOf(bill)[0];
+    if (first === undefined) return;
+    const t = window.setTimeout(() => edit(first), m['enter-ms']);
+    return () => window.clearTimeout(t);
+    // only when the bill first comes up
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <TripSheet
       title="The bill"
-      subtitle={`La Brasserie de L'Entrecôte · ${bill.lines.length} lines`}
+      subtitle={`La Brasserie de L'Entrecôte · ${bill.lines.length} lines${unclaimed.length ? ` · ${unclaimed.length} nobody has yet` : ''}`}
       onClose={onClose}
       footer={
         <div className="tu-bill__footer">
@@ -236,6 +247,12 @@ function BillReview({ bill, payerMenuOpen, onPayer, onChange, onAdd, onClose }: 
               <span className="text-label-lg tu-bill__total-label">Total</span>
               <span className="text-heading-lg">{euros(billTotal(bill))}</span>
             </div>
+            {/* While a line has nobody, what happens to it if it stays that way */}
+            {unclaimed.length > 0 && (
+              <p className="text-body-sm tu-bill__unclaimed">
+                {unclaimed.length === 1 ? 'If nobody takes the line left, it splits evenly' : `If nobody takes the ${unclaimed.length} lines left, they split evenly`}
+              </p>
+            )}
           </div>
           <div className="tu-bill__actions">
             <PayerTrigger payer={bill.paidBy} open={payerMenuOpen} onOpen={onPayer} />
@@ -254,11 +271,17 @@ function BillReview({ bill, payerMenuOpen, onPayer, onChange, onAdd, onClose }: 
                 <span className="text-label-lg">{menuItemNamed(line.item)?.name ?? line.printed}</span>
                 <span className="tu-bill__meta">
                   <span className="text-body-sm tu-bill__qty">{`${line.qty} × ${euros(line.unit)}`}</span>
-                  {/* Every face, overlapped (there's room for the whole table) */}
-                  <span className="tu-bill__pile" role="img" aria-label={names(had)}>
-                    {had.map(id => <Sticker key={id} name={personById(id).sticker} size="chip" />)}
-                  </span>
-                  <span className="text-label-lg">{euros(lineTotal(line))}</span>
+                  {/* Every face, overlapped (there's room for the whole table); nobody yet asks who */}
+                  {had.length ? (
+                    <span className="tu-bill__pile" role="img" aria-label={names(had)}>
+                      {had.map(id => <Sticker key={id} name={personById(id).sticker} size="chip" />)}
+                    </span>
+                  ) : (
+                    <span className="text-label-md weight-semibold tu-bill__ask">Who had it?</span>
+                  )}
+                  <span className="text-label-lg tu-bill__amount">{euros(lineTotal(line))}</span>
+                  {/* It opens in place to change who had it */}
+                  <RowChevron expanded={editing === i} />
                 </span>
               </button>
               {/* Who had it: everyone at the table in a grey block, the ones who had it full, the others faded; tap to change */}
@@ -271,6 +294,7 @@ function BillReview({ bill, payerMenuOpen, onPayer, onChange, onAdd, onClose }: 
                     animate={reduce ? { opacity: 1, transition: { duration: m['fade-ms'] / 1000, ease } } : { height: 'auto', opacity: 1, transition: { duration: m['enter-ms'] / 1000, ease } }}
                     exit={reduce ? { opacity: 0, transition: { duration: m['fade-ms'] / 1000, ease } } : { height: 0, opacity: 0, transition: { duration: m['fade-ms'] / 1000, ease } }}
                   >
+                    <div className="tu-bill__faces-block">
                     <div className="tu-bill__faces">
                       {table.map(id => {
                         const on = had.includes(id);
@@ -288,6 +312,9 @@ function BillReview({ bill, payerMenuOpen, onPayer, onChange, onAdd, onClose }: 
                           </button>
                         );
                       })}
+                    </div>
+                    {/* A line for the whole table (a bottle, a starter) in one tap */}
+                    {had.length < table.length && <TextButton label="Everyone had it" variant="soft" size="sm" onClick={() => everyone(i)} />}
                     </div>
                   </motion.div>
                 )}

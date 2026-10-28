@@ -142,6 +142,9 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   /// Days picked in the itinerary's own filter (it opens on all of them).
   Set<int> _planDays = const {};
 
+  /// The place we've been that the itinerary has open, if any.
+  Visited? _visit;
+
   /// Where Add to the trip is: its choice, Plan something or Invite someone (it opens on the choice).
   AddStep _addStep = AddStep.choose;
 
@@ -509,6 +512,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     setState(() {
       _popup = which;
       _planDays = const {};
+      _visit = null;
       _addStep = AddStep.choose;
       _moneyStep = MoneyStep.list;
     });
@@ -771,10 +775,17 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
 
     void dragUpdate(DragUpdateDetails d) => _popDrag.value = math.max(0, _popDrag.value + d.delta.dy);
     final (title, subtitle, page) = switch (_popup!) {
-      _Popup.itinerary => ('Itinerary', ItineraryPage.subtitle, ItineraryPage(days: _planDays, onOpen: _openDetails, onPoll: () => setState(() => _popup = _Popup.poll), onPick: (at) {
-          _closePopup();
-          _flyTo(at);
-        }) as Widget),
+      _Popup.itinerary => (
+          ItineraryFlow.headerOf(_visit).$1,
+          ItineraryFlow.headerOf(_visit).$2,
+          ItineraryFlow(
+            visit: _visit,
+            list: ItineraryPage(days: _planDays, onOpen: _openDetails, onPoll: () => setState(() => _popup = _Popup.poll), onVisit: (v) {
+              HapticFeedback.selectionClick();
+              setState(() => _visit = v);
+            }),
+          ) as Widget
+        ),
       _Popup.money => (
           MoneyFlow.headerOf(_moneyStep, _payFor).$1,
           MoneyFlow.headerOf(_moneyStep, _payFor).$2,
@@ -811,15 +822,24 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
               ? _addBack
               : _popup == _Popup.money && _moneyStep != MoneyStep.list
                   ? _moneyBack
-                  : null,
+                  : _popup == _Popup.itinerary && _visit != null
+                      ? () {
+                          HapticFeedback.selectionClick();
+                          setState(() => _visit = null);
+                        }
+                      : null,
           centered: _popup == _Popup.add && _addStep == AddStep.invite,
           footer: switch (_popup) {
             _Popup.money => MoneyFlow.footer(step: _moneyStep, pay: _payFor, onScan: _scan, onPay: _startPay, onBankPay: _payWithBank, onMarked: _markPaid),
             _Popup.add => AddPage.footer(step: _addStep, draft: _draft, onSent: _sentPlan),
+            _Popup.itinerary => ItineraryFlow.footer(_visit, (at) {
+                _closePopup();
+                _flyTo(at);
+              }),
             _ => null,
           },
           // The itinerary filters by day, like the map
-          top: _popup != _Popup.itinerary
+          top: _popup != _Popup.itinerary || _visit != null
               ? null
               : ToggleChips<int>(
                   options: tripDays,
