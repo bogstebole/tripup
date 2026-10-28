@@ -111,12 +111,13 @@ export const Note: Story = {
 
 export const Pile: Story = {
   name: 'FacePile',
-  parameters: { docs: { description: { story: 'People as a little pile: up to two stickers, then "+N". On the map, people closer than a sticker\'s width merge into one pile, so a group walking together never turns into a heap. Whoever has arrived leaves the map and shows on the place\'s pin instead: a chip-size pile across the mini pin\'s corner, and their faces with "here" in the card\'s first chip. Locations are shared live and passively, from 90 minutes before the event.' } } },
+  parameters: { docs: { description: { story: 'People as a little pile: everyone\'s sticker up to five; past five, four and "+N" (never wider than five). On the map, people closer than a sticker\'s width merge into one pile, so a group walking together never turns into a heap. Whoever has arrived leaves the map and shows on the place\'s pin instead: a chip-size pile across the mini pin\'s corner, and their faces with "here" in the card\'s first chip. Locations are shared live and passively, from 90 minutes before the event.' } } },
   render: () => (
     <div style={{ display: 'flex', gap: 'var(--space-xl)', alignItems: 'center' }}>
       <FacePile faces={['person-05']} label="Nic" />
       <FacePile faces={['person-05', 'person-02']} label="Nic and Leo" />
       <FacePile faces={['person-05', 'person-02', 'person-01', 'person-03']} label="Four people" />
+      <FacePile faces={['person-05', 'person-02', 'person-01', 'person-03', 'person-04', 'person-05', 'person-02']} label="Seven people" />
       <FacePile faces={['person-01']} size="chip" label="Maya is here" />
     </div>
   ),

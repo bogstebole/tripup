@@ -274,7 +274,7 @@
         },
         {
           "name": "Face pile",
-          "what": "People as a little pile: up to two stickers, then a +N bubble. On the map: someone walking, or a group together.",
+          "what": "People as a little pile: every sticker up to five; past five, four and a +N bubble. On the map: someone walking, or a group together.",
           "props": "Count (the +N) · More (shows the bubble) · Second face.",
           "code": "FacePile(faces) · app/lib/components/basics.dart",
           "section": "144:1783",
