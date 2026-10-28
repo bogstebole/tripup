@@ -475,6 +475,12 @@ From the research (`process/research/tripup-competitive-research-v3-en.md`, Paym
 - **On Android the map's credit sits above the navigation bar, and the buttons one line higher.** The credit (required by OpenStreetMap's licence) was on top of the gesture handle, and with three-button navigation under the buttons. iOS keeps it in the home indicator's inset as designed.
 - **The launch screen is Your trips' blue** (a token, written into Android's resources), so the app opens without a white flash.
 
+## Going in: one thing at a time (28 Oct)
+
+- **Your trips leaves first, then the trip arrives.** With both at once, the cards fading out and the trip's controls fading in crossed in the middle of the screen and it read as a mess. Now the trip's entrance starts when the last part of Your trips has gone; only the map's zoom runs under both, so there's always movement and no dead pause.
+  - We didn't speed up the leave to keep it within a second: each part's 260 ms and the 30 ms stagger are what make it read as one by one. The whole opening is about 1.15 s.
+  - We didn't change Back: there the trip's controls go at once and Your trips comes back after, so nothing overlaps.
+
 ## Your trips' lift on the web (28 Oct)
 
 - **The name and the faces are lifted on the web too.** The web skipped every blur-made shadow to stay smooth, but Your trips is the first screen anyone with the link sees, and without the lift the name sits flat on the map. Two shapes blurred is a small cost. Old Android still skips it.

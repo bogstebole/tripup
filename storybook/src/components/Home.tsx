@@ -57,6 +57,8 @@ const PREVIOUS = 6 + 1 + UPCOMING_TRIPS.length;
 const PART = { header: 0, now: 1, title: 2, dates: 3, faces: 4, wayIn: 5, comingUp: 6, previous: PREVIOUS, blue: PREVIOUS + 1 + PAST_TRIPS.length } as const;
 /** From the first element leaving to the last gone. */
 const HOME_LEAVE_MS = m['enter-ms'] + m['open-stagger-ms'] * PART.blue;
+// The trip's entrance starts when the last part has gone (it waits open-delay-ms itself, so it's started that much before)
+const ENTER_AFTER_MS = HOME_LEAVE_MS - m['open-delay-ms'];
 const part = (i: number) => ({ className: 'tu-home-part', style: { '--i': i } as CSSProperties });
 
 /**
@@ -201,7 +203,7 @@ export interface HomeLayerProps extends TripsHomeProps {
  * Your trips as an overlay on the trip (the app's home layer). The trip's map is under it all the time; here it's the
  * still of Lisbon, since Storybook's trip screen has no map. Going in (See trip details), Your trips' parts leave
  * gently, top to bottom, fade-ms each, stagger-ms apart, rising a little; the blue last. At the same moment the map
- * zooms in on the trip (spring-open) and the trip's entrance runs (see Entrance.tsx): its controls arrive one by one
+ * zooms in on the trip (spring-open); once the last part has gone the trip's entrance runs (see Entrance.tsx): its controls arrive one by one
  * and Up next opens last; the still fades once the trip's own page is in (Storybook only). Back: the trip's controls go
  * at once (fade-ms), the map zooms back out (spring-collapse), and the parts come back top to bottom, the blue first.
  * Nothing takes taps while it moves. Reduced motion: the parts and the trip only fade.
@@ -223,14 +225,14 @@ export function HomeLayer({ inTrip, trip, ...home }: HomeLayerProps) {
     }
     setMoving(true);
     setBack(!inTrip);
-    const settle = window.setTimeout(() => setMoving(false), (inTrip ? Math.max(ENTER_MS, HOME_LEAVE_MS) : HOME_LEAVE_MS) + 60);
+    const settle = window.setTimeout(() => setMoving(false), (inTrip ? ENTER_AFTER_MS + ENTER_MS : HOME_LEAVE_MS) + 60);
     if (reduce) {
       zoom.jump(inTrip ? 1 : 0);
       animate(enter, inTrip ? 1 : 0, { duration: m['fade-ms'] / 1000, ease: 'linear' });
     } else if (inTrip) {
       animate(zoom, 1, physical(m['spring-open']));
       enter.jump(0);
-      animate(enter, 1, { duration: ENTER_MS / 1000, ease: 'linear' });
+      animate(enter, 1, { duration: ENTER_MS / 1000, delay: ENTER_AFTER_MS / 1000, ease: 'linear' });
     } else {
       animate(zoom, 0, physical(m['spring-collapse']));
       animate(enter, 0, { duration: m['fade-ms'] / 1000, ease: 'linear' });

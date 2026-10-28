@@ -655,7 +655,12 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
-### Final UI, iteration 1.88: Your trips lifted on the web too, bigger dates and headings (branch `fix/web-hero-raised`)
+### Final UI, iteration 1.89: the trip waits for Your trips to leave (branch `fix/trip-enter-after-home`)
+- Bogdan: after See trip details, the cards leaving Your trips overlapped the trip's elements coming in on the map. First Your trips should go, then the map's elements.
+- Since 1.81 the trip's entrance started with the tap: its pins and first control came in at 220 ms, while Your trips' parts were leaving until 620 ms (13 parts since the pill and the sticky header). Now the entrance starts when the last part has gone: its clock starts 400 ms in, so with its own open-delay-ms the first pin and control arrive at 620. The map's zoom still starts with the tap. Back is as it was.
+- It all lands in about 1.15 s instead of a second. App and Storybook (the story's description too).
+- **Checked:** `flutter analyze` and `tsc` are clean; frames of a local web release build: Your trips is fully gone before the trip's top bar, pins and chips come in.
+
 - Bogdan: the name had no raised shadow. It did on the phone, but the web (and Android before 10) skipped it with the light effects. Now the name and the faces get elevation-raised on the web too; old Android still skips it (it's a blur of the shape).
 - Happening now is lifted by elevation-raised as well (a box shadow, so everywhere). Still plain `bg/default` with no inset, so it doesn't read as a button.
 - Lisbon · 12 May – 21 May goes from label-md (12) to body-lg medium (15); Coming up and Previous trips from heading-sm (15) to heading-lg (20), the size of the Your trips header.
