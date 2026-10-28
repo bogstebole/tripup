@@ -70,16 +70,16 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   Payment? _payFor;
   bool _banking = false;
 
-  /// Your trips and the trip's map: 1 is the list, 0 is in the trip, a spring between. Going in, the trip card opens
-  /// into the map: the whole trip screen grows out of the card's place, from a small copy of itself to the real one,
-  /// while the list behind fades and leans in. Back closes it into the card again.
+  /// Your trips and the trip's map: 1 is the list, 0 is in the trip, a spring between. Going in, the trip at the top
+  /// of the list opens into the map: the trip screen grows down out of its place, while the list behind blurs and
+  /// washes out. Back closes it up again.
   late final _home = AnimationController.unbounded(vsync: this, value: 1);
   final _homeKey = GlobalKey(), _homeCardKey = GlobalKey();
 
   /// The splash on a cold start (none with reduced motion).
   bool _splash = splashOnStart && !ui.PlatformDispatcher.instance.accessibilityFeatures.disableAnimations;
 
-  /// Where the trip card is on the screen, taken as a transition starts.
+  /// Where the trip you're on is on the screen (the top of Your trips), taken as a transition starts.
   Rect? _homeCard;
 
   /// Resting on the list (the map under it needn't be drawn), or in the trip (the list needn't be).
@@ -548,7 +548,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     }
   }
 
-  /// Into the trip's map, from the list: the surface grows out of the card (see [_openingTrip]) while the clock of
+  /// Into the trip's map, from the list: the surface grows out of the top (see [_openingTrip]) while the clock of
   /// the trip's entrance runs: its controls arrive one by one, and Up next opens last. All of it within a second.
   void _goIn() {
     if (_inTrip || _home.isAnimating && _home.velocity < 0) return;
@@ -597,7 +597,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     setState(() {});
   }
 
-  /// The trip card's place on the screen, as laid out (without the list's lean).
+  /// The place on the screen of the trip you're on (the top of Your trips, as far as it's scrolled).
   Rect? _cardRect() {
     final card = _homeCardKey.currentContext?.findRenderObject(), home = _homeKey.currentContext?.findRenderObject();
     if (card is! RenderBox || home is! RenderBox || !card.hasSize) return null;
@@ -650,11 +650,11 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
         child: TripsHome(key: _homeKey, onOpen: _goIn, cardKey: _homeCardKey),
       );
 
-  /// The trip opening out of its card, the way Airbnb opens a listing (Bogdan's reference, 24 Oct): the list behind
-  /// blurs and washes out, and one rounded surface grows from the card to the whole screen. It starts as the card (the
-  /// city's still growing with it, the card's words leaving at once); near full size the live map and its bars fade in
-  /// over the still, slightly blurred while the two overlap; the corners square up last. Closing runs it back into the
-  /// card, quicker. With reduced motion it only fades.
+  /// The trip opening out of the top of Your trips, where it sits over its map: the list behind blurs and washes out,
+  /// and one surface grows from the trip's part of the screen down to the whole of it. It starts as that part (the map
+  /// staying where it was, more of it showing as the surface grows, on the map's own grey below; the trip's words
+  /// leaving at once); near full size the live map and its bars fade in over the still, slightly blurred while the two
+  /// overlap. Closing runs it back up, quicker. With reduced motion it only fades.
   ///
   /// The widgets around the trip stay the same at rest and in motion (only their values change): a different wrapper
   /// on landing would build the map and its pins anew, and the Up next card would play its entrance a second time.
@@ -667,9 +667,8 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           final moving = !_inTrip && !_reduce;
           final screen = Offset.zero & size, card = _homeCard ?? screen;
           final rect = moving ? Rect.lerp(card, screen, p)! : screen;
-          final radius = BorderRadius.circular(moving ? TokDim.homeCardRadius * (1 - smoothstep(0.7, 1, p)) : 0);
           final scale = rect.width / size.width;
-          // What shows when: the card's words leave first, the live trip arrives near full size
+          // What shows when: the trip's words leave first, the live trip arrives near full size
           final words = moving ? 1 - smoothstep(0, 0.25, p) : 0.0;
           final live = _inTrip ? 1.0 : _reduce ? p : smoothstep(0.45, 0.85, p);
           final seam = moving && !lightEffects ? TokMotion.crossfadeBlur * 4 * live * (1 - live) : 0.0;
@@ -685,36 +684,39 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
                 ),
               ),
             ),
-            // The surface's lift, while it's a card in the air
+            // The surface's lift, while it's growing over the list
             Positioned.fromRect(
               rect: rect,
-              child: IgnorePointer(child: DecoratedBox(decoration: BoxDecoration(borderRadius: radius, boxShadow: moving ? TokShadow.elevationOverlay : const []))),
+              child: IgnorePointer(child: DecoratedBox(decoration: BoxDecoration(boxShadow: moving ? TokShadow.elevationOverlay : const []))),
             ),
             Positioned.fill(
               child: IgnorePointer(
                 ignoring: !_inTrip,
                 child: ClipRRect(
-                  clipper: _RRectClip(radius.toRRect(rect)),
+                  clipper: _RRectClip(RRect.fromRectAndRadius(rect, Radius.zero)),
                   clipBehavior: moving ? Clip.antiAlias : Clip.none,
                   child: Stack(children: [
-                    // The card's still, growing with the surface
-                    Positioned.fromRect(rect: rect, child: Opacity(opacity: moving ? 1 : 0, child: const TripCardStill())),
-                    // The card's words, at the card's size, leaving
+                    // The map where it was on Your trips, on the map's own grey, the surface showing more of it as it grows
+                    if (moving) ...[
+                      Positioned.fromRect(rect: rect, child: ColoredBox(color: t.bgCanvas)),
+                      Positioned(left: 0, right: 0, top: card.top, child: const HomeMapStill()),
+                    ],
+                    // The trip's words, where they were, leaving
                     Positioned.fromRect(
                       rect: rect,
                       child: Opacity(
                         opacity: words,
                         child: OverflowBox(
-                          alignment: Alignment.bottomLeft,
+                          alignment: Alignment.topLeft,
                           minWidth: card.width,
                           maxWidth: card.width,
                           minHeight: card.height,
                           maxHeight: card.height,
-                          child: const TripCardFace(),
+                          child: const HomeHeroFace(),
                         ),
                       ),
                     ),
-                    // The live trip, at its own size, scaled to the surface
+                    // The live trip, at its own size, scaled to the surface's width from its top
                     Positioned.fill(
                       child: Opacity(
                         opacity: live,
@@ -722,7 +724,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
                           enabled: seam >= 0.05,
                           imageFilter: ui.ImageFilter.blur(sigmaX: seam, sigmaY: seam),
                           child: Transform(
-                            transform: Matrix4.translationValues(rect.center.dx - size.width / 2 * scale, rect.center.dy - size.height / 2 * scale, 0)
+                            transform: Matrix4.translationValues(rect.left, rect.top, 0)
                               ..multiply(Matrix4.diagonal3Values(scale, scale, 1)),
                             child: child,
                           ),
@@ -1495,7 +1497,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   }
 }
 
-/// Clips to a given rounded rect (the trip card opening into the map).
+/// Clips to a given rounded rect (the trip opening out of Your trips into the map).
 class _RRectClip extends CustomClipper<RRect> {
   const _RRectClip(this.rrect);
   final RRect rrect;

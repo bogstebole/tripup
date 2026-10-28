@@ -223,8 +223,6 @@ abstract final class TokDim {
   static const double pollLostOpacity = 0.6;
   static const double pollLiveDot = 9;
   static const double planMapHeight = 160;
-  static const double homeCardEdge = 4;
-  static const double homeNowPillHeight = 36;
   static const double segmentHeight = 36;
   static const double stickerMini = 28;
   static const double pinTailWidth = 35;
@@ -241,9 +239,6 @@ abstract final class TokDim {
   static const double surfaceHeadSide = 8;
   static const double surfaceFootSide = 8;
   static const double widgetMidRadius = 28;
-  static const double homeCardPadding = 28;
-  static const double homeCardRadius = 50;
-  static const double homeNowPillInset = 4;
   static const double pollPlaceRadius = 28;
   static const double pollRadius = 36;
   static const double pollOptionRadius = 34;
