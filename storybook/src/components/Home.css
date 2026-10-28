@@ -111,9 +111,9 @@
 .tu-home-face__way-in { display: inline-grid; justify-items: stretch; }
 .tu-home-face__way-in > .tu-home-face__faces { justify-self: center; padding: 0 var(--space-xl); }
 .tu-home-face__way-in > .tu-btn { justify-content: center; }
-/* Happening now: a plain white pill over the name (not glass: glass is for what can be tapped), the green bead and the
-   day of the trip */
-.tu-home-now { display: inline-flex; align-items: center; gap: var(--space-xs); height: var(--space-2xl); padding: 0 var(--space-sm); border-radius: var(--radius-pill); background: var(--color-bg-default); color: var(--color-text-default); margin-bottom: var(--space-2xs); }
+/* Happening now: a plain white pill over the name (not glass: glass is for what can be tapped), lifted off the map by
+   elevation-raised like the name, the green bead and the day of the trip */
+.tu-home-now { display: inline-flex; align-items: center; gap: var(--space-xs); height: var(--space-2xl); padding: 0 var(--space-sm); border-radius: var(--radius-pill); background: var(--color-bg-default); box-shadow: var(--shadow-elevation-raised); color: var(--color-text-default); margin-bottom: var(--space-2xs); }
 .tu-home-now__day { color: var(--color-text-muted); font-weight: var(--font-weight-medium); }
 /* Everyone on it, overlapped, the later ones on top, standing 8 over the button */
 .tu-home-face__faces { display: flex; align-items: center; margin-bottom: -8px; filter: var(--filter-elevation-raised); }

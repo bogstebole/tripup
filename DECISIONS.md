@@ -475,6 +475,13 @@ From the research (`process/research/tripup-competitive-research-v3-en.md`, Paym
 - **On Android the map's credit sits above the navigation bar, and the buttons one line higher.** The credit (required by OpenStreetMap's licence) was on top of the gesture handle, and with three-button navigation under the buttons. iOS keeps it in the home indicator's inset as designed.
 - **The launch screen is Your trips' blue** (a token, written into Android's resources), so the app opens without a white flash.
 
+## Your trips' lift on the web (28 Oct)
+
+- **The name and the faces are lifted on the web too.** The web skipped every blur-made shadow to stay smooth, but Your trips is the first screen anyone with the link sees, and without the lift the name sits flat on the map. Two shapes blurred is a small cost. Old Android still skips it.
+  - We didn't turn the rest of the light effects back on for the web: they are the heavy blurs (the list, the sheets).
+- **Happening now gets the same lift.** A shadow alone isn't the button look (that's the glass and the inset), so the pill still reads as a label, but it now sits on the same layer as the name instead of looking printed on the map.
+- **Bigger dates and section headings.** At 12 the city and dates and at 15 the headings were too small over a busy map. Dates are body-lg medium (15); the headings are heading-lg (20), the same as the header: they're the screen's sections.
+
 ## Figma follows the app again (28 Oct)
 
 - **Figma's variables are the same set as the code's, minus what Figma can't use.** The 28 component tokens that bind to a Figma property are there; the three that can't (`me/pulse-scale`, `top-bar/fade-start`, `action-bar/fade-start`) live only in code. Removed tokens weren't just deleted: each layer was moved to the token it had pointed at first, so nothing changed colour or size.
