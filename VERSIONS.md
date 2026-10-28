@@ -655,6 +655,13 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Final UI, iteration 1.85: raised faces and name; headings that read over the blue (branch `fix/home-raised`)
+- Bogdan: the faces and "Road trip to Lisbon" are missing the raised drop shadow. "Coming up" doesn't read: dark or blue text over the light part, white over the blue.
+- App: `_Raised` puts elevation-raised under the faces and the name as blurred copies of the shape (none with light effects); the name's text shadows are gone. `_Heading` reads where it sits in the blue (by the blue's `GlobalKey`) and is `text/brand` under 50 % blue, `text/on-brand` above.
+- Storybook: `filter: var(--filter-elevation-raised)` on the faces and the name. `Section` measures its heading and sets `data-light`.
+- **Checked:** `flutter analyze` and `tsc` are clean. iOS simulator: Coming up in brand blue, Previous trips white, and the shadow under the faces and the name. Storybook: the same.
+- On Bogdan's iPhone 15 as build 14 (`1.0.0+14`), updated in place with devicectl.
+
 ### Final UI, iteration 1.84: Your trips' header stays put; its elements leave one by one with blur (branch `feat/home-sticky-header`)
 - Bogdan: the header on Your trips must stay sticky. The way into the trip needs blur and to be a little slower (it looked like something flashed), and every element should animate on its own as it leaves: blur, fade-out, stagger.
 - App:
