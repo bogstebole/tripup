@@ -661,6 +661,7 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - Lisbon · 12 May – 21 May goes from label-md (12) to body-lg medium (15); Coming up and Previous trips from heading-sm (15) to heading-lg (20), the size of the Your trips header.
 - App and Storybook. Not in Figma yet.
 - **Checked:** `flutter analyze` and `tsc` are clean; a local web release build at 440 wide shows the name, faces and pill lifted.
+- On Bogdan's iPhone 15 as build 17 (`1.0.0+17`), updated in place with devicectl. Web and Storybook deployed to Vercel (production).
 
 - Bogdan: once it's all done, update Figma. The main file now matches the app at 1.87.
 - **Variables:** the Component colours collection is gone and Component size is now Component, with the 28 tokens Figma can bind (out of 31 in `tokens.json`; `me/pulse-scale` and the two fade starts can't bind to anything in Figma). Before deleting, every layer bound to a removed token was rebound to what it pointed at (`button/soft-bg` → `bg/muted`), or kept its value where the token was a one-component number. 1.76's 4 px fixes went in on the way (28, 50, 4). `surface/inset` is an alias of `space/xl` again. New effect style Button/Danger (`inset.button-danger`).
