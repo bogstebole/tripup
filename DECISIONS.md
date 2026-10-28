@@ -474,3 +474,11 @@ From the research (`process/research/tripup-competitive-research-v3-en.md`, Paym
   - Below Android 8 the navigation bar's icons can't turn dark, so there it stays the system's opaque bar.
 - **On Android the map's credit sits above the navigation bar, and the buttons one line higher.** The credit (required by OpenStreetMap's licence) was on top of the gesture handle, and with three-button navigation under the buttons. iOS keeps it in the home indicator's inset as designed.
 - **The launch screen is Your trips' blue** (a token, written into Android's resources), so the app opens without a white flash.
+
+## Figma follows the app again (28 Oct)
+
+- **Figma's variables are the same set as the code's, minus what Figma can't use.** The 28 component tokens that bind to a Figma property are there; the three that can't (`me/pulse-scale`, `top-bar/fade-start`, `action-bar/fade-start`) live only in code. Removed tokens weren't just deleted: each layer was moved to the token it had pointed at first, so nothing changed colour or size.
+- **The trip card became Home hero in place.** Same component, so every screen using it changed with it. We didn't build a new component and swap the screens over: that would leave the old one around and lose the connectors.
+- **Screens still come from components.** The new ones (the visit, Ren's tiles) are instances of Moment, Place tile, Sheet row and the rest, not drawn shapes; the visit's place block is the one frame made by hand, on tokens.
+- **The docs card shows the description.** One text per component is the source, so the card and the Dev Mode description can't drift. Tokens are read from the bindings, not typed.
+
