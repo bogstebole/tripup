@@ -655,6 +655,10 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Android APK at 1.91 (28 Oct)
+- `releases/TripUp-android-1.91.apk` (35.3 MB, arm64, versionCode 20), built from main with the same command as 1.71. It installs over 1.75 as an update. The older APKs are kept.
+- The case study's APK link on Google Drive still serves 1.75. Bogdan uploads 1.91 as a new version of the same Drive file (Manage versions), so the link stays the same.
+
 ### Repo: a README, and no leftovers (branch `docs/readme`)
 - Bogdan: tidy the repo. A root `README.md` says what TripUp is, links the web prototype, Storybook and the case study, explains each folder and how the work was logged, and how to run the app and Storybook.
 - The 98 local branches already merged into `main` are deleted, and so are the 36 merged ones on GitHub. Two unmerged experiments stay: `perf/web-wasm` (local) and `try/new-bundle-id`. Five leftover worktrees are removed; all of them were already merged. One of them held a change Xcode had made on its own to `project.pbxproj` and nobody committed; it was saved as a patch before the worktree went.
