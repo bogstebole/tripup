@@ -658,7 +658,7 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 ### Repo: a README, and no leftovers (branch `docs/readme`)
 - Bogdan: tidy the repo. A root `README.md` says what TripUp is, links the web prototype, Storybook and the case study, explains each folder and how the work was logged, and how to run the app and Storybook.
 - The 98 local branches already merged into `main` are deleted, and so are the 36 merged ones on GitHub. Two unmerged experiments stay: `perf/web-wasm` (local) and `try/new-bundle-id`. Five leftover worktrees are removed; all of them were already merged. One of them held a change Xcode had made on its own to `project.pbxproj` and nobody committed; it was saved as a patch before the worktree went.
-- The repo is renamed from `fake-task` to **`tripup`** (https://github.com/bogstebole/tripup, still private), with the description "TripUp: a group-trip app for the Bending Spoons product design test. Flutter app, Storybook, design tokens and the whole process." GitHub redirects the old URL. `origin` points at the new one, and `components.json`'s code links (so `COMPONENTS.md`) use it too.
+- The repo is renamed from `fake-task` to **`tripup`** (https://github.com/bogstebole/tripup, still private), with the description "TripUp: a group-trip app for the Bending Spoons product design test. Flutter app, Storybook, design tokens and the whole process." GitHub redirects the old URL. `origin` points at the new one, and `components.json`'s repo link uses it too.
 
 ### Final UI, iteration 1.91: a face pile shows everyone up to five (branch `fix/face-pile-five`)
 - Bogdan: "+2" next to two faces makes no sense, they'd all fit. Only past five should it say "+".
