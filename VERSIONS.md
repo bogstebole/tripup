@@ -655,6 +655,12 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### iPhone at 1.80 (28 Oct): the hero title with a white edge, "Road trip to Lisbon"
+- Bogdan, on 1.79: the trip's name needs the sticker-like white edge from Figma (4 outside the letters), and the trip should be called "Road trip to Lisbon" (was "Schmedeswurtherwesterdeich").
+- App: `_HeroTitle` draws a white stroke copy under the letters, with the shadow on the edge. Storybook: `-webkit-text-stroke` with `paint-order: stroke fill`. `tripTitle` / `TRIP.title` renamed.
+- Build number 9 (`1.0.0+9`). Bogdan's iPhone 15 was updated in place with devicectl. Checked in Storybook at 440; on the phone, Bogdan's.
+- Open: Bogdan sees problems with the opening animation (Your trips → the trip); what they are isn't written down yet.
+
 ### Final UI, iteration 1.79: Your trips, the trip over its map (branch `feat/home-map-hero`)
 - Bogdan's new home screen (Figma 258:12058): the trip you're on over its map at the top (name, dates, faces, See trip details), and Coming up and Previous trips (Mallorca, Tokyo, Hanoi) as soft glass cards on the blue.
 - App: `home.dart` rewritten. The opening transition in `trip_screen.dart` now grows from the hero. New `assets/map/home-lisbon-hero.png`; `home-lisbon.png` removed (the original is in `Assets/map/`). The five trip-card tokens are removed.

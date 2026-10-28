@@ -154,7 +154,7 @@ export const EVENT = {
   menu: true,
 };
 
-export const TRIP = { title: 'Schmedeswurtherwesterdeich', city: 'Lisbon', dates: '12 May - 21 May' };
+export const TRIP = { title: 'Road trip to Lisbon', city: 'Lisbon', dates: '12 May - 21 May' };
 
 /** The trip's days (May 2026) for the day filter; today, in the demo, is the 14th. */
 export const TRIP_DAYS = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21].map(day => ({

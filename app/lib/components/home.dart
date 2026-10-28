@@ -249,7 +249,9 @@ class HomeHeroFace extends StatelessWidget {
   }
 }
 
-/// The trip's name, big, on up to two lines. A single word too long for a line shrinks to fit it instead of breaking.
+/// The trip's name, big, on up to two lines, with a white edge like a sticker's (4 outside the letters, round at the
+/// corners) so it reads on any part of the map; the shadow sits under the edge. A single word too long for a line
+/// shrinks to fit it instead of breaking.
 class _HeroTitle extends StatelessWidget {
   const _HeroTitle({required this.style});
   final TextStyle style;
@@ -263,7 +265,17 @@ class _HeroTitle extends StatelessWidget {
           p.dispose();
         }
         final fit = longest > box.maxWidth ? style.copyWith(fontSize: style.fontSize! * box.maxWidth / longest) : style;
-        return Text(tripTitle, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: fit);
+        // The edge is a stroke on a copy under the letters: centred on their outline, so twice as wide as it shows
+        final edge = fit.copyWith(
+          color: null,
+          foreground: Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = TokSpace.x2xs * 2
+            ..strokeJoin = StrokeJoin.round
+            ..color = TokPalette.white,
+        );
+        Text line(TextStyle s) => Text(tripTitle, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: s);
+        return Stack(alignment: Alignment.center, children: [line(edge), line(fit.copyWith(shadows: const []))]);
       });
 }
 
