@@ -655,6 +655,12 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Final UI, iteration 1.76: the trip card on the 4 px grid (branch `fix/card-rim-grid`)
+- Bogdan: why are some paddings 29, shouldn't everything be on the 4 px grid?
+- The trip card's white edge is 4 (was 5), so its padding is 24 + 4 = 28 and its corner 28 + 22 = 50 (were 29 and 51). The gap under Your trips' header follows it: 28. Happening now stays 4 in.
+- Checked in Storybook (Your trips): the built tokens read 4 / 28 / 50 / 28, the card looks as before.
+- Not on the iPhone or in an APK.
+
 ### Android APK and iPhone at 1.75 (28 Oct)
 - `releases/TripUp-android-1.75.apk` (34.6 MB, arm64). It was built from main with the build number raised to 8 (`1.0.0+8`), so it installs over 1.73 as an update. The command is the same as for 1.71, and the older APKs are kept.
 - Bogdan's iPhone 15 was updated in place to the 1.75 release build with devicectl, without uninstalling. The first try timed out; the second went through.

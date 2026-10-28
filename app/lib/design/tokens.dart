@@ -399,11 +399,11 @@ abstract final class TokDim {
   static const double pollActivityBar = 4;
   static const double pollActivityTimer = 48;
   static const double pollMark = 24;
-  static const double homeHeaderGap = 29;
+  static const double homeHeaderGap = 28;
   static const double planMapHeight = 160;
   static const double planPickerHeight = 180;
   static const double homeCardHeight = 438;
-  static const double homeCardEdge = 5;
+  static const double homeCardEdge = 4;
   static const double homeMapFadeStart = 0.152;
   static const double homeNowPillHeight = 36;
   static const double homeNowDot = 10;
@@ -493,8 +493,8 @@ abstract final class TokDim {
   static const double surfaceFootInset = 24;
   static const double surfaceFootSide = 8;
   static const double widgetMidRadius = 28;
-  static const double homeCardPadding = 29;
-  static const double homeCardRadius = 51;
+  static const double homeCardPadding = 28;
+  static const double homeCardRadius = 50;
   static const double homeNowPillInset = 4;
   static const double pollPlaceRadius = 28;
   static const double pollRadius = 36;

@@ -317,7 +317,7 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 - **The rule, everywhere a shape sits in a container's corner: outer radius = padding + the inner shape's radius.** Then the two curves run parallel. Apple uses the same rule in iOS 26 ("concentric" corners).
 - **Each radius is a token computed from the others.** It isn't a hand-picked number, so it follows when a button or a padding changes (`tokens.json` now takes expressions like `{space.md} + {button/lg} / 2`). Figma can't compute, so its variables hold the results, and each variable's description says how it's made.
   - **Sheets** (pop-ups, the full view, the bill): 44 = 16 + 56 ÷ 2. The header's round buttons (40) need 44 − 20 = 24 from the top and sides, so the header moved in (`surface/head-inset`). The footer stays 16 in (`surface/foot-inset`). The bill's Add became a big button like every other footer action.
-  - **Trip card:** 51 = its padding of 29 + the arrow's 22. Happening now sits 4 further in, so it's concentric too.
+  - **Trip card:** 50 = its padding of 28 + the arrow's 22 (51 and 29 until 28 Oct, when the white edge went from 5 to 4 to put the padding on the 4 px grid). Happening now sits 4 further in, so it's concentric too.
   - **Up next:** 28 = 8 + the arrow's 20. The info chips' outer ends became round (radius 20, half their height) to match.
   - **The map's poll:** its places 28 (8 + the vote's 20, now 8 from the corner), the card around them 36. The poll pop-up's places: 34 (12 + Vote's 22).
 - **Where the rule doesn't apply:** where nothing sits in the corner (lists, text, Why's box), or where it already held (Know before you go: 24 = 8 + 16; the owe pill; tabs and dishes with an edge).
