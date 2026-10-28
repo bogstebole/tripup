@@ -475,6 +475,11 @@ From the research (`process/research/tripup-competitive-research-v3-en.md`, Paym
 - **On Android the map's credit sits above the navigation bar, and the buttons one line higher.** The credit (required by OpenStreetMap's licence) was on top of the gesture handle, and with three-button navigation under the buttons. iOS keeps it in the home indicator's inset as designed.
 - **The launch screen is Your trips' blue** (a token, written into Android's resources), so the app opens without a white flash.
 
+## Face piles: show the faces (28 Oct)
+
+- **Everyone up to five, then "+N".** With two faces and "+2" you see less than there's room for, and it reads like a crowd when it's four friends. Five overlapped stickers still fit on a pin's corner; past five, four plus "+N" keeps it to five wide.
+  - We didn't make it depend on where it is (map or pin): one rule is easier to read and to explain.
+
 ## Ren's catch-up: what's settled, not what's being voted on (28 Oct)
 
 - **Tonight's dinner shows as a plan, at 5 PM.** Ren just joined; the poll row asked him to vote on something that, for him, didn't exist yet, and it was the only row with an icon and blue text. Now it reads like everything else on the page: what's happening and when. The poll still reaches him the normal way once it opens.

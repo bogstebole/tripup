@@ -206,8 +206,10 @@ class InfoChips extends StatelessWidget {
   }
 }
 
-/// People as a little pile: up to two of their stickers, then a "+N" bubble for the rest. On the map it's a
-/// group walking together; on a pin, who's already there.
+/// People as a little pile: everyone's sticker, up to five; past five, four of them and a "+N" bubble for the rest,
+/// so it's never wider than five. On the map it's a group walking together; on a pin, who's already there.
+const _pileMost = 5;
+
 class FacePile extends StatelessWidget {
   const FacePile({super.key, required this.faces, this.size = StickerSize.avatar});
   final List<String> faces;
@@ -216,9 +218,10 @@ class FacePile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tok;
-    final more = faces.length - 2;
+    final shown = faces.length > _pileMost ? _pileMost - 1 : faces.length;
+    final more = faces.length - shown;
     return Overlapped(overlap: TokSpace.xs, children: [
-      for (final f in faces.take(2)) Sticker(f, size: size),
+      for (final f in faces.take(shown)) Sticker(f, size: size),
       if (more > 0)
         Container(
           width: TokSpace.x2xl,

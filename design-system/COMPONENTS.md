@@ -251,7 +251,7 @@ A place's rating: a filled brand star, the rating and review count, then the pla
 
 ### Face pile
 
-People as a little pile: up to two stickers, then a +N bubble. On the map: someone walking, or a group together.
+People as a little pile: every sticker up to five; past five, four and a +N bubble. On the map: someone walking, or a group together.
 
 - Props: Count (the +N) · More (shows the bubble) · Second face.
 - Code: FacePile(faces) · app/lib/components/basics.dart

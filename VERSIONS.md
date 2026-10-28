@@ -655,7 +655,12 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
-### Figma: Ren's trip so far at 1.90 (branch `figma/ren-recap-190`)
+### Final UI, iteration 1.91: a face pile shows everyone up to five (branch `fix/face-pile-five`)
+- Bogdan: "+2" next to two faces makes no sense, they'd all fit. Only past five should it say "+".
+- FacePile (the map's groups, who's at a pin) now shows every sticker up to five; with six or more it's four and "+N", so it's never wider than five. Before it was two and "+N".
+- App and Storybook (FacePile story: a seven-person pile added). `components.json` and `COMPONENTS.md` follow. Not in Figma.
+- **Checked:** `flutter analyze` and `tsc` are clean; the FacePile story in a local Storybook build (four faces in full; seven as four and +3).
+
 - Bogdan: update only this screen; he has made changes of his own in Figma, so nothing else is touched.
 - Ren's phone · The trip so far: the flat is a Sheet row with the new sticker and, under it, Directions and Open in Airbnb (Text button, soft, md, side by side, sm in, xs apart). Coming up starts with La Brasserie de L'Entrecôte - Alvalade at 5 PM (Sheet row, the wings sticker); the Dinner tonight icon row is gone.
 - One addition on Components: **Sticker / Lisbon / Alfama flat**, next to the other place stickers (the same image as the app's).
