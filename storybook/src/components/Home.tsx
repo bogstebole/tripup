@@ -9,6 +9,7 @@ import {
   type TripSummary,
 } from '../data';
 import { Button } from './Button';
+import { easedFade } from './easedFade';
 import { useTripNotice } from './Notice';
 import { ENTER_MS, TripEntrance } from './Entrance';
 import { Sticker } from './Sticker';
@@ -47,9 +48,13 @@ export interface TripsHomeProps {
   scrolledToEnd?: boolean;
 }
 
-/** Your trips' parts, in the order they leave (and come back): each fades and moves a little on its own, stagger-ms
+/** Your trips' elements, in the order they leave (and come back): each line of text, the faces, the button, each
+ *  heading and each card fades, blurs (up to enter-blur) and moves a little on its own, enter-ms each, open-stagger-ms
  *  apart. The blue leaves last and comes back first. */
-const PART = { header: 0, title: 1, wayIn: 2, comingUp: 3, previous: 4, blue: 5 } as const;
+const PREVIOUS = 5 + 1 + UPCOMING_TRIPS.length;
+const PART = { header: 0, title: 1, dates: 2, faces: 3, wayIn: 4, comingUp: 5, previous: PREVIOUS, blue: PREVIOUS + 1 + PAST_TRIPS.length } as const;
+/** From the first element leaving to the last gone. */
+const HOME_LEAVE_MS = m['enter-ms'] + m['open-stagger-ms'] * PART.blue;
 const part = (i: number) => ({ className: 'tu-home-part', style: { '--i': i } as CSSProperties });
 
 /**
@@ -60,12 +65,15 @@ const part = (i: number) => ({ className: 'tu-home-part', style: { '--i': i } as
  */
 export function TripsHome({ onOpen, now = TRIP_NOW, scrolledToEnd }: TripsHomeProps) {
   const list = useRef<HTMLDivElement>(null);
+  const notice = useTripNotice();
+  // How far the list has gone under the header, 0–1 over space-2xl: its see-through white shows as it does
+  const [under, setUnder] = useState(0);
   useLayoutEffect(() => {
     if (scrolledToEnd && list.current) list.current.scrollTop = list.current.scrollHeight;
   }, [scrolledToEnd]);
   return (
     <div className="tu-home">
-      <div ref={list} className="tu-home__list">
+      <div ref={list} className="tu-home__list" onScroll={e => setUnder(Math.min(1, e.currentTarget.scrollTop / tokens.space['2xl']))}>
         <StaggerIn>
           {/* The trip you're on, over its map; the blue rises over the map's lower part under it */}
           <div key="hero" className="tu-home-hero">
@@ -81,20 +89,33 @@ export function TripsHome({ onOpen, now = TRIP_NOW, scrolledToEnd }: TripsHomePr
       </div>
       {/* The list fades into the blue at the bottom */}
       <span {...part(PART.blue)} aria-hidden><span className="tu-home__fade" /></span>
+      {/* The header stays put: over the map at rest; once the list goes under it, over the same see-through white as
+          the trip's top bar, so it reads over the cards and the blue */}
+      <div className={`tu-home__bar ${part(PART.header).className}`} style={part(PART.header).style}>
+        <span className="tu-home__bar-white" style={{ opacity: under, background: easedFade('color-mix(in srgb, var(--color-bg-default) 70%, transparent)', { from: 'calc(var(--d-top-bar-fade-start) * 100%)' }) }} aria-hidden />
+        <div className="tu-home__head">
+          <h1 className="text-heading-lg tu-ellipsis tu-home__title">Your trips</h1>
+          <Button icon={Bell} label="Notifications" onClick={() => notice('No new notifications')} />
+          {/* Me, in a soft glass circle the size of the bell */}
+          <span className="tu-home__me" role="img" aria-label={MY_NAME}>
+            <Sticker name={personById(MY_ID).sticker} size="avatar" />
+          </span>
+        </div>
+      </div>
     </div>
   );
 }
 
 /** A heading in white (with a count, softer), then its cards. */
 function Section({ title, trips, count, part: i }: { title: string; trips: TripSummary[]; count?: number; part: number }) {
-  const p = part(i);
+  const h = part(i);
   return (
-    <section className={`tu-home__section ${p.className}`} style={p.style}>
-      <h2 className="text-heading-sm tu-home__heading">
+    <section className="tu-home__section">
+      <h2 className={`text-heading-sm tu-home__heading ${h.className}`} style={h.style}>
         {title}
         {count != null && <span className="tu-home__count"> {count}</span>}
       </h2>
-      {trips.map(trip => <TripRow key={trip.title} trip={trip} />)}
+      {trips.map((trip, k) => <span key={trip.title} {...part(i + 1 + k)}><TripRow trip={trip} /></span>)}
     </section>
   );
 }
@@ -113,27 +134,20 @@ export function HomeMapStill() {
 /** The trip you're on, over its map: the header (Your trips, the bell and me), then in the middle its name, the city and
  *  dates, who's on it and See trip details. The whole of it goes in. */
 function HomeHeroFace({ now = TRIP_NOW, onOpen }: { now?: Date; onOpen?: () => void }) {
-  const notice = useTripNotice();
   const crew = PEOPLE.filter(p => onTrip(p, now));
   return (
     <div className="tu-home-face" onClick={onOpen}>
-      <div className={`tu-home__head ${part(PART.header).className}`} style={part(PART.header).style}>
-        <h1 className="text-heading-lg tu-ellipsis tu-home__title">Your trips</h1>
-        <Button icon={Bell} label="Notifications" onClick={e => { e.stopPropagation(); if (onOpen) notice('No new notifications'); }} />
-        {/* Me, in a soft glass circle the size of the bell */}
-        <span className="tu-home__me" role="img" aria-label={MY_NAME}>
-          <Sticker name={personById(MY_ID).sticker} size="avatar" />
-        </span>
-      </div>
+      {/* The header's place: the header itself stays put over the list (see TripsHome) */}
+      <div className="tu-home__head-place" aria-hidden />
       <div className="tu-home-face__middle">
-        <div className={`tu-home-face__titles ${part(PART.title).className}`} style={part(PART.title).style}>
-          <TripName title={TRIP.title} />
-          <span className="text-label-md">{TRIP.city} · {TRIP.dates}</span>
+        <div className="tu-home-face__titles">
+          <span {...part(PART.title)} style={{ ...part(PART.title).style, alignSelf: 'stretch' }}><TripName title={TRIP.title} /></span>
+          <span className={`text-label-md ${part(PART.dates).className}`} style={part(PART.dates).style}>{TRIP.city} · {TRIP.dates}</span>
         </div>
-        <div className={`tu-home-face__way-in ${part(PART.wayIn).className}`} style={part(PART.wayIn).style}>
+        <div className="tu-home-face__way-in">
           {/* Everyone on it, standing on the button */}
-          <span className="tu-home-face__faces">{crew.map(p => <Sticker key={p.id} name={p.sticker} className="tu-home-face__face" />)}</span>
-          <button type="button" className="tu-btn tu-btn--primary tu-btn--text tu-btn--text-lg" onClick={e => { e.stopPropagation(); onOpen?.(); }}>
+          <span className={`tu-home-face__faces ${part(PART.faces).className}`} style={part(PART.faces).style}>{crew.map(p => <Sticker key={p.id} name={p.sticker} className="tu-home-face__face" />)}</span>
+          <button type="button" className={`tu-btn tu-btn--primary tu-btn--text tu-btn--text-lg ${part(PART.wayIn).className}`} style={part(PART.wayIn).style} onClick={e => { e.stopPropagation(); onOpen?.(); }}>
             <span className="tu-home-now__dot" />
             <span className="text-label-md weight-semibold">See trip details</span>
           </button>
@@ -192,7 +206,7 @@ export function HomeLayer({ inTrip, trip, ...home }: HomeLayerProps) {
     }
     setMoving(true);
     setBack(!inTrip);
-    const settle = window.setTimeout(() => setMoving(false), (inTrip ? ENTER_MS : m['fade-ms'] + m['stagger-ms'] * 5) + 60);
+    const settle = window.setTimeout(() => setMoving(false), (inTrip ? Math.max(ENTER_MS, HOME_LEAVE_MS) : HOME_LEAVE_MS) + 60);
     if (reduce) {
       zoom.jump(inTrip ? 1 : 0);
       animate(enter, inTrip ? 1 : 0, { duration: m['fade-ms'] / 1000, ease: 'linear' });
