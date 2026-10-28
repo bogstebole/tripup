@@ -43,6 +43,9 @@ const double _sheetBackdropBlur = 2.5;
 const double _sheetCompactHeight = 480;
 
 /// The trip: the map with past places and planned pins, the Up next card, and its full view.
+// How much wider the map is under Your trips than in the trip (zoom levels): going in zooms in by this much.
+const double _homeZoomOut = 1;
+
 class TripScreen extends StatefulWidget {
   const TripScreen({super.key});
 
@@ -70,17 +73,17 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   Payment? _payFor;
   bool _banking = false;
 
-  /// Your trips and the trip's map: 1 is the list, 0 is in the trip, a spring between. Going in, the trip at the top
-  /// of the list opens into the map: the trip screen grows down out of its place, while the list behind blurs and
-  /// washes out. Back closes it up again.
-  late final _home = AnimationController.unbounded(vsync: this, value: 1);
-  final _homeKey = GlobalKey(), _homeCardKey = GlobalKey();
+  /// Your trips over the trip's map: 1 is the list, 0 is in the trip. Your trips is an overlay on the trip: going in,
+  /// its parts leave one after another (see [HomeLeave]) while the map under it zooms in to the trip and the trip's
+  /// pins and controls arrive ([_enter]). Back runs it the other way, the parts arriving top to bottom ([_homeBack]).
+  late final _home = AnimationController(vsync: this, value: 1);
+  final _homeKey = GlobalKey();
+
+  /// Your trips is coming back (its parts arrive), rather than leaving.
+  bool _homeBack = false;
 
   /// The splash on a cold start (none with reduced motion).
   bool _splash = splashOnStart && !ui.PlatformDispatcher.instance.accessibilityFeatures.disableAnimations;
-
-  /// Where the trip you're on is on the screen (the top of Your trips), taken as a transition starts.
-  Rect? _homeCard;
 
   /// Resting on the list (the map under it needn't be drawn), or in the trip (the list needn't be).
   bool get _onHome => !_home.isAnimating && _home.value > 0.5;
@@ -116,7 +119,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   bool _upNextShown = false;
 
   /// The trip's entrance clock (see [EnterOrder]): 0 at the tap, 1 once every control is in. At rest it's 1.
-  late final _enter = AnimationController(vsync: this, duration: EnterOrder.total, value: 1);
+  late final _enter = AnimationController(vsync: this, duration: EnterOrder.total);   // 0 on Your trips: none of the trip shows yet
 
   /// Up next (or the poll) has had its turn in the entrance.
   bool _upNextIn = false;
@@ -170,8 +173,15 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     homeIn.value = !_splash;
-    // The map's style and tiles load right after the first frame (Your trips), not before it; draw it once they're ready
-    SchedulerBinding.instance.addPostFrameCallback((_) => MapTiles.start());
+    // The map's style and tiles load right after the first frame (Your trips), not before it; draw it once they're ready.
+    // Under Your trips the map is framed on its top part, wider than in the trip
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      MapTiles.start();
+      if (mounted && _onHome) {
+        final (center, zoom) = _homeView();
+        _map.move(center, zoom);
+      }
+    });
     MapTiles.source.addListener(_sceneChanged);
     _map.mapEventStream.listen(_onMapEvent);
     // On the next minute, then every minute, so "In 64 mins" counts down
@@ -440,7 +450,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   }
 
   /// Moves and zooms the map to [center] and [zoom], on the snap spring.
-  void _flyCamera(LatLng center, double zoom) {
+  void _flyCamera(LatLng center, double zoom, {TokSpring spring = TokMotion.springSnap}) {
     final from = _map.camera;
     if (_reduce) {
       _map.move(center, zoom);
@@ -457,7 +467,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       );
     }
     _fly.addListener(step);
-    _fly.animateWith(SpringSimulation(springOf(TokMotion.springSnap), 0, 1, 0)).whenCompleteOrCancel(() => _fly.removeListener(step));
+    _fly.animateWith(SpringSimulation(springOf(spring), 0, 1, 0)).whenCompleteOrCancel(() => _fly.removeListener(step));
   }
 
   /// The filter changed: other days' pins and places fade out, and the map frames what's left. All brings back the
@@ -552,14 +562,21 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     }
   }
 
-  /// Into the trip's map, from the list: the surface grows out of the top (see [_openingTrip]) while the clock of
-  /// the trip's entrance runs: its controls arrive one by one, and Up next opens last. All of it within a second.
+  /// Into the trip, from Your trips: its parts leave one after another, gently, while the map under it zooms in to
+  /// where the trip starts (on spring-open, no bounce) and the trip's clock runs: its pins come in, its controls arrive
+  /// one by one, and Up next opens last. All of it within a second. With reduced motion it all fades.
   void _goIn() {
-    if (_inTrip || _home.isAnimating && _home.velocity < 0) return;
+    if (_inTrip || _home.isAnimating && !_homeBack) return;
     HapticFeedback.selectionClick();
-    _homeCard = _cardRect();
+    // The trip opens on today, where it started, whatever day was picked last time
+    _days = {today};
+    setState(() {
+      _homeBack = false;
+      _upNextMid = false;
+      _upNextIn = false;
+    });
     if (_reduce) {
-      _openOnToday();
+      _map.move(startCenter, startZoom);
       setState(() {
         _upNextIn = true;
         _upNextMid = !_upNextShown;
@@ -569,49 +586,52 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       _home.animateTo(0, duration: TokMotion.fade);
       return;
     }
-    // Up next is small for the start (one frame here, unseen, so it doesn't shrink on screen), then it all begins.
-    // The trip opens on today, where it started, whatever day was picked last time
-    _openOnToday();
-    setState(() {
-      _upNextMid = false;
-      _upNextIn = false;
-    });
     _enter.value = 0;
     StartupTimings.mark('Trip card tapped');
     StartupTimings.phaseStart('Opening the trip');
+    // Up next is small for the start (one frame here, unseen, so it doesn't shrink on screen), then it all begins
     SchedulerBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      springTo(_home, 0, TokMotion.springOpen);
+      _home.animateTo(0, duration: HomeLeave.total);
+      _flyCamera(startCenter, startZoom, spring: TokMotion.springOpen);
       _enter.forward(from: 0);
       setState(() {});
     });
   }
 
-  /// Today picked in the day filter, and the map where it starts (it's out of sight: this is before the trip opens).
-  void _openOnToday() {
-    _days = {today};
-    _map.move(startCenter, startZoom);
-  }
-
-  /// Back to your trips.
+  /// Back to Your trips: the trip's controls and pins go at once (fade-ms), the map zooms back out to Your trips'
+  /// framing (spring-collapse, quicker than going in), and its parts arrive top to bottom.
   void _goHome() {
     if (_onHome) return;
-    _homeCard = _cardRect();
-    _reduce ? _home.animateTo(1, duration: TokMotion.fade) : springTo(_home, 1, TokMotion.springCollapse);
-    setState(() {});
+    final (center, zoom) = _homeView();
+    setState(() => _homeBack = true);
+    if (_reduce) {
+      _map.move(center, zoom);
+      _enter.value = 0;
+      _home.animateTo(1, duration: TokMotion.fade);
+      return;
+    }
+    _enter.animateTo(0, duration: TokMotion.fade);
+    _flyCamera(center, zoom, spring: TokMotion.springCollapse);
+    _home.animateTo(1, duration: HomeLeave.total);
   }
 
-  /// The place on the screen of the trip you're on (the top of Your trips, as far as it's scrolled).
-  Rect? _cardRect() {
-    final card = _homeCardKey.currentContext?.findRenderObject(), home = _homeKey.currentContext?.findRenderObject();
-    if (card is! RenderBox || home is! RenderBox || !card.hasSize) return null;
-    return card.localToGlobal(Offset.zero, ancestor: home) & card.size;
+  /// The map under Your trips: where the trip starts, a little wider than in the trip, in the middle of the screen's
+  /// top part (the trip's name sits over it).
+  (LatLng, double) _homeView() {
+    final size = MediaQuery.sizeOf(context);
+    final zoom = startZoom - _homeZoomOut;
+    final cam = _map.camera.withPosition(center: startCenter, zoom: zoom);
+    // The centre that puts the trip's start at the middle of the top part instead of the screen's
+    final lift = size.height / 2 - TripsHome.heroHeight(context) / 2;
+    return (cam.screenOffsetToLatLng(cam.nonRotatedSize.center(Offset.zero) + Offset(0, lift)), zoom);
   }
 
   /// Off Ren's phone: after joining, back on Ari's map, where everyone hears he's in.
   void _closeJoin({bool joined = false}) {
     setState(() => _joining = false);
     if (!joined) return;
+    _map.move(startCenter, startZoom);
     setState(() {
       _home.value = 0;
       _enter.value = 1;
@@ -647,99 +667,23 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     );
   }
 
-  /// Your trips, behind the opening trip (which blurs and washes them out). They don't move.
+  /// Your trips, over the trip's map: its parts leave and come back on [_home]; nothing in it takes a tap meanwhile.
   Widget _homeLayer(BuildContext context) => AnimatedBuilder(
         animation: _home,
         builder: (context, child) => IgnorePointer(ignoring: _home.isAnimating, child: child),
-        child: TripsHome(key: _homeKey, onOpen: _goIn, cardKey: _homeCardKey),
+        child: HomeLeave(clock: _home, back: _homeBack, child: TripsHome(key: _homeKey, onOpen: _goIn)),
       );
 
-  /// The trip opening out of the top of Your trips, where it sits over its map: the list behind blurs and washes out,
-  /// and one surface grows from the trip's part of the screen down to the whole of it. It starts as that part (the map
-  /// staying where it was, more of it showing as the surface grows, on the map's own grey below; the trip's words
-  /// leaving at once); near full size the live map and its bars fade in over the still, slightly blurred while the two
-  /// overlap. Closing runs it back up, quicker. With reduced motion it only fades.
-  ///
-  /// The widgets around the trip stay the same at rest and in motion (only their values change): a different wrapper
-  /// on landing would build the map and its pins anew, and the Up next card would play its entrance a second time.
-  Widget _openingTrip(BuildContext context, Size size, Widget trip) => AnimatedBuilder(
-        animation: _home,
-        child: trip,
+  /// The trip's own things on its map (places we've been, people, me, the plans and Up next): none under Your
+  /// trips, where only the map shows; going in they come in as the controls start (open-delay-ms, over open-item-ms),
+  /// and they go with them on the way back.
+  Widget _tripOnMap(Widget layer) => AnimatedBuilder(
+        animation: _enter,
+        child: layer,
         builder: (context, child) {
-          final t = context.tok;
-          final p = (1 - _home.value).clamp(0.0, 1.0);   // 0 on the list, 1 in the trip
-          final moving = !_inTrip && !_reduce;
-          final screen = Offset.zero & size, card = _homeCard ?? screen;
-          final rect = moving ? Rect.lerp(card, screen, p)! : screen;
-          final scale = rect.width / size.width;
-          // What shows when: the trip's words leave first, the live trip arrives near full size
-          final words = moving ? 1 - smoothstep(0, 0.25, p) : 0.0;
-          final live = _inTrip ? 1.0 : _reduce ? p : smoothstep(0.45, 0.85, p);
-          final seam = moving && !lightEffects ? TokMotion.crossfadeBlur * 4 * live * (1 - live) : 0.0;
-          final behind = _inTrip ? 0.0 : smoothstep(0, 0.6, p);
-          return Stack(children: [
-            // The list behind blurs and washes out
-            Positioned.fill(
-              child: IgnorePointer(
-                child: BackdropFilter(
-                  enabled: behind > 0.01 && !lightEffects,
-                  filter: ui.ImageFilter.blur(sigmaX: TokSpace.sm * behind, sigmaY: TokSpace.sm * behind),
-                  child: ColoredBox(color: t.bgDefault.withValues(alpha: 0.6 * behind)),
-                ),
-              ),
-            ),
-            // The surface's lift, while it's growing over the list
-            Positioned.fromRect(
-              rect: rect,
-              child: IgnorePointer(child: DecoratedBox(decoration: BoxDecoration(boxShadow: moving ? TokShadow.elevationOverlay : const []))),
-            ),
-            Positioned.fill(
-              child: IgnorePointer(
-                ignoring: !_inTrip,
-                child: ClipRRect(
-                  clipper: _RRectClip(RRect.fromRectAndRadius(rect, Radius.zero)),
-                  clipBehavior: moving ? Clip.antiAlias : Clip.none,
-                  child: Stack(children: [
-                    // The map where it was on Your trips, on the map's own grey, the surface showing more of it as it grows
-                    if (moving) ...[
-                      Positioned.fromRect(rect: rect, child: ColoredBox(color: t.bgCanvas)),
-                      Positioned(left: 0, right: 0, top: card.top, child: const HomeMapStill()),
-                    ],
-                    // The trip's words, where they were, leaving
-                    Positioned.fromRect(
-                      rect: rect,
-                      child: Opacity(
-                        opacity: words,
-                        child: OverflowBox(
-                          alignment: Alignment.topLeft,
-                          minWidth: card.width,
-                          maxWidth: card.width,
-                          minHeight: card.height,
-                          maxHeight: card.height,
-                          child: const HomeHeroFace(),
-                        ),
-                      ),
-                    ),
-                    // The live trip, at its own size, scaled to the surface's width from its top
-                    Positioned.fill(
-                      child: Opacity(
-                        opacity: live,
-                        child: ImageFiltered(
-                          enabled: seam >= 0.05,
-                          imageFilter: ui.ImageFilter.blur(sigmaX: seam, sigmaY: seam),
-                          child: Transform(
-                            transform: Matrix4.translationValues(rect.left, rect.top, 0)
-                              ..multiply(Matrix4.diagonal3Values(scale, scale, 1)),
-                            child: child,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ]),
-                ),
-              ),
-            ),
-          ]);
+          final total = EnterOrder.total.inMicroseconds, from = TokMotion.openDelay.inMicroseconds / total;
+          final v = Interval(from, (from + TokMotion.openItem.inMicroseconds / total).clamp(0.0, 1.0), curve: TokMotion.easeOut).transform(_enter.value.clamp(0.0, 1.0));
+          return v <= 0 ? const SizedBox.shrink() : Opacity(opacity: v, child: child);
         },
       );
 
@@ -1134,11 +1078,11 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
             ),
             children: [
               if (MapTiles.source.value case final source?) TripTileLayer(source: source),
-              _VisitedLayer(shows: _shows),
+              _tripOnMap(_VisitedLayer(shows: _shows)),
               // Where everyone is right now; they only show for today
-              PeopleLayer(shown: _shows(today)),
-              _MeLayer(area: area, breathe: !_covered && !_onHome),
-              _PlansLayer(
+              _tripOnMap(PeopleLayer(shown: _shows(today))),
+              _tripOnMap(_MeLayer(area: area, breathe: !_covered && !_onHome)),
+              _tripOnMap(_PlansLayer(
                 area: area,
                 upNextMid: _upNextMid,
                 cardKey: _cardKey,
@@ -1148,7 +1092,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
                 onMidHeight: (h) => _upNextHeight = h,
                 shows: _shows,
                 here: _here,
-              ),
+              )),
             ],
           ),
         ),
@@ -1207,12 +1151,13 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
         ),
       ]),
     );
-    // Your trips, and the trip opening out of its card over them; whichever isn't showing isn't drawn or ticking
+    // The trip, with Your trips over it while it's showing (only the map shows through); in the trip, Your trips isn't
+    // drawn or ticking
     final under = ColoredBox(
       color: t.bgCanvas,
       child: Stack(children: [
+        Positioned.fill(child: IgnorePointer(ignoring: !_inTrip, child: TripEntrance(clock: _enter, child: trip))),
         Positioned.fill(child: Offstage(offstage: _inTrip, child: TickerMode(enabled: !_inTrip, child: _homeLayer(context)))),
-        Positioned.fill(child: Offstage(offstage: _onHome, child: TickerMode(enabled: !_onHome, child: _openingTrip(context, size, TripEntrance(clock: _enter, child: trip))))),
       ]),
     );
     final scene = Stack(children: [
@@ -1515,18 +1460,6 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
       },
     );
   }
-}
-
-/// Clips to a given rounded rect (the trip opening out of Your trips into the map).
-class _RRectClip extends CustomClipper<RRect> {
-  const _RRectClip(this.rrect);
-  final RRect rrect;
-
-  @override
-  RRect getClip(Size size) => rrect;
-
-  @override
-  bool shouldReclip(_RRectClip old) => old.rrect != rrect;
 }
 
 /// A part of the screen that can stand in as a picture of itself, drawn once, while nothing in it changes.

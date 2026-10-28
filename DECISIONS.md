@@ -292,8 +292,14 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 
 ## Your trips: the trip over its map (28 Oct, Bogdan, Figma 258:12058)
 - **The trip you're on fills the top of the screen,** with a still of Lisbon behind it. On top: its name big in the middle, the dates, who's on it, and "See trip details". The other trips are soft glass cards on the blue rising over the map. We dropped the framed card: the trip you're on is the screen, not one item in a list.
-- **The trip opens by growing down out of the top.** The map stays where it was and more of it shows as the surface grows, the words leave at once, and the live map fades in near full size. There are no corners to square up any more. We didn't scale the hero's map up to the screen: zooming a full-width picture to twice its height looked wrong.
-- **The map keeps its shape.** Figma's layer is stretched 1.27× wide. The app uses the real proportions on the same centre, at the design's scale, centred on narrower phones, so the blue's fade always covers its bottom edge.
+- **Your trips is an overlay on the trip, not a page before it** (Bogdan, after 1.79: the grow-out-of-the-top transition felt strange; what's the point). The trip's live map is always under it. On Your trips only the map shows, with none of the trip's pins, people or controls, framed one zoom level wider on the screen's top part. See trip details:
+  - Your trips' parts leave gently, one after another: the header, the name, the way in, Coming up, Previous trips, then the blue (fade-ms 160 each, stagger-ms 40 apart, rising 8, ease-out; gone by about 360 ms).
+  - In the same moment the map zooms in on the trip (spring-open, no bounce), its pins come in, and its controls arrive with the entrance they already had, Up next last.
+  - Back runs it the other way: the controls and pins go at once, the map zooms back out (spring-collapse), and the parts come back top to bottom. The blue comes first, so the cards never land on the bare map.
+  - **We dropped the growing surface and the still of Lisbon** in the app. The zoom says where you're going, and nothing has to match a picture to the live map.
+  - **Up next still opens by itself only the first time in a launch** (Up next opens by itself once, 25 Oct). Later visits land on its pin.
+  - In Storybook, which has no live map, the still stands in for it: it zooms in, then gives way to the trip's canvas.
+- **The map keeps its shape** (Storybook's still): Figma's layer is stretched 1.27× wide; the still uses the real proportions on the same centre.
 - **The name is one big line, with a white edge like a sticker's** (Figma: 4 outside the letters), so it reads on any part of the map; the shadow sits under the edge. It's 40 on up to two lines, and a single word too long for the line shrinks to fit instead of breaking. The demo trip is now "Road trip to Lisbon" (Bogdan), as in Figma.
 - **Small differences from Figma:** the sides are 24 (`space.xl`, the nearest token to Figma's 29). Wide stickers shrink to fit their 48 square instead of being clipped, so their white edge stays whole.
 - **The trip card's tokens are gone** (`home/card-edge`, `card-padding`, `card-radius`, `now-pill-height`, `now-pill-inset`): nothing derives from them any more. The hero's own numbers are constants in `home.dart`.

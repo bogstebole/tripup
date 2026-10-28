@@ -28,19 +28,18 @@ const double _tripsFade = 275;      // under the map, the blue goes from clear t
 const double _tripsBlur = 2;
 const double _bottomFade = 120;
 
-/// Your trips. The one you're on fills the top of the screen: its city's map, its name big in the middle, who's on it
-/// and the way in ("See trip details"). Under it, on the brand blue rising over the map, the trip coming up and the ones
-/// before, as soft cards. Tapping the trip goes into its map, which opens out of the top ([heroHeight]). On a cold start
-/// it waits under the splash and slides in from the right, a part at a time, as the splash's mark slides out to the left
-/// ([homeIn]).
+/// Your trips, as an overlay on the trip you're on: its live map shows through the top (just the map, none of the
+/// trip's pins, people or controls), with its name big in the middle, who's on it and the way in ("See trip
+/// details"). Under it, on the brand blue rising over the map, the trip coming up and the ones before, as soft cards.
+/// Going in, its parts leave one after another ([HomeLeave]) while the map under it zooms in to the trip. On a cold
+/// start it waits under the splash and slides in from the right, a part at a time, as the splash's mark slides out to
+/// the left ([homeIn]).
 class TripsHome extends StatelessWidget {
-  const TripsHome({super.key, required this.onOpen, this.cardKey});
+  const TripsHome({super.key, required this.onOpen});
   final VoidCallback onOpen;
 
-  /// On the trip you're on (the top of the screen), so the trip can open out of it.
-  final GlobalKey? cardKey;
-
-  /// How tall the trip you're on is: the header under the status bar, then its name and the way in.
+  /// How tall the trip you're on is: the header under the status bar, then its name and the way in. The map under it
+  /// is framed on this part of the screen.
   static double heroHeight(BuildContext context) =>
       MediaQuery.paddingOf(context).top + TokSpace.md + TokDim.buttonMd + TokSpace.md + _heroBody + TokSpace.md;
 
@@ -60,55 +59,63 @@ class TripsHome extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       // Dark status bar over the map; light navigation bar icons on the blue
       value: systemBarsOver(dark: true).copyWith(statusBarIconBrightness: Brightness.dark, statusBarBrightness: Brightness.light),
-      child: ColoredBox(
-        color: t.bgBrand,
-        child: Stack(children: [
-          Positioned.fill(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                Stack(children: [
-                  // The map, with the trip it's under (the first part to arrive)
-                  Positioned(top: 0, left: 0, right: 0, child: arriving([const HomeMapStill()])),
-                  // The blue rising over the map's lower part, which blurs a little under it
-                  Positioned(
-                    top: hero,
-                    left: 0,
-                    right: 0,
-                    height: _tripsFade,
+      child: Stack(children: [
+        Positioned.fill(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              Stack(children: [
+                // The blue, from under the trip down: clear at first, so the map's lower part fades into it (and
+                // blurs a little under it), then solid. It scrolls with the list, over the map, which stays put.
+                Positioned(
+                  top: hero,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: HomePart(
+                    index: HomePart.blue,
                     child: IgnorePointer(
-                      child: ClipRect(
-                        child: BackdropFilter(
-                          enabled: !lightEffects,
-                          filter: ui.ImageFilter.blur(sigmaX: _tripsBlur, sigmaY: _tripsBlur),
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [t.bgBrand.withValues(alpha: 0), t.bgBrand]),
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                        SizedBox(
+                          height: _tripsFade,
+                          child: ClipRect(
+                            child: BackdropFilter(
+                              enabled: !lightEffects,
+                              filter: ui.ImageFilter.blur(sigmaX: _tripsBlur, sigmaY: _tripsBlur),
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [t.bgBrand.withValues(alpha: 0), t.bgBrand]),
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
+                        Expanded(child: ColoredBox(color: t.bgBrand)),
+                      ]),
                     ),
                   ),
-                  Padding(
-                    // The last row clear of the fade at the bottom
-                    padding: EdgeInsets.only(bottom: pad.bottom + _bottomFade),
-                    child: arriving([
-                      SizedBox(key: cardKey, height: hero, child: HomeHeroFace(onOpen: onOpen)),
-                      _section(context, 'Coming up', [for (final trip in upcomingTrips) _TripRow(trip: trip)]),
-                      _section(context, 'Previous trips', [for (final trip in pastTrips) _TripRow(trip: trip)], count: pastTrips.length),
-                    ]),
-                  ),
-                ]),
-              ],
-            ),
+                ),
+                Padding(
+                  // The last row clear of the fade at the bottom
+                  padding: EdgeInsets.only(bottom: pad.bottom + _bottomFade),
+                  child: arriving([
+                    SizedBox(height: hero, child: _HeroFace(onOpen: onOpen)),
+                    HomePart(index: HomePart.comingUp, child: _section(context, 'Coming up', [for (final trip in upcomingTrips) _TripRow(trip: trip)])),
+                    HomePart(index: HomePart.previous, child: _section(context, 'Previous trips', [for (final trip in pastTrips) _TripRow(trip: trip)], count: pastTrips.length)),
+                  ]),
+                ),
+              ]),
+            ],
           ),
-          // The list fades into the blue at the bottom
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: _bottomFade,
+        ),
+        // The list fades into the blue at the bottom
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: _bottomFade,
+          child: HomePart(
+            index: HomePart.blue,
             child: IgnorePointer(
               child: DecoratedBox(
                 decoration: BoxDecoration(
@@ -117,8 +124,8 @@ class TripsHome extends StatelessWidget {
               ),
             ),
           ),
-        ]),
-      ),
+        ),
+      ]),
     );
   }
 
@@ -144,49 +151,67 @@ class TripsHome extends StatelessWidget {
   }
 }
 
-/// The map behind the top of Your trips: the still of Lisbon at the design's scale, centred on the screen, from the top
-/// of the screen down to where the blue covers it. Also what the trip opens out of, at the same place.
-class HomeMapStill extends StatelessWidget {
-  const HomeMapStill({super.key});
+/// Carries Your trips' clock down to its parts: 1 while it's showing, 0 once it has gone (the trip is in). Going in,
+/// the parts leave top to bottom, one after another; coming back ([back]) they arrive top to bottom. At rest (or
+/// outside one) every part simply shows.
+class HomeLeave extends InheritedWidget {
+  const HomeLeave({super.key, required this.clock, required this.back, required super.child});
+  final Animation<double> clock;
+
+  /// Coming back from the trip, rather than going in.
+  final bool back;
+
+  /// How long the parts take, from the first starting to the last landing.
+  static Duration get total => TokMotion.fade + TokMotion.stagger * (HomePart.count - 1);
+
+  static HomeLeave? of(BuildContext context) => context.dependOnInheritedWidgetOfExactType<HomeLeave>();
+
+  @override
+  bool updateShouldNotify(HomeLeave old) => old.clock != clock || old.back != back;
+}
+
+/// One part of Your trips, leaving or arriving on its own at its place in the order: it fades and moves a little (up
+/// as it leaves, up into place as it comes back), ease-out, fade-ms each, stagger-ms apart. The blue leaves last and
+/// comes back first. With reduced motion every part only fades, together.
+class HomePart extends StatelessWidget {
+  const HomePart({super.key, required this.index, required this.child});
+  final int index;
+  final Widget child;
+
+  static const header = 0, title = 1, wayIn = 2, comingUp = 3, previous = 4, blue = 5, count = 6;
 
   @override
   Widget build(BuildContext context) {
-    final top = MediaQuery.paddingOf(context).top;
-    final r = homeMapRect;
-    return SizedBox(
-      height: top + r.bottom,
-      child: OverflowBox(
-        alignment: Alignment.topCenter,
-        minWidth: homeMapWidth,
-        maxWidth: homeMapWidth,
-        child: Stack(clipBehavior: Clip.none, children: [
-          Positioned(
-            left: r.left,
-            top: top + r.top,
-            width: r.width,
-            height: r.height,
-            child: Image.asset(
-              homeMapImage,
-              fit: BoxFit.fill,
-              filterQuality: FilterQuality.medium,
-              frameBuilder: (context, child, frame, _) {
-                if (frame != null) StartupTimings.mark('Lisbon still decoded');
-                return child;
-              },
-            ),
-          ),
-        ]),
-      ),
+    final leave = HomeLeave.of(context);
+    if (leave == null) return child;
+    final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    final total = HomeLeave.total.inMicroseconds;
+    // Coming back, the blue comes with the header, so the cards never land on the bare map
+    final order = leave.back && index == blue ? header : index;
+    final start = reduce ? 0.0 : (TokMotion.stagger * order).inMicroseconds / total;
+    final curve = Interval(start, reduce ? 1 : (start + TokMotion.fade.inMicroseconds / total).clamp(0.0, 1.0), curve: TokMotion.easeOut);
+    return AnimatedBuilder(
+      animation: leave.clock,
+      child: child,
+      builder: (context, child) {
+        final c = leave.clock.value.clamp(0.0, 1.0);
+        // How far this part is out: going in it runs with the clock's fall, coming back with its rise
+        final out = leave.back ? 1 - curve.transform(c) : curve.transform(1 - c);
+        // A part that's out keeps its place, so nothing below it moves up
+        return Opacity(
+          opacity: 1 - out,
+          child: Transform.translate(offset: Offset(0, reduce ? 0 : (leave.back ? out : -out) * TokSpace.xs), child: child),
+        );
+      },
     );
   }
 }
 
 /// The trip you're on, over its map: the header (Your trips, the bell and me), then in the middle its name, the city
-/// and dates, who's on it and "See trip details". The whole of it goes in. Without [onOpen] (in the opening trip, where
-/// it fades away) nothing in it takes a tap.
-class HomeHeroFace extends StatelessWidget {
-  const HomeHeroFace({super.key, this.onOpen});
-  final VoidCallback? onOpen;
+/// and dates, who's on it and "See trip details". The whole of it goes in.
+class _HeroFace extends StatelessWidget {
+  const _HeroFace({required this.onOpen});
+  final VoidCallback onOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -200,46 +225,55 @@ class HomeHeroFace extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.fromLTRB(TokSpace.xl, pad.top + TokSpace.md, TokSpace.xl, TokSpace.md),
         child: Column(spacing: TokSpace.md, children: [
-          Row(spacing: TokSpace.sm, children: [
-            Expanded(
-              // A long press shows the startup timings (hidden, for testers' phones)
-              child: GestureDetector(
-                onLongPress: StartupTimings.show,
-                child: Text('Your trips', maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingLg.copyWith(color: t.textDefault)),
+          HomePart(
+            index: HomePart.header,
+            child: Row(spacing: TokSpace.sm, children: [
+              Expanded(
+                // A long press shows the startup timings (hidden, for testers' phones)
+                child: GestureDetector(
+                  onLongPress: StartupTimings.show,
+                  child: Text('Your trips', maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingLg.copyWith(color: t.textDefault)),
+                ),
               ),
-            ),
-            TuButton(icon: TuIcons.bell, label: 'Notifications', onTap: onOpen == null ? null : () => tripNotice.value = 'No new notifications'),
-            // Me
-            Semantics(
-              label: myName,
-              child: Glass(
-                kind: GlassKind.soft,
-                width: TokDim.buttonMd,
-                height: TokDim.buttonMd,
-                radius: BorderRadius.circular(TokRadius.pill),
-                child: Center(child: Sticker(personById(myId).sticker, size: StickerSize.avatar)),
+              TuButton(icon: TuIcons.bell, label: 'Notifications', onTap: () => tripNotice.value = 'No new notifications'),
+              // Me
+              Semantics(
+                label: myName,
+                child: Glass(
+                  kind: GlassKind.soft,
+                  width: TokDim.buttonMd,
+                  height: TokDim.buttonMd,
+                  radius: BorderRadius.circular(TokRadius.pill),
+                  child: Center(child: Sticker(personById(myId).sticker, size: StickerSize.avatar)),
+                ),
               ),
-            ),
-          ]),
+            ]),
+          ),
           Expanded(
             child: Center(
               child: Column(mainAxisSize: MainAxisSize.min, spacing: TokSpace.x2xl, children: [
-                Column(spacing: TokSpace.xs, children: [
-                  _HeroTitle(style: TokText.display.copyWith(fontSize: _heroTitle, color: t.textDefault, shadows: lift)),
-                  Text('$tripCity · $tripDates', style: TokText.labelMd.copyWith(color: t.textDefault)),
-                ]),
-                Column(children: [
-                  // Everyone on it, standing on the button
-                  SizedBox(
-                    height: _heroFace - _heroFaceOnButton,
-                    child: OverflowBox(
-                      alignment: Alignment.topCenter,
-                      maxHeight: _heroFace,
-                      child: Overlapped(overlap: _heroFaceOverlap, children: [for (final p in crew) Sticker(p.sticker, height: _heroFace)]),
+                HomePart(
+                  index: HomePart.title,
+                  child: Column(spacing: TokSpace.xs, children: [
+                    _HeroTitle(style: TokText.display.copyWith(fontSize: _heroTitle, color: t.textDefault, shadows: lift)),
+                    Text('$tripCity · $tripDates', style: TokText.labelMd.copyWith(color: t.textDefault)),
+                  ]),
+                ),
+                HomePart(
+                  index: HomePart.wayIn,
+                  child: Column(children: [
+                    // Everyone on it, standing on the button
+                    SizedBox(
+                      height: _heroFace - _heroFaceOnButton,
+                      child: OverflowBox(
+                        alignment: Alignment.topCenter,
+                        maxHeight: _heroFace,
+                        child: Overlapped(overlap: _heroFaceOverlap, children: [for (final p in crew) Sticker(p.sticker, height: _heroFace)]),
+                      ),
                     ),
-                  ),
-                  _SeeTrip(onTap: onOpen),
-                ]),
+                    _SeeTrip(onTap: onOpen),
+                  ]),
+                ),
               ]),
             ),
           ),
