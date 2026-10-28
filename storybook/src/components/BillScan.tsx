@@ -267,6 +267,8 @@ function BillReview({ bill, payerMenuOpen, onPayer, onChange, onAdd, onClose }: 
 
 // The opening's steps, as in the app (a quick move people make many times over a bill)
 const FACE_OUT_MS = 100, FACE_STAGGER_MS = 25, BLOCK_AT_MS = 60, PEOPLE_AT_MS = 60, PEOPLE_STAGGER_MS = 30;
+// Closing, its own steps: the people leave (the last first), the block folds away, the pill comes back, its faces drop in
+const PERSON_OUT_MS = 120, PERSON_OUT_STAGGER_MS = 20, BLOCK_SHUT_AT_MS = 60, BLOCK_SHUT_MS = 220, PILL_BACK_AT_MS = 80, FACES_BACK_AT_MS = 120, FACE_BACK_MS = 140;
 const OPENING_MS = BLOCK_AT_MS + PEOPLE_AT_MS + PEOPLE_STAGGER_MS * (DINNER_TABLE.length - 1) + m['fade-ms'];
 const s_ = (ms: number) => ms / 1000;
 
@@ -276,15 +278,18 @@ const s_ = (ms: number) => ms / 1000;
  * Either opens the line: everyone at the table in a grey block, the ones who had it with a red minus, the others faded
  * with a plus; a tap on a person adds or takes them off. Opening is one move: the pill's faces leave one after another
  * (100 ms each, 25 apart), the pill gives way to a round chevron (up), a little blurred while both show, the block
- * grows (enter-ms) and the people come in one after another (fade-ms each, 30 apart), about 420 ms in all; closing runs
- * back, quicker. Reduced motion: it only fades.
+ * grows (enter-ms) and the people come in one after another (fade-ms each, 30 apart), about 420 ms in all. Closing is
+ * its own move, quicker, in the order things go back: the people leave, the last first (120 ms each, 20 apart), the
+ * block folds away at once (from 60 ms, 220 ms), the chevron turns back into the pill (from 80 ms) and its faces drop in
+ * one after another (from 120 ms, 140 ms each, 25 apart), about 360 ms. Every face and person sharpens from a little blur
+ * as it comes in and blurs as it goes (enter-blur). Reduced motion: it only fades.
  */
 function BillLineRow({ line, had, table, open, onOpen, onToggle, refEl }: {
   line: BillLine; had: string[]; table: string[]; open: boolean; onOpen: () => void; onToggle: (id: string) => void; refEl: (el: HTMLDivElement | null) => void;
 }) {
   const reduce = useReducedMotion();
   const lastFace = FACE_STAGGER_MS * Math.max(0, had.length - 1);
-  const swap = { duration: s_(FACE_OUT_MS), delay: open && !reduce ? s_(lastFace) : 0, ease };
+  const swap = { duration: s_(FACE_OUT_MS), delay: reduce ? 0 : s_(open ? lastFace : PILL_BACK_AT_MS), ease };
   const blur = (on: boolean) => (reduce ? 'none' : on ? 'blur(0px)' : `blur(${m['enter-blur']}px)`);
   return (
     <div ref={refEl}>
@@ -309,8 +314,8 @@ function BillLineRow({ line, had, table, open, onOpen, onToggle, refEl }: {
                     {had.map((id, k) => (
                       <motion.span
                         key={id}
-                        animate={{ opacity: open ? 0 : 1, transform: open && !reduce ? `scale(${m['morph-enter-scale']})` : 'scale(1)' }}
-                        transition={{ duration: s_(FACE_OUT_MS), delay: open && !reduce ? s_(FACE_STAGGER_MS * k) : 0, ease }}
+                        animate={{ opacity: open ? 0 : 1, transform: open && !reduce ? `scale(${m['morph-enter-scale']})` : 'scale(1)', filter: blur(!open) }}
+                        transition={{ duration: s_(open ? FACE_OUT_MS : FACE_BACK_MS), delay: reduce ? 0 : s_(open ? FACE_STAGGER_MS * k : FACES_BACK_AT_MS + FACE_STAGGER_MS * k), ease }}
                       >
                         <Sticker name={personById(id).sticker} size="chip" />
                       </motion.span>
@@ -336,7 +341,7 @@ function BillLineRow({ line, had, table, open, onOpen, onToggle, refEl }: {
             className="tu-bill__who"
             initial={reduce ? { opacity: 0 } : { height: 0 }}
             animate={reduce ? { opacity: 1, transition: { duration: s_(m['fade-ms']) } } : { height: 'auto', transition: { delay: s_(BLOCK_AT_MS), duration: s_(m['enter-ms']), ease } }}
-            exit={reduce ? { opacity: 0, transition: { duration: s_(m['fade-ms']) } } : { height: 0, transition: { duration: s_(m['enter-ms'] * 0.75), ease } }}
+            exit={reduce ? { opacity: 0, transition: { duration: s_(m['fade-ms']) } } : { height: 0, transition: { delay: s_(BLOCK_SHUT_AT_MS), duration: s_(BLOCK_SHUT_MS), ease } }}
           >
             <div className="tu-bill__faces">
               {table.map((id, j) => {
@@ -349,9 +354,9 @@ function BillLineRow({ line, had, table, open, onOpen, onToggle, refEl }: {
                     aria-pressed={on}
                     aria-label={`${personById(id).name}: ${on ? 'had it, tap to take off' : "didn't have it, tap to add"}`}
                     onClick={() => onToggle(id)}
-                    initial={{ opacity: 0, transform: reduce ? 'none' : `translateY(${tokens.space.xs}px)` }}
-                    animate={{ opacity: 1, transform: 'translateY(0px)', transition: { delay: reduce ? 0 : s_(BLOCK_AT_MS + PEOPLE_AT_MS + PEOPLE_STAGGER_MS * j), duration: s_(m['fade-ms']), ease } }}
-                    exit={{ opacity: 0, transition: { duration: s_(m['fade-ms'] * 0.75), ease } }}
+                    initial={{ opacity: 0, transform: reduce ? 'none' : `translateY(${tokens.space.xs}px)`, filter: blur(false) }}
+                    animate={{ opacity: 1, transform: 'translateY(0px)', filter: blur(true), transition: { delay: reduce ? 0 : s_(BLOCK_AT_MS + PEOPLE_AT_MS + PEOPLE_STAGGER_MS * j), duration: s_(m['fade-ms']), ease } }}
+                    exit={{ opacity: 0, transform: reduce ? 'none' : `translateY(${tokens.space.xs}px)`, filter: blur(false), transition: { delay: reduce ? 0 : s_(PERSON_OUT_STAGGER_MS * (table.length - 1 - j)), duration: s_(reduce ? m['fade-ms'] : PERSON_OUT_MS), ease } }}
                   >
                     <span className="tu-bill__face-pic">
                       <span className={on ? undefined : 'tu-bill__off'}><Sticker name={personById(id).sticker} size="avatar" /></span>

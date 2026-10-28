@@ -655,6 +655,14 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Final UI, iteration 1.83: a bill line closes on its own steps, with blur (branch `fix/bill-line-close`)
+- Bogdan: opening a bill line is good, closing isn't.
+- App: `_BillLine` keeps one controller but closing runs on its own timeline (`_part(openAt, openFor, shutAt, shutFor)`): the people leave the last first, the block folds from 60 ms, the pill comes back at 80 ms, and its faces drop in from 120 ms, 25 apart. About 360 ms in all, versus 420 to open.
+- Storybook: `BillLineRow`'s exit and closing transitions use the same steps.
+- **Checked:** `flutter analyze` and `tsc` are clean. Storybook was sampled every 20 ms while closing: the people go 5→1, the block folds from about 60 to 300 ms, the pill is back by about 150 ms and the faces are in by about 320. A temporary web build of the app showed Ren leaving first and the pill coming back; it has been removed.
+- Bogdan: add some blur. Each face in the pill and each person in the block blurs by up to enter-blur (4 px) as it fades, in and out (`_blurred` in the app, `filter` in Storybook); there's none with light effects or reduced motion. Checked in Storybook, sampled while opening: the pill's faces blur 0→4 one after another, and the people sharpen 4→0 one after another.
+- On Bogdan's iPhone 15 as build 12 (`1.0.0+12`), updated in place with devicectl.
+
 ### Final UI, iteration 1.82: the bill's lines per Figma (branch `feat/bill-lines`)
 - Bogdan's bill (Figma 262:12632): the faces pill with a chevron, a round add button for a line with nobody, and the open block with red minus and soft plus marks. The faces leave the pill and come into the block staggered, and the + turns into − seamlessly. Also: drop the line under the total about unclaimed lines.
 - App: `_BillLine` (one controller drives the pill's faces leaving, the pill ↔ chevron crossfade with a little blur, the block growing and the people arriving) and `_AddRemove` (the sm glass at 0.4; soft ↔ danger crossfade, the plus's bar folding into the minus). New `GlassKind.danger` and token `inset.button-danger`. Removed: "Who had it?", "Everyone had it", the unclaimed line opening by itself, the split-evenly line.
