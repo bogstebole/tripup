@@ -63,8 +63,8 @@ function Voters({ ids }: { ids: string[] }) {
   );
 }
 
-/** Everyone at the table, small (poll/meta-face 16, overlapping poll/meta-face-overlap 5): the ones who have voted
- *  first, then the ones the poll is still waiting for, faded (poll/not-voted-opacity). */
+/** Everyone at the table, small (16, overlapping 5): the ones who have voted
+ *  first, then the ones the poll is still waiting for, faded (0.4). */
 function Table({ now, poll, hidden }: PollProps & { hidden: boolean }) {
   const voted = new Set(POLL_OPTIONS.flatMap(o => votersOf(o.id, now, poll)));
   const order = [...DINNER_TABLE.filter(id => voted.has(id)), ...DINNER_TABLE.filter(id => !voted.has(id))];
@@ -77,8 +77,8 @@ function Table({ now, poll, hidden }: PollProps & { hidden: boolean }) {
 
 /**
  * One place in the open poll, on bg-subtle (poll/place-radius 28, xs in, concentric with its vote): its name (body-md, medium, one line), a brand star
- * with its rating • food • price (label-md, muted; the dots label-sm), its sticker (poll/option-sticker 48); md under
- * them a bar of its share of the five votes (poll/bar-height 8, brand for every place here, on the white track); md
+ * with its rating • food • price (label-md, muted; the dots label-sm), its sticker (48); md under
+ * them a bar of its share of the five votes (8, brand for every place here, on the white track); md
  * under that, Details (body-md, medium, muted; 44 high), everyone who voted for it (24, overlapping 10) and the vote: a
  * round check (Button sm, 40, xs from the corner), soft, or primary once it's mine. Tapping another place's check
  * moves my vote there.
@@ -199,8 +199,8 @@ export function PollCard({ now, poll, expanded, onToggle, onDetails, onVote }: P
 }
 
 /**
- * Behind the open poll, over the whole screen (the map and its bars): a blue tint (c-poll-scrim, blue 975 at 23%) and
- * a slight blur (d-poll-scrim-blur 2.5). It fades in as the poll opens (enter-ms, ease-out) and out quicker (fade-ms);
+ * Behind the open poll, over the whole screen (the map and its bars): a blue tint (blue 975 at 23%) and
+ * a slight blur (2.5). It fades in as the poll opens (enter-ms, ease-out) and out quicker (fade-ms);
  * a tap on it closes the poll. Put it in AnimatePresence, under the card.
  */
 export function PollScrim({ onClose }: { onClose?: () => void }) {

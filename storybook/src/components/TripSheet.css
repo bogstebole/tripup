@@ -2,7 +2,7 @@
    header. Its parent gives it its place (the full view's) and lines it up at the bottom, so a compact one sits low. */
 .tu-trip-sheet {
   /* The title block's height; --header is all the header holds (with a row under the title, that too) */
-  --title-head: calc(var(--d-surface-head-inset) + max(var(--text-heading-md--line-height), var(--d-button-sm)));
+  --title-head: calc(var(--d-surface-inset) + max(var(--text-heading-md--line-height), var(--d-button-sm)));
   --header: var(--title-head);
   position: relative;
   display: grid;
@@ -20,10 +20,10 @@
 .tu-trip-sheet--footer { grid-template: minmax(0, 1fr) auto / minmax(0, 1fr); }
 .tu-trip-sheet__footer { grid-area: 2 / 1; min-width: 0; }
 /* A row that stays under the title (the itinerary's day filter): sm under it, one chip row high */
-.tu-trip-sheet--top { --header: calc(var(--title-head) + var(--space-sm) + var(--d-toggle-chip-height)); }
-.tu-trip-sheet__top { grid-area: 1 / 1; align-self: start; z-index: 2; min-width: 0; height: var(--d-toggle-chip-height); margin-top: calc(var(--title-head) + var(--space-sm)); }
+.tu-trip-sheet--top { --header: calc(var(--title-head) + var(--space-sm) + var(--space-2xl)); }
+.tu-trip-sheet__top { grid-area: 1 / 1; align-self: start; z-index: 2; min-width: 0; height: var(--space-2xl); margin-top: calc(var(--title-head) + var(--space-sm)); }
 /* Add's choice and its invite are short, so the sheet is too; planning takes the whole height */
-.tu-trip-sheet--compact { max-height: var(--d-sheet-compact-height); }
+.tu-trip-sheet--compact { max-height: 480px; }
 
 .tu-trip-sheet__scroll {
   grid-area: 1 / 1;
@@ -36,10 +36,10 @@
   padding-top: calc(var(--header) + var(--space-md));
   /* A step with a longer subtitle (Money to Pay) moves the page down with the header, on screen */
   transition: padding-top var(--enter-ms) var(--ease-in-out);
-  padding-bottom: calc(var(--d-sheet-fade) + var(--space-xs));
+  padding-bottom: calc(var(--space-3xl) + var(--space-xs));
   /* Content scrolling past the bottom edge fades out over the last few px instead of being cut off */
   /* Eased over sheet/fade, not linear: the page melts into the bottom */
-  mask-image: linear-gradient(to bottom, black 0, rgb(0 0 0 / 1.0) calc(100% - var(--d-sheet-fade) * 1.0), rgb(0 0 0 / 0.957) calc(100% - var(--d-sheet-fade) * 0.875), rgb(0 0 0 / 0.844) calc(100% - var(--d-sheet-fade) * 0.75), rgb(0 0 0 / 0.684) calc(100% - var(--d-sheet-fade) * 0.625), rgb(0 0 0 / 0.5) calc(100% - var(--d-sheet-fade) * 0.5), rgb(0 0 0 / 0.316) calc(100% - var(--d-sheet-fade) * 0.375), rgb(0 0 0 / 0.156) calc(100% - var(--d-sheet-fade) * 0.25), rgb(0 0 0 / 0.043) calc(100% - var(--d-sheet-fade) * 0.125), rgb(0 0 0 / 0.0) calc(100% - var(--d-sheet-fade) * 0.0));
+  mask-image: linear-gradient(to bottom, black 0, rgb(0 0 0 / 1.0) calc(100% - var(--space-3xl) * 1.0), rgb(0 0 0 / 0.957) calc(100% - var(--space-3xl) * 0.875), rgb(0 0 0 / 0.844) calc(100% - var(--space-3xl) * 0.75), rgb(0 0 0 / 0.684) calc(100% - var(--space-3xl) * 0.625), rgb(0 0 0 / 0.5) calc(100% - var(--space-3xl) * 0.5), rgb(0 0 0 / 0.316) calc(100% - var(--space-3xl) * 0.375), rgb(0 0 0 / 0.156) calc(100% - var(--space-3xl) * 0.25), rgb(0 0 0 / 0.043) calc(100% - var(--space-3xl) * 0.125), rgb(0 0 0 / 0.0) calc(100% - var(--space-3xl) * 0.0));
 }
 .tu-trip-sheet__scroll::-webkit-scrollbar { display: none; }
 /* The page in the middle of the room under the header when it's shorter than that (Invite's link); at the top
@@ -48,12 +48,12 @@
 .tu-trip-sheet__scroll--centered > * { margin-block: auto; }
 
 /* The surface's white behind the header, solid to the header's bottom, then an eased fade (opacity follows the scroll) */
-.tu-trip-sheet__top-fade { grid-area: 1 / 1; align-self: start; z-index: 1; height: calc(var(--header) + var(--d-sheet-top-fade)); pointer-events: none; }
+.tu-trip-sheet__top-fade { grid-area: 1 / 1; align-self: start; z-index: 1; height: calc(var(--header) + var(--space-2xl)); pointer-events: none; }
 
 /* Back (for a step inside the pop-up), the title, Close, on the buttons' centre line; a subtitle wraps under the title,
    between the buttons. The buttons sit surface/head-inset from the top and 24 from the sides, on the same edge as the
    content and the footer */
-.tu-trip-sheet__head { grid-area: 1 / 1; align-self: start; z-index: 2; display: flex; align-items: flex-start; padding-top: var(--d-surface-head-inset); }
+.tu-trip-sheet__head { grid-area: 1 / 1; align-self: start; z-index: 2; display: flex; align-items: flex-start; padding-top: var(--d-surface-inset); }
 .tu-trip-sheet__head > .tu-btn:last-child { margin-right: var(--d-surface-head-side); }
 /* The back button's slot: cut at its right edge, so the button shows as the slot opens; room for its shadow
    everywhere else */
@@ -68,7 +68,7 @@
 
 /* A pop-up's bottom (SheetFooter): its actions, over a hairline; a line under the last one sits closer to it. Its big
    buttons are surface/foot-inset from the sheet's sides and bottom, concentric with its corners */
-.tu-sheet-footer { display: flex; flex-direction: column; gap: var(--space-md); padding: var(--space-sm) var(--d-surface-foot-side) var(--d-surface-foot-inset); border-top: var(--d-surface-edge-width) solid var(--color-border-default); }
+.tu-sheet-footer { display: flex; flex-direction: column; gap: var(--space-md); padding: var(--space-sm) var(--d-surface-foot-side) var(--d-surface-inset); border-top: var(--d-surface-edge-width) solid var(--color-border-default); }
 .tu-sheet-footer__note { margin: calc(var(--space-xs) - var(--space-md)) 0 0; text-align: center; color: var(--color-text-muted); }
 
 /* Blocks of the page, top to bottom */
@@ -90,4 +90,4 @@
 
 .tu-hairline { height: var(--d-surface-edge-width); margin: 0 var(--space-xs); background: var(--color-border-default); }
 .tu-slot { display: grid; place-items: center; flex: none; }
-.tu-row-thumb { display: grid; place-items: center; flex: none; width: var(--d-sticker-row); height: var(--d-sticker-row); border-radius: var(--radius-control); overflow: hidden; background: var(--color-bg-muted); }
+.tu-row-thumb { display: grid; place-items: center; flex: none; width: var(--space-3xl); height: var(--space-3xl); border-radius: var(--radius-control); overflow: hidden; background: var(--color-bg-muted); }

@@ -14,6 +14,10 @@ import 'basics.dart';
 import 'glass.dart';
 import 'map_shapes.dart';
 
+// Its own measurements: used only here, so they're not tokens.
+const double _widgetEdgeSize = 30;
+const double _widgetHereLift = 10;
+
 /// The parts of the Up next card, in the order they come in when the mini pin grows into it.
 enum MidPart { label, name, rating, fan, chips }
 
@@ -51,7 +55,7 @@ class UpNextMid extends StatelessWidget {
           ),
           SizedBox(
             width: double.infinity,
-            child: Center(child: Overlapped(overlap: TokDim.stickerOverlap, children: [
+            child: Center(child: Overlapped(overlap: TokSpace.lg, children: [
               for (final (i, f) in plan.fan.indexed) p(MidPart.fan, Sticker(f.sticker, height: f.height, tilt: f.tilt), i),
             ])),
           ),
@@ -289,7 +293,7 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
   Widget _pin(BuildContext context) {
     final m = _mid.value, e = _edge.value.clamp(0.0, 1.2);
     final eC = e.clamp(0.0, 1.0);
-    const edgeSize = Size.square(TokDim.widgetEdgeSize);
+    const edgeSize = Size.square(_widgetEdgeSize);
     final midSize = _midSize!, miniSize = _miniSize!;
     final onMap = Size.lerp(miniSize, midSize, m)!;
     final size = Size.lerp(onMap, edgeSize, e)!;
@@ -301,11 +305,11 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
     final tailH = PinTail.heightFor(tailGap);
     // The card stays on screen near the sides; only the tail keeps pointing at the place
     final half = onMap.width / 2, screen = MediaQuery.sizeOf(context).width;
-    final cardX = widget.anchor.dx.clamp(TokDim.widgetEdgeInset + half, math.max(TokDim.widgetEdgeInset + half, screen - TokDim.widgetEdgeInset - half)).toDouble();
+    final cardX = widget.anchor.dx.clamp(TokSpace.xs + half, math.max(TokSpace.xs + half, screen - TokSpace.xs - half)).toDouble();
     final mapCenter = Offset(cardX, widget.anchor.dy - tailH - tailGap - onMap.height / 2);
 
     // Where it sits at the edge: clamped inside the safe area, arrow toward the place
-    final edgeCenter = widget.area.clamp(widget.anchor, TokDim.widgetEdgeSize / 2 + TokDim.widgetEdgeArrow + TokDim.widgetEdgeInset);
+    final edgeCenter = widget.area.clamp(widget.anchor, _widgetEdgeSize / 2 + TokDim.widgetEdgeArrow + TokSpace.xs);
     final toPlace = widget.anchor - edgeCenter;
     final angle = math.atan2(toPlace.dy, toPlace.dx);
     final center = Offset.lerp(mapCenter, edgeCenter, eC)!;
@@ -409,7 +413,7 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
       if (widget.here.isNotEmpty && mini > 0 && onMapOp > 0)
         Positioned(
           left: center.dx,
-          top: center.dy - size.height / 2 - TokDim.widgetHereLift,
+          top: center.dy - size.height / 2 - _widgetHereLift,
           child: IgnorePointer(
             child: FractionalTranslation(
               translation: const Offset(-0.5, -0.5),
@@ -437,7 +441,7 @@ class _PlanPinState extends State<PlanPin> with TickerProviderStateMixin {
 
 /// A part fading in or out without changing the layout: [k] is how much it shows. It blurs while it's half there and,
 /// coming in, rises [rise] into place.
-Widget _fade(Widget child, double k, {double rise = TokDim.tabEnterShift}) {
+Widget _fade(Widget child, double k, {double rise = TokSpace.xs}) {
   if (k <= 0.001) return Opacity(opacity: 0, child: child);
   var w = child;
   final sigma = lightEffects ? 0.0 : TokMotion.enterBlur * (1 - k);

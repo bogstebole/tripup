@@ -655,6 +655,14 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Design system 1.77: fewer component tokens (branch `refactor/trim-component-tokens`)
+- Bogdan: component tokens are confusing and mostly overkill. Keep the derived corners and what the Live Activity shares; drop aliases and one-off values.
+- 197 component tokens became 36, all sizes: derived corners and insets and the sizes they're made from, values several components share, and three the Live Activity shares. Component colours are gone. Aliases became the token they pointed at. A one-component value became a constant at the top of its file in the app (and in the widget's Swift), and a literal in Storybook's CSS.
+- New: `TokPalette` / `--palette-*`, the primitives that don't follow the theme (`primitive.code`: blue, zinc, green, white, black). The launch colour now reads `bg/brand`.
+- Storybook: Foundations › Component colours is replaced by Palette (code); Component dimensions has a "Why a token" column; story texts name values instead of the removed tokens. `Sticker` maps its sizes to the scale (`stickerHeight`).
+- **Checked:** `flutter analyze` and `tsc` are clean, and the iOS build (with the Swift widget) passes. Storybook was built from main and from this branch, and every story's computed styles were compared element by element. All match apart from the Foundations tables. Colours differ only in notation: `color-mix` reports `color(srgb …)`, `rgba` before.
+- Not in Figma (its `c/` and `d/` variables are unchanged). Not on the iPhone, in an APK or on Vercel.
+
 ### Final UI, iteration 1.76: the trip card on the 4 px grid (branch `fix/card-rim-grid`)
 - Bogdan: why are some paddings 29, shouldn't everything be on the 4 px grid?
 - The trip card's white edge is 4 (was 5), so its padding is 24 + 4 = 28 and its corner 28 + 22 = 50 (were 29 and 51). The gap under Your trips' header follows it: 28. Happening now stays 4 in.

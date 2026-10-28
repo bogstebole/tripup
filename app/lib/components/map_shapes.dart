@@ -7,6 +7,13 @@ import 'package:flutter/widgets.dart';
 import '../design/theme.dart';
 import '../design/tokens.dart';
 
+// Its own measurements: used only here, so they're not tokens.
+const double _pinTailHeight = 24;
+const double _pinDashWidth = 7;
+const double _pinDashHeight = 3;
+const double _meRing = 5;
+const double _meEdgeHeight = 24;
+
 /// The rounded tail under a widget (Figma "Rectangle 5"), in its 35.28 × 24 frame.
 Path _tailPath(Size s) {
   final sx = s.width / 35.28, sy = s.height / 24;
@@ -53,17 +60,17 @@ class PinTail extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tok;
     return Column(mainAxisSize: MainAxisSize.min, spacing: gap, children: [
-      CustomPaint(size: const Size(TokDim.pinTailWidth, TokDim.pinTailHeight), painter: _TailPainter(t.cPinTail, t.cPinTailEdge)),
+      CustomPaint(size: const Size(TokDim.pinTailWidth, _pinTailHeight), painter: _TailPainter(t.bgBrand, TokPalette.white)),
       Container(
-        width: TokDim.pinDashWidth,
-        height: TokDim.pinDashHeight,
-        decoration: BoxDecoration(color: t.cPinDash, borderRadius: BorderRadius.circular(TokRadius.control)),
+        width: _pinDashWidth,
+        height: _pinDashHeight,
+        decoration: BoxDecoration(color: t.bgBrand, borderRadius: BorderRadius.circular(TokRadius.control)),
       ),
     ]);
   }
 
   /// Total height, so a pin can put its bottom exactly on the map point.
-  static double heightFor(double gap) => TokDim.pinTailHeight + gap + TokDim.pinDashHeight;
+  static double heightFor(double gap) => _pinTailHeight + gap + _pinDashHeight;
 }
 
 /// Blue rounded triangle pointing at something off-screen. [angle] in radians; 0 points right.
@@ -73,10 +80,9 @@ class EdgeArrow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.tok;
     return Transform.rotate(
       angle: angle,
-      child: CustomPaint(size: const Size.square(TokDim.widgetEdgeArrow), painter: _ArrowPainter(t.cEdgeArrowFrom, t.cEdgeArrowTo)),
+      child: CustomPaint(size: const Size.square(TokDim.widgetEdgeArrow), painter: _ArrowPainter(TokPalette.blue500, TokPalette.blue700)),
     );
   }
 }
@@ -121,22 +127,21 @@ class MeDot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.tok;
     final r = BorderRadius.circular(TokRadius.pill);
     final blue = DecoratedBox(
-      decoration: BoxDecoration(color: t.cMeDot, borderRadius: r),
+      decoration: BoxDecoration(color: TokPalette.blue700, borderRadius: r),
       child: CustomPaint(painter: InsetShadowPainter(TokInset.buttonPrimary, r)),
     );
     // The rim is the white disc showing around the blue
     return Container(
-      width: TokDim.meDot,
-      height: TokDim.meDot,
+      width: TokSize.iconSm,
+      height: TokSize.iconSm,
       padding: const EdgeInsets.all(TokDim.surfaceEdgeWidth),
       decoration: BoxDecoration(
-        color: t.cMeDotEdge,
+        color: TokPalette.white,
         borderRadius: r,
         boxShadow: [
-          if (ring) BoxShadow(color: t.cMeRing, spreadRadius: TokDim.meRing),
+          if (ring) BoxShadow(color: TokPalette.blue300, spreadRadius: _meRing),
           ...TokShadow.meDot,
         ],
       ),
@@ -178,11 +183,10 @@ class _MeMarkerState extends State<MeMarker> with SingleTickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
-    final t = context.tok;
     return SizedBox.square(
-      dimension: TokDim.meCone * 2,
+      dimension: TokSize.iconLg * 2,
       child: Stack(alignment: Alignment.center, children: [
-        Transform.rotate(angle: widget.heading, child: CustomPaint(size: const Size.square(TokDim.meCone * 2), painter: _ConePainter(t.cMeCone))),
+        Transform.rotate(angle: widget.heading, child: CustomPaint(size: const Size.square(TokSize.iconLg * 2), painter: _ConePainter(TokPalette.blue400))),
         // Its own layer, so the breathing repaints only the dot
         RepaintBoundary(child: MeDot(breathe: _scale)),
       ]),
@@ -217,16 +221,15 @@ class MeEdge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.tok;
     final r = BorderRadius.circular(TokRadius.pill);
     return Transform.rotate(
       angle: angle,
       child: Row(mainAxisSize: MainAxisSize.min, spacing: TokSpace.x3xs, children: [
-        CustomPaint(size: const Size(TokDim.meGlowWidth, TokDim.meGlowHeight), painter: _GlowPainter(t.cMeCone)),
+        CustomPaint(size: const Size(TokSize.iconMd, TokDim.meGlowHeight), painter: _GlowPainter(TokPalette.blue400)),
         Container(
           width: TokDim.meEdgeWidth,
-          height: TokDim.meEdgeHeight,
-          decoration: BoxDecoration(color: t.cMeDot, borderRadius: r, border: Border.all(color: t.cMeDotEdge, width: TokDim.surfaceEdgeWidth), boxShadow: TokShadow.meDot),
+          height: _meEdgeHeight,
+          decoration: BoxDecoration(color: TokPalette.blue700, borderRadius: r, border: Border.all(color: TokPalette.white, width: TokDim.surfaceEdgeWidth), boxShadow: TokShadow.meDot),
           child: CustomPaint(painter: InsetShadowPainter(TokInset.buttonPrimary, r)),
         ),
       ]),
@@ -234,7 +237,7 @@ class MeEdge extends StatelessWidget {
   }
 
   /// Width of the whole mark before rotation.
-  static const double width = TokDim.meGlowWidth + TokSpace.x3xs + TokDim.meEdgeWidth;
+  static const double width = TokSize.iconMd + TokSpace.x3xs + TokDim.meEdgeWidth;
 }
 
 class _GlowPainter extends CustomPainter {

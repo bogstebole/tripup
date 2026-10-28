@@ -15,9 +15,7 @@ import './BillScan.css';
 const m = tokens.motion;
 const ease = m['ease-out'] as [number, number, number, number];
 const space = tokens.space as Record<string, number>;
-// A component token is a reference like "{space.xl}"; read the size it points at
-const spaceOf = (ref: string) => space[ref.replace(/^\{space\.|\}$/g, '')];
-const cornerLength = spaceOf(tokens.component.dimension['scan/corner'] as string);
+const cornerLength = space.xl;
 
 type Phase = 'aim' | 'lock' | 'read' | 'review';
 type Box = { left: number; top: number; width: number; height: number };
@@ -51,7 +49,7 @@ export function Camera({ onAdd, onClose }: BillScanProps) {
 }
 
 /**
- * Full screen, over everything: the camera's view of the bill, on one plain colour (c-scan-bg). A moment to find the
+ * Full screen, over everything: the camera's view of the bill, on one plain colour (zinc 900). A moment to find the
  * paper (scan-find-ms), then the frame closes in from the screen's edges onto it (enter-ms, ease-out) and turns blue, a
  * line reads it top to bottom at an even pace (scan-read-ms, linear), and the bill rises with every line on the faces
  * of whoever had it. Then the colour fades out (enter-ms) and the paper with it (fade-ms), so the bill sits on what's

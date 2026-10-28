@@ -83,17 +83,15 @@ export interface DetailSheetProps {
 
 const m = tokens.motion;
 const space = tokens.space as Record<string, number>;
-// A component token is a reference like "{space.xl}"; read the size it points at
-const spaceOf = (ref: string) => space[ref.replace(/^\{space\.|\}$/g, '')];
-const slide = spaceOf(tokens.component.dimension['tab/slide'] as string);
-const rise = spaceOf(tokens.component.dimension['tab/enter-shift'] as string);
+const slide = space.xl;
+const rise = space.xs;
 
 /** The page's stagger, handed to every block (a component made inside the sheet would remount on each render). */
 const Stagger = createContext<Variants>({});
 function Block({ i, children, className }: { i: number; children: ReactNode; className?: string }) {
   return <motion.div custom={i} variants={useContext(Stagger)} className={className}>{children}</motion.div>;
 }
-const tilt = tokens.component.dimension['menu/photo-tilt'];
+const tilt = 3;
 const FACT_ICON: Record<PlaceDetail['kind'], LucideIcon> = { address: MapPin, hours: Clock, price: Banknote, booking: Calendar, order: Truck, website: Globe, phone: Phone };
 const ease = m['ease-out'] as [number, number, number, number];
 
@@ -206,7 +204,7 @@ export function DetailSheet(p: DetailSheetProps) {
             custom={dir}
             variants={page}
             className="tu-sheet__scroll"
-            onScroll={e => setUnder(Math.min(1, e.currentTarget.scrollTop / parseFloat(getComputedStyle(e.currentTarget).getPropertyValue('--d-sheet-top-fade'))))}
+            onScroll={e => setUnder(Math.min(1, e.currentTarget.scrollTop / space['2xl']))}
             initial="hidden"
             animate="shown"
             exit="leave"

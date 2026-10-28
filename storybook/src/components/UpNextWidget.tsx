@@ -47,7 +47,7 @@ const m = tokens.motion;
 const morph = m['spring-morph'];
 const ease = m['ease-out'] as [number, number, number, number];
 const space = tokens.space as Record<string, number>;
-const rise = space[(tokens.component.dimension['tab/enter-shift'] as string).replace(/^\{space\.|\}$/g, '')];
+const rise = space.xs;
 
 /** When the morph spring has covered [at] of its way, in s (the app starts the next content then: it watches the spring). */
 function springAt(at: number) {

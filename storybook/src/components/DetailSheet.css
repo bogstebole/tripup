@@ -1,6 +1,6 @@
 /* The tabs and close sit in a header over the page; pages scroll up under it, through a blur and the surface's white */
 .tu-sheet {
-  --header: calc(var(--d-surface-head-inset) + max(calc(var(--d-segment-height) + var(--d-segment-track-padding) * 2), var(--d-button-sm)));
+  --header: calc(var(--d-surface-inset) + max(calc(var(--d-segment-height) + var(--space-3xs) * 2), var(--d-button-sm)));
   position: relative;
   display: flex;
   flex-direction: column;
@@ -20,10 +20,10 @@
   scrollbar-width: none;
   /* Content scrolling past the sheet's bottom edge fades out over the last few px instead of being cut off */
   /* Eased over sheet/fade, not linear: the page melts into the bottom */
-  mask-image: linear-gradient(to bottom, black 0, rgb(0 0 0 / 1.0) calc(100% - var(--d-sheet-fade) * 1.0), rgb(0 0 0 / 0.957) calc(100% - var(--d-sheet-fade) * 0.875), rgb(0 0 0 / 0.844) calc(100% - var(--d-sheet-fade) * 0.75), rgb(0 0 0 / 0.684) calc(100% - var(--d-sheet-fade) * 0.625), rgb(0 0 0 / 0.5) calc(100% - var(--d-sheet-fade) * 0.5), rgb(0 0 0 / 0.316) calc(100% - var(--d-sheet-fade) * 0.375), rgb(0 0 0 / 0.156) calc(100% - var(--d-sheet-fade) * 0.25), rgb(0 0 0 / 0.043) calc(100% - var(--d-sheet-fade) * 0.125), rgb(0 0 0 / 0.0) calc(100% - var(--d-sheet-fade) * 0.0));
+  mask-image: linear-gradient(to bottom, black 0, rgb(0 0 0 / 1.0) calc(100% - var(--space-3xl) * 1.0), rgb(0 0 0 / 0.957) calc(100% - var(--space-3xl) * 0.875), rgb(0 0 0 / 0.844) calc(100% - var(--space-3xl) * 0.75), rgb(0 0 0 / 0.684) calc(100% - var(--space-3xl) * 0.625), rgb(0 0 0 / 0.5) calc(100% - var(--space-3xl) * 0.5), rgb(0 0 0 / 0.316) calc(100% - var(--space-3xl) * 0.375), rgb(0 0 0 / 0.156) calc(100% - var(--space-3xl) * 0.25), rgb(0 0 0 / 0.043) calc(100% - var(--space-3xl) * 0.125), rgb(0 0 0 / 0.0) calc(100% - var(--space-3xl) * 0.0));
   /* Starts under the header; room at the end for the last block to scroll clear of the bottom fade */
   padding-top: calc(var(--header) + var(--space-xs) + var(--space-md));
-  padding-bottom: calc(var(--d-sheet-fade) + var(--space-xs));
+  padding-bottom: calc(var(--space-3xl) + var(--space-xs));
 }
 /* The header's backdrop shows as content goes under it (--under, 0–1), so a page at rest isn't faded at the top */
 .tu-sheet__top-fade {
@@ -31,17 +31,17 @@
   align-self: start;
   position: relative;
   z-index: 1;
-  height: calc(var(--header) + var(--d-sheet-top-fade));
+  height: calc(var(--header) + var(--space-2xl));
   pointer-events: none;
-  background: linear-gradient(to bottom, color-mix(in srgb, var(--c-surface-top) calc(var(--under) * 100%), transparent) var(--header), transparent);
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--color-bg-default) calc(var(--under) * 100%), transparent) var(--header), transparent);
 }
 .tu-sheet__top-fade::before {
   content: '';
   position: absolute;
   inset: 0;
   opacity: var(--under);
-  backdrop-filter: blur(var(--d-sheet-top-blur));
-  -webkit-backdrop-filter: blur(var(--d-sheet-top-blur));
+  backdrop-filter: blur(var(--space-xs));
+  -webkit-backdrop-filter: blur(var(--space-xs));
   mask-image: linear-gradient(to bottom, black var(--header), transparent);
 }
 .tu-sheet__scroll::-webkit-scrollbar { display: none; }
@@ -60,22 +60,22 @@
 .tu-sheet__row { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm) var(--space-xs); }
 .tu-sheet__row + .tu-sheet__row { border-top: var(--d-surface-edge-width) solid var(--color-border-default); }
 .tu-sheet__row-text { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: var(--space-3xs); color: var(--color-text-default); }
-.tu-sheet__dish { width: var(--d-menu-photo); height: var(--d-menu-photo); object-fit: cover; border-radius: var(--d-menu-photo-radius); flex: none; }
+.tu-sheet__dish { width: var(--space-5xl); height: var(--space-5xl); object-fit: cover; border-radius: var(--radius-control); flex: none; }
 .tu-sheet__faces { display: flex; align-items: center; flex: none; }
-.tu-sheet__faces > * + * { margin-left: calc(var(--d-avatar-overlap) * -1); }
-.tu-sheet__face { display: grid; place-items: center; width: var(--d-sticker-row); height: var(--d-sticker-row); flex: none; }
+.tu-sheet__faces > * + * { margin-left: calc(var(--space-xs) * -1); }
+.tu-sheet__face { display: grid; place-items: center; width: var(--space-3xl); height: var(--space-3xl); flex: none; }
 
 /* The tabs and Close, as far in from the sides as from the top: concentric with the sheet's corners */
-.tu-sheet--stacked { --header: calc(var(--d-surface-head-inset) + var(--d-button-sm) + var(--space-xs) + var(--d-segment-height) + var(--d-segment-track-padding) * 2); }
+.tu-sheet--stacked { --header: calc(var(--d-surface-inset) + var(--d-button-sm) + var(--space-xs) + var(--d-segment-height) + var(--space-3xs) * 2); }
 .tu-sheet--stacked .tu-sheet__bar { flex-wrap: wrap; row-gap: var(--space-xs); }
 .tu-sheet--stacked .tu-sheet__tabs { flex-basis: 100%; }
 .tu-sheet__tabs { display: flex; }
 .tu-sheet__lead { display: flex; align-items: center; gap: var(--space-xs); }
-.tu-sheet__bar { position: absolute; top: 0; left: var(--d-surface-inset); right: var(--d-surface-inset); z-index: 2; display: flex; align-items: center; justify-content: space-between; padding-top: var(--d-surface-head-inset); }
+.tu-sheet__bar { position: absolute; top: 0; left: var(--d-surface-inset); right: var(--d-surface-inset); z-index: 2; display: flex; align-items: center; justify-content: space-between; padding-top: var(--d-surface-inset); }
 
 /* Menu: a plain list; under each dish's photo and text, the price, who else picked it, and Add */
 /* Add's touch target reaches past its circle; the row's right inset leaves the circle on the text's edge */
-.tu-sheet__cards { --add-inset: calc((var(--size-touch-target) - var(--d-button-pill-height)) / 2); display: flex; flex-direction: column; }
+.tu-sheet__cards { --add-inset: calc((var(--size-touch-target) - var(--space-2xl)) / 2); display: flex; flex-direction: column; }
 .tu-dish { display: flex; flex-direction: column; padding: var(--space-sm) calc(var(--space-xs) - var(--add-inset)) var(--space-2xs) var(--space-xs); }
 .tu-dish + .tu-dish { border-top: var(--d-surface-edge-width) solid var(--color-border-default); }
 .tu-dish__top { display: flex; align-items: flex-start; gap: var(--space-sm); padding-right: var(--add-inset); }
@@ -85,7 +85,7 @@
 
 /* Group: a little pile of what each person picked */
 .tu-sheet__picks { display: flex; align-items: center; flex: none; }
-.tu-sheet__picks > * + * { margin-left: calc(var(--d-avatar-overlap) * -1); }
+.tu-sheet__picks > * + * { margin-left: calc(var(--space-xs) * -1); }
 
 /* Overview: the place's facts, as on its Google Maps card */
 .tu-facts { display: flex; flex-direction: column; }
@@ -101,7 +101,7 @@
 .tu-sheet__cost { flex: none; color: var(--color-text-default); }
 /* Its own layer, so the footer can fade with the rest of what's on the sheet (opened in place of a pop-up) */
 .tu-sheet__footer-wrap { flex: none; }
-.tu-sheet__footer { flex: none; display: flex; flex-direction: column; gap: var(--space-md); padding: var(--space-xs) var(--d-surface-foot-side) var(--d-surface-foot-inset); }
+.tu-sheet__footer { flex: none; display: flex; flex-direction: column; gap: var(--space-md); padding: var(--space-xs) var(--d-surface-foot-side) var(--d-surface-inset); }
 .tu-sheet__actions { flex-direction: row; gap: var(--space-xs); }
 .tu-sheet__actions > * { flex: 1 1 0; min-width: 0; }
 .tu-sheet__footer-row { display: flex; align-items: center; gap: var(--space-sm); }

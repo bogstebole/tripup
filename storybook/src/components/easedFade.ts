@@ -5,7 +5,7 @@
 const STEPS = 8;
 const smoothstep = (x: number) => x * x * (3 - 2 * x);
 
-/** A CSS gradient from `color` (a token, e.g. `var(--c-action-bar-bg)`) to clear. `from` is a percentage or a
+/** A CSS gradient from `color` (a token, e.g. `var(--color-bg-default)`) to clear. `from` is a percentage or a
  *  CSS length; `to` is the direction the fade runs toward. */
 export function easedFade(color: string, { from = '0%', to = 'bottom' }: { from?: string; to?: 'top' | 'bottom' } = {}) {
   const stops = Array.from({ length: STEPS + 1 }, (_, i) => {

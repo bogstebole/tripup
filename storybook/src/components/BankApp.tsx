@@ -24,7 +24,7 @@ export interface BankAppProps {
  * arrives in seconds", then To, IBAN, Reference and From, none of which can be changed. Approve with Face ID: the
  * system's square comes up in the middle (Face ID, face-id-ms), turns to a green check and Approved (approved-ms), and
  * the bank sends me back. Cancel, or "TripUp" at the top (iOS's back-to-app link), goes back with nothing sent. In the
- * real app iOS opens the bank's own app; here it stands in for it, in a plain look of its own (the c-bank colours,
+ * real app iOS opens the bank's own app; here it stands in for it, in a plain look of its own (zinc greys from the palette,
  * square-ish corners, a dark button) so it reads as another app.
  */
 export function BankApp({ pay, bank, onApproved, onCancel }: BankAppProps) {

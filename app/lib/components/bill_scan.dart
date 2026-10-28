@@ -14,6 +14,11 @@ import 'glass.dart';
 import 'stagger.dart';
 import 'trip_sheet.dart';
 
+// Its own measurements: used only here, so they're not tokens.
+const double _scanPaperWidth = 296;
+const double _scanStroke = 3;
+const double _scanOffOpacity = 0.3;
+
 /// Full screen, over everything: the camera's view of the bill on the table. The frame closes in on the paper, a
 /// line reads it top to bottom, then the bill rises with every line on the faces of whoever had it. In the
 /// prototype the camera shows a prepared bill (there's no real camera or OCR).
@@ -121,7 +126,7 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
               opacity: review ? 0 : 1,
               duration: TokMotion.enter,
               curve: TokMotion.easeOut,
-              child: ColoredBox(color: t.cScanBg),
+              child: ColoredBox(color: TokPalette.zinc900),
             ),
           ),
           Center(
@@ -141,7 +146,7 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
                   builder: (context, _) {
                     final k = TokMotion.easeOut.transform(_lock.value);
                     final to = _paper?.inflate(TokSpace.xs) ?? screen;
-                    return CustomPaint(painter: _Corners(Rect.lerp(screen, to, k)!, _lock.value >= 1 ? t.cScanLine : t.cScanFg));
+                    return CustomPaint(painter: _Corners(Rect.lerp(screen, to, k)!, _lock.value >= 1 ? t.bgBrand : TokPalette.white));
                   },
                 ),
               ),
@@ -154,11 +159,11 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
                 left: _paper!.left,
                 width: _paper!.width,
                 top: _paper!.top + _paper!.height * _sweep.value,
-                height: TokDim.scanStroke,
+                height: _scanStroke,
                 child: DecoratedBox(
                   decoration: BoxDecoration(
-                    color: t.cScanLine,
-                    boxShadow: [BoxShadow(color: t.cScanLine, blurRadius: TokSpace.xs)],
+                    color: t.bgBrand,
+                    boxShadow: [BoxShadow(color: t.bgBrand, blurRadius: TokSpace.xs)],
                   ),
                 ),
               ),
@@ -176,7 +181,7 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
                     child: Text(
                       'Scan the bill',
                       textAlign: TextAlign.center,
-                      style: TokText.labelLg.copyWith(color: t.cScanFg),
+                      style: TokText.labelLg.copyWith(color: TokPalette.white),
                     ),
                   ),
                   const SizedBox(width: TokDim.buttonSm),
@@ -191,16 +196,16 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
               child: Text(
                 _phase == _Phase.aim ? 'Hold the bill inside the frame' : 'Reading the bill…',
                 textAlign: TextAlign.center,
-                style: TokText.labelMd.copyWith(color: t.cScanFg),
+                style: TokText.labelMd.copyWith(color: TokPalette.white),
               ),
             ),
           // The bill, rising over the camera once it's read
           if (review)
             Positioned(
-              left: TokDim.sheetInset,
-              right: TokDim.sheetInset,
+              left: TokSpace.md,
+              right: TokSpace.md,
               top: pad.top + TokSpace.xs + TokDim.buttonMd + TokSpace.x3xs,
-              bottom: math.max(pad.bottom, TokDim.sheetInset),
+              bottom: math.max(pad.bottom, TokSpace.md),
               child: TweenAnimationBuilder<double>(
                 tween: Tween(begin: 0, end: 1),
                 duration: TokMotion.enter,
@@ -223,7 +228,7 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
       subtitle: "La Brasserie de L'Entrecôte · ${_bill.lines.length} lines",
       onClose: widget.onClose,
       footer: Container(
-        padding: const EdgeInsets.fromLTRB(TokDim.surfaceFootSide, TokSpace.sm, TokDim.surfaceFootSide, TokDim.surfaceFootInset),
+        padding: const EdgeInsets.fromLTRB(TokDim.surfaceFootSide, TokSpace.sm, TokDim.surfaceFootSide, TokDim.surfaceInset),
         child: Column(
           spacing: TokSpace.sm,
           children: [
@@ -340,7 +345,7 @@ class _BillScanState extends State<BillScan> with TickerProviderStateMixin {
                                           onTap: () => _toggle(i, id),
                                           semanticLabel: '${personById(id).name}: ${who.contains(id) ? 'had it' : "didn't have it"}',
                                           child: AnimatedOpacity(
-                                            opacity: who.contains(id) ? 1 : TokDim.scanOffOpacity,
+                                            opacity: who.contains(id) ? 1 : _scanOffOpacity,
                                             duration: TokMotion.fade,
                                             curve: TokMotion.easeOut,
                                             child: Column(
@@ -375,8 +380,7 @@ class _Paper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.tok;
-    final ink = TokText.bodySm.copyWith(color: t.cScanInk);
+    final ink = TokText.bodySm.copyWith(color: TokPalette.zinc800);
     Widget line(String left, [String? right]) => Row(
       children: [
         Expanded(
@@ -390,13 +394,13 @@ class _Paper extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: TokSpace.x2xs),
       child: SizedBox(
         height: TokDim.surfaceEdgeWidth,
-        child: ColoredBox(color: t.cScanInk),
+        child: ColoredBox(color: TokPalette.zinc800),
       ),
     );
     return Container(
-      width: TokDim.scanPaperWidth,
+      width: _scanPaperWidth,
       padding: const EdgeInsets.all(TokSpace.md),
-      decoration: BoxDecoration(color: t.cScanPaper, borderRadius: BorderRadius.circular(TokSpace.x3xs), boxShadow: TokShadow.surface),
+      decoration: BoxDecoration(color: TokPalette.white, borderRadius: BorderRadius.circular(TokSpace.x3xs), boxShadow: TokShadow.surface),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -430,9 +434,9 @@ class _Corners extends CustomPainter {
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = TokDim.scanStroke
+      ..strokeWidth = _scanStroke
       ..strokeCap = StrokeCap.round;
-    const c = TokDim.scanCorner;
+    const c = TokSpace.xl;
     for (final (o, dx, dy) in [(rect.topLeft, 1.0, 1.0), (rect.topRight, -1.0, 1.0), (rect.bottomLeft, 1.0, -1.0), (rect.bottomRight, -1.0, -1.0)]) {
       canvas.drawPath(
         Path()
@@ -524,7 +528,7 @@ class _PayerPickerState extends State<_PayerPicker> with SingleTickerProviderSta
                               child: Row(
                                 spacing: TokSpace.xs,
                                 children: [
-                                  SizedBox(width: TokDim.stickerAvatar, child: Center(child: Sticker(personById(id).sticker, size: StickerSize.avatar))),
+                                  SizedBox(width: TokSpace.x2xl, child: Center(child: Sticker(personById(id).sticker, size: StickerSize.avatar))),
                                   Expanded(child: Text(_name(id, start: true), style: TokText.labelLg.copyWith(color: t.textDefault))),
                                   if (id == widget.payer) LucideIcon(TuIcons.check, size: TokSize.iconSm, color: t.iconBrand),
                                 ],

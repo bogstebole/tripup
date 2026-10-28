@@ -17,6 +17,12 @@ import 'segmented_tabs.dart';
 import 'stagger.dart';
 import 'toggle_chips.dart';
 
+// Its own measurements: used only here, so they're not tokens.
+const double _photosHeight = 142;
+const double _photosPeekStart = 36;
+const double _photosPeekEnd = 62;
+const double _menuPhotoTilt = 3;
+
 /// The full view's pages, always in this order. While the dinner is on, the sheet opens on Group (the group and the
 /// bill matter more than the place's details then).
 enum DetailPage {
@@ -80,7 +86,7 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
   /// The new page comes in from the side the tab is on, once the old one has mostly gone; the first page rises.
   Widget _enter({required List<Widget> children, double spacing = 0}) => StaggerIn(
         spacing: spacing,
-        from: _dir == 0 ? const Offset(0, TokDim.tabEnterShift) : Offset(_dir * TokDim.tabSlide, 0),
+        from: _dir == 0 ? const Offset(0, TokSpace.xs) : Offset(_dir * TokSpace.xl, 0),
         delay: _dir == 0 ? Duration.zero : TokMotion.pageEnterDelay,
         children: children,
       );
@@ -122,20 +128,20 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
 
   late final _pull = _Pull((dy) => widget.onHeaderDragUpdate?.call(DragUpdateDetails(globalPosition: Offset.zero, delta: Offset(0, dy), primaryDelta: dy)));
 
-  static const _trackHeight = TokDim.segmentHeight + TokDim.segmentTrackPadding * 2;
+  static const _trackHeight = TokDim.segmentHeight + TokSpace.x3xs * 2;
 
   /// The tabs don't fit between Back and Close (a narrow phone, large text): then they go on a row of their own under
   /// them. Set in [build] from the sheet's width.
   bool _stacked = false;
 
   /// The header's height: its top inset, then the taller of the tab bar and the buttons, or both rows when stacked.
-  double get _headerHeight => TokDim.surfaceHeadInset + (_stacked ? TokDim.buttonSm + TokSpace.xs + _trackHeight : math.max(_trackHeight, TokDim.buttonSm));
+  double get _headerHeight => TokDim.surfaceInset + (_stacked ? TokDim.buttonSm + TokSpace.xs + _trackHeight : math.max(_trackHeight, TokDim.buttonSm));
 
   /// How wide the tab bar is: each label with its padding, the gaps between them, the track around them.
   double _tabsWidth(BuildContext context) {
     final style = TokText.bodySm.copyWith(fontWeight: TokWeight.medium);
     final scaler = MediaQuery.textScalerOf(context);
-    var w = TokDim.segmentTrackPadding * 2 + TokDim.segmentGap * (_pages.length - 1);
+    var w = TokSpace.x3xs * 2 + TokSpace.x2xs * (_pages.length - 1);
     for (final p in _pages) {
       final tp = TextPainter(text: TextSpan(text: p.label, style: style), textDirection: TextDirection.ltr, textScaler: scaler)..layout();
       w += tp.width + TokSpace.sm * 2;
@@ -167,7 +173,7 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
 
   Widget _build(BuildContext context) {
     final t = context.tok;
-    final header = _headerHeight, solid = header / (header + TokDim.sheetTopFade);
+    final header = _headerHeight, solid = header / (header + TokSpace.x2xl);
     // The tabs and close sit in a header over the page; content scrolls up under it, through a blur and the surface's white
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: TokDim.surfaceBodySide),
@@ -182,7 +188,7 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
               // The old page leaves toward the side away from the new tab (with reduced motion, it only fades)
               transitionBuilder: (child, anim) => child.key == ValueKey(_tab)
                   ? child
-                  : fadeBlurOut(anim, child, to: (MediaQuery.maybeDisableAnimationsOf(context) ?? false) ? Offset.zero : Offset(-_dir * TokDim.tabSlide, 0)),
+                  : fadeBlurOut(anim, child, to: (MediaQuery.maybeDisableAnimationsOf(context) ?? false) ? Offset.zero : Offset(-_dir * TokSpace.xl, 0)),
               child: KeyedSubtree(key: ValueKey(_tab), child: _page(context)),
             ),
           ),
@@ -191,7 +197,7 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
             left: 0,
             right: 0,
             top: 0,
-            height: header + TokDim.sheetTopFade,
+            height: header + TokSpace.x2xl,
             child: IgnorePointer(
               child: ValueListenableBuilder<double>(
                 valueListenable: _under,
@@ -201,8 +207,8 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
                         opacity: v,
                         child: Stack(fit: StackFit.expand, children: [
                           // Above [solid] the surface's white is opaque, so only the fading part needs blurring
-                          ProgressiveBlur(sigma: TokDim.sheetTopBlur, solidUntil: solid, solidHidden: true),
-                          DecoratedBox(decoration: BoxDecoration(gradient: easedFade(t.cSurfaceTop, from: solid))),
+                          ProgressiveBlur(sigma: TokSpace.xs, solidUntil: solid, solidHidden: true),
+                          DecoratedBox(decoration: BoxDecoration(gradient: easedFade(t.bgDefault, from: solid))),
                         ]),
                       ),
               ),
@@ -220,7 +226,7 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
               // The tabs and Close sit 24 from the sides, on the same edge as the page and its footer; tabs that don't fit
               // between Back and Close go on a row under them
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(TokDim.surfaceHeadSide, TokDim.surfaceHeadInset, TokDim.surfaceHeadSide, 0),
+                padding: const EdgeInsets.fromLTRB(TokDim.surfaceHeadSide, TokDim.surfaceInset, TokDim.surfaceHeadSide, 0),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.xs, children: [
                   Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                     Row(mainAxisSize: MainAxisSize.min, spacing: TokSpace.xs, children: [
@@ -242,7 +248,7 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
   /// A page pulled past its top pulls the sheet; letting go hands the finger's speed to the sheet.
   bool _onScroll(ScrollNotification n) {
     if (n.depth != 0) return false;
-    if (n is ScrollUpdateNotification || n is ScrollEndNotification) _under.value = (n.metrics.pixels / TokDim.sheetTopFade).clamp(0.0, 1.0);
+    if (n is ScrollUpdateNotification || n is ScrollEndNotification) _under.value = (n.metrics.pixels / TokSpace.x2xl).clamp(0.0, 1.0);
     if (n is OverscrollNotification && n.dragDetails != null && n.overscroll < 0) {
       _pull.move(-n.overscroll);
     } else if (n is ScrollEndNotification && _pull.pulled > 0) {
@@ -257,7 +263,7 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
         SingleChildScrollView(
           physics: _SheetPhysics(pull: _pull, parent: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics())),
           // Starts under the header; room at the end for the last block to scroll clear of the bottom fade
-          padding: EdgeInsets.only(top: _headerHeight + TokSpace.xs + TokSpace.md, bottom: TokDim.sheetFade + TokSpace.xs),
+          padding: EdgeInsets.only(top: _headerHeight + TokSpace.xs + TokSpace.md, bottom: TokSpace.x3xl + TokSpace.xs),
           child: child,
         ),
       );
@@ -276,9 +282,9 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
       shaderCallback: (r) => LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        // Eased, not linear, over sheet/fade: the page melts into the bottom instead of stopping at a line
+        // Eased, not linear, over space-3xl: the page melts into the bottom instead of stopping at a line
         colors: [solid, for (var i = 0; i <= 8; i++) solid.withValues(alpha: 1 - (i / 8) * (i / 8) * (3 - 2 * i / 8))],
-        stops: [0, for (var i = 0; i <= 8; i++) 1 - TokDim.sheetFade / r.height * (1 - i / 8)],
+        stops: [0, for (var i = 0; i <= 8; i++) 1 - TokSpace.x3xl / r.height * (1 - i / 8)],
       ).createShader(r),
       child: child,
     );
@@ -331,7 +337,7 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
       Expanded(child: list),
       _enter(children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(TokDim.surfaceFootSide, TokSpace.xs, TokDim.surfaceFootSide, TokDim.surfaceFootInset),
+          padding: const EdgeInsets.fromLTRB(TokDim.surfaceFootSide, TokSpace.xs, TokDim.surfaceFootSide, TokDim.surfaceInset),
           child: Row(spacing: TokSpace.xs, children: [
             if (site != null)
               Expanded(
@@ -354,7 +360,7 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
       bool shows(MenuSection s, MenuItem i) =>
           _filter.isEmpty || _filter.any((f) => f == MenuFilter.picked ? i.pickedBy.any((id) => id != myId) || mine.contains(i.name) : f.name == s.course);
       final visible = [for (final s in sections) (s, [for (final i in s.items) if (shows(s, i)) i])].where((e) => e.$2.isNotEmpty);
-      final rise = const Offset(0, TokDim.tabEnterShift);
+      final rise = const Offset(0, TokSpace.xs);
       return _scroll(Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         _enter(children: [
           _PageTitle(title: 'Menu', subtitle: '${pickers.length} of ${people.length} have picked. Add what you\'ll have, and the bill splits itself.'),
@@ -380,7 +386,7 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
           child: StaggerIn(
             key: ValueKey(_filter),
             // With the page, it follows the title and chips; on its own, it waits for the old list to go
-            from: _filtered ? rise : (_dir == 0 ? rise : Offset(_dir * TokDim.tabSlide, 0)),
+            from: _filtered ? rise : (_dir == 0 ? rise : Offset(_dir * TokSpace.xl, 0)),
             delay: _filtered || _dir != 0 ? TokMotion.pageEnterDelay + (_filtered ? Duration.zero : TokMotion.stagger * 2) : TokMotion.stagger * 2,
             // One block per title and per dish, so the list cascades in rather than arriving in lumps
             children: [
@@ -445,7 +451,7 @@ class _DetailSheetState extends State<DetailSheet> with SingleTickerProviderStat
             Expanded(child: list),
             _enter(children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(TokDim.surfaceFootSide, TokSpace.xs, TokDim.surfaceFootSide, TokDim.surfaceFootInset),
+                padding: const EdgeInsets.fromLTRB(TokDim.surfaceFootSide, TokSpace.xs, TokDim.surfaceFootSide, TokDim.surfaceInset),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: TokSpace.md, children: [
                   Row(spacing: TokSpace.sm, children: [
                     Expanded(
@@ -619,7 +625,7 @@ class _MenuRow extends StatelessWidget {
     final others = item.pickedBy.where((id) => id != myId).toList();
     final pickedBy = [for (final id in [...others, if (added) myId]) people.firstWhere((p) => p.id == id).name];
     // Add's touch target reaches past its circle; the outer right inset leaves the circle on the text's edge
-    const addInset = (TokSize.touchTarget - TokDim.buttonPillHeight) / 2;
+    const addInset = (TokSize.touchTarget - TokSpace.x2xl) / 2;
     return Padding(
       padding: const EdgeInsets.fromLTRB(TokSpace.xs, TokSpace.sm, TokSpace.xs - addInset, TokSpace.x2xs),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -627,7 +633,7 @@ class _MenuRow extends StatelessWidget {
           padding: const EdgeInsets.only(right: addInset),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.sm, children: [
             if (item.photo != null)
-              DishSticker(item.photo!, size: TokDim.menuPhoto, edge: TokDim.menuPhotoEdge, radius: TokDim.menuPhotoRadius, tilt: index.isEven ? -TokDim.menuPhotoTilt : TokDim.menuPhotoTilt),
+              DishSticker(item.photo!, size: TokSpace.x5xl, edge: TokSpace.x2xs, radius: TokRadius.control, tilt: index.isEven ? -_menuPhotoTilt : _menuPhotoTilt),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x3xs, children: [
                 Text(item.name, style: TokText.labelLg.copyWith(color: t.textDefault)),
@@ -641,7 +647,7 @@ class _MenuRow extends StatelessWidget {
           // Who picked it, and me at the end once I add it
           Semantics(
             label: pickedBy.isEmpty ? null : 'Picked by ${pickedBy.join(', ')}',
-            child: Overlapped(overlap: TokDim.avatarOverlap, children: [
+            child: Overlapped(overlap: TokSpace.xs, children: [
               for (final id in others) Sticker(faceOf(id), size: StickerSize.chip),
               _MyFace(on: added),
             ]),
@@ -674,7 +680,7 @@ class _PersonRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs, vertical: TokSpace.sm),
       child: Row(spacing: TokSpace.sm, children: [
-        SizedBox.square(dimension: TokDim.stickerRow, child: FittedBox(fit: BoxFit.contain, child: Sticker(person.sticker, size: StickerSize.avatar))),
+        SizedBox.square(dimension: TokSpace.x3xl, child: FittedBox(fit: BoxFit.contain, child: Sticker(person.sticker, size: StickerSize.avatar))),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(person.name, style: TokText.labelLg.copyWith(color: t.textDefault)),
@@ -686,10 +692,10 @@ class _PersonRow extends StatelessWidget {
         if (picks.isNotEmpty)
           Semantics(
             label: '${person.name} picked ${picks.map((d) => d.name).join(', ')}',
-            child: Overlapped(overlap: TokDim.avatarOverlap, children: [
+            child: Overlapped(overlap: TokSpace.xs, children: [
               for (var i = 0; i < shown.length; i++)
-                DishSticker(shown[i].photo!, size: TokDim.dishPickSize, edge: TokDim.dishPickEdge, radius: TokRadius.sm, tilt: i.isEven ? TokDim.menuPhotoTilt : -TokDim.menuPhotoTilt),
-              if (more > 0) _MorePicks(more, tilt: shown.length.isEven ? TokDim.menuPhotoTilt : -TokDim.menuPhotoTilt),
+                DishSticker(shown[i].photo!, size: TokSpace.x2xl, edge: TokSpace.x3xs, radius: TokRadius.sm, tilt: i.isEven ? _menuPhotoTilt : -_menuPhotoTilt),
+              if (more > 0) _MorePicks(more, tilt: shown.length.isEven ? _menuPhotoTilt : -_menuPhotoTilt),
             ]),
           ),
         if (cost > 0)
@@ -717,7 +723,7 @@ class _MyFace extends StatelessWidget {
           axis: Axis.horizontal,
           sizeFactor: a,
           alignment: Alignment.centerLeft,
-          child: ScaleTransition(scale: Tween(begin: TokMotion.morphEnterScale, end: 1.0).animate(a), child: fadeBlurOut(a, child, to: const Offset(TokDim.avatarOverlap, 0))),
+          child: ScaleTransition(scale: Tween(begin: TokMotion.morphEnterScale, end: 1.0).animate(a), child: fadeBlurOut(a, child, to: const Offset(TokSpace.xs, 0))),
         ),
         child: on ? Sticker(faceOf(myId), key: const ValueKey(true), size: StickerSize.chip) : const SizedBox.shrink(key: ValueKey(false)),
       );
@@ -735,13 +741,13 @@ class _MorePicks extends StatelessWidget {
     return Transform.rotate(
       angle: tilt * math.pi / 180,
       child: Container(
-        width: TokDim.dishPickSize,
-        height: TokDim.dishPickSize,
-        padding: const EdgeInsets.all(TokDim.dishPickEdge),
-        decoration: BoxDecoration(color: t.cDishEdge, borderRadius: BorderRadius.circular(TokRadius.sm + TokDim.dishPickEdge), boxShadow: TokShadow.slightlyRaised),
+        width: TokSpace.x2xl,
+        height: TokSpace.x2xl,
+        padding: const EdgeInsets.all(TokSpace.x3xs),
+        decoration: BoxDecoration(color: TokPalette.white, borderRadius: BorderRadius.circular(TokRadius.sm + TokSpace.x3xs), boxShadow: TokShadow.slightlyRaised),
         child: DecoratedBox(
-          decoration: BoxDecoration(color: t.cCountBubbleBg, borderRadius: BorderRadius.circular(TokRadius.sm)),
-          child: Center(child: Text('+$count', style: TokText.labelMd.copyWith(fontWeight: TokWeight.bold, color: t.cCountBubbleFg))),
+          decoration: BoxDecoration(color: TokPalette.black.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(TokRadius.sm)),
+          child: Center(child: Text('+$count', style: TokText.labelMd.copyWith(fontWeight: TokWeight.bold, color: t.textDefault))),
         ),
       ),
     );
@@ -762,14 +768,14 @@ class _PhotoCarousel extends StatelessWidget {
       // The items' own gaps reach past the page's edges, so the photos line up with them
       final width = box.maxWidth + TokSpace.xs;
       // Small and medium keep the design's peek widths; large takes the rest
-      final large = width - TokDim.photosPeekStart - TokDim.photosPeekEnd;
+      final large = width - _photosPeekStart - _photosPeekEnd;
       return SizedBox(
-        height: TokDim.photosHeight,
+        height: _photosHeight,
         child: OverflowBox(
           maxWidth: width,
           minWidth: width,
           child: CarouselView.weighted(
-            flexWeights: [large.round(), TokDim.photosPeekEnd.round(), TokDim.photosPeekStart.round()],
+            flexWeights: [large.round(), _photosPeekEnd.round(), _photosPeekStart.round()],
             itemSnapping: true,
             padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs / 2),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(TokRadius.card)),

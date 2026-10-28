@@ -21,8 +21,8 @@ export const SurfaceCard: Story = {
   parameters: { docs: { description: { story: 'The raised glass every widget sits on: bg/default → bg/subtle fade, 1 px edge, surface shadow, 24 px corners (`pill` for chips and the selected tab).' } } },
   render: () => (
     <div style={{ display: 'flex', gap: 'var(--space-xl)', alignItems: 'center' }}>
-      <Surface style={{ width: 'var(--d-widget-mid-width)', height: 'var(--d-photos-height)' }} />
-      <Surface shape="pill" style={{ width: 'var(--d-widget-edge-size)', height: 'var(--d-widget-edge-size)' }} />
+      <Surface style={{ width: 'var(--d-widget-mid-width)', height: '142px' }} />
+      <Surface shape="pill" style={{ width: '30px', height: '30px' }} />
     </div>
   ),
 };
@@ -57,7 +57,7 @@ export const Tabs: Story = {
 
 export const Know: Story = {
   name: 'KnowSection',
-  parameters: { docs: { description: { story: 'Know before you go, on a place\'s Overview (Bogdan\'s block, Figma 62:4828): a subtle group (bg-subtle, radius-sheet; md in at the top, xs on the other sides) with a brand heading (heading-sm), then each tip, xs apart, as a plain line in brand (label-sm) on a muted block (bg-muted, radius-card, at least know-row/height 56 tall, sm in from the sides and xs from the top and bottom, the line centred in it top to bottom). Tips are read, not tapped: no arrow, no glass, no press.' } } },
+  parameters: { docs: { description: { story: 'Know before you go, on a place\'s Overview (Bogdan\'s block, Figma 62:4828): a subtle group (bg-subtle, radius-sheet; md in at the top, xs on the other sides) with a brand heading (heading-sm), then each tip, xs apart, as a plain line in brand (label-sm) on a muted block (bg-muted, radius-card, at least 56 tall, sm in from the sides and xs from the top and bottom, the line centred in it top to bottom). Tips are read, not tapped: no arrow, no glass, no press.' } } },
   render: () => (
     <div style={{ width: 343 }}>
       <KnowSection title="Know before you go">{EVENT.tips.map(t => <KnowTip key={t}>{t}</KnowTip>)}</KnowSection>

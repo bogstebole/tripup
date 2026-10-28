@@ -8,7 +8,7 @@
 .tu-upnext--mid .tu-upnext__card.tu-surface, .tu-upnext--mini .tu-upnext__card.tu-surface { border-radius: var(--d-widget-mid-radius); }
 .tu-upnext--mid .tu-upnext__card { width: var(--d-widget-mid-width); }
 .tu-upnext--mini .tu-upnext__card { width: var(--d-widget-mini-width); }
-.tu-upnext--edge .tu-upnext__card { width: var(--d-widget-edge-size); height: var(--d-widget-edge-size); }
+.tu-upnext--edge .tu-upnext__card { width: 30px; height: 30px; }
 
 /* Mid */
 .tu-upnext__mid { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-md); padding: var(--space-md) var(--space-xs) var(--space-xs); }
@@ -19,7 +19,7 @@
 .tu-upnext__now-dot { width: var(--space-xs); height: var(--space-xs); flex: none; border-radius: var(--radius-pill); background: var(--color-bg-brand); }
 .tu-upnext__name { width: 100%; text-align: center; color: var(--color-text-default); }
 .tu-upnext__fan { display: flex; align-items: center; justify-content: center; width: 100%; }
-.tu-upnext__fan > * + * { margin-left: calc(var(--d-sticker-overlap) * -1); }
+.tu-upnext__fan > * + * { margin-left: calc(var(--space-lg) * -1); }
 .tu-upnext__fan-item { display: inline-flex; flex: none; }
 .tu-upnext__actions { display: flex; align-items: center; gap: var(--space-md); width: 100%; }
 
@@ -37,4 +37,4 @@
 
 /* Who's already there, on the middle of the mini pin's top edge, lifted a little off it (on the card they're in the first chip) */
 .tu-upnext__here { position: absolute; top: 0; left: 50%; pointer-events: none; }
-.tu-upnext__here-pile { display: block; transform: translate(-50%, calc(-50% - var(--d-widget-here-lift))); }
+.tu-upnext__here-pile { display: block; transform: translate(-50%, calc(-50% - 10px)); }

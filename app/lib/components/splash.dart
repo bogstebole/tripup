@@ -12,6 +12,10 @@ import 'basics.dart';
 import 'map_shapes.dart';
 import 'plan_pin.dart' show lerpDouble, smoothstep;
 
+// Its own measurements: used only here, so they're not tokens.
+const double _splashDotScale = 4;
+const double _splashWord = 52;
+
 /// Whether the app opens with the splash. The perf and Figma drivers turn it off.
 bool splashOnStart = true;
 
@@ -95,7 +99,7 @@ class _SplashState extends State<Splash> with TickerProviderStateMixin {
   void _scatter() {
     final box = context.findRenderObject(), mark = _markKey.currentContext?.findRenderObject();
     if (box is! RenderBox || mark is! RenderBox) return;
-    const cols = 3, rows = 4, s = TokDim.splashSticker;
+    const cols = 3, rows = 4, s = TokSpace.x3xl;
     final keepOut = (mark.localToGlobal(Offset.zero, ancestor: box) & mark.size).inflate(s);
     final area = MediaQuery.paddingOf(context).deflateRect(Offset.zero & box.size).deflate(TokSpace.md);
     final cw = area.width / cols, ch = area.height / rows;
@@ -170,18 +174,18 @@ class _SplashState extends State<Splash> with TickerProviderStateMixin {
           final wordOut = Interval(1 - step, 1, curve: TokMotion.easeOut).transform(_leave.value);
           return Stack(clipBehavior: Clip.none, children: [
             // The same blue as Your trips, whose rows are held back until the mark leaves; so it can go at once
-            Positioned.fill(child: Opacity(opacity: _leaving ? 0 : 1, child: ColoredBox(color: t.cHomeBg))),
+            Positioned.fill(child: Opacity(opacity: _leaving ? 0 : 1, child: ColoredBox(color: t.bgBrand))),
             // My dot and TripUp
             Positioned.fill(
               child: Center(
-                child: Column(key: _markKey, mainAxisSize: MainAxisSize.min, spacing: TokDim.splashWordGap, children: [
+                child: Column(key: _markKey, mainAxisSize: MainAxisSize.min, spacing: TokSpace.x3xl, children: [
                   _sliding(
                     dotOut,
                     Opacity(
                       opacity: smoothstep(0, 0.5, pop),
                       child: Transform.scale(
                         scale: lerpDouble(TokMotion.splashPopFrom, 1, pop),
-                        child: SizedBox.square(dimension: TokDim.meDot * TokDim.splashDotScale, child: FittedBox(child: MeDot(ring: true, breathe: _blue))),
+                        child: SizedBox.square(dimension: TokSize.iconSm * _splashDotScale, child: FittedBox(child: MeDot(ring: true, breathe: _blue))),
                       ),
                     ),
                   ),
@@ -190,8 +194,8 @@ class _SplashState extends State<Splash> with TickerProviderStateMixin {
                     _blurred(
                       word,
                       Transform.translate(
-                        offset: Offset(0, TokDim.tabEnterShift * (1 - word)),
-                        child: Text('TripUp', style: TokText.display.copyWith(fontSize: TokDim.splashWord, height: 1, color: t.cHomeFg)),
+                        offset: Offset(0, TokSpace.xs * (1 - word)),
+                        child: Text('TripUp', style: TokText.display.copyWith(fontSize: _splashWord, height: 1, color: t.textOnBrand)),
                       ),
                     ),
                   ),
@@ -211,7 +215,7 @@ class _SplashState extends State<Splash> with TickerProviderStateMixin {
                       opacity: smoothstep(0, 0.4, p),
                       child: Transform.scale(
                         scale: lerpDouble(TokMotion.splashPopFrom, 1, p),
-                        child: Sticker(s.sticker, height: TokDim.splashSticker, tilt: s.tilt),
+                        child: Sticker(s.sticker, height: TokSpace.x3xl, tilt: s.tilt),
                       ),
                     ),
                   ),

@@ -1,6 +1,6 @@
 .tu-carousel {
   display: grid;
-  height: var(--d-photos-height);
+  height: 142px;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   overscroll-behavior-x: contain;

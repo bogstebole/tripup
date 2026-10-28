@@ -55,11 +55,11 @@ class TripSheet extends StatefulWidget {
 
 
   /// What [top] adds to the header: a gap, then a row of toggle chips.
-  static const double topHeight = TokSpace.sm + TokDim.toggleChipHeight;
+  static const double topHeight = TokSpace.sm + TokSpace.x2xl;
 
   /// The header's height: its top inset (the buttons sit concentric with the corners), then the taller of the title
   /// and the buttons, on one line.
-  static double get headerHeight => TokDim.surfaceHeadInset + math.max(TokText.headingMd.fontSize! * TokText.headingMd.height!, TokDim.buttonSm);
+  static double get headerHeight => TokDim.surfaceInset + math.max(TokText.headingMd.fontSize! * TokText.headingMd.height!, TokDim.buttonSm);
 
   @override
   State<TripSheet> createState() => _TripSheetState();
@@ -80,7 +80,7 @@ class _TripSheetState extends State<TripSheet> {
 
   /// The header's height at this width: the title line, then the subtitle (wrapped between the buttons) when there's one.
   double _headOf(BuildContext context, double width) {
-    final row = TripSheet.headerHeight - TokDim.surfaceHeadInset, title = TokText.headingMd.fontSize! * TokText.headingMd.height!;
+    final row = TripSheet.headerHeight - TokDim.surfaceInset, title = TokText.headingMd.fontSize! * TokText.headingMd.height!;
     if (widget.subtitle == null) return TripSheet.headerHeight;
     final words = width - (widget.onBack != null ? TokDim.surfaceHeadSide + TokDim.buttonSm + TokSpace.x2xs : 0) - TokSpace.xs - TokSpace.md - TokDim.buttonSm - TokDim.surfaceHeadSide;
     final sub = TextPainter(
@@ -88,7 +88,7 @@ class _TripSheetState extends State<TripSheet> {
       textDirection: TextDirection.ltr,
       textScaler: MediaQuery.textScalerOf(context),
     )..layout(maxWidth: math.max(0, words));
-    return TokDim.surfaceHeadInset + math.max(row, (row - title) / 2 + title + TokSpace.x3xs + sub.height);
+    return TokDim.surfaceInset + math.max(row, (row - title) / 2 + title + TokSpace.x3xs + sub.height);
   }
 
   @override
@@ -109,7 +109,7 @@ class _TripSheetState extends State<TripSheet> {
       duration: TokMotion.enter,
       curve: TokMotion.easeInOut,
       builder: (context, header, _) {
-    final solid = header / (header + TokDim.sheetTopFade);
+    final solid = header / (header + TokSpace.x2xl);
     return DecoratedBox(
       decoration: surfaceDecoration(context, BorderRadius.circular(TokDim.surfaceRadius)),
       child: ClipRRect(
@@ -120,7 +120,7 @@ class _TripSheetState extends State<TripSheet> {
             Expanded(child: NotificationListener<ScrollNotification>(
             onNotification: (n) {
               if (n.depth == 0 && (n is ScrollUpdateNotification || n is ScrollEndNotification)) {
-                _under.value = (n.metrics.pixels / TokDim.sheetTopFade).clamp(0.0, 1.0);
+                _under.value = (n.metrics.pixels / TokSpace.x2xl).clamp(0.0, 1.0);
               }
               return false;
             },
@@ -130,7 +130,7 @@ class _TripSheetState extends State<TripSheet> {
                   context,
                   LayoutBuilder(
                     builder: (context, box) {
-                      final pad = EdgeInsets.only(top: header + TokSpace.md, bottom: TokDim.sheetFade + TokSpace.xs);
+                      final pad = EdgeInsets.only(top: header + TokSpace.md, bottom: TokSpace.x3xl + TokSpace.xs);
                       return SingleChildScrollView(
                         controller: _scroll,
                         physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
@@ -151,13 +151,13 @@ class _TripSheetState extends State<TripSheet> {
                 left: 0,
                 right: 0,
                 top: 0,
-                height: header + TokDim.sheetTopFade,
+                height: header + TokSpace.x2xl,
                 child: IgnorePointer(
                   child: ValueListenableBuilder<double>(
                     valueListenable: _under,
                     builder: (context, v, _) => v <= 0
                         ? const SizedBox.shrink()
-                        : Opacity(opacity: v, child: DecoratedBox(decoration: BoxDecoration(gradient: easedFade(t.cSurfaceTop, from: solid)))),
+                        : Opacity(opacity: v, child: DecoratedBox(decoration: BoxDecoration(gradient: easedFade(t.bgDefault, from: solid)))),
                   ),
                 ),
               ),
@@ -170,7 +170,7 @@ class _TripSheetState extends State<TripSheet> {
                   onVerticalDragUpdate: widget.onHeaderDragUpdate,
                   onVerticalDragEnd: widget.onHeaderDragEnd,
                   child: Padding(
-                    padding: const EdgeInsets.only(top: TokDim.surfaceHeadInset),
+                    padding: const EdgeInsets.only(top: TokDim.surfaceInset),
                     child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       // A step back slides in before the title (and out again), the title moving over for it; the
                       // buttons and the title sit 24 from the sides, on the same edge as the content and the footer
@@ -205,7 +205,7 @@ class _TripSheetState extends State<TripSheet> {
                 ),
               ),
               if (widget.top != null)
-                Positioned(left: 0, right: 0, top: header - TripSheet.topHeight + TokSpace.sm, height: TokDim.toggleChipHeight, child: widget.top!),
+                Positioned(left: 0, right: 0, top: header - TripSheet.topHeight + TokSpace.sm, height: TokSpace.x2xl, child: widget.top!),
             ]),
           )),
             ?widget.footer,
@@ -219,7 +219,7 @@ class _TripSheetState extends State<TripSheet> {
   }
 
   /// How far the title sits down from the top of the buttons, so the two share a centre line.
-  static double get _titleTop => (TripSheet.headerHeight - TokDim.surfaceHeadInset - TokText.headingMd.fontSize! * TokText.headingMd.height!) / 2;
+  static double get _titleTop => (TripSheet.headerHeight - TokDim.surfaceInset - TokText.headingMd.fontSize! * TokText.headingMd.height!) / 2;
 
   /// A new line comes in once the old one has mostly gone, so they never read over each other.
   Widget _swap(Widget child) => AnimatedSwitcher(
@@ -239,9 +239,9 @@ class _TripSheetState extends State<TripSheet> {
       shaderCallback: (r) => LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        // Eased, not linear, over sheet/fade: the page melts into the bottom instead of stopping at a line
+        // Eased, not linear, over space-3xl: the page melts into the bottom instead of stopping at a line
         colors: [solid, for (var i = 0; i <= 8; i++) solid.withValues(alpha: 1 - (i / 8) * (i / 8) * (3 - 2 * i / 8))],
-        stops: [0, for (var i = 0; i <= 8; i++) 1 - TokDim.sheetFade / r.height * (1 - i / 8)],
+        stops: [0, for (var i = 0; i <= 8; i++) 1 - TokSpace.x3xl / r.height * (1 - i / 8)],
       ).createShader(r),
       child: child,
     );
@@ -250,7 +250,7 @@ class _TripSheetState extends State<TripSheet> {
 
 /// A pop-up's bottom, in view while its page scrolls: what to do there, as buttons (one wide, or several stacked or side
 /// by side), with what they need above them (Money's total) or a line under them. Every pop-up's actions are here;
-/// going back and closing are in the header. Its big buttons sit [TokDim.surfaceFootInset] in from the sheet's sides
+/// going back and closing are in the header. Its big buttons sit [TokDim.surfaceInset] in from the sheet's sides
 /// and bottom, concentric with its corners.
 class SheetFooter extends StatelessWidget {
   const SheetFooter({super.key, required this.children, this.note});
@@ -269,7 +269,7 @@ class SheetFooter extends StatelessWidget {
             Text(note!, textAlign: TextAlign.center, style: TokText.bodySm.copyWith(color: t.textMuted)),
           ]);
     return Container(
-      padding: const EdgeInsets.fromLTRB(TokDim.surfaceFootSide, TokSpace.sm, TokDim.surfaceFootSide, TokDim.surfaceFootInset),
+      padding: const EdgeInsets.fromLTRB(TokDim.surfaceFootSide, TokSpace.sm, TokDim.surfaceFootSide, TokDim.surfaceInset),
       decoration: BoxDecoration(border: Border(top: BorderSide(color: t.borderDefault, width: TokDim.surfaceEdgeWidth))),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: TokSpace.md, children: [...children.take(children.length - 1), last]),
     );
@@ -346,8 +346,8 @@ class RowThumb extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tok;
     return Container(
-      width: TokDim.stickerRow,
-      height: TokDim.stickerRow,
+      width: TokSpace.x3xl,
+      height: TokSpace.x3xl,
       alignment: Alignment.center,
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.control)),

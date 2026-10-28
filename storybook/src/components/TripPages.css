@@ -73,7 +73,7 @@
 /* The picked place on a small still map (a plain block stands in for the tiles): its sticker in the middle, the
    map's credit at the bottom */
 .tu-place-map { position: relative; display: grid; place-items: center; height: var(--d-plan-map-height); border-radius: var(--radius-card); background: var(--color-bg-subtle); overflow: hidden; }
-.tu-place-map__credit { position: absolute; left: 0; right: 0; bottom: var(--space-2xs); text-align: center; color: var(--c-attribution-fg); }
+.tu-place-map__credit { position: absolute; left: 0; right: 0; bottom: var(--space-2xs); text-align: center; color: var(--color-text-muted); }
 /* When: sm under the day chips, then From and To; xl above Send, and its line xs under it */
 .tu-plan-from { padding-top: var(--space-sm); }
 .tu-time { display: flex; flex-direction: column; }
@@ -84,12 +84,12 @@
 .tu-time__wheel { overflow: hidden; }
 /* The time wheel: plan/picker-height tall, a muted band across the middle, times fading out above and below it. Each
    time is a label line plus xs; the scroll's padding lets the first and the last reach the middle. */
-.tu-wheel { --item: calc(var(--text-label-lg--line-height) + var(--space-xs)); position: relative; height: var(--d-plan-picker-height); }
-.tu-wheel__band { position: absolute; left: var(--space-xs); right: var(--space-xs); top: calc((var(--d-plan-picker-height) - var(--item)) / 2); height: var(--item); border-radius: var(--radius-control); background: var(--color-bg-muted); }
+.tu-wheel { --item: calc(var(--text-label-lg--line-height) + var(--space-xs)); position: relative; height: 180px; }
+.tu-wheel__band { position: absolute; left: var(--space-xs); right: var(--space-xs); top: calc((180px - var(--item)) / 2); height: var(--item); border-radius: var(--radius-control); background: var(--color-bg-muted); }
 .tu-wheel__scroll {
   position: relative;
   height: 100%;
-  padding: calc((var(--d-plan-picker-height) - var(--item)) / 2) 0;
+  padding: calc((180px - var(--item)) / 2) 0;
   overflow-y: auto;
   overscroll-behavior: contain;
   scroll-snap-type: y mandatory;
@@ -103,7 +103,7 @@
 /* Paying: who and how much, centred, xs apart and xl above the lines; the lines in a muted box inset like Why's
    (xs in from the page's edges, sm inside), each a muted label and its value at the end, xs above and below */
 .tu-pay-who { display: flex; flex-direction: column; align-items: center; gap: var(--space-xs); padding-bottom: var(--space-xl); text-align: center; }
-.tu-pay-who__face { height: var(--d-pay-amount-sticker); }
+.tu-pay-who__face { height: var(--space-4xl); }
 .tu-pay-lines { margin: 0 var(--space-xs); padding: var(--space-2xs) var(--space-sm); border-radius: var(--radius-card); background: var(--color-bg-muted); }
 .tu-pay-line { display: flex; align-items: center; gap: var(--space-sm); width: 100%; padding: var(--space-xs) 0; text-align: left; }
 .tu-pay-line--tap { border-radius: var(--radius-control); transition: transform var(--press-ms) var(--ease-out); }
@@ -112,7 +112,7 @@
 .tu-pay-line__value { flex: 1 1 0; min-width: 0; text-align: right; }
 .tu-pay-line__arrow { width: var(--size-icon-sm); height: var(--size-icon-sm); flex: none; color: var(--color-icon-muted); }
 /* A bank's mark in our lists: its first letter on a muted disc */
-.tu-bank-logo { display: grid; place-items: center; width: var(--d-bank-logo); height: var(--d-bank-logo); flex: none; border-radius: var(--radius-pill); background: var(--color-bg-muted); color: var(--color-text-default); }
+.tu-bank-logo { display: grid; place-items: center; width: var(--space-2xl); height: var(--space-2xl); flex: none; border-radius: var(--radius-pill); background: var(--color-bg-muted); color: var(--color-text-default); }
 /* Money's footer for each step: the old one fades out over the new one, both from the bottom */
 .tu-money-footers { display: grid; align-items: end; }
 .tu-money-footers__one { grid-area: 1 / 1; min-width: 0; }

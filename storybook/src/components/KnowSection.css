@@ -16,7 +16,7 @@
 .tu-know-tip {
   display: flex;
   align-items: center;
-  min-height: var(--d-know-row-height);
+  min-height: 56px;
   padding: var(--space-xs) var(--space-sm);
   border-radius: var(--radius-card);
   background: var(--color-bg-muted);

@@ -13,8 +13,8 @@
 .tu-add__circle {
   display: grid;
   place-items: center;
-  width: var(--d-button-pill-height);
-  height: var(--d-button-pill-height);
+  width: var(--space-2xl);
+  height: var(--space-2xl);
   border-radius: var(--radius-pill);
   transition: background-color var(--fade-ms) var(--ease-out), color var(--fade-ms) var(--ease-out), box-shadow var(--fade-ms) var(--ease-out);
 }

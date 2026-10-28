@@ -28,7 +28,7 @@ class TopBar extends StatelessWidget {
   static const double contentHeight = TokSpace.xl + TokDim.buttonMd;
 
   /// The same with the day filter under it.
-  static const double contentHeightWithFilter = contentHeight + TokSpace.md + TokDim.toggleChipHeight;
+  static const double contentHeightWithFilter = contentHeight + TokSpace.md + TokSpace.x2xl;
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +36,7 @@ class TopBar extends StatelessWidget {
     final top = MediaQuery.paddingOf(context).top;
     // The map fades out under a see-through white running past the day filter, so the bar reads over any map
     return Stack(children: [
-      Positioned.fill(child: DecoratedBox(decoration: BoxDecoration(gradient: easedFade(t.cTopBarBg, from: TokDim.topBarFadeStart)))),
+      Positioned.fill(child: DecoratedBox(decoration: BoxDecoration(gradient: easedFade(t.bgDefault.withValues(alpha: 0.7), from: TokDim.topBarFadeStart)))),
       Container(
       padding: EdgeInsets.fromLTRB(0, top + TokSpace.xl, 0, TokSpace.x2xl),
       child: Column(mainAxisSize: MainAxisSize.min, spacing: TokSpace.md, children: [
@@ -99,7 +99,7 @@ class ActionBar extends StatelessWidget {
     final bottom = MediaQuery.paddingOf(context).bottom;
     return Container(
       padding: EdgeInsets.fromLTRB(TokSpace.md, TokSpace.md, TokSpace.md, _android ? rowInset(context) : (bottom > 0 ? bottom : TokSpace.x2xl)),
-      decoration: BoxDecoration(gradient: easedFade(t.cActionBarBg, from: TokDim.actionBarFadeStart, up: true)),
+      decoration: BoxDecoration(gradient: easedFade(t.bgDefault, from: TokDim.actionBarFadeStart, up: true)),
       child: Row(mainAxisAlignment: MainAxisAlignment.center, spacing: TokSpace.xs, children: [
         EnterItem(index: EnterOrder.footer, child: TuButton(icon: TuIcons.places, label: 'Itinerary', size: TuButtonSize.lg, onTap: onItinerary)),
         EnterItem(index: EnterOrder.footer + 1, child: _CrewButton(onTap: onMoney)),

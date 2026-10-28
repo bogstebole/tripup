@@ -10,6 +10,14 @@ import 'basics.dart';
 import 'glass.dart';
 import 'stagger.dart';
 
+// Its own measurements: used only here, so they're not tokens.
+const double _pollBarHeight = 8;
+const double _pollOptionSticker = 48;
+const double _pollMetaFace = 16;
+const double _pollMetaFaceOverlap = 5;
+const double _pollNotVotedOpacity = 0.4;
+const double _pollLiveDimOpacity = 0.35;
+
 String _countdown(DateTime now) {
   final mins = pollClosedAt(now).difference(now).inMinutes + 1;
   return 'closes in $mins ${mins == 1 ? 'min' : 'mins'}';
@@ -159,9 +167,9 @@ class _Table extends StatelessWidget {
   Widget build(BuildContext context) {
     final voted = {for (final o in pollOptions) ...votersOf(o.id, now)};
     final order = [...dinnerTable.where(voted.contains), ...dinnerTable.where((id) => !voted.contains(id))];
-    return Overlapped(overlap: TokDim.pollMetaFaceOverlap, children: [
+    return Overlapped(overlap: _pollMetaFaceOverlap, children: [
       for (final id in order)
-        Opacity(opacity: voted.contains(id) ? 1 : TokDim.pollNotVotedOpacity, child: Sticker(personById(id).sticker, height: TokDim.pollMetaFace)),
+        Opacity(opacity: voted.contains(id) ? 1 : _pollNotVotedOpacity, child: Sticker(personById(id).sticker, height: _pollMetaFace)),
     ]);
   }
 }
@@ -202,7 +210,7 @@ class _Place extends StatelessWidget {
                 ]),
               ]),
             ),
-            Sticker(o.sticker, height: TokDim.pollOptionSticker),
+            Sticker(o.sticker, height: _pollOptionSticker),
           ]),
         ),
         Padding(padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs), child: VoteBar(votes: voters.length, ahead: true, onMuted: true)),
@@ -252,11 +260,11 @@ class VoteBar extends StatelessWidget {
     final t = context.tok;
     final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     return SizedBox(
-      height: TokDim.pollBarHeight,
+      height: _pollBarHeight,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(TokRadius.pill),
         child: ColoredBox(
-          color: onMuted ? t.cPollBarTrackOnMuted : t.cPollBarTrack,
+          color: onMuted ? t.bgDefault : t.bgMuted,
           child: TweenAnimationBuilder<double>(
             tween: Tween(end: votes / dinnerTable.length),
             duration: reduce ? Duration.zero : TokMotion.enter,
@@ -264,7 +272,7 @@ class VoteBar extends StatelessWidget {
             builder: (context, share, _) => FractionalTranslation(
               translation: Offset(share - 1, 0),
               child: DecoratedBox(
-                decoration: BoxDecoration(color: ahead ? t.cPollBarLead : t.cPollBar, borderRadius: BorderRadius.circular(TokRadius.pill)),
+                decoration: BoxDecoration(color: ahead ? t.bgBrand : TokPalette.zinc300, borderRadius: BorderRadius.circular(TokRadius.pill)),
                 child: const SizedBox.expand(),
               ),
             ),
@@ -295,7 +303,7 @@ class LiveDot extends StatefulWidget {
 
 class _LiveDotState extends State<LiveDot> with SingleTickerProviderStateMixin {
   late final _c = AnimationController(vsync: this, duration: TokMotion.pulse);
-  late final _opacity = Tween(begin: 1.0, end: TokDim.pollLiveDimOpacity).animate(CurvedAnimation(parent: _c, curve: TokMotion.easeBreathe));
+  late final _opacity = Tween(begin: 1.0, end: _pollLiveDimOpacity).animate(CurvedAnimation(parent: _c, curve: TokMotion.easeBreathe));
 
   @override
   void didChangeDependencies() {
@@ -316,7 +324,7 @@ class _LiveDotState extends State<LiveDot> with SingleTickerProviderStateMixin {
           child: Container(
             width: TokDim.pollLiveDot,
             height: TokDim.pollLiveDot,
-            decoration: BoxDecoration(color: context.tok.cPollLive, shape: BoxShape.circle),
+            decoration: BoxDecoration(color: context.tok.bgDanger, shape: BoxShape.circle),
           ),
         ),
       );
@@ -366,7 +374,7 @@ class PollPage extends StatelessWidget {
               decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokDim.pollOptionRadius)),
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: TokSpace.sm, children: [
                 Row(spacing: TokSpace.sm, children: [
-                  SizedBox(width: TokDim.stickerRow, child: Center(child: Sticker(o.sticker, size: StickerSize.row))),
+                  SizedBox(width: TokSpace.x3xl, child: Center(child: Sticker(o.sticker, size: StickerSize.row))),
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x3xs, children: [
                       Text(o.name, style: TokText.labelLg.copyWith(color: t.textDefault)),

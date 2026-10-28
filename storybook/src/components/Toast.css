@@ -15,8 +15,8 @@
   height: var(--d-button-md);
   padding-left: var(--space-md);
   border-radius: var(--radius-pill);
-  background: var(--c-toast-bg);
-  color: var(--c-toast-fg);
+  background: var(--palette-blue-700);
+  color: var(--color-text-on-brand);
   white-space: nowrap;
   /* Hidden: half its height again above where it shows (the screen clips it) */
   transform: translate(0, -150%);

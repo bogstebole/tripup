@@ -1,17 +1,17 @@
-.tu-dish-sticker { display: inline-block; flex: none; background: var(--c-dish-edge); box-shadow: var(--shadow-slightly-raised); }
+.tu-dish-sticker { display: inline-block; flex: none; background: var(--palette-white); box-shadow: var(--shadow-slightly-raised); }
 .tu-dish-sticker img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .tu-dish-sticker--menu {
-  width: var(--d-menu-photo);
-  height: var(--d-menu-photo);
-  padding: var(--d-menu-photo-edge);
-  border-radius: calc(var(--d-menu-photo-radius) + var(--d-menu-photo-edge));
+  width: var(--space-5xl);
+  height: var(--space-5xl);
+  padding: var(--space-2xs);
+  border-radius: calc(var(--radius-control) + var(--space-2xs));
 }
-.tu-dish-sticker--menu img { border-radius: var(--d-menu-photo-radius); }
+.tu-dish-sticker--menu img { border-radius: var(--radius-control); }
 .tu-dish-sticker--pick {
-  width: var(--d-dish-pick-size);
-  height: var(--d-dish-pick-size);
-  padding: var(--d-dish-pick-edge);
-  border-radius: calc(var(--radius-sm) + var(--d-dish-pick-edge));
+  width: var(--space-2xl);
+  height: var(--space-2xl);
+  padding: var(--space-3xs);
+  border-radius: calc(var(--radius-sm) + var(--space-3xs));
 }
 .tu-dish-sticker--pick img { border-radius: var(--radius-sm); }
-.tu-dish-more__count { display: grid; place-items: center; width: 100%; height: 100%; border-radius: var(--radius-sm); background: var(--c-count-bubble-bg); color: var(--c-count-bubble-fg); }
+.tu-dish-more__count { display: grid; place-items: center; width: 100%; height: 100%; border-radius: var(--radius-sm); background: color-mix(in srgb, var(--palette-black) 10%, transparent); color: var(--color-text-default); }

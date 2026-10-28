@@ -21,7 +21,7 @@ What we decided, and why, in the order it happened. Each item: **the decision**,
 ## Visual language
 
 - **Die-cut photo stickers** for places, food and people: the same white outline and soft shadow everywhere.
-- **One source of tokens.** `design-system/tokens.json` builds both the app's Dart tokens and Storybook's CSS. Nothing in a component is a raw value. Where Figma used off-system values, the closest token replaced them.
+- **One source of tokens.** `design-system/tokens.json` builds both the app's Dart tokens and Storybook's CSS. Components use semantic tokens; a number only one component has stays inside that component (see Fewer component tokens). Where Figma used off-system values, the closest token replaced them.
 - **Condensed bold headings** (IBM Plex Sans Condensed), with Geist for body and labels.
 - **Smallest text is 14 px** (from 12): 12 px read too small on the phone.
 - **Names in lists are 16 px** (Label/LG): people in Group and dishes in Menu are what you scan for.
@@ -289,6 +289,19 @@ From the competitor research (`process/research/tripup-competitive-research-v3-e
 - **No duplicate ways back:** a picked place's Change did what Back does, so it's gone, and the place's sticker (already on the map above it) left its row.
 - **Pay stays in Money's pill, and the pill moves down** (Bogdan, on second thought): Pay is the action on that one debt (like Vote on a place), so it keeps its pill, but the pill sits at the bottom just above the footer, where the thumb reaches, and stays in view while the lists scroll. The page opens straight on its tabs.
 - **Once I've paid, the pill goes** (Bogdan): the note at the top ("You paid Maya €181.50") is the success, and the row turning Paid is the record; a green pill that stays says it a third time. The same once everyone has paid: "Lisbon is squared up" is a note, not a banner.
+
+## Fewer component tokens (28 Oct, Bogdan)
+- **Bogdan: the component tokens are confusing and mostly overkill; I can't defend them in the interview.** There were 197 (67 colours, 130 sizes). 74 only pointed at another token (`c/home/bg` → `bg/brand`), and 83 were numbers just one component uses (the trip card's 438, the poll's 16 px faces).
+- **The rule now: a component token exists only if it's derived, shared, or crosses platforms.**
+  - **Derived:** the concentric corners and insets (`surface/radius`, `home/card-radius`, `poll/radius`…), plus the sizes they're made from (the three button sizes, `surface/inset`, the card's edge). A corner follows when a button or padding changes.
+  - **Shared by several components:** the surface edge, a chip's face overlap, the widget's widths, the pin tail, my marker's glow, the bars' fade start, the splash's slide.
+  - **Shared with the Live Activity:** `poll/live-dot`, `poll/lost-opacity`, `sticker/mini`. The widget extension reads Tokens.swift, not the Dart.
+  - **Everything else:** an alias became the token it pointed at (`TokSpace.md`, `t.bgBrand`). A one-component number became a named constant at the top of that component's file (`_homeCardHeight`), and a literal in its Storybook CSS.
+- **No component colours at all.** 27 were semantic aliases. The other 40 were primitives that must not follow the theme: the map's marks, the scanner's dark screen, the bank's own look, the scrims. Those use the palette directly now (`TokPalette.blue975`, `--palette-blue-975`), only the ramps in `primitive.code` (blue, zinc, green, white, black).
+- 36 component tokens left, all sizes. Storybook's Foundations › Component dimensions says why each one is a token.
+- **Checked:** every Storybook story's computed styles match main's, element by element, apart from the Foundations tables. The app passes analyze and the Swift widget builds.
+- **We didn't drop component tokens entirely.** The concentric corners would turn into hand-typed numbers that no longer follow their inputs. The widget would repeat the app's numbers in Swift.
+- **Not in Figma yet:** its `c/` and `d/` variables are as they were.
 
 ## Lists: thumbnails on a square, fewer intro lines (27 Oct, Bogdan)
 

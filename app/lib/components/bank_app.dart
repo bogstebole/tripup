@@ -9,6 +9,10 @@ import '../design/theme.dart';
 import '../design/tokens.dart';
 import 'glass.dart';
 
+// Its own measurements: used only here, so they're not tokens.
+const double _bankButton = 56;
+const double _bankHud = 160;
+
 /// My bank's app, with the transfer TripUp started already filled in: to whom, their account, how much, the reference,
 /// from which of my accounts. I check it and approve it with Face ID (or cancel), and the bank sends me back to TripUp.
 /// In the real app iOS opens the bank's own app; in the prototype this stands in for it, in a plain look of its own
@@ -64,12 +68,11 @@ class _BankAppState extends State<BankApp> {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.tok;
     final pad = MediaQuery.paddingOf(context);
     final p = widget.pay, to = personById(p.to);
-    final muted = TokText.bodySm.copyWith(color: t.cBankMuted);
+    final muted = TokText.bodySm.copyWith(color: TokPalette.zinc500);
     return ColoredBox(
-      color: t.cBankBg,
+      color: TokPalette.zinc50,
       child: Stack(children: [
         Padding(
           padding: EdgeInsets.fromLTRB(TokSpace.screenX, pad.top + TokSpace.x2xs, TokSpace.screenX, pad.bottom + TokSpace.md),
@@ -81,8 +84,8 @@ class _BankAppState extends State<BankApp> {
                 onTap: _cancel,
                 semanticLabel: 'Back to TripUp',
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  LucideIcon(TuIcons.backSmall, size: TokSize.iconSm, color: t.cBankMuted),
-                  Text('TripUp', style: TokText.labelSm.copyWith(color: t.cBankMuted)),
+                  LucideIcon(TuIcons.backSmall, size: TokSize.iconSm, color: TokPalette.zinc500),
+                  Text('TripUp', style: TokText.labelSm.copyWith(color: TokPalette.zinc500)),
                 ]),
               ),
             ),
@@ -90,17 +93,17 @@ class _BankAppState extends State<BankApp> {
             // The bank's own bar
             Row(spacing: TokSpace.xs, children: [
               Container(
-                width: TokDim.bankLogo,
-                height: TokDim.bankLogo,
+                width: TokSpace.x2xl,
+                height: TokSpace.x2xl,
                 alignment: Alignment.center,
-                decoration: BoxDecoration(color: t.cBankLogoBg, borderRadius: BorderRadius.circular(TokDim.bankRadius)),
-                child: LucideIcon(TuIcons.bank, size: TokSize.iconSm, color: t.cBankLogoFg),
+                decoration: BoxDecoration(color: TokPalette.zinc900, borderRadius: BorderRadius.circular(TokRadius.control)),
+                child: LucideIcon(TuIcons.bank, size: TokSize.iconSm, color: TokPalette.white),
               ),
-              Expanded(child: Text(widget.bank.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.labelLg.copyWith(fontWeight: TokWeight.semibold, color: t.cBankFg))),
-              LucideIcon(TuIcons.secure, size: TokSize.iconSm, color: t.cBankMuted),
+              Expanded(child: Text(widget.bank.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.labelLg.copyWith(fontWeight: TokWeight.semibold, color: TokPalette.zinc950))),
+              LucideIcon(TuIcons.secure, size: TokSize.iconSm, color: TokPalette.zinc500),
             ]),
             const SizedBox(height: TokSpace.x2xl),
-            Text('Approve payment', style: TokText.headingLg.copyWith(color: t.cBankFg)),
+            Text('Approve payment', style: TokText.headingLg.copyWith(color: TokPalette.zinc950)),
             const SizedBox(height: TokSpace.x2xs),
             Text('TripUp asked to send this from your account.', style: muted),
             const SizedBox(height: TokSpace.lg),
@@ -108,16 +111,16 @@ class _BankAppState extends State<BankApp> {
             Container(
               padding: const EdgeInsets.all(TokSpace.md),
               decoration: BoxDecoration(
-                color: t.cBankCard,
-                borderRadius: BorderRadius.circular(TokDim.bankRadius),
-                border: Border.all(color: t.cBankLine, width: TokDim.surfaceEdgeWidth),
+                color: TokPalette.white,
+                borderRadius: BorderRadius.circular(TokRadius.control),
+                border: Border.all(color: TokPalette.zinc200, width: TokDim.surfaceEdgeWidth),
               ),
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                Text(euros(p.amount), style: TokText.headingXl.copyWith(color: t.cBankFg)),
+                Text(euros(p.amount), style: TokText.headingXl.copyWith(color: TokPalette.zinc950)),
                 Text('SEPA Instant · arrives in seconds', style: muted),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: TokSpace.sm),
-                  child: SizedBox(height: TokDim.surfaceEdgeWidth, child: ColoredBox(color: t.cBankLine)),
+                  child: SizedBox(height: TokDim.surfaceEdgeWidth, child: ColoredBox(color: TokPalette.zinc200)),
                 ),
                 _line(context, 'To', to.name),
                 _line(context, 'IBAN', accountOf(to.id)),
@@ -130,12 +133,12 @@ class _BankAppState extends State<BankApp> {
               onTap: _approve,
               semanticLabel: 'Approve with Face ID',
               child: Container(
-                height: TokDim.bankButton,
+                height: _bankButton,
                 alignment: Alignment.center,
-                decoration: BoxDecoration(color: t.cBankAccent, borderRadius: BorderRadius.circular(TokDim.bankRadius)),
+                decoration: BoxDecoration(color: TokPalette.zinc900, borderRadius: BorderRadius.circular(TokRadius.control)),
                 child: Row(mainAxisSize: MainAxisSize.min, spacing: TokSpace.xs, children: [
-                  LucideIcon(TuIcons.faceId, size: TokSize.iconMd, color: t.cBankAccentFg),
-                  Text('Approve with Face ID', style: TokText.labelLg.copyWith(fontWeight: TokWeight.semibold, color: t.cBankAccentFg)),
+                  LucideIcon(TuIcons.faceId, size: TokSize.iconMd, color: TokPalette.white),
+                  Text('Approve with Face ID', style: TokText.labelLg.copyWith(fontWeight: TokWeight.semibold, color: TokPalette.white)),
                 ]),
               ),
             ),
@@ -144,7 +147,7 @@ class _BankAppState extends State<BankApp> {
               semanticLabel: 'Cancel',
               child: SizedBox(
                 height: TokSize.touchTarget,
-                child: Center(child: Text('Cancel', style: TokText.labelLg.copyWith(color: t.cBankMuted))),
+                child: Center(child: Text('Cancel', style: TokText.labelLg.copyWith(color: TokPalette.zinc500))),
               ),
             ),
           ]),
@@ -163,9 +166,9 @@ class _BankAppState extends State<BankApp> {
                   duration: TokMotion.enter,
                   curve: TokMotion.easeOut,
                   child: Container(
-                    width: TokDim.bankHud,
-                    height: TokDim.bankHud,
-                    decoration: BoxDecoration(color: t.cBankHudBg, borderRadius: BorderRadius.circular(TokRadius.sheet)),
+                    width: _bankHud,
+                    height: _bankHud,
+                    decoration: BoxDecoration(color: TokPalette.zinc900.withValues(alpha: 0.85), borderRadius: BorderRadius.circular(TokRadius.sheet)),
                     child: Column(mainAxisAlignment: MainAxisAlignment.center, spacing: TokSpace.sm, children: [
                       AnimatedSwitcher(
                         duration: TokMotion.enter,
@@ -174,10 +177,10 @@ class _BankAppState extends State<BankApp> {
                         switchOutCurve: TokMotion.easeOut,
                         transitionBuilder: (child, a) => ScaleTransition(scale: Tween(begin: TokMotion.morphEnterScale, end: 1.0).animate(a), child: FadeTransition(opacity: a, child: child)),
                         child: _phase == _Phase.approved
-                            ? LucideIcon(TuIcons.done, key: const ValueKey('ok'), size: TokDim.bankHudIcon, color: t.cBankOk)
-                            : LucideIcon(TuIcons.faceId, key: const ValueKey('face'), size: TokDim.bankHudIcon, color: t.cBankHudFg),
+                            ? LucideIcon(TuIcons.done, key: const ValueKey('ok'), size: TokSpace.x5xl, color: TokPalette.green500)
+                            : LucideIcon(TuIcons.faceId, key: const ValueKey('face'), size: TokSpace.x5xl, color: TokPalette.white),
                       ),
-                      Text(_phase == _Phase.approved ? 'Approved' : 'Face ID', style: TokText.labelMd.copyWith(color: t.cBankHudFg)),
+                      Text(_phase == _Phase.approved ? 'Approved' : 'Face ID', style: TokText.labelMd.copyWith(color: TokPalette.white)),
                     ]),
                   ),
                 ),
@@ -190,12 +193,11 @@ class _BankAppState extends State<BankApp> {
   }
 
   Widget _line(BuildContext context, String label, String value) {
-    final t = context.tok;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: TokSpace.x2xs),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.sm, children: [
-        Text(label, style: TokText.bodySm.copyWith(color: t.cBankMuted)),
-        Expanded(child: Text(value, textAlign: TextAlign.end, style: TokText.labelMd.copyWith(color: t.cBankFg))),
+        Text(label, style: TokText.bodySm.copyWith(color: TokPalette.zinc500)),
+        Expanded(child: Text(value, textAlign: TextAlign.end, style: TokText.labelMd.copyWith(color: TokPalette.zinc950))),
       ]),
     );
   }

@@ -1,4 +1,4 @@
-.tu-chips { display: flex; align-items: center; gap: var(--d-chip-gap); flex: 1 1 0; min-width: 0; }
+.tu-chips { display: flex; align-items: center; gap: var(--space-3xs); flex: 1 1 0; min-width: 0; }
 .tu-chips__chip {
   display: inline-flex;
   align-items: center;
@@ -6,8 +6,8 @@
   flex: none;
   height: var(--d-chip-height);
   padding: var(--space-2xs) var(--space-xs);
-  background: var(--c-chip-bg);
-  color: var(--c-chip-fg);
+  background: var(--color-bg-muted);
+  color: var(--color-text-brand);
   white-space: nowrap;
   overflow: hidden;
 }
