@@ -291,7 +291,7 @@ const startCenter = LatLng(38.7591, -9.1405);
 const startZoom = 14.1;
 const meHeadingDegrees = -40.0;
 
-const tripTitle = 'Schmedeswurtherwesterdeich';
+const tripTitle = 'Road trip to Lisbon';
 const tripDates = '12 May - 21 May';
 
 /// Where the trip is: under its name, since a trip has its own name.

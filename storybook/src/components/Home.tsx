@@ -19,7 +19,7 @@ import './Home.css';
 const m = tokens.motion;
 
 /** The trip's name, big, on up to two lines. A single word too long for a line shrinks to fit it instead of breaking
- *  (the app does the same; the demo's trip is one 26-letter word). */
+ *  (the app does the same). */
 function TripName({ title }: { title: string }) {
   const ref = useRef<HTMLSpanElement>(null);
   useLayoutEffect(() => {

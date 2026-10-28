@@ -96,6 +96,9 @@
   font-size: 40px;
   line-height: 1.2;
   text-shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 4px 12px rgb(0 0 0 / 0.08);
+  /* A white edge like a sticker's, 4 outside the letters: the stroke is centred, so twice that, painted under the fill */
+  -webkit-text-stroke: calc(var(--space-2xs) * 2) var(--palette-white);
+  paint-order: stroke fill;
 }
 .tu-home-face__way-in { display: flex; flex-direction: column; align-items: center; }
 /* Everyone on it, overlapped, the later ones on top, standing 8 over the button */
