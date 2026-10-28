@@ -175,6 +175,10 @@ export const upNextChips = (here: string[]): InfoChip[] => [
 /** How long a plan lasts after its start, for when it counts as over (the app's `planLasts`). */
 export const PLAN_LASTS_MS = 3 * 3600000;
 
+/** Where we're staying: Maya's Airbnb in Alfama, on Largo Santa Luzia. Its sticker is a photo of the street's
+ *  building; the link goes to Airbnb's trips, where the booking is. */
+export const STAY = { name: 'Alfama flat', sticker: 'alfama-flat', at: [38.71165, -9.1304] as LatLng, link: 'https://www.airbnb.com/trips' };
+
 /** Dinner is on: its time has come (from a quarter of an hour before, for the three hours it lasts) and someone is
  *  there (inside the geofence). Nobody presses anything for it; it's where people are and the time. */
 export const isActive = (now: Date) =>

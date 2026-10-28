@@ -475,6 +475,13 @@ From the research (`process/research/tripup-competitive-research-v3-en.md`, Paym
 - **On Android the map's credit sits above the navigation bar, and the buttons one line higher.** The credit (required by OpenStreetMap's licence) was on top of the gesture handle, and with three-button navigation under the buttons. iOS keeps it in the home indicator's inset as designed.
 - **The launch screen is Your trips' blue** (a token, written into Android's resources), so the app opens without a white flash.
 
+## Ren's catch-up: what's settled, not what's being voted on (28 Oct)
+
+- **Tonight's dinner shows as a plan, at 5 PM.** Ren just joined; the poll row asked him to vote on something that, for him, didn't exist yet, and it was the only row with an icon and blue text. Now it reads like everything else on the page: what's happening and when. The poll still reaches him the normal way once it opens.
+  - We didn't keep a "where: being decided" line: it's noise on a page meant to say "here's the plan".
+- **No icons where everything else is a sticker.** The flat is a sticker made from a photo of a building on its street, like the places.
+- **The flat answers the two things you need on arrival:** where it is (Directions) and the booking (Open in Airbnb, its trips page, since there's no real listing). Both soft: Open the trip stays the one primary action.
+
 ## Going in: one thing at a time (28 Oct)
 
 - **Your trips leaves first, then the trip arrives.** With both at once, the cards fading out and the trip's controls fading in crossed in the middle of the screen and it read as a mess. Now the trip's entrance starts when the last part of Your trips has gone; only the map's zoom runs under both, so there's always movement and no dead pause.
