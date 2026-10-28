@@ -85,9 +85,10 @@
   flex: 1 1 0;
   min-height: 0;
 }
-.tu-home-face__titles { display: flex; flex-direction: column; align-items: center; gap: var(--space-xs); text-align: center; }
+.tu-home-face__titles { display: flex; flex-direction: column; align-items: center; gap: var(--space-xs); width: 100%; min-width: 0; text-align: center; }
 /* The screen's one big line, bigger than any text style, lifted off the map (elevation-raised, as a text shadow) */
 .tu-home-face__title {
+  align-self: stretch;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;

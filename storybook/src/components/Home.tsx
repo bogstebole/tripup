@@ -18,6 +18,26 @@ import './Home.css';
 
 const m = tokens.motion;
 
+/** The trip's name, big, on up to two lines. A single word too long for a line shrinks to fit it instead of breaking
+ *  (the app does the same; the demo's trip is one 26-letter word). */
+function TripName({ title }: { title: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const fit = () => {
+      el.style.fontSize = '';
+      const over = el.scrollWidth / el.clientWidth;
+      if (over > 1) el.style.fontSize = `${parseFloat(getComputedStyle(el).fontSize) / over}px`;
+    };
+    fit();
+    const watch = new ResizeObserver(fit);
+    watch.observe(el.parentElement ?? el);
+    return () => watch.disconnect();
+  }, [title]);
+  return <span ref={ref} className="text-display tu-home-face__title">{title}</span>;
+}
+
 export interface TripsHomeProps {
   /** Into the trip you're on: the top of the screen, or See trip details. */
   onOpen?: () => void;
@@ -101,7 +121,7 @@ export function HomeHeroFace({ now = TRIP_NOW, onOpen }: { now?: Date; onOpen?: 
       </div>
       <div className="tu-home-face__middle">
         <div className="tu-home-face__titles">
-          <span className="text-display tu-home-face__title">{TRIP.title}</span>
+          <TripName title={TRIP.title} />
           <span className="text-label-md">{TRIP.city} · {TRIP.dates}</span>
         </div>
         <div className="tu-home-face__way-in">

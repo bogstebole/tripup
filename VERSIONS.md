@@ -655,6 +655,13 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Final UI, iteration 1.79: Your trips, the trip over its map (branch `feat/home-map-hero`)
+- Bogdan's new home screen (Figma 258:12058): the trip you're on over its map at the top (name, dates, faces, See trip details), and Coming up and Previous trips (Mallorca, Tokyo, Hanoi) as soft glass cards on the blue.
+- App: `home.dart` rewritten. The opening transition in `trip_screen.dart` now grows from the hero. New `assets/map/home-lisbon-hero.png`; `home-lisbon.png` removed (the original is in `Assets/map/`). The five trip-card tokens are removed.
+- Storybook: `Home.tsx`/`Home.css` the same. A single word too long for the name shrinks to fit there too (added after the merge).
+- **Checked:** `flutter analyze` and `tsc` are clean. The agent compared it with Figma at 440 and 393 by rendering it in a Flutter test. I checked a web build of the app (Your trips at rest) and Storybook (Your trips, opening the trip, and Back). In the web build, taps don't reach the app, so the opening wasn't seen there.
+- Not seen: the app's opening on a phone, reduced motion, and the splash handing off to the new screen. Not on the iPhone, in an APK or on Vercel.
+
 ### Final UI, iteration 1.78: chevrons on rows, a place's story, a bill nobody logged (branch `feat/rows-recap-bill`)
 - Bogdan: rows don't show they can be tapped (a chevron, no background); a place we've been should open what happened there in the same pop-up with Back; the bill needs a way to say who had a line when nobody logged it, and to show its lines open.
 - `SheetRow` ends in `RowChevron` whenever it has a tap: right, or down and turning for rows that open in place (`expanded`). The bank list's and the search's own arrows are removed.
