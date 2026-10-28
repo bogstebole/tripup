@@ -507,18 +507,18 @@ class _Raised extends StatelessWidget {
   }
 }
 
-/// The trip is on now: a soft glass pill over its name, the green bead, "Happening now" and which day of the trip it is.
+/// The trip is on now: a plain white pill over its name (not glass: glass is for what can be tapped), the green bead,
+/// "Happening now" and which day of the trip it is.
 class _HappeningNow extends StatelessWidget {
   const _HappeningNow();
 
   @override
   Widget build(BuildContext context) {
     final t = context.tok;
-    return Glass(
-      kind: GlassKind.soft,
+    return Container(
       height: TokSpace.x2xl,
-      radius: BorderRadius.circular(TokRadius.pill),
       padding: const EdgeInsets.symmetric(horizontal: TokSpace.sm),
+      decoration: BoxDecoration(color: t.bgDefault, borderRadius: BorderRadius.circular(TokRadius.pill)),
       child: Row(mainAxisSize: MainAxisSize.min, spacing: TokSpace.xs, children: [
         const _NowDot(),
         Text.rich(

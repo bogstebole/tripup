@@ -655,6 +655,10 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Final UI, iteration 1.87: Happening now on a plain pill (branch `fix/now-pill-flat`)
+- Bogdan: the pill over the name shouldn't look like the buttons; that style is for what can be tapped. It's now plain `bg/default`, with no inset or lift, in the app and Storybook.
+- On Bogdan's iPhone 15 as build 16 (`1.0.0+16`), updated in place with devicectl.
+
 ### Final UI, iteration 1.86: Happening now, and a wider way in (branch `fix/home-button-width`)
 - Bogdan: See trip details should be at least 24 wider than the faces above it on each side, and it needs to be clearer that this trip is happening now.
 - App: `_HappeningNow` (a soft glass pill with the green bead, "Happening now · Day 3 of 10") is a new `HomePart` over the name (parts renumbered). `_WayIn` measures the faces and gives the button `minWidth` = faces + space-xl × 2, its words centred. The bead is gone from the button.
