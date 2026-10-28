@@ -212,11 +212,11 @@
   --d-poll-activity-bar: 4px;
   --d-poll-activity-timer: 48px;
   --d-poll-mark: 24px;
-  --d-home-header-gap: 29px;
+  --d-home-header-gap: 28px;
   --d-plan-map-height: 160px;
   --d-plan-picker-height: 180px;
   --d-home-card-height: 438px;
-  --d-home-card-edge: 5px;
+  --d-home-card-edge: 4px;
   --d-home-map-fade-start: 0.152;
   --d-home-now-pill-height: 36px;
   --d-home-now-dot: 10px;
@@ -306,8 +306,8 @@
   --d-surface-foot-inset: 24px;
   --d-surface-foot-side: 8px;
   --d-widget-mid-radius: 28px;
-  --d-home-card-padding: 29px;
-  --d-home-card-radius: 51px;
+  --d-home-card-padding: 28px;
+  --d-home-card-radius: 50px;
   --d-home-now-pill-inset: 4px;
   --d-poll-place-radius: 28px;
   --d-poll-radius: 36px;
