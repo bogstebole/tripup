@@ -55,6 +55,9 @@ class _TripsHomeState extends State<TripsHome> {
   /// How far the list is pulled past its end (the bounce).
   final _over = ValueNotifier<double>(0);
 
+  /// Where the blue starts, so a heading can tell how blue it is under it.
+  final _blue = GlobalKey();
+
   @override
   void dispose() {
     _under.dispose();
@@ -111,6 +114,7 @@ class _TripsHomeState extends State<TripsHome> {
                   right: 0,
                   bottom: 0,
                   child: HomePart(
+                    key: _blue,
                     index: HomePart.blue,
                     child: IgnorePointer(
                       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -198,25 +202,65 @@ class _TripsHomeState extends State<TripsHome> {
 
   /// A heading in white (with a count, softer), then its cards; each its own part, from [part] on.
   Widget _section(BuildContext context, String title, int part, List<Widget> rows, {int? count}) {
-    final t = context.tok;
     return Padding(
       padding: const EdgeInsets.all(TokSpace.md),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: TokSpace.xs, children: [
         HomePart(
           index: part,
           child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: TokSpace.md),
-          child: Text.rich(
-            TextSpan(children: [
-              TextSpan(text: title),
-              if (count != null) TextSpan(text: ' $count', style: TextStyle(color: TokPalette.white.withValues(alpha: 0.7))),
-            ]),
-            style: TokText.headingSm.copyWith(color: t.textOnBrand),
+            padding: const EdgeInsets.symmetric(horizontal: TokSpace.md),
+            child: _Heading(title: title, count: count, blue: _blue),
           ),
-        ),
         ),
         for (final (i, row) in rows.indexed) HomePart(index: part + 1 + i, child: row),
       ]),
+    );
+  }
+}
+
+/// A heading over the blue: white where the blue under it is strong, brand blue where it's still mostly clear over the
+/// map, so it reads on either (its count softer). The blue scrolls with the list, so where a heading sits in it is set
+/// by the layout; it's read once laid out.
+class _Heading extends StatefulWidget {
+  const _Heading({required this.title, this.count, required this.blue});
+  final String title;
+  final int? count;
+  final GlobalKey blue;
+
+  @override
+  State<_Heading> createState() => _HeadingState();
+}
+
+class _HeadingState extends State<_Heading> {
+  /// How blue it is under the heading's middle (0 clear, 1 solid).
+  double _under = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _read());
+  }
+
+  void _read() {
+    if (!mounted) return;
+    final me = context.findRenderObject(), blue = widget.blue.currentContext?.findRenderObject();
+    if (me is! RenderBox || blue is! RenderBox || !me.hasSize) return;
+    final y = me.localToGlobal(me.size.center(Offset.zero)).dy - blue.localToGlobal(Offset.zero).dy;
+    final under = (y / _tripsFade).clamp(0.0, 1.0);
+    if ((under - _under).abs() > 0.01) setState(() => _under = under);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tok;
+    final light = _under < 0.5;
+    final color = light ? t.textBrand : t.textOnBrand;
+    return Text.rich(
+      TextSpan(children: [
+        TextSpan(text: widget.title),
+        if (widget.count != null) TextSpan(text: ' ${widget.count}', style: TextStyle(color: color.withValues(alpha: 0.7))),
+      ]),
+      style: TokText.headingSm.copyWith(color: color),
     );
   }
 }
@@ -330,7 +374,6 @@ class _HeroFace extends StatelessWidget {
     final t = context.tok;
     final pad = MediaQuery.paddingOf(context);
     final crew = [for (final p in people) if (onTrip(p, tripNow())) p];
-    final lift = [for (final s in TokShadow.elevationRaised) Shadow(color: s.color, offset: s.offset, blurRadius: s.blurRadius)];
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onOpen,
@@ -343,7 +386,7 @@ class _HeroFace extends StatelessWidget {
             child: Center(
               child: Column(mainAxisSize: MainAxisSize.min, spacing: TokSpace.x2xl, children: [
                 Column(spacing: TokSpace.xs, children: [
-                  HomePart(index: HomePart.title, child: _HeroTitle(style: TokText.display.copyWith(fontSize: _heroTitle, color: t.textDefault, shadows: lift))),
+                  HomePart(index: HomePart.title, child: _Raised(child: _HeroTitle(style: TokText.display.copyWith(fontSize: _heroTitle, color: t.textDefault)))),
                   HomePart(index: HomePart.dates, child: Text('$tripCity · $tripDates', style: TokText.labelMd.copyWith(color: t.textDefault))),
                 ]),
                 Column(children: [
@@ -355,7 +398,7 @@ class _HeroFace extends StatelessWidget {
                       child: OverflowBox(
                         alignment: Alignment.topCenter,
                         maxHeight: _heroFace,
-                        child: Overlapped(overlap: _heroFaceOverlap, children: [for (final p in crew) Sticker(p.sticker, height: _heroFace)]),
+                        child: _Raised(child: Overlapped(overlap: _heroFaceOverlap, children: [for (final p in crew) Sticker(p.sticker, height: _heroFace)])),
                       ),
                     ),
                   ),
@@ -371,7 +414,7 @@ class _HeroFace extends StatelessWidget {
 }
 
 /// The trip's name, big, on up to two lines, with a white edge like a sticker's (4 outside the letters, round at the
-/// corners) so it reads on any part of the map; the shadow sits under the edge. A single word too long for a line
+/// corners) so it reads on any part of the map; it's lifted by elevation-raised under the edge (see [_Raised]). A single word too long for a line
 /// shrinks to fit it instead of breaking.
 class _HeroTitle extends StatelessWidget {
   const _HeroTitle({required this.style});
@@ -396,8 +439,35 @@ class _HeroTitle extends StatelessWidget {
             ..color = TokPalette.white,
         );
         Text line(TextStyle s) => Text(tripTitle, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: s);
-        return Stack(alignment: Alignment.center, children: [line(edge), line(fit.copyWith(shadows: const []))]);
+        return Stack(alignment: Alignment.center, children: [line(edge), line(fit)]);
       });
+}
+
+/// Lifted off the map by elevation-raised, following the shape itself (the faces' outlines, the title's white edge): each
+/// of the token's shadows is the child again, in its colour, blurred and moved. None with light effects (it's a blur).
+class _Raised extends StatelessWidget {
+  const _Raised({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (lightEffects) return child;
+    return Stack(clipBehavior: Clip.none, children: [
+      for (final s in TokShadow.elevationRaised)
+        Positioned.fill(
+          child: IgnorePointer(
+            child: Transform.translate(
+              offset: s.offset,
+              child: ImageFiltered(
+                imageFilter: ui.ImageFilter.blur(sigmaX: Shadow.convertRadiusToSigma(s.blurRadius), sigmaY: Shadow.convertRadiusToSigma(s.blurRadius)),
+                child: ColorFiltered(colorFilter: ColorFilter.mode(s.color, BlendMode.srcIn), child: child),
+              ),
+            ),
+          ),
+        ),
+      child,
+    ]);
+  }
 }
 
 /// "See trip details": the way in, a primary pill with the trip's green bead (it's on now).

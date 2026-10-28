@@ -51,6 +51,8 @@ export interface TripsHomeProps {
 /** Your trips' elements, in the order they leave (and come back): each line of text, the faces, the button, each
  *  heading and each card fades, blurs (up to enter-blur) and moves a little on its own, enter-ms each, open-stagger-ms
  *  apart. The blue leaves last and comes back first. */
+/** Under the trip, the blue goes from clear to solid over this much (as in the app). */
+const BLUE_FADE_PX = 275;
 const PREVIOUS = 5 + 1 + UPCOMING_TRIPS.length;
 const PART = { header: 0, title: 1, dates: 2, faces: 3, wayIn: 4, comingUp: 5, previous: PREVIOUS, blue: PREVIOUS + 1 + PAST_TRIPS.length } as const;
 /** From the first element leaving to the last gone. */
@@ -109,9 +111,19 @@ export function TripsHome({ onOpen, now = TRIP_NOW, scrolledToEnd }: TripsHomePr
 /** A heading in white (with a count, softer), then its cards. */
 function Section({ title, trips, count, part: i }: { title: string; trips: TripSummary[]; count?: number; part: number }) {
   const h = part(i);
+  // White where the blue under it is strong, brand blue where it's still mostly clear over the map. The blue scrolls
+  // with the list, so where the heading sits in it is set by the layout
+  const ref = useRef<HTMLHeadingElement>(null);
+  const [light, setLight] = useState(false);
+  useLayoutEffect(() => {
+    const el = ref.current, trips = el?.closest('.tu-home__trips') as HTMLElement | null;
+    if (!el || !trips) return;
+    const y = el.getBoundingClientRect().top + el.offsetHeight / 2 - trips.getBoundingClientRect().top;
+    setLight(y / BLUE_FADE_PX < 0.5);
+  }, []);
   return (
     <section className="tu-home__section">
-      <h2 className={`text-heading-sm tu-home__heading ${h.className}`} style={h.style}>
+      <h2 ref={ref} className={`text-heading-sm tu-home__heading ${h.className}`} style={h.style} data-light={light || undefined}>
         {title}
         {count != null && <span className="tu-home__count"> {count}</span>}
       </h2>
