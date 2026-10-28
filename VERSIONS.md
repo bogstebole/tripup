@@ -655,6 +655,11 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Repo: a README, and no leftovers (branch `docs/readme`)
+- Bogdan: tidy the repo. A root `README.md` says what TripUp is, links the web prototype, Storybook and the case study, explains each folder and how the work was logged, and how to run the app and Storybook.
+- The 98 local branches already merged into `main` are deleted, and so are the 36 merged ones on GitHub. Two unmerged experiments stay: `perf/web-wasm` (local) and `try/new-bundle-id`. Five leftover worktrees are removed; all of them were already merged. One of them held a change Xcode had made on its own to `project.pbxproj` and nobody committed; it was saved as a patch before the worktree went.
+- The repo's name (`fake-task`) and its description are to be decided with Bogdan.
+
 ### Final UI, iteration 1.91: a face pile shows everyone up to five (branch `fix/face-pile-five`)
 - Bogdan: "+2" next to two faces makes no sense, they'd all fit. Only past five should it say "+".
 - FacePile (the map's groups, who's at a pin) now shows every sticker up to five; with six or more it's four and "+N", so it's never wider than five. Before it was two and "+N".
