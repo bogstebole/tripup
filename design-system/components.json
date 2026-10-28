@@ -1,7 +1,7 @@
 {
   "$description": "TripUp's Figma components, documented for people and agents. Hand-written: what, use, avoid, props, code, story. From the Figma file: section (the component's section on the Components page), id (node id), key (component key), figmaProps (the component's property API). Build COMPONENTS.md with: node design-system/build-components-doc.mjs",
   "file": "https://www.figma.com/design/G13GoEmstoKyMr5nCh8eoQ/TripUp-Test-Task",
-  "repo": "https://github.com/bogstebole/fake-task/blob/main/",
+  "repo": "https://github.com/bogstebole/tripup/blob/main/",
   "categories": [
     {
       "name": "Buttons",
