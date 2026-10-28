@@ -68,22 +68,22 @@ class _SegmentedTabsState extends State<SegmentedTabs> with TickerProviderStateM
     final t = context.tok;
     return Container(
       key: _track,
-      padding: const EdgeInsets.all(TokDim.segmentTrackPadding),
-      decoration: BoxDecoration(color: t.cSegmentTrack, borderRadius: BorderRadius.circular(TokRadius.pill)),
+      padding: const EdgeInsets.all(TokSpace.x3xs),
+      decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.pill)),
       // The pill's shadow may spill past the track
       child: Stack(clipBehavior: Clip.none, children: [
         if (_placed)
           AnimatedBuilder(
             animation: Listenable.merge([_left, _width]),
             builder: (context, _) => Positioned(
-              left: _left.value - TokDim.segmentTrackPadding,
+              left: _left.value - TokSpace.x3xs,
               top: 0,
               width: _width.value,
               height: TokDim.segmentHeight,
               child: DecoratedBox(decoration: surfaceDecoration(context, BorderRadius.circular(TokRadius.pill))),
             ),
           ),
-        Row(mainAxisSize: widget.wide ? MainAxisSize.max : MainAxisSize.min, spacing: TokDim.segmentGap, children: [
+        Row(mainAxisSize: widget.wide ? MainAxisSize.max : MainAxisSize.min, spacing: TokSpace.x2xs, children: [
           for (var i = 0; i < widget.tabs.length; i++)
             if (widget.wide) Expanded(child: _tab(context, i)) else _tab(context, i),
         ]),
@@ -116,7 +116,7 @@ class _SegmentedTabsState extends State<SegmentedTabs> with TickerProviderStateM
                       curve: TokMotion.easeOut,
                       style: TokText.bodySm.copyWith(
                         fontWeight: i == widget.index ? TokWeight.medium : TokWeight.regular,
-                        color: i == widget.index ? t.cSegmentOnFg : t.cSegmentOffFg,
+                        color: i == widget.index ? t.textDefault : t.textMuted,
                       ),
                       child: Text(widget.tabs[i]),
                     ),

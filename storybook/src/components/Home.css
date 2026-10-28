@@ -3,28 +3,28 @@
 .tu-home {
   position: relative;
   height: 100%;
-  background: var(--c-home-bg);
-  color: var(--c-home-fg);
+  background: var(--color-bg-brand);
+  color: var(--color-text-on-brand);
 }
 .tu-home__list {
   height: 100%;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: none;
-  padding: var(--space-md) 0 var(--d-home-bottom-fade);
+  padding: var(--space-md) 0 89px;
 }
 .tu-home__list::-webkit-scrollbar { display: none; }
 .tu-home__fade {
   position: absolute;
   inset: auto 0 0;
-  height: var(--d-home-bottom-fade);
-  background: linear-gradient(to bottom, transparent, var(--c-home-bg));
+  height: 89px;
+  background: linear-gradient(to bottom, transparent, var(--color-bg-brand));
   pointer-events: none;
 }
 
 /* "Your trips", the bell and me, then the trip you're on */
 .tu-home__top { padding: 0 var(--space-md); }
-.tu-home__head { display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--d-home-header-gap); }
+.tu-home__head { display: flex; align-items: center; gap: var(--space-sm); margin-bottom: 28px; }
 .tu-home__title { flex: 1 1 0; min-width: 0; margin: 0; }
 /* Me: soft glass, as round and as big as the bell */
 .tu-home__me {
@@ -34,7 +34,7 @@
   width: var(--d-button-md);
   height: var(--d-button-md);
   border-radius: var(--radius-pill);
-  background: var(--c-button-soft-bg);
+  background: var(--color-bg-muted);
   box-shadow: var(--inset-button-soft), var(--shadow-slightly-raised);
 }
 .tu-home__gap { height: var(--space-xl); }
@@ -42,7 +42,7 @@
 /* Coming up, Previous trips: a heading in white (its count softer), then light rows */
 .tu-home__section { display: flex; flex-direction: column; gap: var(--space-xs); padding: var(--space-md); }
 .tu-home__heading { margin: 0; }
-.tu-home__count { color: var(--c-home-count-fg); }
+.tu-home__count { color: color-mix(in srgb, var(--palette-white) 70%, transparent); }
 
 /* The trip you're on: 438 high, the surface's corners and shadow, a white edge on top of everything in it. The whole
    card is one button. */
@@ -50,7 +50,7 @@
   position: relative;
   display: block;
   width: 100%;
-  height: var(--d-home-card-height);
+  height: 438px;
   overflow: hidden;
   /* Concentric with what's in its corners: its padding plus the arrow's radius */
   border-radius: var(--d-home-card-radius);
@@ -62,7 +62,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  border: var(--d-home-card-edge) solid var(--c-home-card-edge);
+  border: var(--d-home-card-edge) solid var(--palette-white);
   border-radius: inherit;
   pointer-events: none;
 }
@@ -91,8 +91,8 @@
   inset: 0;
   background: linear-gradient(
     to top,
-    var(--c-home-map-fade),
-    var(--c-home-map-fade) calc(var(--d-home-map-fade-start) * 100%),
+    var(--palette-white),
+    var(--palette-white) calc(0.152 * 100%),
     transparent
   );
 }
@@ -113,8 +113,8 @@
 .tu-home-card__crew { display: flex; align-items: center; }
 /* Everyone on it, overlapped, the later ones on top */
 .tu-home-card__faces { display: flex; align-items: center; flex: 1 1 0; min-width: 0; }
-.tu-home-card__face { height: var(--d-home-hero-face); }
-.tu-home-card__face + .tu-home-card__face { margin-left: calc(var(--d-home-hero-face-overlap) * -1); }
+.tu-home-card__face { height: 39px; }
+.tu-home-card__face + .tu-home-card__face { margin-left: calc(22px * -1); }
 /* The arrow takes no presses of its own: they land on the card */
 .tu-home-card__go { pointer-events: none; }
 
@@ -126,18 +126,18 @@
   height: var(--d-home-now-pill-height);
   padding: 0 var(--space-sm);
   border-radius: var(--radius-pill);
-  background: var(--c-button-soft-bg);
+  background: var(--color-bg-muted);
   box-shadow: var(--inset-button-soft), var(--shadow-slightly-raised);
   color: var(--color-text-default);
 }
 .tu-home-now__dot {
   flex: none;
-  width: var(--d-home-now-dot);
-  height: var(--d-home-now-dot);
-  border: calc(var(--d-surface-edge-width) / 2) solid var(--c-now-dot-edge);
+  width: 10px;
+  height: 10px;
+  border: calc(var(--d-surface-edge-width) / 2) solid var(--palette-green-400);
   border-radius: var(--radius-pill);
-  background: linear-gradient(to bottom, var(--c-now-dot-top), var(--c-now-dot-bottom));
-  box-shadow: 0 0 0 var(--d-home-now-dot-glow) var(--c-now-dot-glow);
+  background: linear-gradient(to bottom, var(--palette-green-500), var(--palette-green-700));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--palette-green-500) 20%, transparent);
 }
 
 /* Another trip: a light brand row with its sticker (in a row-sticker square), name and dates, and the faces */
@@ -147,15 +147,15 @@
   gap: var(--space-sm);
   padding: var(--space-sm) var(--space-md);
   border-radius: var(--radius-card);
-  background: var(--c-home-row-bg);
+  background: var(--color-bg-brand-subtle);
 }
 .tu-home-row__sticker {
   display: flex;
   align-items: center;
   justify-content: center;
   flex: none;
-  width: var(--d-home-row-sticker);
-  height: var(--d-home-row-sticker);
+  width: 48px;
+  height: 48px;
 }
 .tu-home-row__sticker > img { max-width: 100%; max-height: 100%; }
 .tu-home-row__titles { display: flex; flex-direction: column; flex: 1 1 0; min-width: 0; }
@@ -163,4 +163,4 @@
 .tu-home-row__dates { color: var(--color-text-muted); }
 /* Overlapped, the later ones on top, on the row's bottom edge */
 .tu-home-row__faces { display: flex; align-items: center; flex: none; align-self: flex-end; }
-.tu-home-row__faces > * + * { margin-left: calc(var(--d-home-row-face-overlap) * -1); }
+.tu-home-row__faces > * + * { margin-left: calc(18px * -1); }

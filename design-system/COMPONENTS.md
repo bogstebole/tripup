@@ -11,7 +11,7 @@ The Flutter app (app/lib) is the source of truth; each component is drawn 1:1 fr
 - Figma: node id, component key, and the property API exactly as Figma has it (`Name=value|value` for variants; text, boolean and instance swap properties in brackets).
 - Props: how the Figma properties map to the code's parameters (`Kind → kind`).
 - Code: the widget and its file. Swift for the Live Activity and the notification.
-- Tokens: every colour, size and space is a variable made from design-system/tokens.json; in Figma its code syntax is the CSS variable (`var(--c-button-soft-bg)`), the same token as TokColors and TokDim in Dart. The tokens each component uses are listed in its Figma description.
+- Tokens: every colour, size and space is a variable made from design-system/tokens.json; in Figma its code syntax is the CSS variable (`var(--color-bg-muted)`), the same token as TokColors and TokSpace in Dart. Components use semantic tokens; a component token (TokDim) exists only when it is derived (concentric corners), shared by several components, or shared with the Live Activity. The tokens each component uses are listed in its Figma description.
 - Screens are instances of these components: change the component, never a copy on a screen.
 
 ## Index

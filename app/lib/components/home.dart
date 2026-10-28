@@ -10,6 +10,18 @@ import 'basics.dart';
 import 'glass.dart';
 import 'stagger.dart';
 
+// Its own measurements: used only here, so they're not tokens.
+const double _homeHeaderGap = 28;
+const double _homeCardHeight = 438;
+const double _homeMapFadeStart = 0.152;
+const double _homeNowDot = 10;
+const double _homeNowDotGlow = 2;
+const double _homeHeroFace = 39;
+const double _homeHeroFaceOverlap = 22;
+const double _homeRowSticker = 48;
+const double _homeRowFaceOverlap = 18;
+const double _homeBottomFade = 89;
+
 /// Your trips, on the brand blue. The one you're on is a big card: a still of the city with places you've been as
 /// stickers, "Happening now", its name and dates, who's on it, and the way in. Under it, the trip coming up and the
 /// ones before, as rows. Tapping the current one goes into its map. On a cold start it waits under the splash and
@@ -28,11 +40,11 @@ class TripsHome extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: systemBarsOver(dark: true),   // white status bar (and navigation bar icons) on the blue
       child: ColoredBox(
-        color: t.cHomeBg,
+        color: t.bgBrand,
         child: Stack(children: [
           Positioned.fill(
             child: ListView(
-              padding: EdgeInsets.fromLTRB(0, pad.top + TokSpace.md, 0, pad.bottom + TokDim.homeBottomFade),
+              padding: EdgeInsets.fromLTRB(0, pad.top + TokSpace.md, 0, pad.bottom + _homeBottomFade),
               children: [
                 StaggerIn(
                   until: homeIn,
@@ -48,7 +60,7 @@ class TripsHome extends StatelessWidget {
                           // A long press shows the startup timings (hidden, for testers' phones)
                           child: GestureDetector(
                             onLongPress: StartupTimings.show,
-                            child: Text('Your trips', maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingLg.copyWith(color: t.cHomeFg)),
+                            child: Text('Your trips', maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingLg.copyWith(color: t.textOnBrand)),
                           ),
                         ),
                         TuButton(icon: TuIcons.bell, label: 'Notifications', onTap: () => tripNotice.value = 'No new notifications'),
@@ -66,7 +78,7 @@ class TripsHome extends StatelessWidget {
                     ]),
                   ),
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(TokSpace.md, TokDim.homeHeaderGap, TokSpace.md, TokSpace.xl),
+                    padding: const EdgeInsets.fromLTRB(TokSpace.md, _homeHeaderGap, TokSpace.md, TokSpace.xl),
                     child: _CurrentTrip(key: cardKey, onOpen: onOpen),
                   ),
                   _section(context, 'Coming up', [for (final trip in upcomingTrips) _TripRow(trip: trip)]),
@@ -80,11 +92,11 @@ class TripsHome extends StatelessWidget {
             left: 0,
             right: 0,
             bottom: 0,
-            height: TokDim.homeBottomFade,
+            height: _homeBottomFade,
             child: IgnorePointer(
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [t.cHomeBg.withValues(alpha: 0), t.cHomeBg]),
+                  gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [t.bgBrand.withValues(alpha: 0), t.bgBrand]),
                 ),
               ),
             ),
@@ -103,9 +115,9 @@ class TripsHome extends StatelessWidget {
         Text.rich(
           TextSpan(children: [
             TextSpan(text: title),
-            if (count != null) TextSpan(text: ' $count', style: TextStyle(color: t.cHomeCountFg)),
+            if (count != null) TextSpan(text: ' $count', style: TextStyle(color: TokPalette.white.withValues(alpha: 0.7))),
           ]),
-          style: TokText.headingSm.copyWith(color: t.cHomeFg),
+          style: TokText.headingSm.copyWith(color: t.textOnBrand),
         ),
         ...rows,
       ]),
@@ -121,16 +133,15 @@ class _CurrentTrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.tok;
     // Concentric with what sits in its corners: its padding plus the arrow's radius
     final radius = BorderRadius.circular(TokDim.homeCardRadius);
     return Pressable(
       onTap: onOpen,
       semanticLabel: 'Open $tripTitle',
       child: Container(
-        height: TokDim.homeCardHeight,
+        height: _homeCardHeight,
         decoration: BoxDecoration(borderRadius: radius, boxShadow: TokShadow.surface),
-        foregroundDecoration: BoxDecoration(borderRadius: radius, border: Border.all(color: t.cHomeCardEdge, width: TokDim.homeCardEdge)),
+        foregroundDecoration: BoxDecoration(borderRadius: radius, border: Border.all(color: TokPalette.white, width: TokDim.homeCardEdge)),
         child: ClipRRect(
           borderRadius: radius,
           child: Stack(children: [
@@ -169,8 +180,8 @@ class TripCardFace extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.bottomCenter,
               end: Alignment.topCenter,
-              colors: [t.cHomeMapFade, t.cHomeMapFade, t.cHomeMapFade.withValues(alpha: 0)],
-              stops: const [0, TokDim.homeMapFadeStart, 1],
+              colors: [TokPalette.white, TokPalette.white, TokPalette.white.withValues(alpha: 0)],
+              stops: const [0, _homeMapFadeStart, 1],
             ),
           ),
         ),
@@ -194,8 +205,8 @@ class TripCardFace extends StatelessWidget {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Overlapped(
-                  overlap: TokDim.homeHeroFaceOverlap,
-                  children: [for (final p in crew) Sticker(p.sticker, height: TokDim.homeHeroFace)],
+                  overlap: _homeHeroFaceOverlap,
+                  children: [for (final p in crew) Sticker(p.sticker, height: _homeHeroFace)],
                 ),
               ),
             ),
@@ -254,13 +265,13 @@ class _HappeningNow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: TokSpace.sm),
       child: Row(mainAxisSize: MainAxisSize.min, spacing: TokSpace.xs, children: [
         Container(
-          width: TokDim.homeNowDot,
-          height: TokDim.homeNowDot,
+          width: _homeNowDot,
+          height: _homeNowDot,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [t.cNowDotTop, t.cNowDotBottom]),
-            border: Border.all(color: t.cNowDotEdge, width: TokDim.surfaceEdgeWidth / 2),
-            boxShadow: [BoxShadow(color: t.cNowDotGlow, spreadRadius: TokDim.homeNowDotGlow)],
+            gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [TokPalette.green500, TokPalette.green700]),
+            border: Border.all(color: TokPalette.green400, width: TokDim.surfaceEdgeWidth / 2),
+            boxShadow: [BoxShadow(color: TokPalette.green500.withValues(alpha: 0.2), spreadRadius: _homeNowDotGlow)],
           ),
         ),
         Text('Happening now', style: TokText.labelMd.copyWith(color: t.textDefault)),
@@ -279,10 +290,10 @@ class _TripRow extends StatelessWidget {
     final t = context.tok;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: TokSpace.md, vertical: TokSpace.sm),
-      decoration: BoxDecoration(color: t.cHomeRowBg, borderRadius: BorderRadius.circular(TokRadius.card)),
+      decoration: BoxDecoration(color: t.bgBrandSubtle, borderRadius: BorderRadius.circular(TokRadius.card)),
       child: IntrinsicHeight(
         child: Row(spacing: TokSpace.sm, children: [
-          SizedBox(width: TokDim.homeRowSticker, child: Center(child: Sticker(trip.sticker, height: TokDim.homeRowSticker))),
+          SizedBox(width: _homeRowSticker, child: Center(child: Sticker(trip.sticker, height: _homeRowSticker))),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
               Text(trip.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.bodyLg.copyWith(fontWeight: TokWeight.medium, color: t.textDefault)),
@@ -292,7 +303,7 @@ class _TripRow extends StatelessWidget {
           // The faces sit on the row's bottom edge
           Align(
             alignment: Alignment.bottomCenter,
-            child: Overlapped(overlap: TokDim.homeRowFaceOverlap, children: [
+            child: Overlapped(overlap: _homeRowFaceOverlap, children: [
               for (final (i, f) in trip.faces.indexed)
                 Sticker(f, size: StickerSize.avatar, tilt: i < trip.faceTilts.length ? trip.faceTilts[i] : 0),
             ]),

@@ -41,7 +41,7 @@ class ToggleChips<T> extends StatelessWidget {
       scrollDirection: Axis.horizontal,
       padding: padding,
       clipBehavior: Clip.none,
-      child: Row(spacing: TokDim.toggleChipGap, children: [
+      child: Row(spacing: TokSpace.xs, children: [
         _enter(0, ToggleChip(label: allLabel, on: selected.isEmpty, onTap: () => onChanged(<T>{}))),
         for (final (i, o) in options.indexed)
           _enter(
@@ -70,8 +70,8 @@ class ToggleChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tok;
-    final text = Text(label, maxLines: 1, style: TokText.labelMd.copyWith(color: on ? t.cButtonPrimaryFg : t.cToggleChipOffFg));
-    const pad = EdgeInsets.symmetric(horizontal: TokDim.toggleChipPaddingX);
+    final text = Text(label, maxLines: 1, style: TokText.labelMd.copyWith(color: on ? t.iconOnBrand : t.textDefault));
+    const pad = EdgeInsets.symmetric(horizontal: TokSpace.sm);
     final radius = BorderRadius.circular(TokRadius.pill);
     return Semantics(
       selected: on,
@@ -91,13 +91,13 @@ class ToggleChip extends StatelessWidget {
           layoutBuilder: (current, previous) => Stack(alignment: Alignment.center, children: [...previous, ?current]),
           transitionBuilder: (child, a) => FadeTransition(opacity: a, child: ScaleTransition(scale: Tween(begin: TokMotion.pressScale, end: 1.0).animate(a), child: child)),
           child: on
-              ? Glass(key: const ValueKey(true), kind: GlassKind.primary, height: TokDim.toggleChipHeight, radius: radius, padding: pad, child: Center(widthFactor: 1, child: text))
+              ? Glass(key: const ValueKey(true), kind: GlassKind.primary, height: TokSpace.x2xl, radius: radius, padding: pad, child: Center(widthFactor: 1, child: text))
               : Container(
                   key: const ValueKey(false),
-                  height: TokDim.toggleChipHeight,
+                  height: TokSpace.x2xl,
                   padding: pad,
                   alignment: Alignment.center,
-                  decoration: BoxDecoration(color: t.cToggleChipOffBg, borderRadius: radius),
+                  decoration: BoxDecoration(color: t.bgMuted, borderRadius: radius),
                   child: text,
                 ),
         ),

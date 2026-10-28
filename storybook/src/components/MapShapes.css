@@ -1,27 +1,27 @@
 /* Pin tail */
 .tu-tail { display: inline-flex; flex-direction: column; align-items: center; }
-.tu-tail__shape { width: var(--d-pin-tail-width); height: var(--d-pin-tail-height); overflow: visible; filter: var(--filter-surface); }
-.tu-tail__fill { fill: var(--c-pin-tail); }
-.tu-tail__edge { fill: none; stroke: var(--c-pin-tail-edge); stroke-width: calc(var(--d-surface-edge-width) * 2); }
-.tu-tail__dash { width: var(--d-pin-dash-width); height: var(--d-pin-dash-height); border-radius: var(--radius-control); background: var(--c-pin-dash); }
+.tu-tail__shape { width: var(--d-pin-tail-width); height: 24px; overflow: visible; filter: var(--filter-surface); }
+.tu-tail__fill { fill: var(--color-bg-brand); }
+.tu-tail__edge { fill: none; stroke: var(--palette-white); stroke-width: calc(var(--d-surface-edge-width) * 2); }
+.tu-tail__dash { width: 7px; height: 3px; border-radius: var(--radius-control); background: var(--color-bg-brand); }
 
 /* Edge arrow */
 .tu-edge-arrow { width: var(--d-widget-edge-arrow); height: var(--d-widget-edge-arrow); overflow: visible; flex: none; filter: var(--filter-slightly-raised); }
 
 /* My location */
-.tu-me { position: relative; display: inline-grid; place-items: center; width: var(--d-me-dot); height: var(--d-me-dot); }
+.tu-me { position: relative; display: inline-grid; place-items: center; width: var(--size-icon-sm); height: var(--size-icon-sm); }
 .tu-me__dot {
   display: grid;
-  width: var(--d-me-dot);
-  height: var(--d-me-dot);
+  width: var(--size-icon-sm);
+  height: var(--size-icon-sm);
   padding: var(--d-surface-edge-width);
   border-radius: var(--radius-pill);
-  background: var(--c-me-dot-edge);
+  background: var(--palette-white);
   box-shadow: var(--shadow-me-dot);
 }
 .tu-me__blue {
   border-radius: var(--radius-pill);
-  background: var(--c-me-dot);
+  background: var(--palette-blue-700);
   box-shadow: var(--inset-button-primary);
   animation: tu-breathe var(--pulse-ms) var(--ease-breathe) infinite alternate;
 }
@@ -32,26 +32,26 @@
   position: absolute;
   left: 50%;
   bottom: 50%;
-  width: var(--d-me-cone);
-  height: var(--d-me-cone);
+  width: var(--size-icon-lg);
+  height: var(--size-icon-lg);
   transform-origin: 0 100%;
   clip-path: polygon(0 100%, 30% 0, 100% 45%);
-  background: linear-gradient(to top right, var(--c-me-cone), transparent);
+  background: linear-gradient(to top right, var(--palette-blue-400), transparent);
 }
 
 /* Me off-screen */
 .tu-me-edge { position: relative; display: inline-flex; align-items: center; gap: var(--space-3xs); transform-origin: 100% 50%; }
 .tu-me-edge__glow {
-  width: var(--d-me-glow-width);
+  width: var(--size-icon-md);
   height: var(--d-me-glow-height);
   clip-path: polygon(0 0, 100% 27%, 100% 73%, 0 100%);
-  background: linear-gradient(to right, transparent, var(--c-me-cone));
+  background: linear-gradient(to right, transparent, var(--palette-blue-400));
 }
 .tu-me-edge__capsule {
   width: var(--d-me-edge-width);
-  height: var(--d-me-edge-height);
+  height: 24px;
   border-radius: var(--radius-pill);
-  background: var(--c-me-dot);
-  border: var(--d-surface-edge-width) solid var(--c-me-dot-edge);
+  background: var(--palette-blue-700);
+  border: var(--d-surface-edge-width) solid var(--palette-white);
   box-shadow: var(--inset-button-primary), var(--shadow-me-dot);
 }

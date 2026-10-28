@@ -4,18 +4,16 @@ import { Children, isValidElement, useEffect, useLayoutEffect, useRef, useState,
 import tokens from '../../../design-system/tokens.json';
 import { Button } from './Button';
 import { easedFade } from './easedFade';
-import { Sticker } from './Sticker';
+import { Sticker, stickerHeight } from './Sticker';
 import './Surface.css';
 import './TripSheet.css';
 
 const m = tokens.motion;
 const ease = m['ease-out'] as [number, number, number, number];
 const space = tokens.space as Record<string, number>;
-// A component token is a reference like "{space.xl}"; read the size it points at
-const spaceOf = (ref: string) => space[ref.replace(/^\{space\.|\}$/g, '')];
-const inset = spaceOf(tokens.component.dimension['sheet/inset']);
-const topFade = spaceOf(tokens.component.dimension['sheet/top-fade']);
-const rise = spaceOf(tokens.component.dimension['tab/enter-shift']);
+const inset = space.md;
+const topFade = space['2xl'];
+const rise = space.xs;
 const blur = `blur(${m['enter-blur']}px)`;
 
 export interface TripSheetProps {
@@ -28,7 +26,7 @@ export interface TripSheetProps {
   /** The page, top to bottom. The sheet scrolls it, and opens at its top. */
   children: ReactNode;
   onClose?: () => void;
-  /** Add's choice and its invite: only a few rows, so it stops at sheet/compact-height and sits at the bottom of its
+  /** Add's choice and its invite: only a few rows, so it stops at 480 and sits at the bottom of its
    *  place. Planning takes the whole height; a change between the two eases in and out (enter-ms, ease-in-out). */
   compact?: boolean;
   /** A step back inside the pop-up (Add's Plan or Invite back to its choice): a back button before the title. */
@@ -38,7 +36,7 @@ export interface TripSheetProps {
   /** Stays put at the bottom while the page scrolls above it: the page's actions (see SheetFooter). */
   footer?: ReactNode;
   /** Stays put under the title while the page scrolls under it (the itinerary's day filter): one chip row high
-   *  (toggle-chip-height), sm under the title, and the header grows by as much. */
+   *  (space-2xl), sm under the title, and the header grows by as much. */
   top?: ReactNode;
 }
 
@@ -103,7 +101,7 @@ export function TripSheet({ title, subtitle, children, onClose, compact, footer,
         {children}
       </div>
       {/* The header's white shows once the page goes under it, so a page at rest isn't faded at the top */}
-      <div className="tu-trip-sheet__top-fade" aria-hidden style={{ opacity: under, background: easedFade('var(--c-surface-top)', { from: 'var(--header)' }) }} />
+      <div className="tu-trip-sheet__top-fade" aria-hidden style={{ opacity: under, background: easedFade('var(--color-bg-default)', { from: 'var(--header)' }) }} />
       <div ref={head} className="tu-trip-sheet__head">
         {/* A step back slides in before the title (and out again), the title moving over for it */}
         <AnimatePresence initial={false}>
@@ -239,5 +237,5 @@ export const Hairline = () => <div className="tu-hairline" />;
 
 /** Stickers come in their own widths; a fixed slot keeps the names after them in one line. */
 export function Slot({ children, size = 'row' }: { children: ReactNode; size?: 'row' | 'avatar' }) {
-  return <span className="tu-slot" style={{ width: `var(--d-sticker-${size})` }}>{children}</span>;
+  return <span className="tu-slot" style={{ width: stickerHeight[size] }}>{children}</span>;
 }

@@ -31,8 +31,8 @@ export function EdgeArrow({ angle = 90 }: { angle?: number }) {
     <svg className="tu-edge-arrow" viewBox="3.2 0.5 12.6 10.2" style={{ transform: `rotate(${angle}deg)` }} aria-hidden>
       <defs>
         <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" style={{ stopColor: 'var(--c-edge-arrow-from)' }} />
-          <stop offset="1" style={{ stopColor: 'var(--c-edge-arrow-to)' }} />
+          <stop offset="0" style={{ stopColor: 'var(--palette-blue-500)' }} />
+          <stop offset="1" style={{ stopColor: 'var(--palette-blue-700)' }} />
         </linearGradient>
       </defs>
       <path d="M11.1444 9.47125L15.2316 3.86584C16.1954 2.54418 15.2513 0.6875 13.6156 0.6875H5.44107C3.80536 0.6875 2.86134 2.54418 3.82506 3.86584L7.91233 9.47125C8.71117 10.5668 10.3455 10.5668 11.1444 9.47125Z" fill={`url(#${id})`} />

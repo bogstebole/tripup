@@ -30,10 +30,10 @@
 .tu-crew__face { position: absolute; }
 
 .tu-recenter__dot {
-  width: var(--d-me-dot);
-  height: var(--d-me-dot);
+  width: var(--size-icon-sm);
+  height: var(--size-icon-sm);
   border-radius: var(--radius-pill);
-  background: var(--c-me-dot);
-  border: var(--d-surface-edge-width) solid var(--c-me-dot-edge);
-  box-shadow: var(--inset-button-primary), 0 0 0 var(--d-me-ring) var(--c-me-ring), var(--shadow-me-dot);
+  background: var(--palette-blue-700);
+  border: var(--d-surface-edge-width) solid var(--palette-white);
+  box-shadow: var(--inset-button-primary), 0 0 0 5px var(--palette-blue-300), var(--shadow-me-dot);
 }

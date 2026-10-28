@@ -10,7 +10,7 @@ class InsetShadow {
   final Color color;
 }
 
-/// Semantic and component colors for one mode. Read them through `context.tok` (see theme.dart).
+/// Semantic colors for one mode. Read them through `context.tok` (see theme.dart).
 class TokColors {
   const TokColors._(this._m);
   final Map<String, Color> _m;
@@ -54,73 +54,6 @@ class TokColors {
     'icon/success': Color(0xFF059669),
     'icon/warning': Color(0xFFF59E0B),
     'icon/danger': Color(0xFFDC2626),
-    'c/surface/top': Color(0xFFFFFFFF),
-    'c/surface/bottom': Color(0xFFECECEE),
-    'c/surface/edge': Color(0xFFFFFFFF),
-    'c/button/soft-bg': Color(0xFFE4E4E7),
-    'c/button/soft-fg': Color(0xFF18181B),
-    'c/button/primary-bg': Color(0xFF1D4ED8),
-    'c/button/primary-fg': Color(0xFFFFFFFF),
-    'c/segment/track': Color(0xFFE4E4E7),
-    'c/segment/on-fg': Color(0xFF09090B),
-    'c/segment/off-fg': Color(0xFF71717A),
-    'c/chip/bg': Color(0xFFE4E4E7),
-    'c/chip/fg': Color(0xFF2563EB),
-    'c/dish/edge': Color(0xFFFFFFFF),
-    'c/toggle-chip/off-bg': Color(0xFFE4E4E7),
-    'c/toggle-chip/off-fg': Color(0xFF09090B),
-    'c/count-bubble/bg': Color(0x1A000000),
-    'c/count-bubble/fg': Color(0xFF09090B),
-    'c/pin/dash': Color(0xFF2563EB),
-    'c/pin/tail': Color(0xFF2563EB),
-    'c/pin/tail-edge': Color(0xFFFFFFFF),
-    'c/scan/bg': Color(0xFF18181B),
-    'c/scan/fg': Color(0xFFFFFFFF),
-    'c/scan/paper': Color(0xFFFFFFFF),
-    'c/scan/ink': Color(0xFF27272A),
-    'c/scan/line': Color(0xFF2563EB),
-    'c/edge-arrow/from': Color(0xFF3B82F6),
-    'c/edge-arrow/to': Color(0xFF1D4ED8),
-    'c/me/dot': Color(0xFF1D4ED8),
-    'c/me/dot-edge': Color(0xFFFFFFFF),
-    'c/me/ring': Color(0xFF93C5FD),
-    'c/me/cone': Color(0xFF60A5FA),
-    'c/sheet/scrim': Color(0x3B001E81),
-    'c/sheet/scrim-flat': Color(0x59001E81),
-    'c/top-bar/bg': Color(0xB3FFFFFF),
-    'c/action-bar/bg': Color(0xFFFFFFFF),
-    'c/toast/bg': Color(0xFF1D4ED8),
-    'c/toast/fg': Color(0xFFFFFFFF),
-    'c/attribution/fg': Color(0xFF71717A),
-    'c/trip-open/wash': Color(0x99FFFFFF),
-    'c/poll/bar-track': Color(0xFFE4E4E7),
-    'c/poll/bar-track-on-muted': Color(0xFFFFFFFF),
-    'c/poll/bar': Color(0xFFD4D4D8),
-    'c/poll/bar-lead': Color(0xFF2563EB),
-    'c/poll/live': Color(0xFFDC2626),
-    'c/poll/scrim': Color(0x3B001E81),
-    'c/home/bg': Color(0xFF2563EB),
-    'c/home/fg': Color(0xFFFFFFFF),
-    'c/home/count-fg': Color(0xB3FFFFFF),
-    'c/home/row-bg': Color(0xFFEFF6FF),
-    'c/home/card-edge': Color(0xFFFFFFFF),
-    'c/home/map-fade': Color(0xFFFFFFFF),
-    'c/now-dot/top': Color(0xFF22C55E),
-    'c/now-dot/bottom': Color(0xFF15803D),
-    'c/now-dot/edge': Color(0xFF4ADE80),
-    'c/now-dot/glow': Color(0x3322C55E),
-    'c/bank/bg': Color(0xFFFAFAFA),
-    'c/bank/card': Color(0xFFFFFFFF),
-    'c/bank/fg': Color(0xFF09090B),
-    'c/bank/muted': Color(0xFF71717A),
-    'c/bank/line': Color(0xFFE4E4E7),
-    'c/bank/logo-bg': Color(0xFF18181B),
-    'c/bank/logo-fg': Color(0xFFFFFFFF),
-    'c/bank/accent': Color(0xFF18181B),
-    'c/bank/accent-fg': Color(0xFFFFFFFF),
-    'c/bank/hud-bg': Color(0xD918181B),
-    'c/bank/hud-fg': Color(0xFFFFFFFF),
-    'c/bank/ok': Color(0xFF22C55E),
   });
   static const dark = TokColors._({
     'bg/canvas': Color(0xFF09090B),
@@ -161,73 +94,6 @@ class TokColors {
     'icon/success': Color(0xFF34D399),
     'icon/warning': Color(0xFFFBBF24),
     'icon/danger': Color(0xFFF87171),
-    'c/surface/top': Color(0xFF18181B),
-    'c/surface/bottom': Color(0xFF1F1F22),
-    'c/surface/edge': Color(0xFF18181B),
-    'c/button/soft-bg': Color(0xFF27272A),
-    'c/button/soft-fg': Color(0xFFF4F4F5),
-    'c/button/primary-bg': Color(0xFF1D4ED8),
-    'c/button/primary-fg': Color(0xFFFFFFFF),
-    'c/segment/track': Color(0xFF27272A),
-    'c/segment/on-fg': Color(0xFFFAFAFA),
-    'c/segment/off-fg': Color(0xFFA1A1AA),
-    'c/chip/bg': Color(0xFF27272A),
-    'c/chip/fg': Color(0xFF60A5FA),
-    'c/dish/edge': Color(0xFFFFFFFF),
-    'c/toggle-chip/off-bg': Color(0xFF27272A),
-    'c/toggle-chip/off-fg': Color(0xFFFAFAFA),
-    'c/count-bubble/bg': Color(0x1A000000),
-    'c/count-bubble/fg': Color(0xFFFAFAFA),
-    'c/pin/dash': Color(0xFF2563EB),
-    'c/pin/tail': Color(0xFF2563EB),
-    'c/pin/tail-edge': Color(0xFFFFFFFF),
-    'c/scan/bg': Color(0xFF18181B),
-    'c/scan/fg': Color(0xFFFFFFFF),
-    'c/scan/paper': Color(0xFFFFFFFF),
-    'c/scan/ink': Color(0xFF27272A),
-    'c/scan/line': Color(0xFF2563EB),
-    'c/edge-arrow/from': Color(0xFF3B82F6),
-    'c/edge-arrow/to': Color(0xFF1D4ED8),
-    'c/me/dot': Color(0xFF1D4ED8),
-    'c/me/dot-edge': Color(0xFFFFFFFF),
-    'c/me/ring': Color(0xFF93C5FD),
-    'c/me/cone': Color(0xFF60A5FA),
-    'c/sheet/scrim': Color(0x3B001E81),
-    'c/sheet/scrim-flat': Color(0x59001E81),
-    'c/top-bar/bg': Color(0xB318181B),
-    'c/action-bar/bg': Color(0xFF18181B),
-    'c/toast/bg': Color(0xFF1D4ED8),
-    'c/toast/fg': Color(0xFFFFFFFF),
-    'c/attribution/fg': Color(0xFFA1A1AA),
-    'c/trip-open/wash': Color(0x9918181B),
-    'c/poll/bar-track': Color(0xFF27272A),
-    'c/poll/bar-track-on-muted': Color(0xFF18181B),
-    'c/poll/bar': Color(0xFFD4D4D8),
-    'c/poll/bar-lead': Color(0xFF2563EB),
-    'c/poll/live': Color(0xFFDC2626),
-    'c/poll/scrim': Color(0x3B001E81),
-    'c/home/bg': Color(0xFF2563EB),
-    'c/home/fg': Color(0xFFFFFFFF),
-    'c/home/count-fg': Color(0xB3FFFFFF),
-    'c/home/row-bg': Color(0xFF172554),
-    'c/home/card-edge': Color(0xFFFFFFFF),
-    'c/home/map-fade': Color(0xFFFFFFFF),
-    'c/now-dot/top': Color(0xFF22C55E),
-    'c/now-dot/bottom': Color(0xFF15803D),
-    'c/now-dot/edge': Color(0xFF4ADE80),
-    'c/now-dot/glow': Color(0x3322C55E),
-    'c/bank/bg': Color(0xFFFAFAFA),
-    'c/bank/card': Color(0xFFFFFFFF),
-    'c/bank/fg': Color(0xFF09090B),
-    'c/bank/muted': Color(0xFF71717A),
-    'c/bank/line': Color(0xFFE4E4E7),
-    'c/bank/logo-bg': Color(0xFF18181B),
-    'c/bank/logo-fg': Color(0xFFFFFFFF),
-    'c/bank/accent': Color(0xFF18181B),
-    'c/bank/accent-fg': Color(0xFFFFFFFF),
-    'c/bank/hud-bg': Color(0xD918181B),
-    'c/bank/hud-fg': Color(0xFFFFFFFF),
-    'c/bank/ok': Color(0xFF22C55E),
   });
   Color get bgCanvas => _m['bg/canvas']!;
   Color get bgDefault => _m['bg/default']!;
@@ -267,73 +133,49 @@ class TokColors {
   Color get iconSuccess => _m['icon/success']!;
   Color get iconWarning => _m['icon/warning']!;
   Color get iconDanger => _m['icon/danger']!;
-  Color get cSurfaceTop => _m['c/surface/top']!;
-  Color get cSurfaceBottom => _m['c/surface/bottom']!;
-  Color get cSurfaceEdge => _m['c/surface/edge']!;
-  Color get cButtonSoftBg => _m['c/button/soft-bg']!;
-  Color get cButtonSoftFg => _m['c/button/soft-fg']!;
-  Color get cButtonPrimaryBg => _m['c/button/primary-bg']!;
-  Color get cButtonPrimaryFg => _m['c/button/primary-fg']!;
-  Color get cSegmentTrack => _m['c/segment/track']!;
-  Color get cSegmentOnFg => _m['c/segment/on-fg']!;
-  Color get cSegmentOffFg => _m['c/segment/off-fg']!;
-  Color get cChipBg => _m['c/chip/bg']!;
-  Color get cChipFg => _m['c/chip/fg']!;
-  Color get cDishEdge => _m['c/dish/edge']!;
-  Color get cToggleChipOffBg => _m['c/toggle-chip/off-bg']!;
-  Color get cToggleChipOffFg => _m['c/toggle-chip/off-fg']!;
-  Color get cCountBubbleBg => _m['c/count-bubble/bg']!;
-  Color get cCountBubbleFg => _m['c/count-bubble/fg']!;
-  Color get cPinDash => _m['c/pin/dash']!;
-  Color get cPinTail => _m['c/pin/tail']!;
-  Color get cPinTailEdge => _m['c/pin/tail-edge']!;
-  Color get cScanBg => _m['c/scan/bg']!;
-  Color get cScanFg => _m['c/scan/fg']!;
-  Color get cScanPaper => _m['c/scan/paper']!;
-  Color get cScanInk => _m['c/scan/ink']!;
-  Color get cScanLine => _m['c/scan/line']!;
-  Color get cEdgeArrowFrom => _m['c/edge-arrow/from']!;
-  Color get cEdgeArrowTo => _m['c/edge-arrow/to']!;
-  Color get cMeDot => _m['c/me/dot']!;
-  Color get cMeDotEdge => _m['c/me/dot-edge']!;
-  Color get cMeRing => _m['c/me/ring']!;
-  Color get cMeCone => _m['c/me/cone']!;
-  Color get cSheetScrim => _m['c/sheet/scrim']!;
-  Color get cSheetScrimFlat => _m['c/sheet/scrim-flat']!;
-  Color get cTopBarBg => _m['c/top-bar/bg']!;
-  Color get cActionBarBg => _m['c/action-bar/bg']!;
-  Color get cToastBg => _m['c/toast/bg']!;
-  Color get cToastFg => _m['c/toast/fg']!;
-  Color get cAttributionFg => _m['c/attribution/fg']!;
-  Color get cTripOpenWash => _m['c/trip-open/wash']!;
-  Color get cPollBarTrack => _m['c/poll/bar-track']!;
-  Color get cPollBarTrackOnMuted => _m['c/poll/bar-track-on-muted']!;
-  Color get cPollBar => _m['c/poll/bar']!;
-  Color get cPollBarLead => _m['c/poll/bar-lead']!;
-  Color get cPollLive => _m['c/poll/live']!;
-  Color get cPollScrim => _m['c/poll/scrim']!;
-  Color get cHomeBg => _m['c/home/bg']!;
-  Color get cHomeFg => _m['c/home/fg']!;
-  Color get cHomeCountFg => _m['c/home/count-fg']!;
-  Color get cHomeRowBg => _m['c/home/row-bg']!;
-  Color get cHomeCardEdge => _m['c/home/card-edge']!;
-  Color get cHomeMapFade => _m['c/home/map-fade']!;
-  Color get cNowDotTop => _m['c/now-dot/top']!;
-  Color get cNowDotBottom => _m['c/now-dot/bottom']!;
-  Color get cNowDotEdge => _m['c/now-dot/edge']!;
-  Color get cNowDotGlow => _m['c/now-dot/glow']!;
-  Color get cBankBg => _m['c/bank/bg']!;
-  Color get cBankCard => _m['c/bank/card']!;
-  Color get cBankFg => _m['c/bank/fg']!;
-  Color get cBankMuted => _m['c/bank/muted']!;
-  Color get cBankLine => _m['c/bank/line']!;
-  Color get cBankLogoBg => _m['c/bank/logo-bg']!;
-  Color get cBankLogoFg => _m['c/bank/logo-fg']!;
-  Color get cBankAccent => _m['c/bank/accent']!;
-  Color get cBankAccentFg => _m['c/bank/accent-fg']!;
-  Color get cBankHudBg => _m['c/bank/hud-bg']!;
-  Color get cBankHudFg => _m['c/bank/hud-fg']!;
-  Color get cBankOk => _m['c/bank/ok']!;
+}
+
+/// Primitives that don't follow the theme (see t.primitive.code in tokens.json).
+abstract final class TokPalette {
+  static const blue50 = Color(0xFFEFF6FF);
+  static const blue100 = Color(0xFFDBEAFE);
+  static const blue200 = Color(0xFFBFDBFE);
+  static const blue300 = Color(0xFF93C5FD);
+  static const blue400 = Color(0xFF60A5FA);
+  static const blue500 = Color(0xFF3B82F6);
+  static const blue600 = Color(0xFF2563EB);
+  static const blue700 = Color(0xFF1D4ED8);
+  static const blue800 = Color(0xFF1E40AF);
+  static const blue900 = Color(0xFF1E3A8A);
+  static const blue950 = Color(0xFF172554);
+  static const blue975 = Color(0xFF001E81);
+  static const white = Color(0xFFFFFFFF);
+  static const black = Color(0xFF000000);
+  static const zinc50 = Color(0xFFFAFAFA);
+  static const zinc100 = Color(0xFFF4F4F5);
+  static const zinc150 = Color(0xFFECECEE);
+  static const zinc200 = Color(0xFFE4E4E7);
+  static const zinc300 = Color(0xFFD4D4D8);
+  static const zinc400 = Color(0xFFA1A1AA);
+  static const zinc500 = Color(0xFF71717A);
+  static const zinc600 = Color(0xFF52525B);
+  static const zinc700 = Color(0xFF3F3F46);
+  static const zinc750 = Color(0xFF333338);
+  static const zinc800 = Color(0xFF27272A);
+  static const zinc850 = Color(0xFF1F1F22);
+  static const zinc900 = Color(0xFF18181B);
+  static const zinc950 = Color(0xFF09090B);
+  static const green50 = Color(0xFFF0FDF4);
+  static const green100 = Color(0xFFDCFCE7);
+  static const green200 = Color(0xFFBBF7D0);
+  static const green300 = Color(0xFF86EFAC);
+  static const green400 = Color(0xFF4ADE80);
+  static const green500 = Color(0xFF22C55E);
+  static const green600 = Color(0xFF16A34A);
+  static const green700 = Color(0xFF15803D);
+  static const green800 = Color(0xFF166534);
+  static const green900 = Color(0xFF14532D);
+  static const green950 = Color(0xFF052E16);
 }
 
 abstract final class TokSpace {
@@ -372,125 +214,31 @@ abstract final class TokDim {
   static const double buttonSm = 40;
   static const double buttonMd = 44;
   static const double buttonLg = 56;
-  static const double buttonIcon = 16;
-  static const double buttonPillHeight = 32;
-  static const double iconStroke = 2;
   static const double surfaceInset = 24;
   static const double surfaceRadius = 48;
   static const double surfaceEdgeWidth = 1;
   static const double chipHeight = 40;
-  static const double chipGap = 2;
   static const double chipRadius = 20;
   static const double chipFaceOverlap = 10;
-  static const double scanPaperWidth = 296;
-  static const double scanCorner = 24;
-  static const double scanStroke = 3;
-  static const double scanOffOpacity = 0.3;
   static const double pollLostOpacity = 0.6;
-  static const double pollWidth = 345;
-  static const double pollBarHeight = 8;
   static const double pollLiveDot = 9;
-  static const double pollScrimBlur = 2.5;
-  static const double pollOptionSticker = 48;
-  static const double pollMetaFace = 16;
-  static const double pollMetaFaceOverlap = 5;
-  static const double pollNotVotedOpacity = 0.4;
-  static const double pollActivityMark = 20;
-  static const double pollActivityBar = 4;
-  static const double pollActivityTimer = 48;
-  static const double pollMark = 24;
-  static const double homeHeaderGap = 28;
   static const double planMapHeight = 160;
-  static const double planPickerHeight = 180;
-  static const double homeCardHeight = 438;
   static const double homeCardEdge = 4;
-  static const double homeMapFadeStart = 0.152;
   static const double homeNowPillHeight = 36;
-  static const double homeNowDot = 10;
-  static const double homeNowDotGlow = 2;
-  static const double homeHeroFace = 39;
-  static const double homeHeroFaceOverlap = 22;
-  static const double homeRowSticker = 48;
-  static const double homeRowFaceOverlap = 18;
-  static const double homeBottomFade = 89;
-  static const double pollMarkRing = 2;
-  static const double pollLiveDimOpacity = 0.35;
-  static const double toggleChipHeight = 32;
-  static const double toggleChipPaddingX = 12;
-  static const double toggleChipGap = 8;
   static const double segmentHeight = 36;
-  static const double segmentTrackPadding = 2;
-  static const double segmentGap = 4;
-  static const double countBubbleSize = 32;
-  static const double stickerOverlap = 20;
-  static const double avatarOverlap = 8;
-  static const double stickerAvatar = 32;
-  static const double stickerChip = 24;
   static const double stickerMini = 28;
-  static const double stickerEdge = 20;
-  static const double stickerRow = 40;
-  static const double stickerMap = 44;
   static const double pinTailWidth = 35;
-  static const double pinTailHeight = 24;
-  static const double pinDashWidth = 7;
-  static const double pinDashHeight = 3;
   static const double widgetMidWidth = 275;
   static const double widgetMiniWidth = 140;
-  static const double widgetEdgeSize = 30;
   static const double widgetEdgeArrow = 11;
-  static const double widgetEdgeInset = 8;
-  static const double widgetHereLift = 10;
-  static const double knowRowHeight = 56;
-  static const double photosHeight = 142;
-  static const double photosPeekStart = 36;
-  static const double photosPeekEnd = 62;
-  static const double menuPhoto = 64;
-  static const double menuPhotoRadius = 12;
-  static const double menuPhotoEdge = 4;
-  static const double menuPhotoTilt = 3;
-  static const double dishPickSize = 32;
-  static const double dishPickEdge = 2;
-  static const double sheetInset = 16;
-  static const double sheetBackdropBlur = 2.5;
-  static const double tripOpenBlur = 12;
-  static const double sheetFade = 40;
-  static const double sheetTopFade = 32;
-  static const double sheetCompactHeight = 480;
-  static const double sheetTopBlur = 8;
-  static const double tabEnterShift = 8;
-  static const double tabSlide = 24;
-  static const double meDot = 16;
-  static const double meRing = 5;
   static const double mePulseScale = 0.75;
   static const double meEdgeWidth = 8;
-  static const double meEdgeHeight = 24;
-  static const double meGlowWidth = 20;
   static const double meGlowHeight = 36;
-  static const double meCone = 24;
   static const double topBarFadeStart = 0.5;
   static const double actionBarFadeStart = 0;
-  static const double splashDotScale = 4;
-  static const double splashWord = 52;
-  static const double splashWordGap = 40;
-  static const double splashSticker = 40;
   static const double splashSlide = 160;
-  static const double bankRadius = 12;
-  static const double bankButton = 56;
-  static const double bankLogo = 32;
-  static const double bankHud = 160;
-  static const double bankHudIcon = 64;
-  static const double payAmountSticker = 48;
-  static const double recapPlacePhoto = 128;
-  static const double recapPlaceSticker = 88;
-  static const double webFrameWidth = 440;
-  static const double webFrameHeight = 956;
-  static const double webFrameRadius = 40;
-  static const double webFrameMinWindow = 600;
-  static const double webFrameMargin = 24;
   static const double surfaceBodySide = 16;
-  static const double surfaceHeadInset = 24;
   static const double surfaceHeadSide = 8;
-  static const double surfaceFootInset = 24;
   static const double surfaceFootSide = 8;
   static const double widgetMidRadius = 28;
   static const double homeCardPadding = 28;

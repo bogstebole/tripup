@@ -33,22 +33,33 @@ export const Colors: Story = {
   ),
 };
 
-export const ComponentColors: Story = {
-  name: 'Component colors',
+// The primitives components may use as they are: colors that stay the same in light and dark (t.primitive.code)
+const paletteVars = () => [...document.styleSheets].flatMap(sheet => {
+  try { return [...sheet.cssRules]; } catch { return []; }
+}).flatMap(rule => rule instanceof CSSStyleRule && rule.selectorText === ':root' ? [...rule.style].filter(p => p.startsWith('--palette-')) : []);
+
+export const Palette: Story = {
+  name: 'Palette (code)',
   render: () => (
-    <Table head={['Token', 'Points at', 'Swatch']} rows={Object.entries(tokens.component.color).map(([k, v]) => [<code>c/{k}</code>, <span style={label}>{v}</span>, swatch(`var(--c-${kebab(k)})`)])} />
+    <Table head={['Token', 'Value', 'Swatch']} rows={[...new Set(paletteVars())].map(v => [<code>{v.slice(2)}</code>, <span style={label}>{getComputedStyle(document.documentElement).getPropertyValue(v)}</span>, swatch(`var(${v})`)])} />
   ),
 };
 
 // What a few component sizes are for, where the name doesn't say
 const DIMENSION_NOTES: Record<string, string> = {
-  'chip/face-overlap': 'How far the faces overlap in the Up next card\'s "here" chip',
+  'chip/face-overlap': 'How far the faces overlap in a chip (Up next, the poll, the bill)',
   'pin/tail-width': 'The blue pin tail under a widget',
-  'sheet/inset': 'The full view and pop-ups, from the screen\'s edges',
-  'sheet/compact-height': 'Add\'s shorter pop-up (it only has a few rows)',
-  'sheet/top-fade': 'How far the page fades under a sheet\'s header',
   'action-bar/fade-start': 'Where the footer\'s white starts fading (0 = at the bottom)',
 };
+// Why each one is a token: everything else is a semantic token or a component's own number
+const SHARED_WITH_WIDGET = ['poll/lost-opacity', 'poll/live-dot', 'sticker/mini'];
+const dimEntries = Object.entries(tokens.component.dimension) as [string, string | number][];
+const isDerived = (v: string | number) => typeof v === 'string' && /[-+*/]/.test(v.replace(/\{[^}]+\}/g, ''));
+const why = (k: string, v: string | number) =>
+  isDerived(v) ? 'Derived from the tokens it names'
+    : dimEntries.some(([, o]) => isDerived(o) && String(o).includes(`{${k}}`)) ? 'A derived token is made from it'
+      : SHARED_WITH_WIDGET.includes(k) ? 'Shared with the Live Activity'
+        : 'Used by several components';
 const unitless = (k: string) => /(fade-start|scale|tilt|opacity)$/.test(k);
 // A size token is a number or a reference like "{space.xl}"; read the px it points at
 const px = (v: string | number) => {
@@ -64,12 +75,13 @@ export const ComponentDimensions: Story = {
   name: 'Component dimensions',
   render: () => (
     <Table
-      head={['Token', 'Points at', 'Value', '', 'Used for']}
-      rows={Object.entries(tokens.component.dimension).map(([k, v]) => [
+      head={['Token', 'Points at', 'Value', '', 'Why a token', 'Used for']}
+      rows={dimEntries.filter(([k]) => !k.startsWith('$')).map(([k, v]) => [
         <code>d/{k}</code>,
         <span style={label}>{typeof v === 'string' ? v : ''}</span>,
         unitless(k) ? value(k, v) : `${value(k, v)} px`,
         unitless(k) ? '' : <span style={{ display: 'inline-block', height: 'var(--space-xs)', width: `min(var(--d-${kebab(k)}), var(--space-5xl) * 2)`, background: 'var(--color-bg-brand)', borderRadius: 'var(--radius-sm)' }} />,
+        <span style={label}>{why(k, v)}</span>,
         <span style={label}>{DIMENSION_NOTES[k] ?? ''}</span>,
       ])}
     />
@@ -99,6 +111,8 @@ export const SpaceAndRadius: Story = {
   ),
 };
 
+const INSET_BG: Record<string, string> = { 'button-soft': 'var(--color-bg-muted)', 'button-primary': 'var(--palette-blue-700)' };
+
 export const Shadows: Story = {
   render: () => (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2xl)', padding: 'var(--space-2xl)', background: 'var(--color-bg-canvas)' }}>
@@ -110,7 +124,7 @@ export const Shadows: Story = {
       ))}
       {Object.keys(tokens.inset).filter(k => !k.startsWith('$')).map(k => (
         <div key={k} style={{ display: 'grid', gap: 'var(--space-xs)', justifyItems: 'center' }}>
-          <span style={{ width: 'var(--space-5xl)', height: 'var(--space-5xl)', borderRadius: 'var(--radius-pill)', background: `var(--c-${k}-bg)`, boxShadow: `var(--inset-${k}), var(--shadow-slightly-raised)` }} />
+          <span style={{ width: 'var(--space-5xl)', height: 'var(--space-5xl)', borderRadius: 'var(--radius-pill)', background: INSET_BG[k], boxShadow: `var(--inset-${k}), var(--shadow-slightly-raised)` }} />
           <code className="text-caption">inset/{k}</code>
         </div>
       ))}

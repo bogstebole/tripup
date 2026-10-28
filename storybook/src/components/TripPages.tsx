@@ -458,7 +458,7 @@ export function BankPage({ onPick }: { onPick?: (bank: Bank) => void }) {
   );
 }
 
-/** A bank's mark in TripUp's lists: its first letter on a muted disc, bank/logo wide (the real app shows its logo). */
+/** A bank's mark in TripUp's lists: its first letter on a muted disc, space-2xl wide (the real app shows its logo). */
 export function BankLogo({ bank }: { bank: Bank }) {
   return <span className="tu-bank-logo text-label-md weight-semibold" aria-hidden>{bank.name[0]}</span>;
 }
@@ -898,7 +898,7 @@ function TimeRow({ label, day, minutes, open, onOpen, onChange }: {
 const QUARTERS = Array.from({ length: 96 }, (_, i) => i * 15);
 
 /**
- * A time wheel in 15-minute steps, plan/picker-height tall. The app's is Cupertino's (three wheels: hour, minute,
+ * A time wheel in 15-minute steps, 180 tall. The app's is Cupertino's (three wheels: hour, minute,
  * AM/PM); here it's one column of times that scrolls and snaps, the one in the middle band picked once it settles.
  * Tapping a time brings it to the middle; the arrow keys step it.
  */

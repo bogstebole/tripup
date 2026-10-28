@@ -45,7 +45,7 @@
 
 /* The invite: everyone there (their faces, overlapped), who invited you to what, all centred */
 .tu-join__faces { display: flex; justify-content: center; align-items: center; }
-.tu-join__faces > * + * { margin-left: calc(var(--d-avatar-overlap) * -1); }
+.tu-join__faces > * + * { margin-left: calc(var(--space-xs) * -1); }
 .tu-join__titles { display: flex; flex-direction: column; gap: var(--space-2xs); text-align: center; }
 /* The trip's name, two lines at most; one long word breaks where it must */
 .tu-join__trip {
@@ -79,9 +79,9 @@
 /* Been so far: two to a row, a card each (sticker on a muted block, then the name, what it is and the day) */
 .tu-join__places { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-xs); }
 .tu-join__place { padding: calc(var(--space-2xs) * 2); }
-.tu-join__place-photo { display: grid; place-items: center; height: var(--d-recap-place-photo); border-radius: var(--radius-control); background: var(--color-bg-muted); }
+.tu-join__place-photo { display: grid; place-items: center; height: calc(var(--space-5xl) * 2); border-radius: var(--radius-control); background: var(--color-bg-muted); }
 /* A wide place (the stadium) gets narrower instead of running off the block */
-.tu-join__place-sticker { height: var(--d-recap-place-sticker); max-width: calc(100% - var(--space-sm) * 2); object-fit: contain; }
+.tu-join__place-sticker { height: calc(var(--space-5xl) + var(--space-xl)); max-width: calc(100% - var(--space-sm) * 2); object-fit: contain; }
 .tu-join__place-words { display: flex; flex-direction: column; gap: var(--space-3xs); padding: var(--space-sm) var(--space-2xs) var(--space-xs); }
 .tu-join__place-name { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: var(--color-text-default); }
 .tu-join__rule { margin: 0; padding: var(--space-sm); color: var(--color-text-default); }

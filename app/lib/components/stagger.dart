@@ -15,7 +15,7 @@ class StaggerIn extends StatefulWidget {
     required this.children,
     this.spacing = 0,
     this.crossAxisAlignment = CrossAxisAlignment.stretch,
-    this.from = const Offset(0, TokDim.tabEnterShift),
+    this.from = const Offset(0, TokSpace.xs),
     this.delay = Duration.zero,
     this.duration = TokMotion.enter,
     this.stagger = TokMotion.stagger,

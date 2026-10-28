@@ -19,7 +19,7 @@ export interface TopBarProps {
  *  lives on the footer's Money button now.) As the trip opens, back and the title arrive one by one (see Entrance.tsx). */
 export function TopBar({ title, dates, onBack, filter }: TopBarProps) {
   return (
-    <header className="tu-topbar" style={{ background: easedFade('var(--c-top-bar-bg)', { from: 'calc(var(--d-top-bar-fade-start) * 100%)' }) }}>
+    <header className="tu-topbar" style={{ background: easedFade('color-mix(in srgb, var(--color-bg-default) 70%, transparent)', { from: 'calc(var(--d-top-bar-fade-start) * 100%)' }) }}>
       <div className="tu-topbar__row">
         <EnterItem index={ENTER_ORDER.back}><Button icon={ArrowLeft} label="Back to trips" size="md" onClick={onBack} /></EnterItem>
         <EnterItem index={ENTER_ORDER.title} className="tu-topbar__title">
@@ -46,7 +46,7 @@ export interface ActionBarProps {
  */
 export function ActionBar({ onItinerary, onMoney, onAdd }: ActionBarProps) {
   return (
-    <nav className="tu-actionbar" aria-label="Trip actions" style={{ background: easedFade('var(--c-action-bar-bg)', { from: 'calc(var(--d-action-bar-fade-start) * 100%)', to: 'top' }) }}>
+    <nav className="tu-actionbar" aria-label="Trip actions" style={{ background: easedFade('var(--color-bg-default)', { from: 'calc(var(--d-action-bar-fade-start) * 100%)', to: 'top' }) }}>
       <EnterItem index={ENTER_ORDER.footer}><Button icon={MapPin} label="Itinerary" size="lg" onClick={onItinerary} /></EnterItem>
       <EnterItem index={ENTER_ORDER.footer + 1}><CrewButton onClick={onMoney} /></EnterItem>
       <EnterItem index={ENTER_ORDER.footer + 2}><Button icon={Plus} label="Add to the trip" size="lg" variant="primary" onClick={onAdd} /></EnterItem>

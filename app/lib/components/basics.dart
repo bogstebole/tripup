@@ -8,12 +8,15 @@ import '../design/tokens.dart';
 import '../startup_timings.dart';
 import 'glass.dart';
 
+// Its own measurements: used only here, so they're not tokens.
+const double _knowRowHeight = 56;
+
 /// The raised white glass every widget sits on (see Storybook: Components/Basics → Surface).
 BoxDecoration surfaceDecoration(BuildContext context, BorderRadius radius) {
   final t = context.tok;
   return BoxDecoration(
-    gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [t.cSurfaceTop, t.cSurfaceBottom]),
-    border: Border.all(color: t.cSurfaceEdge, width: TokDim.surfaceEdgeWidth),
+    gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [t.bgDefault, t.bgSubtle]),
+    border: Border.all(color: t.bgDefault, width: TokDim.surfaceEdgeWidth),
     borderRadius: radius,
     boxShadow: TokShadow.surface,
   );
@@ -30,12 +33,12 @@ class Sticker extends StatelessWidget {
   final double tilt;
 
   static double heightOf(StickerSize s) => switch (s) {
-        StickerSize.avatar => TokDim.stickerAvatar,
-        StickerSize.chip => TokDim.stickerChip,
+        StickerSize.avatar => TokSpace.x2xl,
+        StickerSize.chip => TokSize.iconLg,
         StickerSize.mini => TokDim.stickerMini,
-        StickerSize.edge => TokDim.stickerEdge,
-        StickerSize.row => TokDim.stickerRow,
-        StickerSize.map => TokDim.stickerMap,
+        StickerSize.edge => TokSize.iconMd,
+        StickerSize.row => TokSpace.x3xl,
+        StickerSize.map => TokSize.touchTarget,
       };
 
   @override
@@ -67,7 +70,6 @@ class DishSticker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.tok;
     final inner = size - edge * 2;
     return Transform.rotate(
       angle: tilt * math.pi / 180,
@@ -75,7 +77,7 @@ class DishSticker extends StatelessWidget {
         width: size,
         height: size,
         padding: EdgeInsets.all(edge),
-        decoration: BoxDecoration(color: t.cDishEdge, borderRadius: BorderRadius.circular(radius + edge), boxShadow: TokShadow.slightlyRaised),
+        decoration: BoxDecoration(color: TokPalette.white, borderRadius: BorderRadius.circular(radius + edge), boxShadow: TokShadow.slightlyRaised),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(radius),
           child: Image.asset(
@@ -178,7 +180,7 @@ class InfoChips extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tok;
     final r = const Radius.circular(TokDim.chipRadius);
-    return Row(spacing: TokDim.chipGap, children: [
+    return Row(spacing: TokSpace.x3xs, children: [
       for (var i = 0; i < items.length; i++)
         () {
           final c = items[i];
@@ -187,7 +189,7 @@ class InfoChips extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs, vertical: TokSpace.x2xs),
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: t.cChipBg,
+              color: t.bgMuted,
               borderRadius: BorderRadius.horizontal(left: i == 0 ? r : Radius.zero, right: i == items.length - 1 ? r : Radius.zero),
             ),
             child: Row(mainAxisSize: MainAxisSize.min, spacing: c.faces.isEmpty ? 0 : TokSpace.x2xs, children: [
@@ -195,7 +197,7 @@ class InfoChips extends StatelessWidget {
                 Overlapped(overlap: TokDim.chipFaceOverlap, children: [for (final f in c.faces) Sticker(f, size: StickerSize.chip)])
               else if (c.sticker != null)
                 Sticker(c.sticker!, size: StickerSize.chip, tilt: c.tilt),
-              Text(c.text, maxLines: 1, overflow: TextOverflow.clip, style: TokText.bodySm.copyWith(fontWeight: TokWeight.semibold, color: t.cChipFg)),
+              Text(c.text, maxLines: 1, overflow: TextOverflow.clip, style: TokText.bodySm.copyWith(fontWeight: TokWeight.semibold, color: t.textBrand)),
             ]),
           );
           return c.grow ? Expanded(child: chip) : chip;
@@ -215,12 +217,12 @@ class FacePile extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tok;
     final more = faces.length - 2;
-    return Overlapped(overlap: TokDim.avatarOverlap, children: [
+    return Overlapped(overlap: TokSpace.xs, children: [
       for (final f in faces.take(2)) Sticker(f, size: size),
       if (more > 0)
         Container(
-          width: TokDim.countBubbleSize,
-          height: TokDim.countBubbleSize,
+          width: TokSpace.x2xl,
+          height: TokSpace.x2xl,
           alignment: Alignment.center,
           decoration: BoxDecoration(color: t.bgDefault, borderRadius: BorderRadius.circular(TokRadius.pill), boxShadow: TokShadow.slightlyRaised),
           child: Text('+$more', style: TokText.labelMd.copyWith(fontWeight: TokWeight.bold, color: t.textDefault)),
@@ -239,7 +241,7 @@ class KnowTip extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tok;
     return Container(
-      constraints: const BoxConstraints(minHeight: TokDim.knowRowHeight),
+      constraints: const BoxConstraints(minHeight: _knowRowHeight),
       padding: const EdgeInsets.symmetric(horizontal: TokSpace.sm, vertical: TokSpace.xs),
       alignment: Alignment.centerLeft,
       decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.card)),

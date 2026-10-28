@@ -1,6 +1,6 @@
 .tu-surface {
-  background: linear-gradient(to bottom, var(--c-surface-top), var(--c-surface-bottom));
-  border: var(--d-surface-edge-width) solid var(--c-surface-edge);
+  background: linear-gradient(to bottom, var(--color-bg-default), var(--color-bg-subtle));
+  border: var(--d-surface-edge-width) solid var(--color-bg-default);
   box-shadow: var(--shadow-surface);
 }
 .tu-surface--sheet { border-radius: var(--d-surface-radius); }

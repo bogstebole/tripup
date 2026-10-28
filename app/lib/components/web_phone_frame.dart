@@ -4,6 +4,12 @@ import 'package:flutter/widgets.dart';
 import '../design/theme.dart';
 import '../design/tokens.dart';
 
+// Its own measurements: used only here, so they're not tokens.
+const double _webFrameWidth = 440;
+const double _webFrameHeight = 956;
+const double _webFrameRadius = 40;
+const double _webFrameMinWindow = 600;
+
 /// The web build on a computer. A browser window is far wider than a phone, and the app stretched across it blows up
 /// everything sized from the screen (the map still on the trip card, its stickers). So on a wide window the app sits
 /// in a phone-sized frame in the middle, the size of the Figma screens, scaled down to fit the window's height: it
@@ -25,19 +31,19 @@ class WebPhoneFrame extends StatelessWidget {
     final app = KeyedSubtree(key: _screen, child: child);
     // The text is always the design's size: the phone's text size setting (Dynamic Type, Android's font size) and the
     // browser's font size don't scale it. The prototype is judged on its layout, so it looks the same on every phone
-    if (!kIsWeb || window.size.width < TokDim.webFrameMinWindow) return MediaQuery(data: window.copyWith(textScaler: TextScaler.noScaling), child: app);
-    const phone = Size(TokDim.webFrameWidth, TokDim.webFrameHeight);
+    if (!kIsWeb || window.size.width < _webFrameMinWindow) return MediaQuery(data: window.copyWith(textScaler: TextScaler.noScaling), child: app);
+    const phone = Size(_webFrameWidth, _webFrameHeight);
     return ColoredBox(
       color: context.tok.bgMuted,
       child: Padding(
-        padding: const EdgeInsets.all(TokDim.webFrameMargin),
+        padding: const EdgeInsets.all(TokSpace.xl),
         child: FittedBox(
           fit: BoxFit.scaleDown,   // smaller on a short window, never larger than the phone
           child: Container(
             width: phone.width,
             height: phone.height,
             clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(TokDim.webFrameRadius), boxShadow: TokShadow.elevationOverlay),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(_webFrameRadius), boxShadow: TokShadow.elevationOverlay),
             // Everything inside lays itself out for the phone's screen, not the window
             child: MediaQuery(
               data: window.copyWith(size: phone, padding: EdgeInsets.zero, viewPadding: EdgeInsets.zero, viewInsets: EdgeInsets.zero, textScaler: TextScaler.noScaling),

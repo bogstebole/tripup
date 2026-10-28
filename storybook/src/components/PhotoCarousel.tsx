@@ -3,11 +3,10 @@ import tokens from '../../../design-system/tokens.json';
 import { photoUrl } from '../data';
 import './PhotoCarousel.css';
 
-const dim = tokens.component.dimension;
 const gap = tokens.space.xs;
 // Small and medium keep the design's peek widths; large takes the rest
-const small = dim['photos/peek-start'] as number;
-const medium = dim['photos/peek-end'] as number;
+const small = 36;
+const medium = 62;
 
 type Slot = { x: number; w: number };
 const lerp = (a: Slot, b: Slot, t: number): Slot => ({ x: a.x + (b.x - a.x) * t, w: a.w + (b.w - a.w) * t });

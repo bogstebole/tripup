@@ -6,6 +6,12 @@ import ActivityKit
 import SwiftUI
 import WidgetKit
 
+// Its own measurements: used only here, so they're not tokens.
+private let pollActivityMark: CGFloat = 20
+private let pollActivityBar: CGFloat = 4
+private let pollActivityTimer: CGFloat = 48
+private let pollMarkRing: CGFloat = 2
+
 struct PollLiveActivity: Widget {
   var body: some WidgetConfiguration {
     ActivityConfiguration(for: PollActivityAttributes.self) { context in
@@ -30,14 +36,14 @@ struct PollLiveActivity: Widget {
         }
       } compactTrailing: {
         if let winner = context.attributes.places.first(where: { $0.id == context.state.winner }) {
-          Image(winner.sticker).resizable().scaledToFit().frame(width: TokDim.stickerChip, height: TokDim.stickerChip)
+          Image(winner.sticker).resizable().scaledToFit().frame(width: TokSize.iconLg, height: TokSize.iconLg)
         } else {
           Countdown(state: context.state, tok: tok)
         }
       } minimal: {
         LiveDot(tok: tok)
       }
-      .keylineTint(tok.cPollLive)
+      .keylineTint(tok.bgDanger)
       .widgetURL(pollURL)
     }
   }
@@ -121,7 +127,7 @@ struct Countdown: View {
         .font(TokText.labelMd.weight(.semibold))
         .foregroundStyle(tok.textBrand)
         .multilineTextAlignment(.trailing)
-        .frame(width: TokDim.pollActivityTimer, alignment: .trailing)
+        .frame(width: pollActivityTimer, alignment: .trailing)
     }
   }
 }
@@ -131,7 +137,7 @@ struct LiveDot: View {
   let tok: TokColors
 
   var body: some View {
-    Circle().fill(tok.cPollLive).frame(width: TokDim.pollLiveDot, height: TokDim.pollLiveDot)
+    Circle().fill(tok.bgDanger).frame(width: TokDim.pollLiveDot, height: TokDim.pollLiveDot)
   }
 }
 
@@ -186,10 +192,10 @@ struct PlaceCard: View {
       }
       // The bar grows from the left (a scale, so its rounded end keeps its shape)
       Capsule()
-        .fill(tok.cPollBarTrackOnMuted)
-        .frame(height: TokDim.pollActivityBar)
+        .fill(tok.bgDefault)
+        .frame(height: pollActivityBar)
         .overlay(alignment: .leading) {
-          Capsule().fill(tok.cPollBarLead).scaleEffect(x: share, anchor: .leading)
+          Capsule().fill(tok.bgBrand).scaleEffect(x: share, anchor: .leading)
         }
     }
     .padding(TokSpace.xs)
@@ -206,13 +212,13 @@ struct Mark: View {
 
   var body: some View {
     ZStack {
-      Circle().strokeBorder(tok.borderStrong, lineWidth: on ? 0 : TokDim.pollMarkRing)
+      Circle().strokeBorder(tok.borderStrong, lineWidth: on ? 0 : pollMarkRing)
       Circle().fill(tok.bgBrand).opacity(on ? 1 : 0)
       Image(systemName: "checkmark")
         .font(TokText.caption.weight(.bold))
         .foregroundStyle(tok.textOnBrand)
         .opacity(on ? 1 : 0)
     }
-    .frame(width: TokDim.pollActivityMark, height: TokDim.pollActivityMark)
+    .frame(width: pollActivityMark, height: pollActivityMark)
   }
 }

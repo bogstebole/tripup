@@ -1,7 +1,7 @@
 /* Scrolls sideways; the block padding keeps the selected chip's shadow from being cut by the scroller */
 .tu-toggles {
   display: flex;
-  gap: var(--d-toggle-chip-gap);
+  gap: var(--space-xs);
   overflow-x: auto;
   padding: var(--space-xs) var(--space-md);
   margin: calc(var(--space-xs) * -1) 0;
@@ -11,13 +11,13 @@
 
 .tu-toggle {
   flex: none;
-  height: var(--d-toggle-chip-height);
-  padding: 0 var(--d-toggle-chip-padding-x);
+  height: var(--space-2xl);
+  padding: 0 var(--space-sm);
   border-radius: var(--radius-pill);
   white-space: nowrap;
   transition: transform var(--press-ms) var(--ease-out), background-color var(--fade-ms) var(--ease-out), color var(--fade-ms) var(--ease-out), box-shadow var(--fade-ms) var(--ease-out);
 }
 .tu-toggle:active { transform: scale(var(--press-scale)); }
 /* Off: flat, no glass and no shadow */
-.tu-toggle--off { background: var(--c-toggle-chip-off-bg); color: var(--c-toggle-chip-off-fg); box-shadow: none; }
+.tu-toggle--off { background: var(--color-bg-muted); color: var(--color-text-default); box-shadow: none; }
 .tu-toggle:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: var(--space-3xs); }

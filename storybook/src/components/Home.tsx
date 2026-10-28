@@ -218,7 +218,7 @@ export interface HomeLayerProps extends Omit<TripsHomeProps, 'cardRef'> {
 /**
  * Your trips, and the trip's screen over them (the app's home layer and its opening trip), with one spring between.
  * Going in, the trip opens out of its card the way Airbnb opens a listing: your trips stay put and blur and wash out
- * (c-trip-open-wash and the sheet's backdrop blur, over the first 60% of the way), and one rounded surface grows from
+ * (bg/default at 60% and the sheet's backdrop blur, over the first 60% of the way), and one rounded surface grows from
  * the card's place to the whole screen, lifted by a shadow (elevation-overlay) while it's in the air. It starts as the
  * card: the card's picture (TripCardStill) grows inside it, and the card's words (TripCardFace, at the card's size)
  * leave over the first quarter. The live trip, scaled to the surface, fades in over 45–85% of the way, blurred a
@@ -284,7 +284,7 @@ export function HomeLayer({ inTrip, trip, ...home }: HomeLayerProps) {
   const behind = () => (inTheTrip ? 0 : smoothstep(0, 0.6, p()));
 
   // Your trips: blurred and washed out behind the surface
-  const washBlur = useTransform(() => (behind() > 0.01 ? `blur(calc(var(--d-sheet-backdrop-blur) * ${behind()}))` : 'none'));
+  const washBlur = useTransform(() => (behind() > 0.01 ? `blur(calc(2.5px * ${behind()}))` : 'none'));
   const washOpacity = useTransform(behind);
   // The surface's lift
   const lift = useTransform(() => (air && p() < 1 ? 'var(--shadow-elevation-overlay)' : 'none'));
@@ -320,7 +320,7 @@ export function HomeLayer({ inTrip, trip, ...home }: HomeLayerProps) {
       </div>
       <div style={{ position: 'absolute', inset: 0, visibility: onHome || inTheTrip ? 'hidden' : undefined, pointerEvents: 'none' }}>
         <motion.div style={{ position: 'absolute', inset: 0, backdropFilter: washBlur, WebkitBackdropFilter: washBlur }}>
-          <motion.div style={{ position: 'absolute', inset: 0, background: 'var(--c-trip-open-wash)', opacity: washOpacity }} />
+          <motion.div style={{ position: 'absolute', inset: 0, background: 'color-mix(in srgb, var(--color-bg-default) 60%, transparent)', opacity: washOpacity }} />
         </motion.div>
         <motion.div style={{ ...surface, borderRadius: radius, boxShadow: lift }} />
       </div>

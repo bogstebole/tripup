@@ -37,6 +37,11 @@ import '../design/theme.dart';
 import '../design/tokens.dart';
 import '../startup_timings.dart';
 
+// Its own measurements: used only here, so they're not tokens.
+const double _pollScrimBlur = 2.5;
+const double _sheetBackdropBlur = 2.5;
+const double _sheetCompactHeight = 480;
+
 /// The trip: the map with past places and planned pins, the Up next card, and its full view.
 class TripScreen extends StatefulWidget {
   const TripScreen({super.key});
@@ -394,10 +399,10 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   Rect _safe(Size size) {
     final pad = MediaQuery.paddingOf(context);
     return nonInverted(Rect.fromLTRB(
-      TokDim.widgetEdgeInset,
-      pad.top + TopBar.contentHeightWithFilter + TokDim.widgetEdgeInset,
-      size.width - TokDim.widgetEdgeInset,
-      size.height - ActionBar.rowInset(context) - TokDim.buttonLg - TokDim.widgetEdgeInset,
+      TokSpace.xs,
+      pad.top + TopBar.contentHeightWithFilter + TokSpace.xs,
+      size.width - TokSpace.xs,
+      size.height - ActionBar.rowInset(context) - TokDim.buttonLg - TokSpace.xs,
     ));
   }
 
@@ -405,7 +410,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   PinArea _area(Size size) {
     final safe = _safe(size);
     final row = size.height - ActionBar.rowInset(context);
-    final dock = Rect.fromLTRB((size.width - ActionBar.width) / 2, row - TokDim.buttonLg, (size.width + ActionBar.width) / 2, row).inflate(TokDim.widgetEdgeInset);
+    final dock = Rect.fromLTRB((size.width - ActionBar.width) / 2, row - TokDim.buttonLg, (size.width + ActionBar.width) / 2, row).inflate(TokSpace.xs);
     return PinArea(nonInverted(Rect.fromLTRB(safe.left, safe.top, safe.right, row)), dock: dock);
   }
 
@@ -469,7 +474,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
     const half = TokDim.widgetMiniWidth / 2;
     final fit = CameraFit.coordinates(
       coordinates: points,
-      padding: EdgeInsets.fromLTRB(safe.left + half, safe.top + PlanPin.miniReach, size.width - safe.right + half, size.height - safe.bottom + TokDim.stickerMap / 2),
+      padding: EdgeInsets.fromLTRB(safe.left + half, safe.top + PlanPin.miniReach, size.width - safe.right + half, size.height - safe.bottom + TokSize.touchTarget / 2),
       maxZoom: startZoom,
     ).fit(_map.camera);
     _flyCamera(fit.center, fit.zoom);
@@ -623,7 +628,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
             children: [
               if (MapTiles.source.value case final source?) TripTileLayer(source: source),
               MarkerLayer(markers: [
-                Marker(point: at, width: TokDim.stickerMap * 2, height: TokDim.stickerMap, child: Center(child: Sticker(sticker, size: StickerSize.map))),
+                Marker(point: at, width: TokSize.touchTarget * 2, height: TokSize.touchTarget, child: Center(child: Sticker(sticker, size: StickerSize.map))),
               ]),
             ],
           ),
@@ -632,7 +637,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           left: 0,
           right: 0,
           bottom: TokSpace.x2xs,
-          child: Text('© OpenFreeMap © OpenMapTiles © OpenStreetMap', textAlign: TextAlign.center, style: TokText.caption.copyWith(color: t.cAttributionFg)),
+          child: Text('© OpenFreeMap © OpenMapTiles © OpenStreetMap', textAlign: TextAlign.center, style: TokText.caption.copyWith(color: t.textMuted)),
         ),
       ]),
     );
@@ -675,8 +680,8 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
               child: IgnorePointer(
                 child: BackdropFilter(
                   enabled: behind > 0.01 && !lightEffects,
-                  filter: ui.ImageFilter.blur(sigmaX: TokDim.tripOpenBlur * behind, sigmaY: TokDim.tripOpenBlur * behind),
-                  child: ColoredBox(color: t.cTripOpenWash.withValues(alpha: t.cTripOpenWash.a * behind)),
+                  filter: ui.ImageFilter.blur(sigmaX: TokSpace.sm * behind, sigmaY: TokSpace.sm * behind),
+                  child: ColoredBox(color: t.bgDefault.withValues(alpha: 0.6 * behind)),
                 ),
               ),
             ),
@@ -749,10 +754,10 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
 
   /// The open pop-up, in the full view's place, sliding up from below the screen (with reduced motion, fading in).
   Widget _popupSheet(BuildContext context, Size size, EdgeInsets pad) {
-    final bottom = size.height - math.max(pad.bottom, TokDim.sheetInset), full = pad.top + TokSpace.xs + TokDim.buttonMd + TokSpace.x3xs;
+    final bottom = size.height - math.max(pad.bottom, TokSpace.md), full = pad.top + TokSpace.xs + TokDim.buttonMd + TokSpace.x3xs;
     // Add's choice and its invite are short, so the sheet is too; planning takes the whole height
     final compact = _popup == _Popup.add && _addStep != AddStep.plan;
-    final to = Rect.fromLTRB(TokDim.sheetInset, compact ? math.max(full, bottom - TokDim.sheetCompactHeight) : full, size.width - TokDim.sheetInset, bottom);
+    final to = Rect.fromLTRB(TokSpace.md, compact ? math.max(full, bottom - _sheetCompactHeight) : full, size.width - TokSpace.md, bottom);
     void dragEnd(DragEndDetails d) {
       final vy = d.velocity.pixelsPerSecond.dy;
       if (_popDrag.value > TokSpace.x5xl * 2 || vy > 900) {
@@ -1158,7 +1163,7 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
           left: 0,
           right: 0,
           bottom: ActionBar.creditInset(context),
-          child: IgnorePointer(child: Text('© OpenFreeMap © OpenMapTiles © OpenStreetMap', textAlign: TextAlign.center, style: ActionBar.creditStyle.copyWith(color: t.cAttributionFg))),
+          child: IgnorePointer(child: Text('© OpenFreeMap © OpenMapTiles © OpenStreetMap', textAlign: TextAlign.center, style: ActionBar.creditStyle.copyWith(color: t.textMuted))),
         ),
         Positioned(
           right: TokSpace.md,
@@ -1210,10 +1215,10 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
                 duration: _pollExpanded ? TokMotion.enter : TokMotion.fold,   // in step with the card
                 curve: TokMotion.easeOut,
                 child: lightEffects
-                    ? ColoredBox(color: t.cPollScrim)
+                    ? ColoredBox(color: TokPalette.blue975.withValues(alpha: 0.23))
                     : BackdropFilter(
-                        filter: ui.ImageFilter.blur(sigmaX: TokDim.pollScrimBlur, sigmaY: TokDim.pollScrimBlur),
-                        child: ColoredBox(color: t.cPollScrim),
+                        filter: ui.ImageFilter.blur(sigmaX: _pollScrimBlur, sigmaY: _pollScrimBlur),
+                        child: ColoredBox(color: TokPalette.blue975.withValues(alpha: 0.23)),
                       ),
               ),
             ),
@@ -1361,16 +1366,15 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
 
   /// Behind the full view: the map and bars blur away as it opens.
   Widget _backdrop(BuildContext context) {
-    final t = context.tok;
     return AnimatedBuilder(
       animation: Listenable.merge([_open, _pop]),
       builder: (context, _) {
         final p = math.max(_open.value, _pop.value).clamp(0.0, 1.0);
         return BackdropFilter(
           enabled: !lightEffects,
-          filter: ui.ImageFilter.blur(sigmaX: TokDim.sheetBackdropBlur * p, sigmaY: TokDim.sheetBackdropBlur * p),
+          filter: ui.ImageFilter.blur(sigmaX: _sheetBackdropBlur * p, sigmaY: _sheetBackdropBlur * p),
           // Without the blur (light effects) a stronger wash keeps the map back
-          child: ColoredBox(color: (lightEffects ? t.cSheetScrimFlat : t.cSheetScrim).withValues(alpha: (lightEffects ? t.cSheetScrimFlat : t.cSheetScrim).a * p)),
+          child: ColoredBox(color: TokPalette.blue975.withValues(alpha: (lightEffects ? 0.35 : 0.23) * p)),
         );
       },
     );
@@ -1379,10 +1383,10 @@ class _TripScreenState extends State<TripScreen> with TickerProviderStateMixin {
   /// The card growing into the full view: one surface whose rect and content follow [_open] (the backdrop is in [_backdrop]).
   /// Where the full view (and a full-height pop-up) rests: under the top bar's buttons, inset from the edges.
   Rect _fullRect(Size size, EdgeInsets pad) => Rect.fromLTRB(
-        TokDim.sheetInset,
+        TokSpace.md,
         pad.top + TokSpace.xs + TokDim.buttonMd + TokSpace.x3xs,
-        size.width - TokDim.sheetInset,
-        size.height - math.max(pad.bottom, TokDim.sheetInset),
+        size.width - TokSpace.md,
+        size.height - math.max(pad.bottom, TokSpace.md),
       );
 
   Widget _expanded(BuildContext context, Size size, EdgeInsets pad) {
@@ -1526,8 +1530,8 @@ class _VisitedLayer extends StatelessWidget {
         for (final v in visited)
           Marker(
             point: v.at,
-            width: TokDim.stickerMap * 2,
-            height: TokDim.stickerMap,
+            width: TokSize.touchTarget * 2,
+            height: TokSize.touchTarget,
             child: IgnorePointer(child: Center(child: _Filtered(shown: shows(v.day), child: Sticker(v.sticker, size: StickerSize.map, tilt: v.tilt)))),
           ),
       ]);
@@ -1573,8 +1577,8 @@ class _MeLayer extends StatelessWidget {
     return IgnorePointer(
       child: Stack(children: [
         Positioned(
-          left: p.dx - TokDim.meCone,
-          top: p.dy - TokDim.meCone,
+          left: p.dx - TokSize.iconLg,
+          top: p.dy - TokSize.iconLg,
           child: AnimatedOpacity(
             opacity: inside ? 1 : 0,
             duration: TokMotion.fade,

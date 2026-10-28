@@ -26,7 +26,7 @@ class Glass extends StatelessWidget {
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: soft ? t.cButtonSoftBg : t.cButtonPrimaryBg,
+        color: soft ? t.bgMuted : TokPalette.blue700,
         borderRadius: radius,
         boxShadow: TokShadow.slightlyRaised,
       ),
@@ -68,7 +68,7 @@ class TuButton extends StatelessWidget {
         height: d,
         radius: BorderRadius.circular(TokRadius.pill),
         child: Center(
-          child: LucideIcon(icon, size: TokDim.buttonIcon, color: kind == GlassKind.soft ? t.cButtonSoftFg : t.cButtonPrimaryFg),
+          child: LucideIcon(icon, size: TokSize.iconSm, color: kind == GlassKind.soft ? t.iconDefault : t.iconOnBrand),
         ),
       ),
     );
@@ -91,7 +91,7 @@ class TuTextButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tok;
-    final fg = kind == GlassKind.soft ? t.cButtonSoftFg : t.cButtonPrimaryFg;
+    final fg = kind == GlassKind.soft ? t.iconDefault : t.iconOnBrand;
     return Pressable(
       onTap: onTap,
       semanticLabel: label,
@@ -157,7 +157,7 @@ class LucideIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final stroke = TokDim.iconStroke * 24 / size;   // the view box is 24 wide
+    final stroke = TokSpace.x3xs * 24 / size;   // the view box is 24 wide
     final svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${filled ? '#000' : 'none'}" stroke="#000" '
         'stroke-width="$stroke" stroke-linecap="round" stroke-linejoin="round">$body</svg>';
     return SvgPicture.string(svg, width: size, height: size, colorFilter: ColorFilter.mode(color, BlendMode.srcIn));
@@ -191,10 +191,10 @@ class AddButton extends StatelessWidget {
             child: Glass(
               key: ValueKey(added),
               kind: added ? GlassKind.primary : GlassKind.soft,
-              width: TokDim.buttonPillHeight,
-              height: TokDim.buttonPillHeight,
+              width: TokSpace.x2xl,
+              height: TokSpace.x2xl,
               radius: BorderRadius.circular(TokRadius.pill),
-              child: Center(child: LucideIcon(added ? TuIcons.check : TuIcons.add, size: TokSize.iconSm, color: added ? t.cButtonPrimaryFg : t.cButtonSoftFg)),
+              child: Center(child: LucideIcon(added ? TuIcons.check : TuIcons.add, size: TokSize.iconSm, color: added ? t.iconOnBrand : t.iconDefault)),
             ),
           ),
         ),

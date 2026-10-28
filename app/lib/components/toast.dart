@@ -15,13 +15,13 @@ class Toast extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tok;
-    final fg = t.cToastFg;
+    final fg = t.textOnBrand;
     return Semantics(
       liveRegion: true,
       child: Container(
         height: TokDim.buttonMd,
         padding: const EdgeInsets.only(left: TokSpace.md),
-        decoration: BoxDecoration(color: t.cToastBg, borderRadius: BorderRadius.circular(TokRadius.pill)),
+        decoration: BoxDecoration(color: TokPalette.blue700, borderRadius: BorderRadius.circular(TokRadius.pill)),
         child: Row(mainAxisSize: MainAxisSize.min, spacing: TokSpace.xs, children: [
           LucideIcon(TuIcons.check, size: TokSize.iconSm, color: fg),
           Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.labelMd.copyWith(color: fg))),

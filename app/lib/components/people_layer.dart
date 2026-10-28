@@ -52,7 +52,7 @@ class _PeopleLayerState extends State<PeopleLayer> {
     // Merge whoever overlaps on screen: each joins the first pile within a sticker's width of them
     final piles = <({List<Person> who, Offset at})>[];
     for (final (p, at) in dots) {
-      final i = piles.indexWhere((g) => (g.at - at).distance < TokDim.stickerAvatar);
+      final i = piles.indexWhere((g) => (g.at - at).distance < TokSpace.x2xl);
       if (i < 0) {
         piles.add((who: [p], at: at));
       } else {

@@ -17,6 +17,9 @@ import 'stagger.dart';
 import 'toggle_chips.dart';
 import 'trip_sheet.dart';
 
+// Its own measurements: used only here, so they're not tokens.
+const double _planPickerHeight = 180;
+
 /// Every day of the trip, in order: where we've been, what's planned, and today marked. Tapping a stop shows it
 /// on the map.
 class ItineraryPage extends StatelessWidget {
@@ -168,9 +171,9 @@ class _MoneyPageState extends State<MoneyPage> {
         if (i > 0) const Hairline(),
         SheetRow(
           leading: Row(mainAxisSize: MainAxisSize.min, spacing: TokSpace.x3xs, children: [
-            _slot(Sticker(personById(p.from).sticker, size: StickerSize.avatar), TokDim.stickerAvatar),
+            _slot(Sticker(personById(p.from).sticker, size: StickerSize.avatar), TokSpace.x2xl),
             LucideIcon(TuIcons.forward, size: TokSize.iconSm, color: t.iconMuted),
-            _slot(Sticker(personById(p.to).sticker, size: StickerSize.avatar), TokDim.stickerAvatar),
+            _slot(Sticker(personById(p.to).sticker, size: StickerSize.avatar), TokSpace.x2xl),
           ]),
           title: p.from == myId ? 'You pay ${_name(p.to)}' : '${_name(p.from)} pays ${_name(p.to)}',
           subtitle: '${_state(p)} · ${_why == p ? 'Hide why' : 'Why'}',
@@ -208,7 +211,7 @@ class _MoneyPageState extends State<MoneyPage> {
           final b = balanceLeft(person.id);
           final joinedLate = person.joined > tripDays.first;
           return SheetRow(
-            leading: _slot(Sticker(person.sticker, size: StickerSize.avatar), TokDim.stickerAvatar),
+            leading: _slot(Sticker(person.sticker, size: StickerSize.avatar), TokSpace.x2xl),
             title: person.name,
             subtitle: b > 0.005
                 ? 'Gets back'
@@ -231,7 +234,7 @@ class _MoneyPageState extends State<MoneyPage> {
       for (final (i, e) in tripExpenses.indexed) ...[
         if (i > 0) const Hairline(),
         SheetRow(
-          leading: _slot(Sticker(personById(e.paidBy).sticker, size: StickerSize.avatar), TokDim.stickerAvatar),
+          leading: _slot(Sticker(personById(e.paidBy).sticker, size: StickerSize.avatar), TokSpace.x2xl),
           title: e.title,
           subtitle: '${e.paidBy == myId ? 'You' : _name(e.paidBy)} paid · ${dayName(DateTime(tripYear, tripMonth, e.day), tripNow())} · ${e.split.length} people${e.shares != null ? ', by who had what' : ''}',
           trailing: Column(crossAxisAlignment: CrossAxisAlignment.end, spacing: TokSpace.x3xs, children: [
@@ -476,7 +479,7 @@ class _PayPageState extends State<PayPage> {
         Padding(
           padding: const EdgeInsets.only(bottom: TokSpace.xl),
           child: Column(spacing: TokSpace.xs, children: [
-            Sticker(to.sticker, height: TokDim.payAmountSticker),
+            Sticker(to.sticker, height: TokSpace.x4xl),
             Text(euros(p.amount), style: TokText.display.copyWith(color: t.textDefault)),
             Text('to ${to.name}', style: TokText.bodyMd.copyWith(color: t.textMuted)),
           ]),
@@ -580,7 +583,7 @@ class BankPage extends StatelessWidget {
 
 /// A bank's mark in TripUp's lists: its first letter on a disc (the real app would show the bank's logo).
 class BankLogo extends StatelessWidget {
-  const BankLogo(this.bank, {super.key, this.size = TokDim.bankLogo});
+  const BankLogo(this.bank, {super.key, this.size = TokSpace.x2xl});
   final Bank bank;
   final double size;
 
@@ -891,7 +894,7 @@ class _AddPageState extends State<AddPage> {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: TokSpace.xs),
         clipBehavior: Clip.none,
-        child: Row(spacing: TokDim.toggleChipGap, children: [
+        child: Row(spacing: TokSpace.xs, children: [
           for (final d in tripDays)
             if (d >= today)
               ToggleChip(
@@ -935,7 +938,7 @@ class _AddPageState extends State<AddPage> {
         child: !open
             ? const SizedBox(width: double.infinity)
             : SizedBox(
-                height: TokDim.planPickerHeight,
+                height: _planPickerHeight,
                 child: CupertinoDatePicker(
                   key: ValueKey('$key-${_draft.day}'),
                   mode: CupertinoDatePickerMode.time,
@@ -1009,7 +1012,7 @@ class StoryPage extends StatelessWidget {
 }
 
 /// Stickers come in their own widths; a fixed slot keeps the names after them in one line.
-Widget _slot(Widget sticker, [double width = TokDim.stickerRow]) => SizedBox(width: width, child: Center(child: sticker));
+Widget _slot(Widget sticker, [double width = TokSpace.x3xl]) => SizedBox(width: width, child: Center(child: sticker));
 
 /// A small brand pill next to a heading ("Today").
 class _Tag extends StatelessWidget {

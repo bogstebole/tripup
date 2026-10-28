@@ -104,7 +104,7 @@ class _JoinFlowState extends State<JoinFlow> {
           constraints: BoxConstraints(minHeight: math.max(0, box.maxHeight - inset.vertical)),
           child: Center(
             child: StaggerIn(spacing: TokSpace.md, crossAxisAlignment: CrossAxisAlignment.center, children: [
-          Overlapped(overlap: TokDim.avatarOverlap, children: [for (final p in crew) Sticker(p.sticker, size: StickerSize.row)]),
+          Overlapped(overlap: TokSpace.xs, children: [for (final p in crew) Sticker(p.sticker, size: StickerSize.row)]),
           Column(spacing: TokSpace.x2xs, children: [
             Text("$myName invited you to", textAlign: TextAlign.center, style: TokText.bodyMd.copyWith(color: t.textMuted)),
             Text(tripTitle, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: TokText.headingLg.copyWith(color: t.textDefault)),
@@ -235,12 +235,12 @@ class _PlaceTile extends StatelessWidget {
       padding: const EdgeInsets.all(TokSpace.x2xs),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Container(
-          height: TokDim.recapPlacePhoto,
+          height: (TokSpace.x5xl * 2),
           alignment: Alignment.center,
           decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.control)),
           padding: const EdgeInsets.all(TokSpace.sm),
           // A wide place (the stadium) gets narrower instead of running off the block
-          child: FittedBox(fit: BoxFit.scaleDown, child: Sticker(place.sticker, height: TokDim.recapPlaceSticker, tilt: place.tilt)),
+          child: FittedBox(fit: BoxFit.scaleDown, child: Sticker(place.sticker, height: (TokSpace.x5xl + TokSpace.xl), tilt: place.tilt)),
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(TokSpace.x2xs, TokSpace.sm, TokSpace.x2xs, TokSpace.xs),
