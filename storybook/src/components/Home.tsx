@@ -5,7 +5,7 @@ import { animate, motion, useMotionValue, useReducedMotion, useTransform } from 
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import {
-  HOME_MAP_IMAGE, HOME_MAP_RECT, HOME_MAP_WIDTH, MY_ID, MY_NAME, onTrip, PAST_TRIPS, PEOPLE, personById, TRIP, TRIP_NOW, UPCOMING_TRIPS,
+  HOME_MAP_IMAGE, HOME_MAP_RECT, HOME_MAP_WIDTH, MY_ID, MY_NAME, onTrip, PAST_TRIPS, PEOPLE, personById, TODAY, TRIP, TRIP_DAYS, TRIP_NOW, UPCOMING_TRIPS,
   type TripSummary,
 } from '../data';
 import { Button } from './Button';
@@ -53,8 +53,8 @@ export interface TripsHomeProps {
  *  apart. The blue leaves last and comes back first. */
 /** Under the trip, the blue goes from clear to solid over this much (as in the app). */
 const BLUE_FADE_PX = 275;
-const PREVIOUS = 5 + 1 + UPCOMING_TRIPS.length;
-const PART = { header: 0, title: 1, dates: 2, faces: 3, wayIn: 4, comingUp: 5, previous: PREVIOUS, blue: PREVIOUS + 1 + PAST_TRIPS.length } as const;
+const PREVIOUS = 6 + 1 + UPCOMING_TRIPS.length;
+const PART = { header: 0, now: 1, title: 2, dates: 3, faces: 4, wayIn: 5, comingUp: 6, previous: PREVIOUS, blue: PREVIOUS + 1 + PAST_TRIPS.length } as const;
 /** From the first element leaving to the last gone. */
 const HOME_LEAVE_MS = m['enter-ms'] + m['open-stagger-ms'] * PART.blue;
 const part = (i: number) => ({ className: 'tu-home-part', style: { '--i': i } as CSSProperties });
@@ -153,14 +153,19 @@ function HomeHeroFace({ now = TRIP_NOW, onOpen }: { now?: Date; onOpen?: () => v
       <div className="tu-home__head-place" aria-hidden />
       <div className="tu-home-face__middle">
         <div className="tu-home-face__titles">
+          {/* It's on now: the first thing over the name */}
+          <span className={`tu-home-now ${part(PART.now).className}`} style={part(PART.now).style}>
+            <span className="tu-home-now__dot" />
+            <span className="text-label-md weight-semibold">Happening now<span className="tu-home-now__day"> · Day {TRIP_DAYS.findIndex(d => d.day === TODAY) + 1} of {TRIP_DAYS.length}</span></span>
+          </span>
           <span {...part(PART.title)} style={{ ...part(PART.title).style, alignSelf: 'stretch' }}><TripName title={TRIP.title} /></span>
           <span className={`text-label-md ${part(PART.dates).className}`} style={part(PART.dates).style}>{TRIP.city} · {TRIP.dates}</span>
         </div>
+        {/* The button at least space-xl wider than the faces on each side */}
         <div className="tu-home-face__way-in">
           {/* Everyone on it, standing on the button */}
           <span className={`tu-home-face__faces ${part(PART.faces).className}`} style={part(PART.faces).style}>{crew.map(p => <Sticker key={p.id} name={p.sticker} className="tu-home-face__face" />)}</span>
           <button type="button" className={`tu-btn tu-btn--primary tu-btn--text tu-btn--text-lg ${part(PART.wayIn).className}`} style={part(PART.wayIn).style} onClick={e => { e.stopPropagation(); onOpen?.(); }}>
-            <span className="tu-home-now__dot" />
             <span className="text-label-md weight-semibold">See trip details</span>
           </button>
         </div>
