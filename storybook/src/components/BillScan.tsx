@@ -1,14 +1,14 @@
 // Scanning the dinner's bill: the camera finds the paper, reads it, and every line lands on whoever had it.
-import { Check, ChevronUp, X } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, UserPlus, X } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useEffect, useLayoutEffect, useRef, useState, type Ref } from 'react';
 import tokens from '../../../design-system/tokens.json';
 import {
-  billShares, billTotal, BRASSERIE_BILL, DINNER_TABLE, euros, lineTotal, menuItemNamed, MY_ID, personById, scannedBill, unclaimedOf, type Bill,
+  billShares, billTotal, BRASSERIE_BILL, DINNER_TABLE, euros, lineTotal, menuItemNamed, MY_ID, personById, scannedBill, unclaimedOf, type Bill, type BillLine,
 } from '../data';
 import { Button, TextButton } from './Button';
 import { Sticker } from './Sticker';
-import { Hairline, RowChevron, Slot, StaggerIn, TripSheet } from './TripSheet';
+import { Hairline, Slot, StaggerIn, TripSheet } from './TripSheet';
 import './Surface.css';
 import './BillScan.css';
 
@@ -203,24 +203,13 @@ function BillReview({ bill, payerMenuOpen, onPayer, onChange, onAdd, onClose }: 
       if (!el || !page) return;
       const at = el.getBoundingClientRect().top - page.getBoundingClientRect().top + page.scrollTop;
       page.scrollTo({ top: at - (page.clientHeight - el.offsetHeight) / 2, behavior: reduce ? 'auto' : 'smooth' });
-    }, m['enter-ms']);
+    }, OPENING_MS);
   };
   const toggle = (line: number, id: string) => {
     const had = bill.who[line].includes(id) ? bill.who[line].filter(x => x !== id) : [...bill.who[line], id];
     onChange({ ...bill, who: bill.who.map((w, i) => (i === line ? had : w)) });
   };
-  // Everyone at the table had it (a bottle, a starter), in one tap
-  const everyone = (line: number) => onChange({ ...bill, who: bill.who.map((w, i) => (i === line ? [...table] : w)) });
-  // A line nobody has claimed opens by itself once the bill is up, so the faces to tap are right there
   const unclaimed = unclaimedOf(bill);
-  useEffect(() => {
-    const first = unclaimedOf(bill)[0];
-    if (first === undefined) return;
-    const t = window.setTimeout(() => edit(first), m['enter-ms']);
-    return () => window.clearTimeout(t);
-    // only when the bill first comes up
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   return (
     <TripSheet
@@ -247,12 +236,6 @@ function BillReview({ bill, payerMenuOpen, onPayer, onChange, onAdd, onClose }: 
               <span className="text-label-lg tu-bill__total-label">Total</span>
               <span className="text-heading-lg">{euros(billTotal(bill))}</span>
             </div>
-            {/* While a line has nobody, what happens to it if it stays that way */}
-            {unclaimed.length > 0 && (
-              <p className="text-body-sm tu-bill__unclaimed">
-                {unclaimed.length === 1 ? 'If nobody takes the line left, it splits evenly' : `If nobody takes the ${unclaimed.length} lines left, they split evenly`}
-              </p>
-            )}
           </div>
           <div className="tu-bill__actions">
             <PayerTrigger payer={bill.paidBy} open={payerMenuOpen} onOpen={onPayer} />
@@ -263,68 +246,143 @@ function BillReview({ bill, payerMenuOpen, onPayer, onChange, onAdd, onClose }: 
     >
       <StaggerIn>
         {bill.lines.flatMap((line, i) => {
-          const had = bill.who[i];
           const block = (
-            <div key={`line-${i}`} ref={el => { lines.current[i] = el; }}>
-              {/* The dish on its own line, then quantity × price, who had it and the line's total; tap to open who had it */}
-              <button type="button" className="tu-bill__line" aria-expanded={editing === i} onClick={() => edit(i)}>
-                <span className="text-label-lg">{menuItemNamed(line.item)?.name ?? line.printed}</span>
-                <span className="tu-bill__meta">
-                  <span className="text-body-sm tu-bill__qty">{`${line.qty} × ${euros(line.unit)}`}</span>
-                  {/* Every face, overlapped (there's room for the whole table); nobody yet asks who */}
-                  {had.length ? (
-                    <span className="tu-bill__pile" role="img" aria-label={names(had)}>
-                      {had.map(id => <Sticker key={id} name={personById(id).sticker} size="chip" />)}
-                    </span>
-                  ) : (
-                    <span className="text-label-md weight-semibold tu-bill__ask">Who had it?</span>
-                  )}
-                  <span className="text-label-lg tu-bill__amount">{euros(lineTotal(line))}</span>
-                  {/* It opens in place to change who had it */}
-                  <RowChevron expanded={editing === i} />
-                </span>
-              </button>
-              {/* Who had it: everyone at the table in a grey block, the ones who had it full, the others faded; tap to change */}
-              <AnimatePresence initial={false}>
-                {editing === i && (
-                  <motion.div
-                    key="who"
-                    className="tu-bill__who"
-                    initial={reduce ? { opacity: 0 } : { height: 0, opacity: 0 }}
-                    animate={reduce ? { opacity: 1, transition: { duration: m['fade-ms'] / 1000, ease } } : { height: 'auto', opacity: 1, transition: { duration: m['enter-ms'] / 1000, ease } }}
-                    exit={reduce ? { opacity: 0, transition: { duration: m['fade-ms'] / 1000, ease } } : { height: 0, opacity: 0, transition: { duration: m['fade-ms'] / 1000, ease } }}
-                  >
-                    <div className="tu-bill__faces-block">
-                    <div className="tu-bill__faces">
-                      {table.map(id => {
-                        const on = had.includes(id);
-                        return (
-                          <button
-                            key={id}
-                            type="button"
-                            className={on ? 'tu-bill__face' : 'tu-bill__face tu-bill__face--off'}
-                            aria-pressed={on}
-                            aria-label={`${personById(id).name}: ${on ? 'had it' : "didn't have it"}`}
-                            onClick={() => toggle(i, id)}
-                          >
-                            <Sticker name={personById(id).sticker} size="avatar" />
-                            <span className="text-label-md">{personById(id).name}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                    {/* A line for the whole table (a bottle, a starter) in one tap */}
-                    {had.length < table.length && <TextButton label="Everyone had it" variant="soft" size="sm" onClick={() => everyone(i)} />}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            <BillLineRow
+              key={`line-${i}`}
+              refEl={el => { lines.current[i] = el; }}
+              line={line}
+              had={bill.who[i]}
+              table={table}
+              open={editing === i}
+              onOpen={() => edit(i)}
+              onToggle={id => toggle(i, id)}
+            />
           );
           return i ? [<Hairline key={`hairline-${i}`} />, block] : [block];
         })}
       </StaggerIn>
     </TripSheet>
+  );
+}
+
+// The opening's steps, as in the app (a quick move people make many times over a bill)
+const FACE_OUT_MS = 100, FACE_STAGGER_MS = 25, BLOCK_AT_MS = 60, PEOPLE_AT_MS = 60, PEOPLE_STAGGER_MS = 30;
+const OPENING_MS = BLOCK_AT_MS + PEOPLE_AT_MS + PEOPLE_STAGGER_MS * (DINNER_TABLE.length - 1) + m['fade-ms'];
+const s_ = (ms: number) => ms / 1000;
+
+/**
+ * One line of the bill (Figma 262:12632): the dish, then what it comes to (and how many at what price), and at the end
+ * who had it: their faces on a soft pill with a chevron, or a round add-a-person button for a line nobody has yet.
+ * Either opens the line: everyone at the table in a grey block, the ones who had it with a red minus, the others faded
+ * with a plus; a tap on a person adds or takes them off. Opening is one move: the pill's faces leave one after another
+ * (100 ms each, 25 apart), the pill gives way to a round chevron (up), a little blurred while both show, the block
+ * grows (enter-ms) and the people come in one after another (fade-ms each, 30 apart), about 420 ms in all; closing runs
+ * back, quicker. Reduced motion: it only fades.
+ */
+function BillLineRow({ line, had, table, open, onOpen, onToggle, refEl }: {
+  line: BillLine; had: string[]; table: string[]; open: boolean; onOpen: () => void; onToggle: (id: string) => void; refEl: (el: HTMLDivElement | null) => void;
+}) {
+  const reduce = useReducedMotion();
+  const lastFace = FACE_STAGGER_MS * Math.max(0, had.length - 1);
+  const swap = { duration: s_(FACE_OUT_MS), delay: open && !reduce ? s_(lastFace) : 0, ease };
+  const blur = (on: boolean) => (reduce ? 'none' : on ? 'blur(0px)' : `blur(${m['enter-blur']}px)`);
+  return (
+    <div ref={refEl}>
+      <button type="button" className="tu-bill__line" aria-expanded={open} onClick={onOpen}>
+        <span className="text-label-lg">{menuItemNamed(line.item)?.name ?? line.printed}</span>
+        <span className="tu-bill__meta">
+          <span className="tu-bill__sums">
+            <span className="text-body-lg weight-semibold">{euros(lineTotal(line))}</span>
+            <span className="text-body-sm tu-bill__qty">{`${line.qty} × ${euros(line.unit)}`}</span>
+          </span>
+          <span className="tu-bill__control">
+            {/* Who had it, or a way to say who did; it gives way to a round chevron while the line is open */}
+            <motion.span
+              className={had.length ? 'tu-btn tu-btn--soft tu-btn--text tu-btn--text-sm tu-bill__pill' : 'tu-btn tu-btn--soft tu-btn--sm tu-bill__pill'}
+              animate={{ opacity: open ? 0 : 1, filter: blur(!open) }}
+              transition={swap}
+              aria-label={had.length ? names(had) : 'Nobody yet: say who had it'}
+            >
+              {had.length ? (
+                <>
+                  <span className="tu-bill__pile">
+                    {had.map((id, k) => (
+                      <motion.span
+                        key={id}
+                        animate={{ opacity: open ? 0 : 1, transform: open && !reduce ? `scale(${m['morph-enter-scale']})` : 'scale(1)' }}
+                        transition={{ duration: s_(FACE_OUT_MS), delay: open && !reduce ? s_(FACE_STAGGER_MS * k) : 0, ease }}
+                      >
+                        <Sticker name={personById(id).sticker} size="chip" />
+                      </motion.span>
+                    ))}
+                  </span>
+                  <ChevronDown className="tu-btn__icon" strokeWidth={2} absoluteStrokeWidth aria-hidden />
+                </>
+              ) : (
+                <UserPlus className="tu-btn__icon" strokeWidth={2} absoluteStrokeWidth aria-hidden />
+              )}
+            </motion.span>
+            <motion.span className="tu-btn tu-btn--soft tu-btn--sm tu-bill__round" initial={false} animate={{ opacity: open ? 1 : 0, filter: blur(open) }} transition={swap} aria-hidden>
+              <ChevronUp className="tu-btn__icon" strokeWidth={2} absoluteStrokeWidth />
+            </motion.span>
+          </span>
+        </span>
+      </button>
+      {/* Everyone at the table, in a grey block that grows under the line */}
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            key="who"
+            className="tu-bill__who"
+            initial={reduce ? { opacity: 0 } : { height: 0 }}
+            animate={reduce ? { opacity: 1, transition: { duration: s_(m['fade-ms']) } } : { height: 'auto', transition: { delay: s_(BLOCK_AT_MS), duration: s_(m['enter-ms']), ease } }}
+            exit={reduce ? { opacity: 0, transition: { duration: s_(m['fade-ms']) } } : { height: 0, transition: { duration: s_(m['enter-ms'] * 0.75), ease } }}
+          >
+            <div className="tu-bill__faces">
+              {table.map((id, j) => {
+                const on = had.includes(id);
+                return (
+                  <motion.button
+                    key={id}
+                    type="button"
+                    className="tu-bill__face"
+                    aria-pressed={on}
+                    aria-label={`${personById(id).name}: ${on ? 'had it, tap to take off' : "didn't have it, tap to add"}`}
+                    onClick={() => onToggle(id)}
+                    initial={{ opacity: 0, transform: reduce ? 'none' : `translateY(${tokens.space.xs}px)` }}
+                    animate={{ opacity: 1, transform: 'translateY(0px)', transition: { delay: reduce ? 0 : s_(BLOCK_AT_MS + PEOPLE_AT_MS + PEOPLE_STAGGER_MS * j), duration: s_(m['fade-ms']), ease } }}
+                    exit={{ opacity: 0, transition: { duration: s_(m['fade-ms'] * 0.75), ease } }}
+                  >
+                    <span className="tu-bill__face-pic">
+                      <span className={on ? undefined : 'tu-bill__off'}><Sticker name={personById(id).sticker} size="avatar" /></span>
+                      <AddRemove on={on} />
+                    </span>
+                    <span className={on ? 'text-label-md' : 'text-label-md tu-bill__off'}>{personById(id).name}</span>
+                  </motion.button>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/** The small add/remove mark on a person: the sm button's glass at 0.4 (16 of 40, its edge and shadow shrinking with
+ *  it), soft with a plus for someone who didn't have it, red with a minus for someone who did. It turns from one into
+ *  the other on the spot: the glass fades from soft to red and the plus's upright bar folds away into the minus
+ *  (fade-ms, ease-out). */
+function AddRemove({ on }: { on: boolean }) {
+  return (
+    <span className="tu-mark" data-on={on || undefined} aria-hidden>
+      <span className="tu-mark__scaled">
+        <span className="tu-btn tu-btn--soft tu-btn--sm tu-mark__glass" />
+        <span className="tu-btn tu-btn--danger tu-btn--sm tu-mark__glass tu-mark__glass--on" />
+        <span className="tu-mark__bar" />
+        <span className="tu-mark__bar tu-mark__bar--up" />
+      </span>
+    </span>
   );
 }
 

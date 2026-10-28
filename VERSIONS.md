@@ -655,6 +655,13 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Final UI, iteration 1.82: the bill's lines per Figma (branch `feat/bill-lines`)
+- Bogdan's bill (Figma 262:12632): the faces pill with a chevron, a round add button for a line with nobody, and the open block with red minus and soft plus marks. The faces leave the pill and come into the block staggered, and the + turns into − seamlessly. Also: drop the line under the total about unclaimed lines.
+- App: `_BillLine` (one controller drives the pill's faces leaving, the pill ↔ chevron crossfade with a little blur, the block growing and the people arriving) and `_AddRemove` (the sm glass at 0.4; soft ↔ danger crossfade, the plus's bar folding into the minus). New `GlassKind.danger` and token `inset.button-danger`. Removed: "Who had it?", "Everyone had it", the unclaimed line opening by itself, the split-evenly line.
+- Storybook: `BillLineRow` and `AddRemove` the same (motion and CSS), `.tu-btn--danger`. The scan story text and Foundations' inset swatches are updated.
+- **Checked:** `flutter analyze` and `tsc` are clean. A temporary web build of the bill (closed lines, opened, Nic taken off) was compared with Figma; it has been removed. Storybook: the opening sampled every frame (faces out by about 200 ms, block in by 240, people by 370), and the marks after a toggle. That caught and fixed the minus bar painting under the glass.
+- On Bogdan's iPhone 15 as build 11 (`1.0.0+11`), updated in place with devicectl.
+
 ### Final UI, iteration 1.81: Your trips as an overlay on the trip (branch `feat/home-overlay`)
 - Bogdan: the transition from Your trips into the trip was strange. Your trips should be an overlay on the trip and its map (without the map's details). See trip details: the parts leave staggered, gently; the map zooms in on the pin; the map's elements come in as before.
 - App: the trip (map, pins, controls) is always under `TripsHome`, which is transparent over the map, with the blue only under the trips.

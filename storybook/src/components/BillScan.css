@@ -63,9 +63,7 @@
 .tu-bill__line:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: calc(var(--space-3xs) * -1); }
 /* Quantity × price and the faces together, the total at the far end */
 .tu-bill__meta { display: flex; align-items: center; gap: var(--space-xs); }
-.tu-bill__amount { margin-left: auto; }
-.tu-bill__ask { color: var(--color-text-brand); }
-.tu-bill__unclaimed { padding: 0 var(--space-md); color: var(--color-text-muted); }
+
 .tu-bill__qty { color: var(--color-text-muted); }
 .tu-bill__total { display: flex; align-items: flex-end; gap: var(--space-sm); padding: 0 var(--space-md); color: var(--color-text-default); }
 .tu-bill__total-label { flex: 1 1 0; min-width: 0; }
@@ -75,8 +73,7 @@
 .tu-bill__pile > * + * { margin-left: calc(var(--d-chip-face-overlap) * -1); }
 .tu-bill__who { overflow: hidden; }
 /* The opened line's faces, in a grey block under it */
-.tu-bill__faces-block { display: flex; flex-direction: column; align-items: center; gap: var(--space-sm); margin: 0 var(--space-xs) var(--space-sm); padding: var(--space-sm) 0; border-radius: var(--radius-card); background: var(--color-bg-muted); }
-.tu-bill__faces { display: flex; align-self: stretch; }
+.tu-bill__faces { display: flex; margin: 0 var(--space-xs) var(--space-sm); padding: var(--space-sm) 0; border-radius: var(--radius-card); background: var(--color-bg-muted); }
 .tu-bill__face {
   flex: 1 1 0;
   min-width: 0;
@@ -88,7 +85,9 @@
   color: var(--color-text-default);
   transition: opacity var(--fade-ms) var(--ease-out), transform var(--press-ms) var(--ease-out);
 }
-.tu-bill__face--off { opacity: 0.3; }
+.tu-bill__off { opacity: 0.3; transition: opacity var(--fade-ms) var(--ease-out); }
+.tu-bill__face-pic { position: relative; display: inline-flex; }
+.tu-bill__face-pic > :first-child { transition: opacity var(--fade-ms) var(--ease-out); }
 .tu-bill__face:active { transform: scale(var(--press-scale)); }
 .tu-bill__face:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: var(--space-3xs); }
 
@@ -117,3 +116,24 @@
 .tu-payer__option:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: calc(var(--space-3xs) * -1); }
 .tu-payer__name { flex: 1 1 0; min-width: 0; }
 .tu-payer__check { width: var(--size-icon-sm); height: var(--size-icon-sm); flex: none; color: var(--color-icon-brand); }
+
+/* A line's sums on the left, who had it at the end */
+.tu-bill__sums { display: flex; flex-direction: column; flex: 1 1 0; min-width: 0; }
+.tu-bill__control { position: relative; display: grid; justify-items: end; align-items: center; flex: none; }
+.tu-bill__control > * { grid-area: 1 / 1; }
+.tu-bill__pill { padding: 0 var(--space-sm); }
+.tu-bill__pill.tu-btn--sm { padding: 0; display: grid; place-items: center; }
+.tu-bill__round { display: grid; place-items: center; }
+
+/* The add/remove mark: the sm button's glass at 0.4, at the face's top-right corner */
+.tu-mark { position: absolute; top: calc(var(--space-2xs) * -1); right: calc(var(--space-xs) * -1); width: calc(var(--d-button-sm) * 0.4); height: calc(var(--d-button-sm) * 0.4); }
+.tu-mark__scaled { position: absolute; left: 50%; top: 50%; width: var(--d-button-sm); height: var(--d-button-sm); transform: translate(-50%, -50%) scale(0.4); display: grid; place-items: center; }
+.tu-mark__scaled > * { grid-area: 1 / 1; }
+.tu-mark__glass { transition: opacity var(--fade-ms) var(--ease-out); }
+.tu-mark__glass--on { opacity: 0; }
+.tu-mark[data-on] .tu-mark__glass--on { opacity: 1; }
+.tu-mark__bar { position: relative; width: 15px; height: 5px; border-radius: var(--radius-pill); background: var(--color-icon-default); transition: background-color var(--fade-ms) var(--ease-out), transform var(--fade-ms) var(--ease-out); }
+.tu-mark__bar--up { transform: rotate(90deg); }
+.tu-mark[data-on] .tu-mark__bar { background: var(--color-icon-on-brand); }
+.tu-mark[data-on] .tu-mark__bar--up { transform: rotate(90deg) scaleX(0); }
+@media (prefers-reduced-motion: reduce) { .tu-mark__bar { transition: background-color var(--fade-ms) linear; } }
