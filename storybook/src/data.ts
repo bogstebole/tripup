@@ -689,12 +689,11 @@ export const startsAt = (t: Date, now = TRIP_NOW) => (dayName(t, now) === 'Today
 export const plansAhead = (now: Date, poll: PollState) =>
   plansWith(dinnerChoice(now, poll) ?? null).filter(p => planStart(p).getTime() + PLAN_LASTS_MS > now.getTime());
 
-/** Another trip on the home list: where, when, a sticker, who (their stickers), and a line about it. `faceTilts`: how
- *  much each face leans, in degrees, by its place in `faces` (as they're placed in the design). */
-export type TripSummary = { title: string; dates: string; sticker: string; faces: string[]; note: string; faceTilts?: number[] };
+/** Another trip on the home list: where, when, a sticker, who (their stickers), and a line about it. */
+export type TripSummary = { title: string; dates: string; sticker: string; faces: string[]; note: string };
 
 export const UPCOMING_TRIPS: TripSummary[] = [
-  { title: 'Berlin', dates: '23 June - 23 July', sticker: 'brandenburg', faces: ['person-03', 'person-05'], note: 'In 6 weeks · 3 going', faceTilts: [0, -6.22] },
+  { title: 'Berlin', dates: '23 June - 23 July', sticker: 'brandenburg', faces: ['person-03', 'person-05'], note: 'In 6 weeks · 3 going' },
 ];
 
 /** Done and settled. */
@@ -704,18 +703,11 @@ export const PAST_TRIPS: TripSummary[] = [
   { title: 'Hanoi', dates: 'Mar 8 - Mar 15', sticker: 'pho', faces: ['person-04', 'person-01'], note: '€610 · squared up' },
 ];
 
-/** The current trip's card on Your trips (Figma 75:5927): a still of Lisbon, far bigger than the card and placed so the
- *  neighbourhoods we've been in show, with a few of the places on it as stickers. In the design's units (px): the card
- *  covers a HOME_MAP_FRAME box (scaled to fill the real card); the image's rect and each sticker's centre, height and
- *  tilt (degrees) are placed in it. */
-export const HOME_MAP_FRAME = { width: 361, height: 438 };
-export const HOME_MAP_IMAGE = '/assets/map/home-lisbon.png';
-/** Only the part of the still the card shows (and 2 px around it), as in the app: the design placed the whole
- *  3584 × 2048 still at (-634, -343, 1792 × 1024) (original: Assets/map/home-lisbon-full.png). */
-export const HOME_MAP_IMAGE_RECT = { left: -2, top: -2, width: 365, height: 442 };
-export const HOME_MAP_STICKERS = [
-  { sticker: 'belem', x: 324.5, y: 29, height: 38, tilt: 0 },
-  { sticker: 'galo', x: 236.26, y: 65.85, height: 26.25, tilt: 11.86 },
-  { sticker: 'azulejo', x: 330, y: 90, height: 16, tilt: 0 },
-  { sticker: 'caravel', x: 228.07, y: 129.65, height: 23.55, tilt: 0 },
-];
+/** Your trips' map (Figma 258:12058): the still of Lisbon behind the top of the screen, under the trip you're on. In the
+ *  design's units (px), on its 440-wide screen from where the header's padding starts: the design placed the whole
+ *  3584 × 2048 still at (-479, -202, 1592 × 910) (Figma stretches it 1.27 × wide; here it keeps its shape, on the same
+ *  centre). The image is only the part that shows, plus 80 above for the status bar, as in the app (original:
+ *  Assets/map/home-lisbon-full.png). */
+export const HOME_MAP_IMAGE = '/assets/map/home-lisbon-hero.png';
+export const HOME_MAP_WIDTH = 440;
+export const HOME_MAP_RECT = { left: 0, top: -80, width: 440, height: 788 };

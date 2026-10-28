@@ -933,16 +933,13 @@ bool onTrip(Person p, DateTime now) => p.joined < today || (p.joined == today &&
 
 /// Another trip on the home list: where, when, a sticker, who, and a line about it.
 class TripSummary {
-  const TripSummary(this.title, this.dates, this.sticker, this.faces, this.note, {this.faceTilts = const []});
+  const TripSummary(this.title, this.dates, this.sticker, this.faces, this.note);
   final String title, dates, sticker, note;
   final List<String> faces;
-
-  /// How much each face leans, in degrees, by its place in [faces] (as they're placed in the design).
-  final List<double> faceTilts;
 }
 
 const upcomingTrips = [
-  TripSummary('Berlin', '23 June - 23 July', 'brandenburg', ['person-03', 'person-05'], 'In 6 weeks · 3 going', faceTilts: [0, -6.22]),
+  TripSummary('Berlin', '23 June - 23 July', 'brandenburg', ['person-03', 'person-05'], 'In 6 weeks · 3 going'),
 ];
 
 /// Done and settled.
@@ -952,21 +949,14 @@ const pastTrips = [
   TripSummary('Hanoi', 'Mar 8 - Mar 15', 'pho', ['person-04', 'person-01'], '€610 · squared up'),
 ];
 
-/// The current trip's card on Your trips (Figma 75:5927): a still of Lisbon, far bigger than the card and placed so
-/// the neighbourhoods we've been in show, with a few of the places on it as stickers. In the design's units: the card
-/// covers a [homeMapFrame] box (scaled to fill the real card).
-const homeMapFrame = Size(361, 438);
-
-/// Only the part of the still the card shows (and 2 units around it), at the same 2 px a unit: the design placed the
-/// whole 3584 × 2048 still at (-634, -343, 1792 × 1024), 30 MB decoded for a card (original: Assets/map/home-lisbon-full.png).
-const homeMapImage = 'assets/map/home-lisbon.png';
-const homeMapImageRect = Rect.fromLTWH(-2, -2, 365, 442);
-const homeMapStickers = [
-  (sticker: 'belem', center: Offset(324.5, 29), height: 38.0, tilt: 0.0),
-  (sticker: 'galo', center: Offset(236.26, 65.85), height: 26.25, tilt: 11.86),
-  (sticker: 'azulejo', center: Offset(330, 90), height: 16.0, tilt: 0.0),
-  (sticker: 'caravel', center: Offset(228.07, 129.65), height: 23.55, tilt: 0.0),
-];
+/// Your trips' map (Figma 258:12058): the still of Lisbon behind the top of the screen, under the trip you're on. In
+/// the design's units, on its 440-wide screen from where the header's padding starts: the design placed the whole
+/// 3584 × 2048 still at (-479, -202, 1592 × 910) (Figma stretches it 1.27 × wide; here it keeps its shape, on the same
+/// centre). The asset is only the part that shows, plus [homeMapRect]'s 80 above for the status bar, at 2 px a unit
+/// (original: Assets/map/home-lisbon-full.png).
+const homeMapImage = 'assets/map/home-lisbon-hero.png';
+const homeMapWidth = 440.0;
+const homeMapRect = Rect.fromLTWH(0, -80, 440, 788);
 
 /// The stickers that pop up all over the splash: the places of the trips on Your trips and the people on them, so
 /// they're loaded for that screen anyway. Each launch takes a random few, at random spots, tilted up to

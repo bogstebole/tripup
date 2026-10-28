@@ -166,8 +166,6 @@
   --d-poll-lost-opacity: 0.6;
   --d-poll-live-dot: 9px;
   --d-plan-map-height: 160px;
-  --d-home-card-edge: 4px;
-  --d-home-now-pill-height: 36px;
   --d-segment-height: 36px;
   --d-sticker-mini: 28px;
   --d-pin-tail-width: 35px;
@@ -184,9 +182,6 @@
   --d-surface-head-side: 8px;
   --d-surface-foot-side: 8px;
   --d-widget-mid-radius: 28px;
-  --d-home-card-padding: 28px;
-  --d-home-card-radius: 50px;
-  --d-home-now-pill-inset: 4px;
   --d-poll-place-radius: 28px;
   --d-poll-radius: 36px;
   --d-poll-option-radius: 34px;

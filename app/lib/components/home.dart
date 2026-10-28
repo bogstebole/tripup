@@ -1,4 +1,7 @@
-// The first screen: your trips (Figma 75:5927).
+// The first screen: your trips (Figma 258:12058).
+import 'dart:math' as math;
+import 'dart:ui' as ui;
+
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
@@ -11,78 +14,91 @@ import 'glass.dart';
 import 'stagger.dart';
 
 // Its own measurements: used only here, so they're not tokens.
-const double _homeHeaderGap = 28;
-const double _homeCardHeight = 438;
-const double _homeMapFadeStart = 0.152;
-const double _homeNowDot = 10;
-const double _homeNowDotGlow = 2;
-const double _homeHeroFace = 39;
-const double _homeHeroFaceOverlap = 22;
-const double _homeRowSticker = 48;
-const double _homeRowFaceOverlap = 18;
-const double _homeBottomFade = 89;
+const double _heroBody = 356;       // the trip's name, dates, faces and button sit centred in this much, under the header
+const double _heroTitle = 40;       // the trip's name: the screen's one big line, bigger than any text style
+const double _heroFace = 57;
+const double _heroFaceOverlap = 22;
+const double _heroFaceOnButton = 8; // the faces stand this far over the button
+const double _nowDot = 10;
+const double _nowDotGlow = 2;
+const double _rowSticker = 48;
+const double _rowFaceOverlap = 18;
+const double _rowFaces = 80;        // the faces' column at a row's end
+const double _tripsFade = 275;      // under the map, the blue goes from clear to solid over this much
+const double _tripsBlur = 2;
+const double _bottomFade = 120;
 
-/// Your trips, on the brand blue. The one you're on is a big card: a still of the city with places you've been as
-/// stickers, "Happening now", its name and dates, who's on it, and the way in. Under it, the trip coming up and the
-/// ones before, as rows. Tapping the current one goes into its map. On a cold start it waits under the splash and
-/// slides in from the right, a row at a time, as the splash's mark slides out to the left ([homeIn]).
+/// Your trips. The one you're on fills the top of the screen: its city's map, its name big in the middle, who's on it
+/// and the way in ("See trip details"). Under it, on the brand blue rising over the map, the trip coming up and the ones
+/// before, as soft cards. Tapping the trip goes into its map, which opens out of the top ([heroHeight]). On a cold start
+/// it waits under the splash and slides in from the right, a part at a time, as the splash's mark slides out to the left
+/// ([homeIn]).
 class TripsHome extends StatelessWidget {
   const TripsHome({super.key, required this.onOpen, this.cardKey});
   final VoidCallback onOpen;
 
-  /// On the current trip's card, so the trip can open out of it.
+  /// On the trip you're on (the top of the screen), so the trip can open out of it.
   final GlobalKey? cardKey;
+
+  /// How tall the trip you're on is: the header under the status bar, then its name and the way in.
+  static double heroHeight(BuildContext context) =>
+      MediaQuery.paddingOf(context).top + TokSpace.md + TokDim.buttonMd + TokSpace.md + _heroBody + TokSpace.md;
 
   @override
   Widget build(BuildContext context) {
     final t = context.tok;
     final pad = MediaQuery.paddingOf(context);
+    final hero = heroHeight(context);
+    // The parts arrive at the splash's pace, from where its mark went
+    StaggerIn arriving(List<Widget> children) => StaggerIn(
+          until: homeIn,
+          from: const Offset(TokDim.splashSlide, 0),
+          duration: TokMotion.splashLeave,
+          stagger: TokMotion.splashLeaveStagger,
+          children: children,
+        );
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: systemBarsOver(dark: true),   // white status bar (and navigation bar icons) on the blue
+      // Dark status bar over the map; light navigation bar icons on the blue
+      value: systemBarsOver(dark: true).copyWith(statusBarIconBrightness: Brightness.dark, statusBarBrightness: Brightness.light),
       child: ColoredBox(
         color: t.bgBrand,
         child: Stack(children: [
           Positioned.fill(
             child: ListView(
-              padding: EdgeInsets.fromLTRB(0, pad.top + TokSpace.md, 0, pad.bottom + _homeBottomFade),
+              padding: EdgeInsets.zero,
               children: [
-                StaggerIn(
-                  until: homeIn,
-                  // At the splash's pace, from where its mark went
-                  from: const Offset(TokDim.splashSlide, 0),
-                  duration: TokMotion.splashLeave,
-                  stagger: TokMotion.splashLeaveStagger,
-                  children: [
+                Stack(children: [
+                  // The map, with the trip it's under (the first part to arrive)
+                  Positioned(top: 0, left: 0, right: 0, child: arriving([const HomeMapStill()])),
+                  // The blue rising over the map's lower part, which blurs a little under it
+                  Positioned(
+                    top: hero,
+                    left: 0,
+                    right: 0,
+                    height: _tripsFade,
+                    child: IgnorePointer(
+                      child: ClipRect(
+                        child: BackdropFilter(
+                          enabled: !lightEffects,
+                          filter: ui.ImageFilter.blur(sigmaX: _tripsBlur, sigmaY: _tripsBlur),
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [t.bgBrand.withValues(alpha: 0), t.bgBrand]),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: TokSpace.md),
-                    child: Row(spacing: TokSpace.sm, children: [
-                        Expanded(
-                          // A long press shows the startup timings (hidden, for testers' phones)
-                          child: GestureDetector(
-                            onLongPress: StartupTimings.show,
-                            child: Text('Your trips', maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingLg.copyWith(color: t.textOnBrand)),
-                          ),
-                        ),
-                        TuButton(icon: TuIcons.bell, label: 'Notifications', onTap: () => tripNotice.value = 'No new notifications'),
-                        // Me
-                        Semantics(
-                          label: myName,
-                          child: Glass(
-                            kind: GlassKind.soft,
-                            width: TokDim.buttonMd,
-                            height: TokDim.buttonMd,
-                            radius: BorderRadius.circular(TokRadius.pill),
-                            child: Center(child: Sticker(personById(myId).sticker, size: StickerSize.avatar)),
-                          ),
-                        ),
+                    // The last row clear of the fade at the bottom
+                    padding: EdgeInsets.only(bottom: pad.bottom + _bottomFade),
+                    child: arriving([
+                      SizedBox(key: cardKey, height: hero, child: HomeHeroFace(onOpen: onOpen)),
+                      _section(context, 'Coming up', [for (final trip in upcomingTrips) _TripRow(trip: trip)]),
+                      _section(context, 'Previous trips', [for (final trip in pastTrips) _TripRow(trip: trip)], count: pastTrips.length),
                     ]),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(TokSpace.md, _homeHeaderGap, TokSpace.md, TokSpace.xl),
-                    child: _CurrentTrip(key: cardKey, onOpen: onOpen),
-                  ),
-                  _section(context, 'Coming up', [for (final trip in upcomingTrips) _TripRow(trip: trip)]),
-                  _section(context, 'Previous trips', [for (final trip in pastTrips) _TripRow(trip: trip)], count: pastTrips.length),
                 ]),
               ],
             ),
@@ -92,7 +108,7 @@ class TripsHome extends StatelessWidget {
             left: 0,
             right: 0,
             bottom: 0,
-            height: _homeBottomFade,
+            height: _bottomFade,
             child: IgnorePointer(
               child: DecoratedBox(
                 decoration: BoxDecoration(
@@ -106,18 +122,21 @@ class TripsHome extends StatelessWidget {
     );
   }
 
-  /// A heading in white (with a count, softer), then its rows.
+  /// A heading in white (with a count, softer), then its cards.
   Widget _section(BuildContext context, String title, List<Widget> rows, {int? count}) {
     final t = context.tok;
     return Padding(
       padding: const EdgeInsets.all(TokSpace.md),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: TokSpace.xs, children: [
-        Text.rich(
-          TextSpan(children: [
-            TextSpan(text: title),
-            if (count != null) TextSpan(text: ' $count', style: TextStyle(color: TokPalette.white.withValues(alpha: 0.7))),
-          ]),
-          style: TokText.headingSm.copyWith(color: t.textOnBrand),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: TokSpace.md),
+          child: Text.rich(
+            TextSpan(children: [
+              TextSpan(text: title),
+              if (count != null) TextSpan(text: ' $count', style: TextStyle(color: TokPalette.white.withValues(alpha: 0.7))),
+            ]),
+            style: TokText.headingSm.copyWith(color: t.textOnBrand),
+          ),
         ),
         ...rows,
       ]),
@@ -125,112 +144,27 @@ class TripsHome extends StatelessWidget {
   }
 }
 
-/// The trip you're on: the city's still with stickers, fading to white at the bottom, where its name, dates, who's
-/// on it and the way in sit. The whole card goes in, the arrow too.
-class _CurrentTrip extends StatelessWidget {
-  const _CurrentTrip({super.key, required this.onOpen});
-  final VoidCallback onOpen;
+/// The map behind the top of Your trips: the still of Lisbon at the design's scale, centred on the screen, from the top
+/// of the screen down to where the blue covers it. Also what the trip opens out of, at the same place.
+class HomeMapStill extends StatelessWidget {
+  const HomeMapStill({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Concentric with what sits in its corners: its padding plus the arrow's radius
-    final radius = BorderRadius.circular(TokDim.homeCardRadius);
-    return Pressable(
-      onTap: onOpen,
-      semanticLabel: 'Open $tripTitle',
-      child: Container(
-        height: _homeCardHeight,
-        decoration: BoxDecoration(borderRadius: radius, boxShadow: TokShadow.surface),
-        foregroundDecoration: BoxDecoration(borderRadius: radius, border: Border.all(color: TokPalette.white, width: TokDim.homeCardEdge)),
-        child: ClipRRect(
-          borderRadius: radius,
-          child: Stack(children: [
-            const Positioned.fill(child: TripCardStill()),
-            Positioned.fill(child: TripCardFace(onOpen: onOpen)),
-          ]),
-        ),
-      ),
-    );
-  }
-}
-
-/// The card's picture: the city's still with its stickers, scaled to fill whatever box it's in (the card, or the
-/// surface the trip opens in).
-class TripCardStill extends StatelessWidget {
-  const TripCardStill({super.key});
-
-  @override
-  Widget build(BuildContext context) => const FittedBox(fit: BoxFit.cover, alignment: Alignment.topCenter, child: _HomeMap());
-}
-
-/// The card's words over its picture: white rising from the bottom, "Happening now", the trip's name, the city and
-/// dates, who's on it, and the arrow in.
-class TripCardFace extends StatelessWidget {
-  const TripCardFace({super.key, this.onOpen});
-  final VoidCallback? onOpen;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tok;
-    final crew = [for (final p in people) if (onTrip(p, tripNow())) p];
-    return Stack(children: [
-      Positioned.fill(
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.bottomCenter,
-              end: Alignment.topCenter,
-              colors: [TokPalette.white, TokPalette.white, TokPalette.white.withValues(alpha: 0)],
-              stops: const [0, _homeMapFadeStart, 1],
-            ),
-          ),
-        ),
-      ),
-      Padding(
-        padding: const EdgeInsets.all(TokDim.homeCardPadding),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.md, children: [
-          // A little further in than the words, so the pill is concentric with the card's corner too
-          const Expanded(
-            child: Align(
-              alignment: Alignment.topLeft,
-              child: Padding(padding: EdgeInsets.only(left: TokDim.homeNowPillInset, top: TokDim.homeNowPillInset), child: _HappeningNow()),
-            ),
-          ),
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(tripTitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingXl.copyWith(color: t.textDefault)),
-            Text('$tripCity · $tripDates', style: TokText.labelMd.copyWith(color: t.textMuted)),
-          ]),
-          Row(children: [
-            Expanded(
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Overlapped(
-                  overlap: _homeHeroFaceOverlap,
-                  children: [for (final p in crew) Sticker(p.sticker, height: _homeHeroFace)],
-                ),
-              ),
-            ),
-            TuButton(icon: TuIcons.forward, label: 'Open $tripTitle', kind: GlassKind.primary, onTap: onOpen),
-          ]),
-        ]),
-      ),
-    ]);
-  }
-}
-
-/// Whether Your trips' rows have come in: on a cold start they're held back under the splash until its mark leaves.
-final homeIn = ValueNotifier(true);
-
-/// The still of the city with its stickers, at the design's size (the card scales it to fit).
-class _HomeMap extends StatelessWidget {
-  const _HomeMap();
-
-  @override
-  Widget build(BuildContext context) => SizedBox.fromSize(
-        size: homeMapFrame,
-        child: Stack(clipBehavior: Clip.hardEdge, children: [
-          Positioned.fromRect(
-            rect: homeMapImageRect,
+    final top = MediaQuery.paddingOf(context).top;
+    final r = homeMapRect;
+    return SizedBox(
+      height: top + r.bottom,
+      child: OverflowBox(
+        alignment: Alignment.topCenter,
+        minWidth: homeMapWidth,
+        maxWidth: homeMapWidth,
+        child: Stack(clipBehavior: Clip.none, children: [
+          Positioned(
+            left: r.left,
+            top: top + r.top,
+            width: r.width,
+            height: r.height,
             child: Image.asset(
               homeMapImage,
               fit: BoxFit.fill,
@@ -241,46 +175,144 @@ class _HomeMap extends StatelessWidget {
               },
             ),
           ),
-          for (final s in homeMapStickers)
-            Positioned(
-              left: s.center.dx,
-              top: s.center.dy,
-              child: FractionalTranslation(translation: const Offset(-0.5, -0.5), child: Sticker(s.sticker, height: s.height, tilt: s.tilt)),
-            ),
         ]),
-      );
-}
-
-/// "Happening now": the trip is on. A small glass pill with a green bead.
-class _HappeningNow extends StatelessWidget {
-  const _HappeningNow();
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.tok;
-    return Glass(
-      kind: GlassKind.soft,
-      height: TokDim.homeNowPillHeight,
-      radius: BorderRadius.circular(TokRadius.pill),
-      padding: const EdgeInsets.symmetric(horizontal: TokSpace.sm),
-      child: Row(mainAxisSize: MainAxisSize.min, spacing: TokSpace.xs, children: [
-        Container(
-          width: _homeNowDot,
-          height: _homeNowDot,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [TokPalette.green500, TokPalette.green700]),
-            border: Border.all(color: TokPalette.green400, width: TokDim.surfaceEdgeWidth / 2),
-            boxShadow: [BoxShadow(color: TokPalette.green500.withValues(alpha: 0.2), spreadRadius: _homeNowDotGlow)],
-          ),
-        ),
-        Text('Happening now', style: TokText.labelMd.copyWith(color: t.textDefault)),
-      ]),
+      ),
     );
   }
 }
 
-/// Another trip, as a light row on the blue: its sticker, name, dates, and who's going (or went).
+/// The trip you're on, over its map: the header (Your trips, the bell and me), then in the middle its name, the city
+/// and dates, who's on it and "See trip details". The whole of it goes in. Without [onOpen] (in the opening trip, where
+/// it fades away) nothing in it takes a tap.
+class HomeHeroFace extends StatelessWidget {
+  const HomeHeroFace({super.key, this.onOpen});
+  final VoidCallback? onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tok;
+    final pad = MediaQuery.paddingOf(context);
+    final crew = [for (final p in people) if (onTrip(p, tripNow())) p];
+    final lift = [for (final s in TokShadow.elevationRaised) Shadow(color: s.color, offset: s.offset, blurRadius: s.blurRadius)];
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onOpen,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(TokSpace.xl, pad.top + TokSpace.md, TokSpace.xl, TokSpace.md),
+        child: Column(spacing: TokSpace.md, children: [
+          Row(spacing: TokSpace.sm, children: [
+            Expanded(
+              // A long press shows the startup timings (hidden, for testers' phones)
+              child: GestureDetector(
+                onLongPress: StartupTimings.show,
+                child: Text('Your trips', maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.headingLg.copyWith(color: t.textDefault)),
+              ),
+            ),
+            TuButton(icon: TuIcons.bell, label: 'Notifications', onTap: onOpen == null ? null : () => tripNotice.value = 'No new notifications'),
+            // Me
+            Semantics(
+              label: myName,
+              child: Glass(
+                kind: GlassKind.soft,
+                width: TokDim.buttonMd,
+                height: TokDim.buttonMd,
+                radius: BorderRadius.circular(TokRadius.pill),
+                child: Center(child: Sticker(personById(myId).sticker, size: StickerSize.avatar)),
+              ),
+            ),
+          ]),
+          Expanded(
+            child: Center(
+              child: Column(mainAxisSize: MainAxisSize.min, spacing: TokSpace.x2xl, children: [
+                Column(spacing: TokSpace.xs, children: [
+                  _HeroTitle(style: TokText.display.copyWith(fontSize: _heroTitle, color: t.textDefault, shadows: lift)),
+                  Text('$tripCity · $tripDates', style: TokText.labelMd.copyWith(color: t.textDefault)),
+                ]),
+                Column(children: [
+                  // Everyone on it, standing on the button
+                  SizedBox(
+                    height: _heroFace - _heroFaceOnButton,
+                    child: OverflowBox(
+                      alignment: Alignment.topCenter,
+                      maxHeight: _heroFace,
+                      child: Overlapped(overlap: _heroFaceOverlap, children: [for (final p in crew) Sticker(p.sticker, height: _heroFace)]),
+                    ),
+                  ),
+                  _SeeTrip(onTap: onOpen),
+                ]),
+              ]),
+            ),
+          ),
+        ]),
+      ),
+    );
+  }
+}
+
+/// The trip's name, big, on up to two lines. A single word too long for a line shrinks to fit it instead of breaking.
+class _HeroTitle extends StatelessWidget {
+  const _HeroTitle({required this.style});
+  final TextStyle style;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(builder: (context, box) {
+        var longest = 0.0;
+        for (final word in tripTitle.split(' ')) {
+          final p = TextPainter(text: TextSpan(text: word, style: style), textDirection: TextDirection.ltr, maxLines: 1)..layout();
+          longest = math.max(longest, p.width);
+          p.dispose();
+        }
+        final fit = longest > box.maxWidth ? style.copyWith(fontSize: style.fontSize! * box.maxWidth / longest) : style;
+        return Text(tripTitle, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: fit);
+      });
+}
+
+/// "See trip details": the way in, a primary pill with the trip's green bead (it's on now).
+class _SeeTrip extends StatelessWidget {
+  const _SeeTrip({this.onTap});
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tok;
+    return Pressable(
+      onTap: onTap,
+      semanticLabel: 'See trip details',
+      child: Glass(
+        kind: GlassKind.primary,
+        height: TokDim.buttonLg,
+        radius: BorderRadius.circular(TokRadius.pill),
+        padding: const EdgeInsets.symmetric(horizontal: TokSpace.md),
+        child: Row(mainAxisSize: MainAxisSize.min, spacing: TokSpace.xs, children: [
+          const _NowDot(),
+          Text('See trip details', style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.iconOnBrand)),
+        ]),
+      ),
+    );
+  }
+}
+
+/// Whether Your trips' parts have come in: on a cold start they're held back under the splash until its mark leaves.
+final homeIn = ValueNotifier(true);
+
+/// The trip is on: a green bead with a small glow around it (no blur).
+class _NowDot extends StatelessWidget {
+  const _NowDot();
+
+  @override
+  Widget build(BuildContext context) => Container(
+        width: _nowDot,
+        height: _nowDot,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [TokPalette.green500, TokPalette.green700]),
+          border: Border.all(color: TokPalette.green400, width: TokDim.surfaceEdgeWidth / 2),
+          boxShadow: [BoxShadow(color: TokPalette.green500.withValues(alpha: 0.2), spreadRadius: _nowDotGlow)],
+        ),
+      );
+}
+
+/// Another trip, as a soft glass card on the blue: its sticker, name, dates, and who's going (or went).
 class _TripRow extends StatelessWidget {
   const _TripRow({required this.trip});
   final TripSummary trip;
@@ -288,28 +320,27 @@ class _TripRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tok;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: TokSpace.md, vertical: TokSpace.sm),
-      decoration: BoxDecoration(color: t.bgBrandSubtle, borderRadius: BorderRadius.circular(TokRadius.card)),
-      child: IntrinsicHeight(
-        child: Row(spacing: TokSpace.sm, children: [
-          SizedBox(width: _homeRowSticker, child: Center(child: Sticker(trip.sticker, height: _homeRowSticker))),
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
-              Text(trip.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.bodyLg.copyWith(fontWeight: TokWeight.medium, color: t.textDefault)),
-              Text(trip.dates, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.bodySm.copyWith(color: t.textMuted)),
-            ]),
+    return Glass(
+      kind: GlassKind.soft,
+      radius: BorderRadius.circular(TokRadius.sheet),
+      padding: const EdgeInsets.all(TokSpace.md),
+      child: Row(spacing: TokSpace.sm, children: [
+        // Wide stickers shrink to fit the square, so their white edge stays whole
+        SizedBox.square(dimension: _rowSticker, child: FittedBox(fit: BoxFit.scaleDown, child: Sticker(trip.sticker, height: _rowSticker))),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(trip.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.bodyLg.copyWith(fontWeight: TokWeight.medium, color: t.textDefault)),
+            Text(trip.dates, maxLines: 1, overflow: TextOverflow.ellipsis, style: TokText.bodySm.copyWith(color: t.textMuted)),
+          ]),
+        ),
+        SizedBox(
+          width: _rowFaces,
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: Overlapped(overlap: _rowFaceOverlap, children: [for (final f in trip.faces) Sticker(f, size: StickerSize.avatar)]),
           ),
-          // The faces sit on the row's bottom edge
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Overlapped(overlap: _homeRowFaceOverlap, children: [
-              for (final (i, f) in trip.faces.indexed)
-                Sticker(f, size: StickerSize.avatar, tilt: i < trip.faceTilts.length ? trip.faceTilts[i] : 0),
-            ]),
-          ),
-        ]),
-      ),
+        ),
+      ]),
     );
   }
 }

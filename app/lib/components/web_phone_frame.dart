@@ -11,7 +11,7 @@ const double _webFrameRadius = 40;
 const double _webFrameMinWindow = 600;
 
 /// The web build on a computer. A browser window is far wider than a phone, and the app stretched across it blows up
-/// everything sized from the screen (the map still on the trip card, its stickers). So on a wide window the app sits
+/// everything sized from the screen (the map still on Your trips). So on a wide window the app sits
 /// in a phone-sized frame in the middle, the size of the Figma screens, scaled down to fit the window's height: it
 /// looks as it does on the phone. In a phone's browser, and in the app itself, it fills the screen as usual.
 class WebPhoneFrame extends StatelessWidget {

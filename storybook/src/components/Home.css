@@ -1,5 +1,5 @@
-/* Your trips: the first screen (see Home.tsx), on the brand blue. The list scrolls on its own, over the trip's screen,
-   and fades into the blue at the bottom. */
+/* Your trips: the first screen (see Home.tsx). The trip you're on over its map at the top, the other trips on the brand
+   blue under it. The list scrolls on its own, over the trip's screen, and fades into the blue at the bottom. */
 .tu-home {
   position: relative;
   height: 100%;
@@ -11,20 +11,59 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: none;
-  padding: var(--space-md) 0 89px;
+  /* The last card clear of the fade */
+  padding-bottom: 120px;
 }
 .tu-home__list::-webkit-scrollbar { display: none; }
 .tu-home__fade {
   position: absolute;
   inset: auto 0 0;
-  height: 89px;
+  height: 120px;
   background: linear-gradient(to bottom, transparent, var(--color-bg-brand));
   pointer-events: none;
 }
 
-/* "Your trips", the bell and me, then the trip you're on */
-.tu-home__top { padding: 0 var(--space-md); }
-.tu-home__head { display: flex; align-items: center; gap: var(--space-sm); margin-bottom: 28px; }
+/* The trip you're on: the header, then its name and the way in, centred in 356 under it */
+.tu-home-hero {
+  position: relative;
+  height: calc(var(--space-md) * 3 + var(--d-button-md) + 356px);
+}
+/* The map at the design's scale, centred, from the top of the screen down to where the blue covers it */
+.tu-home-map {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  overflow: hidden;
+  translate: -50% 0;
+  pointer-events: none;
+}
+.tu-home-map > img { position: absolute; max-width: none; }
+/* Under the trip, the blue rises over the map's lower part, clear to solid over 275, blurring it a little */
+.tu-home-hero__ground {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 275px;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--color-bg-brand) 0%, transparent), var(--color-bg-brand));
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  pointer-events: none;
+}
+
+/* Its words over the map: the whole of it goes in */
+.tu-home-face {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  height: 100%;
+  padding: var(--space-md) var(--space-xl);
+  color: var(--color-text-default);
+  cursor: pointer;
+}
+/* "Your trips", the bell and me */
+.tu-home__head { display: flex; align-items: center; gap: var(--space-sm); }
 .tu-home__title { flex: 1 1 0; min-width: 0; margin: 0; }
 /* Me: soft glass, as round and as big as the bell */
 .tu-home__me {
@@ -37,99 +76,38 @@
   background: var(--color-bg-muted);
   box-shadow: var(--inset-button-soft), var(--shadow-slightly-raised);
 }
-.tu-home__gap { height: var(--space-xl); }
-
-/* Coming up, Previous trips: a heading in white (its count softer), then light rows */
-.tu-home__section { display: flex; flex-direction: column; gap: var(--space-xs); padding: var(--space-md); }
-.tu-home__heading { margin: 0; }
-.tu-home__count { color: color-mix(in srgb, var(--palette-white) 70%, transparent); }
-
-/* The trip you're on: 438 high, the surface's corners and shadow, a white edge on top of everything in it. The whole
-   card is one button. */
-.tu-home-card {
-  position: relative;
-  display: block;
-  width: 100%;
-  height: 438px;
-  overflow: hidden;
-  /* Concentric with what's in its corners: its padding plus the arrow's radius */
-  border-radius: var(--d-home-card-radius);
-  box-shadow: var(--shadow-surface);
-  text-align: left;
-  transition: transform var(--press-ms) var(--ease-out);
-}
-.tu-home-card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border: var(--d-home-card-edge) solid var(--palette-white);
-  border-radius: inherit;
-  pointer-events: none;
-}
-.tu-home-card:active { transform: scale(var(--press-scale)); }
-.tu-home-card:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: var(--space-3xs); }
-
-/* The card's picture fills its box (the card, or the surface the trip opens in), whose size it reads */
-.tu-card-still { position: absolute; inset: 0; overflow: hidden; container-type: size; }
-/* The design's frame (--frame-w × --frame-h, from HOME_MAP_FRAME) scaled to cover that box from the top: as wide as
-   the box, or wider when the box is too narrow for its height; centred, the rest cut off */
-.tu-home-card__map {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: max(100cqw, 100cqh * var(--frame-w) / var(--frame-h));
-  aspect-ratio: var(--frame-w) / var(--frame-h);
-  overflow: hidden;
-  translate: -50% 0;
-}
-/* The still, far bigger than the frame, and the places on it, each on its centre (the sticker's tilt turns it there) */
-.tu-home-card__city { position: absolute; max-width: none; }
-.tu-home-card__place { position: absolute; translate: -50% -50%; }
-/* White rising from the bottom: solid up to map-fade-start of the card, then clear by the top */
-.tu-home-card__fade {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to top,
-    var(--palette-white),
-    var(--palette-white) calc(0.152 * 100%),
-    transparent
-  );
-}
-/* "Happening now" at the top, the rest at the bottom, clear of the white edge */
-.tu-home-card__body {
-  position: relative;
+.tu-home-face__middle {
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
-  height: 100%;
-  padding: var(--d-home-card-padding);
-}
-/* A little further in than the words, so the pill is concentric with the card's corner too */
-.tu-home-card__now { display: flex; align-items: flex-start; flex: 1 1 0; min-height: 0; padding: var(--d-home-now-pill-inset) 0 0 var(--d-home-now-pill-inset); }
-.tu-home-card__titles { display: flex; flex-direction: column; min-width: 0; }
-.tu-home-card__title { color: var(--color-text-default); }
-.tu-home-card__dates { color: var(--color-text-muted); }
-.tu-home-card__crew { display: flex; align-items: center; }
-/* Everyone on it, overlapped, the later ones on top */
-.tu-home-card__faces { display: flex; align-items: center; flex: 1 1 0; min-width: 0; }
-.tu-home-card__face { height: 39px; }
-.tu-home-card__face + .tu-home-card__face { margin-left: calc(22px * -1); }
-/* The arrow takes no presses of its own: they land on the card */
-.tu-home-card__go { pointer-events: none; }
-
-/* "Happening now": a soft glass pill with a green bead (a small glow around it, no blur) */
-.tu-home-now {
-  display: flex;
   align-items: center;
-  gap: var(--space-xs);
-  height: var(--d-home-now-pill-height);
-  padding: 0 var(--space-sm);
-  border-radius: var(--radius-pill);
-  background: var(--color-bg-muted);
-  box-shadow: var(--inset-button-soft), var(--shadow-slightly-raised);
-  color: var(--color-text-default);
+  justify-content: center;
+  gap: var(--space-2xl);
+  flex: 1 1 0;
+  min-height: 0;
 }
+.tu-home-face__titles { display: flex; flex-direction: column; align-items: center; gap: var(--space-xs); text-align: center; }
+/* The screen's one big line, bigger than any text style, lifted off the map (elevation-raised, as a text shadow) */
+.tu-home-face__title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 40px;
+  line-height: 1.2;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 4px 12px rgb(0 0 0 / 0.08);
+}
+.tu-home-face__way-in { display: flex; flex-direction: column; align-items: center; }
+/* Everyone on it, overlapped, the later ones on top, standing 8 over the button */
+.tu-home-face__faces { display: flex; align-items: center; margin-bottom: -8px; }
+.tu-home-face__face { height: 57px; }
+.tu-home-face__face + .tu-home-face__face { margin-left: calc(22px * -1); }
+
+/* Coming up, Previous trips: a heading in white (its count softer), then soft cards */
+.tu-home__section { display: flex; flex-direction: column; gap: var(--space-xs); padding: var(--space-md); }
+.tu-home__heading { margin: 0; padding: 0 var(--space-md); }
+.tu-home__count { color: color-mix(in srgb, var(--palette-white) 70%, transparent); }
+
+/* The trip's green bead: it's on now (a small glow around it, no blur) */
 .tu-home-now__dot {
   flex: none;
   width: 10px;
@@ -140,15 +118,17 @@
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--palette-green-500) 20%, transparent);
 }
 
-/* Another trip: a light brand row with its sticker (in a row-sticker square), name and dates, and the faces */
+/* Another trip: a soft glass card with its sticker (in a 48 square), name and dates, and the faces */
 .tu-home-row {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  padding: var(--space-sm) var(--space-md);
-  border-radius: var(--radius-card);
-  background: var(--color-bg-brand-subtle);
+  padding: var(--space-md);
+  border-radius: var(--radius-sheet);
+  background: var(--color-bg-muted);
+  box-shadow: var(--inset-button-soft), var(--shadow-slightly-raised);
 }
+/* Wide stickers shrink to fit the square, so their white edge stays whole */
 .tu-home-row__sticker {
   display: flex;
   align-items: center;
@@ -157,10 +137,10 @@
   width: 48px;
   height: 48px;
 }
-.tu-home-row__sticker > img { max-width: 100%; max-height: 100%; }
+.tu-home-row__sticker > img { max-width: 100%; max-height: 100%; object-fit: contain; }
 .tu-home-row__titles { display: flex; flex-direction: column; flex: 1 1 0; min-width: 0; }
 .tu-home-row__title { color: var(--color-text-default); }
 .tu-home-row__dates { color: var(--color-text-muted); }
-/* Overlapped, the later ones on top, on the row's bottom edge */
-.tu-home-row__faces { display: flex; align-items: center; flex: none; align-self: flex-end; }
+/* Overlapped, the later ones on top, at the end of an 80 column */
+.tu-home-row__faces { display: flex; align-items: center; justify-content: flex-end; flex: none; width: 80px; }
 .tu-home-row__faces > * + * { margin-left: calc(18px * -1); }

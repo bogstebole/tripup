@@ -168,8 +168,6 @@ enum TokDim {
   static let pollLostOpacity: CGFloat = 0.6
   static let pollLiveDot: CGFloat = 9
   static let planMapHeight: CGFloat = 160
-  static let homeCardEdge: CGFloat = 4
-  static let homeNowPillHeight: CGFloat = 36
   static let segmentHeight: CGFloat = 36
   static let stickerMini: CGFloat = 28
   static let pinTailWidth: CGFloat = 35
@@ -186,9 +184,6 @@ enum TokDim {
   static let surfaceHeadSide: CGFloat = 8
   static let surfaceFootSide: CGFloat = 8
   static let widgetMidRadius: CGFloat = 28
-  static let homeCardPadding: CGFloat = 28
-  static let homeCardRadius: CGFloat = 50
-  static let homeNowPillInset: CGFloat = 4
   static let pollPlaceRadius: CGFloat = 28
   static let pollRadius: CGFloat = 36
   static let pollOptionRadius: CGFloat = 34
