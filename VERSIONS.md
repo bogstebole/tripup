@@ -655,6 +655,15 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Final UI, iteration 1.84: Your trips' header stays put; its elements leave one by one with blur (branch `feat/home-sticky-header`)
+- Bogdan: the header on Your trips must stay sticky. The way into the trip needs blur and to be a little slower (it looked like something flashed), and every element should animate on its own as it leaves: blur, fade-out, stagger.
+- App:
+  - `TripsHome` is stateful. `_HomeHeader` is pinned over the list, with the top bar's eased white fading in over the first space-2xl of scroll. A blue underlay grows with the pull past the end.
+  - `HomePart` now wraps each element (the name, the dates, the faces, the button, each heading, each card) and blurs by up to enter-blur as it fades, at enter-ms each, open-stagger-ms apart (`HomeLeave.total` is about 590 ms).
+- Storybook: the same. The header is `.tu-home__bar` over the list, the parts are per element with `filter: blur` in their transitions, and `:where(span.tu-home-part)` keeps the wrappers from overriding the faces' flex.
+- On Bogdan's iPhone 15 as build 13 (`1.0.0+13`), updated in place with devicectl.
+- **Checked:** `flutter analyze` and `tsc` are clean. iOS simulator (debug), recorded: the header stays while scrolling, the bottom pull shows blue, and going in, each element blurs and fades on its own, top to bottom, the map zooms in and Up next opens last. Storybook: the header's position and white while scrolled, and the elements' opacity and blur sampled while leaving.
+
 ### Final UI, iteration 1.83: a bill line closes on its own steps, with blur (branch `fix/bill-line-close`)
 - Bogdan: opening a bill line is good, closing isn't.
 - App: `_BillLine` keeps one controller but closing runs on its own timeline (`_part(openAt, openFor, shutAt, shutFor)`): the people leave the last first, the block folds from 60 ms, the pill comes back at 80 ms, and its faces drop in from 120 ms, 25 apart. About 360 ms in all, versus 420 to open.

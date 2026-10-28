@@ -65,8 +65,12 @@
   color: var(--color-text-default);
   cursor: pointer;
 }
-/* "Your trips", the bell and me */
-.tu-home__head { display: flex; align-items: center; gap: var(--space-sm); }
+/* "Your trips", the bell and me: they stay put at the top while the list scrolls under them */
+.tu-home__bar { position: absolute; inset: 0 0 auto; padding: var(--space-md) var(--space-xl) calc(var(--space-md) + var(--space-2xl)); color: var(--color-text-default); pointer-events: none; }
+.tu-home__bar-white { position: absolute; inset: 0; z-index: -1; transition: opacity var(--fade-ms) linear; }
+.tu-home__bar { isolation: isolate; }
+.tu-home__head { display: flex; align-items: center; gap: var(--space-sm); pointer-events: auto; }
+.tu-home__head-place { height: var(--d-button-md); flex: none; }
 .tu-home__title { flex: 1 1 0; min-width: 0; margin: 0; }
 /* Me: soft glass, as round and as big as the bell */
 .tu-home__me {
@@ -152,20 +156,20 @@
 .tu-home-row__faces { display: flex; align-items: center; justify-content: flex-end; flex: none; width: 80px; }
 .tu-home-row__faces > * + * { margin-left: calc(18px * -1); }
 
-span.tu-home-part { display: block; }
+:where(span.tu-home-part) { display: block; }
 /* As an overlay on the trip (HomeLayer): the map under it, and its parts leaving and coming back one by one */
 .tu-home-layer__map { position: absolute; inset: 0; transform-origin: 50% 25%; pointer-events: none; }
 .tu-home-layer__home { position: absolute; inset: 0; }
 .tu-home-part {
-  transition: opacity var(--fade-ms) var(--ease-out), transform var(--fade-ms) var(--ease-out);
-  transition-delay: calc(var(--i) * var(--stagger-ms));
+  transition: opacity var(--enter-ms) var(--ease-out), transform var(--enter-ms) var(--ease-out), filter var(--enter-ms) var(--ease-out);
+  transition-delay: calc(var(--i) * var(--open-stagger-ms));
 }
-.tu-home-layer__home[data-gone] .tu-home-part { opacity: 0; transform: translateY(calc(var(--space-xs) * -1)); }
+.tu-home-layer__home[data-gone] .tu-home-part { opacity: 0; transform: translateY(calc(var(--space-xs) * -1)); filter: blur(var(--enter-blur)); }
 /* The blue only fades (it holds the parts that are placed absolutely, which a transform would move) */
-.tu-home-layer__home[data-gone] .tu-home-part:has(> .tu-home-hero__ground, > .tu-home__blue, > .tu-home__fade) { transform: none; }
+.tu-home-layer__home[data-gone] .tu-home-part:has(> .tu-home-hero__ground, > .tu-home__blue, > .tu-home__fade) { transform: none; filter: none; }
 /* Coming back, the blue comes with the header, so the cards never land on the bare map */
 .tu-home-layer__home[data-back] .tu-home-part:has(> .tu-home-hero__ground, > .tu-home__blue, > .tu-home__fade) { transition-delay: 0ms; }
 @media (prefers-reduced-motion: reduce) {
   .tu-home-part { transition: opacity var(--fade-ms) linear; transition-delay: 0ms; }
-  .tu-home-layer__home[data-gone] .tu-home-part { transform: none; }
+  .tu-home-layer__home[data-gone] .tu-home-part { transform: none; filter: none; }
 }
