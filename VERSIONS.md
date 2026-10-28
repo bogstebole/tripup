@@ -661,7 +661,7 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - **Where you're staying:** the flat's thumb is a new sticker, `alfama-flat` (a building on Largo Santa Luzia, from Wikimedia Commons, credited in `Assets/stickers-places-credits.md`; full size in `Assets/stickers-app-full/`). Under it Directions (walking, in the phone's maps) and Open in Airbnb (Airbnb's trips, where the booking is), both soft, side by side. The flat's place is in `data.dart` (`stay`).
 - App and Storybook (the story's description too). Not in Figma yet.
 - **Checked:** `flutter analyze` and `tsc` are clean; Ren's catch-up in a local web release build.
-- On Bogdan's iPhone 15 as build 19 (`1.0.0+19`), updated in place with devicectl.
+- On Bogdan's iPhone 15 as build 19 (`1.0.0+19`), updated in place with devicectl; he tried it there first. Then web and Storybook deployed to Vercel (production).
 
 - Bogdan: after See trip details, the cards leaving Your trips overlapped the trip's elements coming in on the map. First Your trips should go, then the map's elements.
 - Since 1.81 the trip's entrance started with the tap: its pins and first control came in at 220 ms, while Your trips' parts were leaving until 620 ms (13 parts since the pill and the sticky header). Now the entrance starts when the last part has gone: its clock starts 400 ms in, so with its own open-delay-ms the first pin and control arrive at 620. The map's zoom still starts with the tap. Back is as it was.
