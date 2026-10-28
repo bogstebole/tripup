@@ -655,6 +655,19 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Final UI, iteration 1.81: Your trips as an overlay on the trip (branch `feat/home-overlay`)
+- Bogdan: the transition from Your trips into the trip was strange. Your trips should be an overlay on the trip and its map (without the map's details). See trip details: the parts leave staggered, gently; the map zooms in on the pin; the map's elements come in as before.
+- App: the trip (map, pins, controls) is always under `TripsHome`, which is transparent over the map, with the blue only under the trips.
+  - `HomeLeave` / `HomePart` stagger its six parts on `_home`.
+  - `_goIn` runs the parts out, `_flyCamera(..., spring: springOpen)` to the start view and the entrance clock.
+  - `_goHome` runs the reverse.
+  - `_homeView()` frames the map under Your trips one zoom level wider, on the hero.
+  - The trip's map layers fade with the entrance (`_tripOnMap`).
+  - Removed: the growing surface (`_openingTrip`, `_RRectClip`), `HomeMapStill` / `HomeHeroFace` and the still's constants. The still's image stays in `assets/map/` for Storybook.
+- Storybook: `HomeLayer` is the same overlay, with CSS-staggered parts. The still stands in for the map and zooms in. The story trip screen is transparent, and Up next's pin enters with the first control.
+- **Checked:** `flutter analyze` and `tsc` are clean. iOS simulator (debug), recorded and stepped frame by frame: in and back, the stagger order, the zoom, the controls. This caught and fixed two bugs: the blue had no width, and a part that had gone collapsed the list (an overflow during Back). Storybook: the parts' opacities sampled every frame, in and back.
+- On Bogdan's iPhone 15 as build 10 (`1.0.0+10`), updated in place with devicectl. Not checked: reduced motion.
+
 ### iPhone at 1.80 (28 Oct): the hero title with a white edge, "Road trip to Lisbon"
 - Bogdan, on 1.79: the trip's name needs the sticker-like white edge from Figma (4 outside the letters), and the trip should be called "Road trip to Lisbon" (was "Schmedeswurtherwesterdeich").
 - App: `_HeroTitle` draws a white stroke copy under the letters, with the shadow on the edge. Storybook: `-webkit-text-stroke` with `paint-order: stroke fill`. `tripTitle` / `TRIP.title` renamed.

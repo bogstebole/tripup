@@ -3,7 +3,6 @@
 .tu-home {
   position: relative;
   height: 100%;
-  background: var(--color-bg-brand);
   color: var(--color-text-on-brand);
 }
 .tu-home__list {
@@ -11,9 +10,13 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: none;
-  /* The last card clear of the fade */
-  padding-bottom: 120px;
 }
+/* The trips under the hero, on the blue: clear for the ground's 275 (the gradient over the map is the ground's), then
+   solid; the last card clear of the fade */
+.tu-home__trips { position: relative; padding-bottom: 120px; }
+.tu-home__blue { position: absolute; inset: 275px 0 0; background: var(--color-bg-brand); }
+.tu-home__trips > .tu-home-part:first-child { position: absolute; inset: 0; }
+.tu-home__trips .tu-home__section { position: relative; }
 .tu-home__list::-webkit-scrollbar { display: none; }
 .tu-home__fade {
   position: absolute;
@@ -148,3 +151,21 @@
 /* Overlapped, the later ones on top, at the end of an 80 column */
 .tu-home-row__faces { display: flex; align-items: center; justify-content: flex-end; flex: none; width: 80px; }
 .tu-home-row__faces > * + * { margin-left: calc(18px * -1); }
+
+span.tu-home-part { display: block; }
+/* As an overlay on the trip (HomeLayer): the map under it, and its parts leaving and coming back one by one */
+.tu-home-layer__map { position: absolute; inset: 0; transform-origin: 50% 25%; pointer-events: none; }
+.tu-home-layer__home { position: absolute; inset: 0; }
+.tu-home-part {
+  transition: opacity var(--fade-ms) var(--ease-out), transform var(--fade-ms) var(--ease-out);
+  transition-delay: calc(var(--i) * var(--stagger-ms));
+}
+.tu-home-layer__home[data-gone] .tu-home-part { opacity: 0; transform: translateY(calc(var(--space-xs) * -1)); }
+/* The blue only fades (it holds the parts that are placed absolutely, which a transform would move) */
+.tu-home-layer__home[data-gone] .tu-home-part:has(> .tu-home-hero__ground, > .tu-home__blue, > .tu-home__fade) { transform: none; }
+/* Coming back, the blue comes with the header, so the cards never land on the bare map */
+.tu-home-layer__home[data-back] .tu-home-part:has(> .tu-home-hero__ground, > .tu-home__blue, > .tu-home__fade) { transition-delay: 0ms; }
+@media (prefers-reduced-motion: reduce) {
+  .tu-home-part { transition: opacity var(--fade-ms) linear; transition-delay: 0ms; }
+  .tu-home-layer__home[data-gone] .tu-home-part { transform: none; }
+}

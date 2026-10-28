@@ -949,15 +949,6 @@ const pastTrips = [
   TripSummary('Hanoi', 'Mar 8 - Mar 15', 'pho', ['person-04', 'person-01'], '€610 · squared up'),
 ];
 
-/// Your trips' map (Figma 258:12058): the still of Lisbon behind the top of the screen, under the trip you're on. In
-/// the design's units, on its 440-wide screen from where the header's padding starts: the design placed the whole
-/// 3584 × 2048 still at (-479, -202, 1592 × 910) (Figma stretches it 1.27 × wide; here it keeps its shape, on the same
-/// centre). The asset is only the part that shows, plus [homeMapRect]'s 80 above for the status bar, at 2 px a unit
-/// (original: Assets/map/home-lisbon-full.png).
-const homeMapImage = 'assets/map/home-lisbon-hero.png';
-const homeMapWidth = 440.0;
-const homeMapRect = Rect.fromLTWH(0, -80, 440, 788);
-
 /// The stickers that pop up all over the splash: the places of the trips on Your trips and the people on them, so
 /// they're loaded for that screen anyway. Each launch takes a random few, at random spots, tilted up to
 /// [splashStickerTilt] degrees either way.
