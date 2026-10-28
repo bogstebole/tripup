@@ -655,6 +655,13 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Final UI, iteration 1.86: Happening now, and a wider way in (branch `fix/home-button-width`)
+- Bogdan: See trip details should be at least 24 wider than the faces above it on each side, and it needs to be clearer that this trip is happening now.
+- App: `_HappeningNow` (a soft glass pill with the green bead, "Happening now · Day 3 of 10") is a new `HomePart` over the name (parts renumbered). `_WayIn` measures the faces and gives the button `minWidth` = faces + space-xl × 2, its words centred. The bead is gone from the button.
+- Storybook: the same (`.tu-home-now`; `.tu-home-face__way-in` is an inline grid with the faces padded by space-xl and the button stretched).
+- **Checked:** `flutter analyze` and `tsc` are clean. iOS simulator and Storybook: the pill over the name, and the button wider than the faces.
+- On Bogdan's iPhone 15 as build 15 (`1.0.0+15`), updated in place with devicectl.
+
 ### Final UI, iteration 1.85: raised faces and name; headings that read over the blue (branch `fix/home-raised`)
 - Bogdan: the faces and "Road trip to Lisbon" are missing the raised drop shadow. "Coming up" doesn't read: dark or blue text over the light part, white over the blue.
 - App: `_Raised` puts elevation-raised under the faces and the name as blurred copies of the shape (none with light effects); the name's text shadows are gone. `_Heading` reads where it sits in the blue (by the blue's `GlobalKey`) and is `text/brand` under 50 % blue, `text/on-brand` above.

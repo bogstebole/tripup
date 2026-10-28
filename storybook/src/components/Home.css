@@ -108,7 +108,12 @@
   -webkit-text-stroke: calc(var(--space-2xs) * 2) var(--palette-white);
   paint-order: stroke fill;
 }
-.tu-home-face__way-in { display: flex; flex-direction: column; align-items: center; }
+.tu-home-face__way-in { display: inline-grid; justify-items: stretch; }
+.tu-home-face__way-in > .tu-home-face__faces { justify-self: center; padding: 0 var(--space-xl); }
+.tu-home-face__way-in > .tu-btn { justify-content: center; }
+/* Happening now: a soft glass pill over the name, the green bead and the day of the trip */
+.tu-home-now { display: inline-flex; align-items: center; gap: var(--space-xs); height: var(--space-2xl); padding: 0 var(--space-sm); border-radius: var(--radius-pill); background: var(--color-bg-muted); box-shadow: var(--inset-button-soft), var(--shadow-slightly-raised); color: var(--color-text-default); margin-bottom: var(--space-2xs); }
+.tu-home-now__day { color: var(--color-text-muted); font-weight: var(--font-weight-medium); }
 /* Everyone on it, overlapped, the later ones on top, standing 8 over the button */
 .tu-home-face__faces { display: flex; align-items: center; margin-bottom: -8px; filter: var(--filter-elevation-raised); }
 .tu-home-face__face { height: 57px; }

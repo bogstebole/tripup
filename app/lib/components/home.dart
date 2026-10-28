@@ -293,7 +293,7 @@ class HomePart extends StatelessWidget {
   final int index;
   final Widget child;
 
-  static const header = 0, title = 1, dates = 2, faces = 3, wayIn = 4, comingUp = 5;
+  static const header = 0, now = 1, title = 2, dates = 3, faces = 4, wayIn = 5, comingUp = 6;
 
   /// Previous trips' heading, after Coming up's heading and cards; then its cards, then the blue, last.
   static int get previous => comingUp + 1 + upcomingTrips.length;
@@ -385,25 +385,15 @@ class _HeroFace extends StatelessWidget {
           Expanded(
             child: Center(
               child: Column(mainAxisSize: MainAxisSize.min, spacing: TokSpace.x2xl, children: [
-                Column(spacing: TokSpace.xs, children: [
-                  HomePart(index: HomePart.title, child: _Raised(child: _HeroTitle(style: TokText.display.copyWith(fontSize: _heroTitle, color: t.textDefault)))),
-                  HomePart(index: HomePart.dates, child: Text('$tripCity · $tripDates', style: TokText.labelMd.copyWith(color: t.textDefault))),
+                Column(spacing: TokSpace.sm, children: [
+                  // It's on now: the first thing over the name
+                  const HomePart(index: HomePart.now, child: _HappeningNow()),
+                  Column(spacing: TokSpace.xs, children: [
+                    HomePart(index: HomePart.title, child: _Raised(child: _HeroTitle(style: TokText.display.copyWith(fontSize: _heroTitle, color: t.textDefault)))),
+                    HomePart(index: HomePart.dates, child: Text('$tripCity · $tripDates', style: TokText.labelMd.copyWith(color: t.textDefault))),
+                  ]),
                 ]),
-                Column(children: [
-                  // Everyone on it, standing on the button
-                  HomePart(
-                    index: HomePart.faces,
-                    child: SizedBox(
-                      height: _heroFace - _heroFaceOnButton,
-                      child: OverflowBox(
-                        alignment: Alignment.topCenter,
-                        maxHeight: _heroFace,
-                        child: _Raised(child: Overlapped(overlap: _heroFaceOverlap, children: [for (final p in crew) Sticker(p.sticker, height: _heroFace)])),
-                      ),
-                    ),
-                  ),
-                  HomePart(index: HomePart.wayIn, child: _SeeTrip(onTap: onOpen)),
-                ]),
+                _WayIn(crew: crew, onOpen: onOpen),
               ]),
             ),
           ),
@@ -443,6 +433,53 @@ class _HeroTitle extends StatelessWidget {
       });
 }
 
+/// Everyone on the trip, standing on "See trip details", which is at least space-xl wider than the faces on each side
+/// (the faces are measured once laid out: their width follows the stickers' images).
+class _WayIn extends StatefulWidget {
+  const _WayIn({required this.crew, required this.onOpen});
+  final List<Person> crew;
+  final VoidCallback onOpen;
+
+  @override
+  State<_WayIn> createState() => _WayInState();
+}
+
+class _WayInState extends State<_WayIn> {
+  final _faces = GlobalKey();
+  double _width = 0;
+
+  void _measure() {
+    final box = _faces.currentContext?.findRenderObject();
+    if (!mounted || box is! RenderBox || !box.hasSize) return;
+    if ((box.size.width - _width).abs() > 0.5) setState(() => _width = box.size.width);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) => _measure());
+    return Column(children: [
+      HomePart(
+        index: HomePart.faces,
+        child: SizedBox(
+          height: _heroFace - _heroFaceOnButton,
+          child: OverflowBox(
+            alignment: Alignment.topCenter,
+            maxHeight: _heroFace,
+            child: _Raised(child: Overlapped(key: _faces, overlap: _heroFaceOverlap, children: [for (final p in widget.crew) Sticker(p.sticker, height: _heroFace)])),
+          ),
+        ),
+      ),
+      HomePart(
+        index: HomePart.wayIn,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minWidth: _width + TokSpace.xl * 2),
+          child: _SeeTrip(onTap: widget.onOpen),
+        ),
+      ),
+    ]);
+  }
+}
+
 /// Lifted off the map by elevation-raised, following the shape itself (the faces' outlines, the title's white edge): each
 /// of the token's shadows is the child again, in its colour, blurred and moved. None with light effects (it's a blur).
 class _Raised extends StatelessWidget {
@@ -470,7 +507,33 @@ class _Raised extends StatelessWidget {
   }
 }
 
-/// "See trip details": the way in, a primary pill with the trip's green bead (it's on now).
+/// The trip is on now: a soft glass pill over its name, the green bead, "Happening now" and which day of the trip it is.
+class _HappeningNow extends StatelessWidget {
+  const _HappeningNow();
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tok;
+    return Glass(
+      kind: GlassKind.soft,
+      height: TokSpace.x2xl,
+      radius: BorderRadius.circular(TokRadius.pill),
+      padding: const EdgeInsets.symmetric(horizontal: TokSpace.sm),
+      child: Row(mainAxisSize: MainAxisSize.min, spacing: TokSpace.xs, children: [
+        const _NowDot(),
+        Text.rich(
+          TextSpan(children: [
+            const TextSpan(text: 'Happening now'),
+            TextSpan(text: ' · Day ${tripDays.indexOf(today) + 1} of ${tripDays.length}', style: TextStyle(color: t.textMuted, fontWeight: TokWeight.medium)),
+          ]),
+          style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textDefault),
+        ),
+      ]),
+    );
+  }
+}
+
+/// "See trip details": the way in, a primary pill.
 class _SeeTrip extends StatelessWidget {
   const _SeeTrip({this.onTap});
   final VoidCallback? onTap;
@@ -486,10 +549,14 @@ class _SeeTrip extends StatelessWidget {
         height: TokDim.buttonLg,
         radius: BorderRadius.circular(TokRadius.pill),
         padding: const EdgeInsets.symmetric(horizontal: TokSpace.md),
-        child: Row(mainAxisSize: MainAxisSize.min, spacing: TokSpace.xs, children: [
-          const _NowDot(),
-          Text('See trip details', style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.iconOnBrand)),
-        ]),
+        // In the middle when the button is wider than its words (see [_WayIn])
+        child: Center(
+          widthFactor: 1,
+          heightFactor: 1,
+          child: Row(mainAxisSize: MainAxisSize.min, spacing: TokSpace.xs, children: [
+            Text('See trip details', style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.iconOnBrand)),
+          ]),
+        ),
       ),
     );
   }
