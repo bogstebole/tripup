@@ -660,6 +660,7 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 - FacePile (the map's groups, who's at a pin) now shows every sticker up to five; with six or more it's four and "+N", so it's never wider than five. Before it was two and "+N".
 - App and Storybook (FacePile story: a seven-person pile added). `components.json` and `COMPONENTS.md` follow. Not in Figma.
 - **Checked:** `flutter analyze` and `tsc` are clean; the FacePile story in a local Storybook build (four faces in full; seven as four and +3).
+- On Bogdan's iPhone 15 as build 20 (`1.0.0+20`), updated in place with devicectl.
 
 - Bogdan: update only this screen; he has made changes of his own in Figma, so nothing else is touched.
 - Ren's phone · The trip so far: the flat is a Sheet row with the new sticker and, under it, Directions and Open in Airbnb (Text button, soft, md, side by side, sm in, xs apart). Coming up starts with La Brasserie de L'Entrecôte - Alvalade at 5 PM (Sheet row, the wings sticker); the Dinner tonight icon row is gone.
