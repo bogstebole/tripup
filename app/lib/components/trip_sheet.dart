@@ -299,9 +299,11 @@ class SheetSection extends StatelessWidget {
 }
 
 /// One line in a pop-up's list: something on the left (a sticker or faces), a name and a line under it, and
-/// whatever sits at the end (an amount, a time, a button).
+/// whatever sits at the end (an amount, a time, a button). A row that does something ends in a chevron, with no
+/// background (it only says the row can be tapped; the whole row is the target): pointing right when it opens
+/// something, down when it opens in place ([expanded] set), turning up while it's open.
 class SheetRow extends StatelessWidget {
-  const SheetRow({super.key, this.leading, required this.title, this.subtitle, this.subtitleColor, this.trailing, this.onTap, this.muted = false});
+  const SheetRow({super.key, this.leading, required this.title, this.subtitle, this.subtitleColor, this.trailing, this.onTap, this.muted = false, this.expanded});
   final Widget? leading;
   final String title;
 
@@ -311,6 +313,9 @@ class SheetRow extends StatelessWidget {
   final Color? subtitleColor;
   final Widget? trailing;
   final VoidCallback? onTap;
+
+  /// For a row that opens in place (Settle up's why): whether it's open now. Null for a row that opens something.
+  final bool? expanded;
 
   @override
   Widget build(BuildContext context) {
@@ -326,9 +331,31 @@ class SheetRow extends StatelessWidget {
           ]),
         ),
         ?trailing,
+        if (onTap != null) RowChevron(expanded: expanded),
       ]),
     );
     return onTap == null ? row : Pressable(onTap: onTap, semanticLabel: title, child: row);
+  }
+}
+
+/// The end of a row that can be tapped: a chevron, no background. Right for a row that opens something; down for one
+/// that opens in place, turning to point up while it's open (a turn on screen: ease in and out).
+class RowChevron extends StatelessWidget {
+  const RowChevron({super.key, this.expanded});
+
+  /// Null: opens something. Otherwise opens in place, and is open now or not.
+  final bool? expanded;
+
+  @override
+  Widget build(BuildContext context) {
+    final icon = LucideIcon(expanded == null ? TuIcons.next : TuIcons.unfold, size: TokSize.iconSm, color: context.tok.iconMuted);
+    if (expanded == null) return icon;
+    return AnimatedRotation(
+      turns: expanded! ? 0.5 : 0,
+      duration: (MediaQuery.maybeDisableAnimationsOf(context) ?? false) ? Duration.zero : TokMotion.enter,
+      curve: TokMotion.easeInOut,
+      child: icon,
+    );
   }
 }
 

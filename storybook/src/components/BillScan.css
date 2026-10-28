@@ -63,7 +63,9 @@
 .tu-bill__line:focus-visible { outline: var(--space-3xs) solid var(--color-border-focus); outline-offset: calc(var(--space-3xs) * -1); }
 /* Quantity × price and the faces together, the total at the far end */
 .tu-bill__meta { display: flex; align-items: center; gap: var(--space-xs); }
-.tu-bill__meta > :last-child { margin-left: auto; }
+.tu-bill__amount { margin-left: auto; }
+.tu-bill__ask { color: var(--color-text-brand); }
+.tu-bill__unclaimed { padding: 0 var(--space-md); color: var(--color-text-muted); }
 .tu-bill__qty { color: var(--color-text-muted); }
 .tu-bill__total { display: flex; align-items: flex-end; gap: var(--space-sm); padding: 0 var(--space-md); color: var(--color-text-default); }
 .tu-bill__total-label { flex: 1 1 0; min-width: 0; }
@@ -73,7 +75,8 @@
 .tu-bill__pile > * + * { margin-left: calc(var(--d-chip-face-overlap) * -1); }
 .tu-bill__who { overflow: hidden; }
 /* The opened line's faces, in a grey block under it */
-.tu-bill__faces { display: flex; margin: 0 var(--space-xs) var(--space-sm); padding: var(--space-sm) 0; border-radius: var(--radius-card); background: var(--color-bg-muted); }
+.tu-bill__faces-block { display: flex; flex-direction: column; align-items: center; gap: var(--space-sm); margin: 0 var(--space-xs) var(--space-sm); padding: var(--space-sm) 0; border-radius: var(--radius-card); background: var(--color-bg-muted); }
+.tu-bill__faces { display: flex; align-self: stretch; }
 .tu-bill__face {
   flex: 1 1 0;
   min-width: 0;

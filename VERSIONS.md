@@ -655,6 +655,15 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Final UI, iteration 1.78: chevrons on rows, a place's story, a bill nobody logged (branch `feat/rows-recap-bill`)
+- Bogdan: rows don't show they can be tapped (a chevron, no background); a place we've been should open what happened there in the same pop-up with Back; the bill needs a way to say who had a line when nobody logged it, and to show its lines open.
+- `SheetRow` ends in `RowChevron` whenever it has a tap: right, or down and turning for rows that open in place (`expanded`). The bank list's and the search's own arrows are removed.
+- Itinerary: `ItineraryFlow` swaps between the days and `VisitPage`, a place's timeline (Got there, what was paid, Left). Back returns to the days, and the footer has Show on the map. `Visited` has arrival and leaving times and who was there; `Expense` takes an optional place and minute.
+- The bill: `BillLine.shared` (the couvert, the water) and `claimedBy` (the demo's later moments). A dish nobody picked has nobody ("Who had it?"), with the count in the header, the first one open, and Everyone had it. Lines nobody takes split evenly, and the summary says so. The fries and the dessert are no longer picked in `brasserie-menu.json`.
+- Storybook: the same, plus a new story, Pop-ups › Itinerary · a place we've been. The scan story text is updated.
+- **Checked:** `flutter analyze` and `tsc` are clean. A temporary web build at 440 wide showed the itinerary with chevrons, Mercado de Arroios' timeline and the bill (fries open, faded faces, the split-evenly line); it has been removed. Storybook showed the visit and the scan stories.
+- Not on the iPhone, in an APK or on Vercel. Not in Figma.
+
 ### Design system 1.77: fewer component tokens (branch `refactor/trim-component-tokens`)
 - Bogdan: component tokens are confusing and mostly overkill. Keep the derived corners and what the Live Activity shares; drop aliases and one-off values.
 - 197 component tokens became 36, all sizes: derived corners and insets and the sizes they're made from, values several components share, and three the Live Activity shares. Component colours are gone. Aliases became the token they pointed at. A one-component value became a constant at the top of its file in the app (and in the widget's Swift), and a literal in Storybook's CSS.

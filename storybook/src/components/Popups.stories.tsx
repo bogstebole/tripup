@@ -5,7 +5,7 @@ import tokens from '../../../design-system/tokens.json';
 import {
   billTotal, BILL_IN, clockTime, dayName, euros, isPaid, moneyWith, MY_ID, payLine, PEOPLE, planDetails, planEnd, planStart, POLL_CLOSES,
   POLL_OPENS, POLL_VOTES, pollClosed, pollLeader, pollOpen, pollOptionById, pollStartedLine, pollWonLine, SCANNED_BILL, squaredUp, TODAY, TRIP,
-  BANKS, TRIP_DAYS, TRIP_NOW, type Bank, type Bill, type Payment, type Plan, type PollState,
+  BANKS, TRIP_DAYS, TRIP_NOW, VISITED, type Bank, type Bill, type Payment, type Plan, type PollState, type Visited,
 } from '../data';
 import { ActionBar, TopBar } from './Bars';
 import { Camera } from './BillScan';
@@ -14,7 +14,7 @@ import { NoticeLayer, useNotice, type NoticeState } from './Notice';
 import { PollCard, PollPage, PollScrim, pollSubtitle } from './Poll';
 import { ToggleChips } from './ToggleChips';
 import {
-  addHeaderOf, AddFooter, AddPage, ITINERARY_SUBTITLE, ItineraryPage, type AddPageProps, type AddStep,
+  addHeaderOf, AddFooter, AddPage, ITINERARY_SUBTITLE, ItineraryFlow, ItineraryPage, VisitFooter, visitHeaderOf, type AddPageProps, type AddStep,
   type ItineraryPageProps, type MoneySlot, type MoneyStep, type MoneyTab, usePlanDraft, useMoneyFlow,
 } from './TripPages';
 import { TripSheet } from './TripSheet';
@@ -122,7 +122,7 @@ function PlanDetails({ plan, now, onClose, onBack }: { plan: Plan; now: Date; on
  * app, so the pop-up's header can follow it; each time Add opens, it's on the choice. A plan sent from it closes the
  * pop-up with a note, and is on the itinerary from then on.
  */
-function Screen({ start = null, open: shown, onOpen, money, moneyTab, itinerary, add, poll, notices: shared, planDays: firstDays = [], children }: {
+function Screen({ start = null, open: shown, onOpen, money, moneyTab, itinerary, visit: firstVisit, add, poll, notices: shared, planDays: firstDays = [], children }: {
   start?: Which | null;
   /** The tab Money opens on (Settle up, by default). */
   moneyTab?: MoneyTab;
@@ -130,7 +130,9 @@ function Screen({ start = null, open: shown, onOpen, money, moneyTab, itinerary,
   onOpen?: (which: Which | null) => void;
   /** Money as a story runs it (see useMoneyFlow); left out, the money before dinner, with Pay working. */
   money?: MoneySlot;
-  itinerary?: Omit<ItineraryPageProps, 'onPick' | 'onOpen' | 'onPoll' | 'days' | 'added'>;
+  itinerary?: Omit<ItineraryPageProps, 'onVisit' | 'onOpen' | 'onPoll' | 'days' | 'added'>;
+  /** The itinerary open on a place we've been (its name). */
+  visit?: string;
   add?: Omit<AddPageProps, 'step' | 'onStep' | 'draft'> & { start?: AddStep };
   poll?: PollSlot;
   notices?: NoticeState;
@@ -146,6 +148,8 @@ function Screen({ start = null, open: shown, onOpen, money, moneyTab, itinerary,
   const notices = shared ?? ownNotices;
   // The itinerary's own filter (not the map's, so planning ahead doesn't change the map); each time it opens, on All
   const [planDays, setPlanDays] = useState<number[]>(firstDays);
+  // A place we've been, open in the itinerary (Back goes to the days)
+  const [visit, setVisit] = useState<Visited | null>(VISITED.find(v => v.name === firstVisit) ?? null);
   // Where Add to the trip is: its choice, Plan something or Invite someone; and the plan being made, shared by its page,
   // its footer (Send) and its Back (a different place)
   const [addStep, setAddStep] = useState<AddStep>(add?.start ?? 'choose');
@@ -173,7 +177,10 @@ function Screen({ start = null, open: shown, onOpen, money, moneyTab, itinerary,
   const [lastOpen, setLastOpen] = useState(open);
   if (open !== lastOpen) {
     setLastOpen(open);
-    if (open === 'itinerary' && !back) setPlanDays([]);
+    if (open === 'itinerary' && !back) {
+      setPlanDays([]);
+      setVisit(null);
+    }
     if (open === 'money') moneyFlow.reset();
     if (open === 'add') {
       setAddStep('choose');
@@ -189,10 +196,11 @@ function Screen({ start = null, open: shown, onOpen, money, moneyTab, itinerary,
   const addHeader = addHeaderOf(addStep);
   const sheet: Record<Which, { title: string; subtitle?: string; page: ReactNode; top?: ReactNode; footer?: ReactNode; onBack?: () => void } | undefined> = {
     itinerary: {
-      title: 'Itinerary',
-      subtitle: ITINERARY_SUBTITLE,
-      page: <ItineraryPage onPick={close} onOpen={openDetails} onPoll={poll && (() => setOpen('poll'))} {...itinerary} days={planDays} added={added} />,
-      top: <ToggleChips label="Filter the itinerary by day" options={dayOptions} selected={planDays} onChange={setPlanDays} inset="xs" />,
+      ...(visit ? visitHeaderOf(visit) : { title: 'Itinerary', subtitle: ITINERARY_SUBTITLE }),
+      page: <ItineraryFlow visit={visit} list={<ItineraryPage onVisit={setVisit} onOpen={openDetails} onPoll={poll && (() => setOpen('poll'))} {...itinerary} days={planDays} added={added} />} />,
+      top: visit ? undefined : <ToggleChips label="Filter the itinerary by day" options={dayOptions} selected={planDays} onChange={setPlanDays} inset="xs" />,
+      footer: visit ? <VisitFooter onMap={close} /> : undefined,
+      onBack: visit ? () => setVisit(null) : undefined,
     },
     money: { title: moneyFlow.title, subtitle: moneyFlow.subtitle, page: moneyFlow.page, footer: moneyFlow.footer, onBack: moneyFlow.onBack },
     add: {
@@ -498,8 +506,14 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Itinerary: Story = {
-  parameters: { docs: { description: { story: 'Every day of the trip: today first, then the days ahead, then the ones behind us. No grey blocks: a hairline between days, md above and below it (as on a place\'s Group page). Each day has its heading ("Thu 14 · Day 3 · Today", past days muted; the day number is still its place in the trip), then where we\'ve been ("Been there", no check) and what\'s planned (its time); a day with nothing yet says "Nothing planned yet". Headings and rows share the page\'s one left edge. Under the title, pinned while the page scrolls under it, the day filter: the same chips as the map\'s (All, Tue 12…), but its own, so planning ahead doesn\'t change what the map shows. It opens on All, on today, just under the header; picking days shows only those, in the same order (they combine; All brings every day back, at once). The next plan says "Up next" in brand blue. A plan with an end (one sent from Add\'s Plan something) says until when: "In 2 hrs · until 8 PM". Tapping a place we\'ve been closes the pop-up and shows it on the map (the app flies there). Tapping a plan opens its details right there (the full view, as from the Up next card): the pop-up and the full view are the same surface in the same place, so the surface stays, the list goes at once and the plan\'s page fades in where it was (the full view\'s crossfade, already a third in at the start, on spring-snap: 0.35 s, no bounce), the backdrop staying as it is. Closing (its ×, or a tap outside) slides it down past the bottom edge like a pop-up (spring-collapse: 0.38 s, no bounce), its content fading on the way. La Brasserie has its whole place card: photos, about, Know before you go, its facts, and the Menu tab. A plan we know little about (Tram 28, one sent from Add) has its time and how far it is under its name ("Tomorrow, 10 AM · 4.3 km away"), a small map of it with its sticker (plan/map-height 160, radius-card; the app draws the live map\'s tiles, here a plain block stands in), and no Menu tab: Overview · Group. Reduced motion: the details are there at once and gone at once.' } } },
+  parameters: { docs: { description: { story: 'Every day of the trip: today first, then the days ahead, then the ones behind us. No grey blocks: a hairline between days, md above and below it (as on a place\'s Group page). Each day has its heading ("Thu 14 · Day 3 · Today", past days muted; the day number is still its place in the trip), then where we\'ve been ("Been there · 10:15 AM", no check) and what\'s planned (its time); a day with nothing yet says "Nothing planned yet". Headings and rows share the page\'s one left edge. Under the title, pinned while the page scrolls under it, the day filter: the same chips as the map\'s (All, Tue 12…), but its own, so planning ahead doesn\'t change what the map shows. It opens on All, on today, just under the header; picking days shows only those, in the same order (they combine; All brings every day back, at once). The next plan says "Up next" in brand blue. A plan with an end (one sent from Add\'s Plan something) says until when: "In 2 hrs · until 8 PM". Every row that does something ends in a chevron with no background (it only says the row can be tapped; the whole row is the target). Tapping a place we\'ve been opens what happened there, in the same pop-up (see Itinerary · a place we\'ve been). Tapping a plan opens its details right there (the full view, as from the Up next card): the pop-up and the full view are the same surface in the same place, so the surface stays, the list goes at once and the plan\'s page fades in where it was (the full view\'s crossfade, already a third in at the start, on spring-snap: 0.35 s, no bounce), the backdrop staying as it is. Closing (its ×, or a tap outside) slides it down past the bottom edge like a pop-up (spring-collapse: 0.38 s, no bounce), its content fading on the way. La Brasserie has its whole place card: photos, about, Know before you go, its facts, and the Menu tab. A plan we know little about (Tram 28, one sent from Add) has its time and how far it is under its name ("Tomorrow, 10 AM · 4.3 km away"), a small map of it with its sticker (plan/map-height 160, radius-card; the app draws the live map\'s tiles, here a plain block stands in), and no Menu tab: Overview · Group. Reduced motion: the details are there at once and gone at once.' } } },
   render: () => <Screen start="itinerary" />,
+};
+
+export const ItineraryVisit: Story = {
+  name: 'Itinerary · a place we\'ve been',
+  parameters: { docs: { description: { story: 'A place we\'ve been, tapped in the itinerary, opens in the same pop-up, the way Money goes into Pay: the title becomes the place, with Back to the days, and the facts under it ("Market · Wed 13 May · 50 min · €46.00 spent"). The day filter goes while it\'s open. The place on a muted block, like Ren\'s catch-up tiles, then What happened, a timeline: a dot per moment on a line down to the next. Got there (the time, who came, their faces); what was paid there (Groceries and drinks: "Leo paid · split 4 ways · yours €11.50", the amount on the right); Left ("50 min there"). A place where nothing was paid has just the two. The footer has Show on the map (soft): the pop-up closes and the map flies there. The page swaps like Money\'s steps: the new one fades in, the old one fades out with a blur.' } } },
+  render: () => <Screen start="itinerary" visit="Mercado de Arroios" />,
 };
 
 export const ItineraryOneDay: Story = {
@@ -566,7 +580,7 @@ export const BankApproval: Story = {
 
 export const ScanTheBill: Story = {
   name: 'Scan the bill',
-  parameters: { docs: { description: { story: 'The camera, over everything, opened from the money pop-up\'s Scan the bill: the paper bill on one plain colour (zinc 900). A moment to find the paper (scan-find-ms 600), then the corner marks close in from the screen\'s edges onto it and turn blue (enter-ms, ease-out); a line reads it top to bottom at an even pace (scan-read-ms 900, linear); then the bill rises (enter-ms) while the colour fades out (enter-ms) and the paper with it (fade-ms), so the bill sits where the pop-up does, on the same blurred backdrop. "The bill", "La Brasserie de L\'Entrecôte · 10 lines"; the total first, big (€228.80); then every line with its menu name, "qty × price · who", its amount and every face of whoever had it, overlapped: whoever picked it on the menu, or everyone if nobody did (the couvert, the water). Tap a line to change who had it: the whole table in a grey block under it (faces toggle; someone always has it); the totals under the page follow, to the cent (You €59.12, Maya €53.32, Nic €35.22, Leo €50.42, Ren €30.72), each at least 64 px wide, scrolling sideways once they don\'t fit. "You paid" opens a small menu above it, from its corner (fade and scale from press-scale: fade-ms in, press-ms out): everyone at the table, the payer checked; picking one changes who paid, and a tap anywhere else closes it. Add fades and blurs the bill out (fade-ms) into the money under it, which now has the bill, and tells everyone at the top. Reduced motion: straight to the bill, which fades in, and no blur. Replay starts it over.' } } },
+  parameters: { docs: { description: { story: 'The camera, over everything, opened from the money pop-up\'s Scan the bill: the paper bill on one plain colour (zinc 900). A moment to find the paper (scan-find-ms 600), then the corner marks close in from the screen\'s edges onto it and turn blue (enter-ms, ease-out); a line reads it top to bottom at an even pace (scan-read-ms 900, linear); then the bill rises (enter-ms) while the colour fades out (enter-ms) and the paper with it (fade-ms), so the bill sits where the pop-up does, on the same blurred backdrop. "The bill", "La Brasserie de L\'Entrecôte · 10 lines"; the total first, big (€228.80); then every line with its menu name, "qty × price · who", its amount and every face of whoever had it, overlapped: whoever picked it on the menu, or everyone if nobody did (the couvert, the water). Every line ends in a chevron (down; it turns up while the line is open), so it reads as something that opens. Tap a line to change who had it: the whole table in a grey block under it (faces toggle), and Everyone had it under them for a line the whole table shared. A dish nobody picked on the Menu (the fries and the dessert, ordered at the table) comes off the scan with nobody: "Who had it?" in brand instead of faces, the header says "2 nobody has yet", and the first of them opens by itself once the bill is up. The couvert and the water are for the whole table. While a line has nobody, the summary says it splits evenly if it stays that way, and the shares already count it so. The totals under the page follow, to the cent (once the fries are Leo\'s and the dessert Maya\'s: You €59.12, Maya €53.32, Nic €35.22, Leo €50.42, Ren €30.72), each at least 64 px wide, scrolling sideways once they don\'t fit. "You paid" opens a small menu above it, from its corner (fade and scale from press-scale: fade-ms in, press-ms out): everyone at the table, the payer checked; picking one changes who paid, and a tap anywhere else closes it. Add fades and blurs the bill out (fade-ms) into the money under it, which now has the bill, and tells everyone at the top. Reduced motion: straight to the bill, which fades in, and no blur. Replay starts it over.' } } },
   render: () => <ScanStory />,
 };
 

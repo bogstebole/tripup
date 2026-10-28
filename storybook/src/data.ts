@@ -252,17 +252,23 @@ export const planDetails = (p: Plan) =>
     ? { ...EVENT, at: p.at }
     : { name: p.name, sticker: p.sticker, at: p.at, rating: p.rating ?? '', cuisine: p.cuisine ?? '', photos: [], about: '', tips: [], whenLong: whenLong(planStart(p)) };
 
-/** Places already visited: stickers on the map, the trip's history (tilt in degrees; kind under the name on Ren's catch-up). */
-export type Visited = { name: string; sticker: string; tilt: number; day: number; kind: string };
+/** A time on a trip day, from minutes since midnight. */
+export const atMinute = (day: number, minute: number) => new Date(2026, 4, day, Math.floor(minute / 60), minute % 60);
+
+/** Places already visited: stickers on the map, the trip's history (tilt in degrees; kind under the name on Ren's
+ *  catch-up). When we got there and left (minutes from midnight) and who came, for what happened there. */
+export type Visited = { name: string; sticker: string; tilt: number; day: number; kind: string; arrived: number; left: number; who: string[] };
+/** Everyone before Ren joined. */
+const EARLY = ['ari', 'maya', 'nic', 'leo'];
 export const VISITED: Visited[] = [
-  { name: 'Igreja de São João de Brito', sticker: 'sao-joao-de-brito', tilt: -5, day: 12, kind: 'Church' },
-  { name: 'Jardim do Campo Grande', sticker: 'campo-grande', tilt: 6, day: 12, kind: 'Park' },
-  { name: 'Estádio José Alvalade', sticker: 'alvalade', tilt: -4, day: 12, kind: 'Stadium' },
-  { name: 'Teatro Maria Matos', sticker: 'maria-matos', tilt: -10, day: 12, kind: 'Theatre' },
-  { name: 'Pastelaria Versailles', sticker: 'versailles', tilt: -8, day: 13, kind: 'Café' },
-  { name: 'Mercado de Arroios', sticker: 'mercado-arroios', tilt: 4, day: 13, kind: 'Market' },
-  { name: 'Torre de Belém', sticker: 'belem', tilt: -6, day: 13, kind: 'Tower' },
-  { name: 'Padrão dos Descobrimentos', sticker: 'padrao', tilt: 5, day: 13, kind: 'Monument' },
+  { name: 'Igreja de São João de Brito', sticker: 'sao-joao-de-brito', tilt: -5, day: 12, kind: 'Church', arrived: 10 * 60 + 10, left: 10 * 60 + 35, who: EARLY },
+  { name: 'Jardim do Campo Grande', sticker: 'campo-grande', tilt: 6, day: 12, kind: 'Park', arrived: 10 * 60 + 50, left: 11 * 60 + 40, who: EARLY },
+  { name: 'Estádio José Alvalade', sticker: 'alvalade', tilt: -4, day: 12, kind: 'Stadium', arrived: 12 * 60, left: 13 * 60 + 15, who: EARLY },
+  { name: 'Teatro Maria Matos', sticker: 'maria-matos', tilt: -10, day: 12, kind: 'Theatre', arrived: 19 * 60 + 30, left: 21 * 60 + 45, who: ['ari', 'maya', 'leo'] },
+  { name: 'Pastelaria Versailles', sticker: 'versailles', tilt: -8, day: 13, kind: 'Café', arrived: 9 * 60, left: 9 * 60 + 45, who: EARLY },
+  { name: 'Mercado de Arroios', sticker: 'mercado-arroios', tilt: 4, day: 13, kind: 'Market', arrived: 10 * 60 + 15, left: 11 * 60 + 5, who: EARLY },
+  { name: 'Torre de Belém', sticker: 'belem', tilt: -6, day: 13, kind: 'Tower', arrived: 13 * 60 + 40, left: 15 * 60 + 10, who: EARLY },
+  { name: 'Padrão dos Descobrimentos', sticker: 'padrao', tilt: 5, day: 13, kind: 'Monument', arrived: 15 * 60 + 25, left: 16 * 60, who: EARLY },
 ];
 
 // ---------- Money: what the trip has cost so far (the money pop-up)
@@ -271,11 +277,15 @@ export const VISITED: Visited[] = [
 // everyone picked. The money comes in two modes: before the bill (PRE_DINNER) and with it in (BILL_IN).
 
 /** `paidBy` and `split` are person ids: who paid, and who shares it (equally, unless `shares` says who had what). */
-export type Expense = { title: string; amount: number; paidBy: string; split: string[]; day: number; shares?: Record<string, number> };
+/** place and minute: where it was paid (a place we've been) and when, for that place's story in the itinerary. */
+export type Expense = { title: string; amount: number; paidBy: string; split: string[]; day: number; shares?: Record<string, number>; place?: string; minute?: number };
+/** What was paid at a place we've been, in the order it happened. */
+export const spentAt = (v: { name: string }) => EXPENSES.filter(e => e.place === v.name).sort((x, y) => (x.minute ?? 0) - (y.minute ?? 0));
+
 /** The ones from before tonight, newest first. */
 export const EXPENSES: Expense[] = [
-  { title: 'Groceries and drinks', amount: 46, paidBy: 'leo', split: ['ari', 'maya', 'nic', 'leo'], day: 13 },
-  { title: 'Tuk-tuk tour', amount: 80, paidBy: 'nic', split: ['ari', 'maya', 'nic', 'leo'], day: 13 },
+  { title: 'Groceries and drinks', amount: 46, paidBy: 'leo', split: ['ari', 'maya', 'nic', 'leo'], day: 13, place: 'Mercado de Arroios', minute: 10 * 60 + 50 },
+  { title: 'Tuk-tuk tour', amount: 80, paidBy: 'nic', split: ['ari', 'maya', 'nic', 'leo'], day: 13, place: 'Torre de Belém', minute: 13 * 60 + 40 },
   { title: 'Airbnb, Alfama flat', amount: 600, paidBy: 'maya', split: ['ari', 'maya', 'nic', 'leo'], day: 12 },
 ];
 export const shareOf = (e: Expense, id: string) => (e.shares ? e.shares[id] ?? 0 : e.split.includes(id) ? e.amount / e.split.length : 0);
@@ -383,44 +393,54 @@ export const menuItemNamed = (name?: string) => (name ? MENU_ITEMS.find(i => i.n
 /** Who picked `item` on the Menu: the others, then me. */
 export const pickersOf = (item: MenuItem) => [...(item.pickedBy ?? []).filter(id => id !== MY_ID), ...(item.pickedBy?.includes(MY_ID) ? [MY_ID] : [])];
 
-/** One line of a printed bill: how it reads on the paper, how many, at what price, and which menu item it is. */
-export type BillLine = { printed: string; qty: number; unit: number; item?: string };
+/** One line of a printed bill: how it reads on the paper, how many, at what price, and which menu item it is.
+ *  shared: for the whole table, so nobody picks it (the couvert, the water). claimedBy: who said a line nobody picked
+ *  was theirs at the table (dessert ordered later); only the moments after the bill use it, as if the table had
+ *  sorted it out. */
+export type BillLine = { printed: string; qty: number; unit: number; item?: string; shared?: boolean; claimedBy?: string[] };
 export const lineTotal = (l: BillLine) => l.qty * l.unit;
 
 /** Tonight's bill at La Brasserie, line by line, at the menu's prices: what everyone picked, plus the couvert and
  *  the water, which nobody picked. 10 lines, €228.80. */
 export const BRASSERIE_BILL: BillLine[] = [
-  { printed: 'COUVERT INDIVIDUAL', qty: 5, unit: 2.8, item: 'Individual couvert' },
+  { printed: 'COUVERT INDIVIDUAL', qty: 5, unit: 2.8, item: 'Individual couvert', shared: true },
   { printed: 'ENTRECOTE SALADA', qty: 3, unit: 23.9, item: 'Sirloin entrecôte with lettuce and rocket salad' },
   { printed: 'ENTRECOTE SALMAO', qty: 1, unit: 29.8, item: 'Sirloin entrecôte with marinated salmon' },
   { printed: 'SEITAN SALADA', qty: 1, unit: 22, item: 'Seitan steak with lettuce and rocket salad' },
-  { printed: 'BATATA FRITA', qty: 1, unit: 3.6, item: 'Fries' },
-  { printed: 'FONDANT CHOCOLATE', qty: 1, unit: 6.5, item: 'Chocolate fondant with ice cream' },
+  { printed: 'BATATA FRITA', qty: 1, unit: 3.6, item: 'Fries', claimedBy: ['leo'] },
+  { printed: 'FONDANT CHOCOLATE', qty: 1, unit: 6.5, item: 'Chocolate fondant with ice cream', claimedBy: ['maya'] },
   { printed: 'CREME BRULEE', qty: 2, unit: 6.4, item: 'Crème brûlée' },
   { printed: 'SOALHEIRO GRANIT', qty: 2, unit: 28.5, item: 'Soalheiro, Granit, Minho' },
   { printed: 'SUMOL', qty: 2, unit: 2.9, item: 'Sumol or Lipton Ice Tea' },
-  { printed: 'AGUA LUSO 50CL', qty: 2, unit: 2.8, item: 'Luso water 50cl' },
+  { printed: 'AGUA LUSO 50CL', qty: 2, unit: 2.8, item: 'Luso water 50cl', shared: true },
 ];
 
 /** Everyone who's coming, at the table. */
 export const DINNER_TABLE = PEOPLE.filter(p => p.going).map(p => p.id);
 
-/** Who had a line: whoever picked it on the Menu, split between them. A line nobody picked starts with everyone at
- *  the table; any line can be changed by hand. */
+/** Who had a line: whoever picked it on the Menu, split between them; the whole table for what's shared. A dish
+ *  nobody picked (ordered at the table, or nobody used the Menu) has nobody yet: someone says it was theirs on the
+ *  bill. Any line can be changed by hand. */
 export const whoHad = (line: BillLine, table: string[]) => {
   const item = menuItemNamed(line.item);
   const picked = item ? pickersOf(item).filter(id => table.includes(id)) : [];
-  return picked.length ? picked : table;
+  return picked.length ? picked : line.shared ? table : [];
 };
+
+/** The lines nobody has said were theirs yet. */
+export const unclaimedOf = (b: Bill) => b.who.flatMap((w, i) => (w.length ? [] : [i]));
 
 /** A scanned bill: its lines, who had each (by line), and who paid. */
 export type Bill = { lines: BillLine[]; who: string[][]; paidBy: string };
 export const billTotal = (b: Bill) => b.lines.reduce((sum, l) => sum + lineTotal(l), 0);
 
-/** What each person had, to the cent. */
+/** What each person had, to the cent. A line nobody has claimed is split evenly between everyone at the table. */
 export const billShares = (b: Bill) => {
   const out: Record<string, number> = {};
-  b.lines.forEach((l, i) => b.who[i].forEach(id => { out[id] = (out[id] ?? 0) + lineTotal(l) / b.who[i].length; }));
+  b.lines.forEach((l, i) => {
+    const had = b.who[i].length ? b.who[i] : DINNER_TABLE;
+    had.forEach(id => { out[id] = (out[id] ?? 0) + lineTotal(l) / had.length; });
+  });
   return Object.fromEntries(Object.entries(out).map(([id, v]) => [id, Math.round(v * 100) / 100]));
 };
 
@@ -430,10 +450,15 @@ export const billExpense = (b: Bill): Expense => {
   return { title: "Dinner, La Brasserie de L'Entrecôte", amount: billTotal(b), paidBy: b.paidBy, split: Object.keys(shares).filter(id => shares[id] > 0), day: TODAY, shares };
 };
 
-/** The bill as it comes off the scan, before anyone changes a line: paid by me. Shares: You €59.12, Maya €53.32,
- *  Nic €35.22, Leo €50.42, Ren €30.72. */
-export const scannedBill = (): Bill => ({ lines: BRASSERIE_BILL, who: BRASSERIE_BILL.map(l => whoHad(l, DINNER_TABLE)), paidBy: MY_ID });
-export const SCANNED_BILL = scannedBill();
+/** The bill as it comes off the scan, before anyone changes a line: paid by me, the fries and the dessert with nobody
+ *  yet. claimed: as the table sorted it out, those two with whoever said they were theirs (the moments after the
+ *  bill). Shares then: You €59.12, Maya €53.32, Nic €35.22, Leo €50.42, Ren €30.72. */
+export const scannedBill = (claimed = false): Bill => ({
+  lines: BRASSERIE_BILL,
+  who: BRASSERIE_BILL.map(l => { const w = whoHad(l, DINNER_TABLE); return !w.length && claimed ? l.claimedBy ?? w : w; }),
+  paidBy: MY_ID,
+});
+export const SCANNED_BILL = scannedBill(true);
 
 /** Before the bill: €726.00, 3 expenses, 3 payments instead of 9. */
 export const PRE_DINNER = moneyWith();

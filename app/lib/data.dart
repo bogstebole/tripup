@@ -250,7 +250,7 @@ const plans = [
 
 /// Places already visited: stickers on the map, the trip's history.
 class Visited {
-  const Visited(this.name, this.sticker, this.at, this.tilt, this.day, this.kind);
+  const Visited(this.name, this.sticker, this.at, this.tilt, this.day, this.kind, {required this.arrived, required this.left, this.who = early});
   final String name, sticker;
 
   /// What kind of place it is (Church, Park), under its name on Ren's catch-up.
@@ -258,17 +258,30 @@ class Visited {
   final LatLng at;
   final double tilt;
   final int day;
+
+  /// When we got there and left, in minutes from midnight, and who was there.
+  final int arrived, left;
+  final List<String> who;
+
+  DateTime get arrivedAt => DateTime(tripYear, tripMonth, day, arrived ~/ 60, arrived % 60);
+  DateTime get leftAt => DateTime(tripYear, tripMonth, day, left ~/ 60, left % 60);
+
+  /// What was paid there, in the order it happened.
+  List<Expense> get spent => [for (final e in expenses) if (e.place == name) e]..sort((a, b) => a.minute!.compareTo(b.minute!));
 }
 
+/// Everyone before Ren joined.
+const early = ['ari', 'maya', 'nic', 'leo'];
+
 const visited = [
-  Visited('Igreja de São João de Brito', 'sao-joao-de-brito', LatLng(38.7560, -9.1462), -5, 12, 'Church'),
-  Visited('Jardim do Campo Grande', 'campo-grande', LatLng(38.7600, -9.1500), 6, 12, 'Park'),
-  Visited('Estádio José Alvalade', 'alvalade', LatLng(38.7612, -9.1608), -4, 12, 'Stadium'),
-  Visited('Teatro Maria Matos', 'maria-matos', LatLng(38.7465, -9.1390), -10, 12, 'Theatre'),
-  Visited('Pastelaria Versailles', 'versailles', LatLng(38.7395, -9.1458), -8, 13, 'Café'),
-  Visited('Mercado de Arroios', 'mercado-arroios', LatLng(38.7340, -9.1350), 4, 13, 'Market'),
-  Visited('Torre de Belém', 'belem', LatLng(38.6916, -9.2160), -6, 13, 'Tower'),
-  Visited('Padrão dos Descobrimentos', 'padrao', LatLng(38.6936, -9.2057), 5, 13, 'Monument'),
+  Visited('Igreja de São João de Brito', 'sao-joao-de-brito', LatLng(38.7560, -9.1462), -5, 12, 'Church', arrived: 10 * 60 + 10, left: 10 * 60 + 35),
+  Visited('Jardim do Campo Grande', 'campo-grande', LatLng(38.7600, -9.1500), 6, 12, 'Park', arrived: 10 * 60 + 50, left: 11 * 60 + 40),
+  Visited('Estádio José Alvalade', 'alvalade', LatLng(38.7612, -9.1608), -4, 12, 'Stadium', arrived: 12 * 60, left: 13 * 60 + 15),
+  Visited('Teatro Maria Matos', 'maria-matos', LatLng(38.7465, -9.1390), -10, 12, 'Theatre', arrived: 19 * 60 + 30, left: 21 * 60 + 45, who: ['ari', 'maya', 'leo']),
+  Visited('Pastelaria Versailles', 'versailles', LatLng(38.7395, -9.1458), -8, 13, 'Café', arrived: 9 * 60, left: 9 * 60 + 45),
+  Visited('Mercado de Arroios', 'mercado-arroios', LatLng(38.7340, -9.1350), 4, 13, 'Market', arrived: 10 * 60 + 15, left: 11 * 60 + 5),
+  Visited('Torre de Belém', 'belem', LatLng(38.6916, -9.2160), -6, 13, 'Tower', arrived: 13 * 60 + 40, left: 15 * 60 + 10),
+  Visited('Padrão dos Descobrimentos', 'padrao', LatLng(38.6936, -9.2057), 5, 13, 'Monument', arrived: 15 * 60 + 25, left: 16 * 60),
 ];
 
 const me = LatLng(38.7478, -9.1475);
@@ -342,7 +355,7 @@ void jumpTo(StoryMoment m) {
     duePayments.clear();
     return;
   }
-  addBill(scannedBill(tripNow()));
+  addBill(scannedBill(tripNow(), claimed: true));
   if (m.paid) {
     settleUp.forEach(recordPayment);
     duePayments.clear();
@@ -438,7 +451,7 @@ String dayName(DateTime t, DateTime now) => switch (_daysBetween(now, t)) {
 // Tonight's dinner isn't on the bill yet; until it is, it's an estimate from what everyone picked.
 
 class Expense {
-  const Expense(this.title, this.amount, this.paidBy, this.split, this.day, {this.shares});
+  const Expense(this.title, this.amount, this.paidBy, this.split, this.day, {this.shares, this.place, this.minute});
   final String title;
   final double amount;
 
@@ -448,12 +461,19 @@ class Expense {
   final int day;
   final Map<String, double>? shares;
 
+  /// Where it was paid (a place we've been, by name) and when (minutes from midnight), for that place's story in the
+  /// itinerary.
+  final String? place;
+  final int? minute;
+
+  DateTime? get at => minute == null ? null : DateTime(tripYear, tripMonth, day, minute! ~/ 60, minute! % 60);
+
   double shareOf(String id) => shares?[id] ?? (split.contains(id) && shares == null ? amount / split.length : 0);
 }
 
 const expenses = [
-  Expense('Groceries and drinks', 46, 'leo', ['ari', 'maya', 'nic', 'leo'], 13),
-  Expense('Tuk-tuk tour', 80, 'nic', ['ari', 'maya', 'nic', 'leo'], 13),
+  Expense('Groceries and drinks', 46, 'leo', ['ari', 'maya', 'nic', 'leo'], 13, place: 'Mercado de Arroios', minute: 10 * 60 + 50),
+  Expense('Tuk-tuk tour', 80, 'nic', ['ari', 'maya', 'nic', 'leo'], 13, place: 'Torre de Belém', minute: 13 * 60 + 40),
   Expense('Airbnb, Alfama flat', 600, 'maya', ['ari', 'maya', 'nic', 'leo'], 12),
 ];
 
@@ -601,11 +621,18 @@ List<String> pickersOf(MenuItem item) => [
 
 /// One line of a printed bill: how it reads on the paper, how many, at what price, and which menu item it is.
 class BillLine {
-  const BillLine(this.printed, this.qty, this.unit, {this.item});
+  const BillLine(this.printed, this.qty, this.unit, {this.item, this.shared = false, this.claimedBy});
   final String printed;
   final int qty;
   final double unit;
   final String? item;
+
+  /// For the whole table, so nobody picks it (the couvert, the water).
+  final bool shared;
+
+  /// Who said it was theirs at the table, for a line nobody picked on the Menu (ordered later, like dessert). Only the
+  /// demo's later moments use it, as if the table had sorted it out; on the bill itself the line waits for someone.
+  final List<String>? claimedBy;
 
   double get total => qty * unit;
 }
@@ -613,27 +640,28 @@ class BillLine {
 /// Tonight's bill at La Brasserie, line by line, at the menu's prices: what everyone picked, plus the couvert and
 /// the water, which nobody picked.
 const brasserieBill = [
-  BillLine('COUVERT INDIVIDUAL', 5, 2.80, item: 'Individual couvert'),
+  BillLine('COUVERT INDIVIDUAL', 5, 2.80, item: 'Individual couvert', shared: true),
   BillLine('ENTRECOTE SALADA', 3, 23.90, item: 'Sirloin entrecôte with lettuce and rocket salad'),
   BillLine('ENTRECOTE SALMAO', 1, 29.80, item: 'Sirloin entrecôte with marinated salmon'),
   BillLine('SEITAN SALADA', 1, 22.00, item: 'Seitan steak with lettuce and rocket salad'),
-  BillLine('BATATA FRITA', 1, 3.60, item: 'Fries'),
-  BillLine('FONDANT CHOCOLATE', 1, 6.50, item: 'Chocolate fondant with ice cream'),
+  BillLine('BATATA FRITA', 1, 3.60, item: 'Fries', claimedBy: ['leo']),
+  BillLine('FONDANT CHOCOLATE', 1, 6.50, item: 'Chocolate fondant with ice cream', claimedBy: ['maya']),
   BillLine('CREME BRULEE', 2, 6.40, item: 'Crème brûlée'),
   BillLine('SOALHEIRO GRANIT', 2, 28.50, item: 'Soalheiro, Granit, Minho'),
   BillLine('SUMOL', 2, 2.90, item: 'Sumol or Lipton Ice Tea'),
-  BillLine('AGUA LUSO 50CL', 2, 2.80, item: 'Luso water 50cl'),
+  BillLine('AGUA LUSO 50CL', 2, 2.80, item: 'Luso water 50cl', shared: true),
 ];
 
 MenuItem? menuItemNamed(String? name) => name == null ? null : [for (final s in loadedMenu ?? const <MenuSection>[]) ...s.items].where((i) => i.name == name).firstOrNull;
 
-/// Who had a line: whoever picked it on the Menu, split between them. A line nobody picked starts with everyone at
-/// the table; any line can be changed by hand. Wine nobody else picked stays with the ones who did, so two people
-/// skipping it needs nothing special.
+/// Who had a line: whoever picked it on the Menu, split between them; the whole table for what's shared (the couvert,
+/// the water). A dish nobody picked (ordered at the table, or nobody used the Menu) has nobody yet: someone says it was
+/// theirs on the bill. Any line can be changed by hand. Wine nobody else picked stays with the ones who did, so two
+/// people skipping it needs nothing special.
 List<String> whoHad(BillLine line, List<String> table) {
   final item = menuItemNamed(line.item);
   final picked = item == null ? const <String>[] : [for (final id in pickersOf(item)) if (table.contains(id)) id];
-  return picked.isEmpty ? table : picked;
+  return picked.isNotEmpty ? picked : line.shared ? table : const [];
 }
 
 /// A scanned bill: its lines, who had each, and who paid.
@@ -646,12 +674,16 @@ class Bill {
 
   double get total => lines.fold(0.0, (sum, l) => sum + l.total);
 
-  /// What each person had, to the cent.
+  /// The lines nobody has said were theirs yet.
+  List<int> get unclaimed => [for (final (i, w) in who.indexed) if (w.isEmpty) i];
+
+  /// What each person had, to the cent. A line nobody has claimed is split evenly between everyone at the table.
   Map<String, double> get shares {
     final out = <String, double>{};
     for (final (i, l) in lines.indexed) {
-      for (final id in who[i]) {
-        out[id] = (out[id] ?? 0) + l.total / who[i].length;
+      final had = who[i].isEmpty ? dinnerTable : who[i];
+      for (final id in had) {
+        out[id] = (out[id] ?? 0) + l.total / had.length;
       }
     }
     return {for (final e in out.entries) e.key: (e.value * 100).round() / 100};
@@ -663,8 +695,15 @@ class Bill {
 /// Everyone who's coming, at the table.
 List<String> get dinnerTable => [for (final p in people) if (p.going) p.id];
 
-/// The bill as it comes off the scan, before anyone changes a line.
-Bill scannedBill(DateTime at) => Bill(brasserieBill, [for (final l in brasserieBill) whoHad(l, dinnerTable)], myId, at);
+/// The bill as it comes off the scan, before anyone changes a line. [claimed]: as the table sorted it out, the lines
+/// nobody picked with whoever said they were theirs (the demo's moments after the bill).
+Bill scannedBill(DateTime at, {bool claimed = false}) => Bill(brasserieBill, [
+      for (final l in brasserieBill)
+        switch (whoHad(l, dinnerTable)) {
+          final w when w.isEmpty && claimed => l.claimedBy ?? w,
+          final w => w,
+        },
+    ], myId, at);
 
 /// Tonight's bill, once someone has scanned it and added it to the trip's money.
 final dinnerBill = ValueNotifier<Bill?>(null);

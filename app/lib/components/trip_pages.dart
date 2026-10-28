@@ -20,13 +20,13 @@ import 'trip_sheet.dart';
 // Its own measurements: used only here, so they're not tokens.
 const double _planPickerHeight = 180;
 
-/// Every day of the trip, in order: where we've been, what's planned, and today marked. Tapping a stop shows it
-/// on the map.
+/// Every day of the trip, in order: where we've been, what's planned, and today marked. A place we've been opens what
+/// happened there (see [VisitPage]); a plan opens its details.
 class ItineraryPage extends StatelessWidget {
-  const ItineraryPage({super.key, this.onPick, this.onOpen, this.onPoll, this.days = const {}});
+  const ItineraryPage({super.key, this.onVisit, this.onOpen, this.onPoll, this.days = const {}});
 
-  /// A place we've been: show it on the map.
-  final ValueChanged<LatLng>? onPick;
+  /// A place we've been: what happened there, in the same pop-up.
+  final ValueChanged<Visited>? onVisit;
 
   /// A plan: open its details.
   final ValueChanged<Plan>? onOpen;
@@ -57,8 +57,8 @@ class ItineraryPage extends StatelessWidget {
               SheetRow(
                 leading: RowThumb(sticker: v.sticker, tilt: v.tilt),
                 title: v.name,
-                subtitle: 'Been there',
-                onTap: onPick == null ? null : () => onPick!(v.at),
+                subtitle: 'Been there · ${clockTime(v.arrivedAt)}',
+                onTap: onVisit == null ? null : () => onVisit!(v),
               ),
             // Tonight's slot, until the poll has picked a place
             if (day == today && dinnerChoice(now) == null)
@@ -104,6 +104,131 @@ class ItineraryPage extends StatelessWidget {
           ]);
         }(),
     ]);
+  }
+}
+
+/// The itinerary's two steps, one at a time like Money's: the days, or a place we've been. The pop-up's header follows
+/// (see [headerOf]), with Back to the days; the old page fades out with a blur as the new one fades in.
+class ItineraryFlow extends StatelessWidget {
+  const ItineraryFlow({super.key, required this.list, this.visit});
+  final ItineraryPage list;
+  final Visited? visit;
+
+  static (String, String) headerOf(Visited? v) => v == null ? ('Itinerary', ItineraryPage.subtitle) : (v.name, VisitPage.subtitleOf(v));
+
+  /// A place's footer: show it on the map (the days have none).
+  static Widget? footer(Visited? v, ValueChanged<LatLng> onMap) => v == null
+      ? null
+      : SheetFooter(children: [TuTextButton(label: 'Show on the map', kind: GlassKind.soft, size: TuButtonSize.lg, wide: true, onTap: () => onMap(v.at))]);
+
+  @override
+  Widget build(BuildContext context) => AnimatedSwitcher(
+        duration: TokMotion.enter,
+        reverseDuration: TokMotion.fade,
+        switchInCurve: TokMotion.easeOut,
+        layoutBuilder: (current, previous) => Stack(alignment: Alignment.topCenter, children: [...previous, ?current]),
+        transitionBuilder: (child, anim) => child.key == ValueKey(visit) ? FadeTransition(opacity: anim, child: child) : fadeBlurOut(anim, child),
+        child: KeyedSubtree(key: ValueKey(visit), child: visit == null ? list : VisitPage(visit: visit!)),
+      );
+}
+
+/// A place we've been, as it went: the place big, then a timeline: when we got there and who came, what was paid there
+/// (who paid, how it's split, my part), and when we left. The facts (what it is, the day, how long, what was spent)
+/// are in the header.
+class VisitPage extends StatelessWidget {
+  const VisitPage({super.key, required this.visit});
+  final Visited visit;
+
+  static String subtitleOf(Visited v) {
+    final spent = v.spent.fold(0.0, (sum, e) => sum + e.amount);
+    return [v.kind, '${weekdayShort(DateTime(tripYear, tripMonth, v.day))} ${v.day} May', _length(v.left - v.arrived), spent > 0 ? '${euros(spent)} spent' : 'Nothing spent'].join(' · ');
+  }
+
+  /// 25 min, 1 h 25 min.
+  static String _length(int minutes) => minutes < 60 ? '$minutes min' : '${minutes ~/ 60} h${minutes % 60 > 0 ? ' ${minutes % 60} min' : ''}';
+
+  static String _names(List<String> ids) {
+    final names = [for (final id in ids) personById(id).name];
+    return names.length < 2 ? names.join() : '${names.take(names.length - 1).join(', ')} and ${names.last}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tok;
+    final v = visit, spent = v.spent;
+    return StaggerIn(children: [
+      // The place, on a muted block like Ren's catch-up tiles
+      Container(
+        height: TokSpace.x5xl * 2,
+        padding: const EdgeInsets.all(TokSpace.sm),
+        decoration: BoxDecoration(color: t.bgMuted, borderRadius: BorderRadius.circular(TokRadius.card)),
+        child: Center(child: FittedBox(fit: BoxFit.scaleDown, child: Sticker(v.sticker, height: TokSpace.x5xl + TokSpace.xl, tilt: v.tilt))),
+      ),
+      const SheetSection('What happened', top: TokSpace.lg),
+      _Moment(
+        time: v.arrivedAt,
+        title: 'Got there',
+        subtitle: _names(v.who),
+        below: Overlapped(overlap: TokDim.chipFaceOverlap, children: [for (final id in v.who) Sticker(personById(id).sticker, size: StickerSize.chip)]),
+      ),
+      for (final e in spent)
+        _Moment(
+          time: e.at!,
+          title: e.title,
+          subtitle: '${e.paidBy == myId ? 'You' : personById(e.paidBy).name} paid · split ${e.split.length} ways${e.shareOf(myId) > 0 ? ' · yours ${euros(e.shareOf(myId))}' : ''}',
+          trailing: Text(euros(e.amount), style: TokText.labelLg.copyWith(color: t.textDefault)),
+        ),
+      _Moment(time: v.leftAt, title: 'Left', subtitle: '${_length(v.left - v.arrived)} there', last: true),
+    ]);
+  }
+}
+
+/// One moment on a visit's timeline: the time, a dot on a line that runs down to the next moment, and what happened.
+class _Moment extends StatelessWidget {
+  const _Moment({required this.time, required this.title, this.subtitle, this.trailing, this.below, this.last = false});
+  final DateTime time;
+  final String title;
+  final String? subtitle;
+  final Widget? trailing, below;
+
+  /// The last moment: no line after its dot.
+  final bool last;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tok;
+    return IntrinsicHeight(
+      child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: TokSpace.sm, children: [
+        // The time, as wide as the longest ("12:00 PM")
+        Padding(
+          padding: const EdgeInsets.only(left: TokSpace.xs, top: TokSpace.x3xs),
+          child: SizedBox(width: TokSpace.x4xl + TokSpace.xs, child: Text(clockTime(time), style: TokText.labelMd.copyWith(fontWeight: TokWeight.semibold, color: t.textDefault))),
+        ),
+        // The dot on the line
+        Column(children: [
+          Padding(
+            padding: const EdgeInsets.only(top: TokSpace.x2xs),
+            child: Container(width: TokSpace.xs, height: TokSpace.xs, decoration: BoxDecoration(color: t.bgBrand, shape: BoxShape.circle)),
+          ),
+          if (!last) Expanded(child: Container(width: TokDim.surfaceEdgeWidth, margin: const EdgeInsets.only(top: TokSpace.x2xs), color: t.borderDefault)),
+        ]),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(right: TokSpace.xs, bottom: last ? 0 : TokSpace.lg),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.sm, children: [
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: TokSpace.x3xs, children: [
+                  Text(title, style: TokText.labelLg.copyWith(color: t.textDefault)),
+                  if (subtitle != null) Text(subtitle!, style: TokText.bodySm.copyWith(color: t.textMuted)),
+                  if (below != null) Padding(padding: const EdgeInsets.only(top: TokSpace.x2xs), child: below!),
+                ]),
+              ),
+              ?trailing,
+            ]),
+          ),
+        ),
+      ]),
+    );
   }
 }
 
@@ -180,6 +305,7 @@ class _MoneyPageState extends State<MoneyPage> {
           subtitleColor: isPaid(p) ? t.textSuccess : null,
           trailing: Text(euros(p.amount), style: TokText.labelLg.copyWith(color: t.textDefault)),
           onTap: () => setState(() => _why = _why == p ? null : p),
+          expanded: _why == p,
         ),
         // Where the amount comes from: what they had, what they paid, and why it's one payment to this person
         AnimatedSize(
@@ -499,8 +625,8 @@ class _PayPageState extends State<PayPage> {
         SheetRow(
           title: 'Why ${euros(p.amount)}',
           subtitle: _why ? 'Hide why' : 'What you had, and what you paid',
-          trailing: LucideIcon(_why ? TuIcons.fold : TuIcons.unfold, size: TokSize.iconSm, color: t.iconMuted),
           onTap: () => setState(() => _why = !_why),
+          expanded: _why,
         ),
         AnimatedSize(
           duration: TokMotion.enter,
@@ -561,14 +687,12 @@ class BankPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.tok;
     return StaggerIn(children: [
       for (final (i, b) in banks.indexed) ...[
         if (i > 0) const Hairline(),
         SheetRow(
           leading: BankLogo(b),
           title: b.name,
-          trailing: LucideIcon(TuIcons.next, size: TokSize.iconSm, color: t.iconMuted),
           onTap: onPick == null
               ? null
               : () {
@@ -870,7 +994,6 @@ class _AddPageState extends State<AddPage> {
           leading: RowThumb(sticker: s.sticker),
           title: s.name,
           subtitle: '${s.kind} · ${s.area} · ${walkLabel(s.at, now)}',
-          trailing: LucideIcon(TuIcons.forward, size: TokSize.iconSm, color: t.iconMuted),
           onTap: () => _pick(s),
         ),
       ],
