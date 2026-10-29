@@ -655,6 +655,9 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Repo: the research v1 page is gone (branch `chore/drop-research-html`, 29 Oct)
+- Bogdan: the HTML research page (v1, Serbian) was never used; the research that was sent is the PDF. `research/tripup-research.html` and the 38 screens only it used (`research/img/`) are removed. `research/strips/` stays, the v3 research (`process/research/tripup-competitive-research-v3-en.md`) shows them. The page is still in git history.
+
 ### Repo: no company name (branch `chore/no-brand-name`, 29 Oct)
 - Bogdan: the repo shouldn't say which company the test is for, just in case. The README, this file's intro, the research page's header and footer, and the GitHub description now say "a product design test" or just TripUp.
 - Files that carried this machine's folder path (which has the name in it) no longer do: the fridge mock uses relative image paths, `tools/render_icons.sh` works in `$ICONS_WORK` (default `/tmp/tripup-icons`), and `.claude/launch.json` is local only (gitignored).
