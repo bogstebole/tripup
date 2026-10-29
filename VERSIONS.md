@@ -655,6 +655,11 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Repo: public (branch `chore/go-public`, 29 Oct)
+- Bogdan: the reviewers won't share their GitHub accounts, so the repo has to be public. Checked first, files and the whole history: no keys, passwords, tokens or private contacts.
+- `Assets/people-raw/portrait-04.webp` is removed: it's an Unsplash+ image (paid, watermarked), never used, and not ours to share. It is still in git history.
+- Left as they are: the competitors' App Store screenshots in `process/research/` (research use, credited to the apps), and the brief's scenario retold in DECISIONS and USER-STORIES.
+
 ### Repo: the research v1 page is gone (branch `chore/drop-research-html`, 29 Oct)
 - Bogdan: the HTML research page (v1, Serbian) was never used; the research that was sent is the PDF. `research/tripup-research.html` and the 38 screens only it used (`research/img/`) are removed. `research/strips/` stays, the v3 research (`process/research/tripup-competitive-research-v3-en.md`) shows them. The page is still in git history.
 
