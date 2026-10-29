@@ -1,6 +1,6 @@
 # TripUp
 
-A group-trip app, made by Bogdan ([bogste.com](https://bogste.com)) for the Bending Spoons product design test (Task #2). It follows one scenario from start to end: four friends in Lisbon. Ren joins mid-trip, they vote on where to eat, the bill gets split, and everyone squares up.
+A group-trip app, made by Bogdan ([bogste.com](https://bogste.com)) as a product design test. It follows one scenario from start to end: four friends in Lisbon. Ren joins mid-trip, they vote on where to eat, the bill gets split, and everyone squares up.
 
 - **Web prototype:** https://tripup-three.vercel.app (the Flutter app built for the web; on a phone it runs slower than the native app)
 - **Component library:** https://tripup-storybook.vercel.app

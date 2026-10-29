@@ -1,6 +1,6 @@
 # TripUp: versions and process
 
-Every version made for the Bending Spoons Task #2, oldest first, with what changed and what was decided. Nothing here is overwritten: each new version gets its own file or folder, and the whole folder is in git, so `git log` shows every saved state.
+Every version of TripUp, oldest first, with what changed and what was decided. Nothing here is overwritten: each new version gets its own file or folder, and the whole folder is in git, so `git log` shows every saved state.
 
 ## 20 Oct 2026
 
@@ -655,6 +655,11 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
   - in Storybook: Money · pay, Overview, Your trips, Up next, the poll on the map and the poll pop-up;
   - in Figma: Your trips, Overview, The poll, open, The bill and Pay Maya.
 
+### Repo: no company name (branch `chore/no-brand-name`, 29 Oct)
+- Bogdan: the repo shouldn't say which company the test is for, just in case. The README, this file's intro, the research page's header and footer, and the GitHub description now say "a product design test" or just TripUp.
+- Files that carried this machine's folder path (which has the name in it) no longer do: the fridge mock uses relative image paths, `tools/render_icons.sh` works in `$ICONS_WORK` (default `/tmp/tripup-icons`), and `.claude/launch.json` is local only (gitignored).
+- Older commits still have the old text; history isn't rewritten.
+
 ### Android APK at 1.91 (28 Oct)
 - `releases/TripUp-android-1.91.apk` (35.3 MB, arm64, versionCode 20), built from main with the same command as 1.71. It installs over 1.75 as an update. The older APKs are kept.
 - The case study's APK link on Google Drive still serves 1.75. Bogdan uploads 1.91 as a new version of the same Drive file (Manage versions), so the link stays the same.
@@ -662,7 +667,7 @@ Bogdan's notes on the poll card: wider, a bar under each choice, who voted for w
 ### Repo: a README, and no leftovers (branch `docs/readme`)
 - Bogdan: tidy the repo. A root `README.md` says what TripUp is, links the web prototype, Storybook and the case study, explains each folder and how the work was logged, and how to run the app and Storybook.
 - The 98 local branches already merged into `main` are deleted, and so are the 36 merged ones on GitHub. Two unmerged experiments stay: `perf/web-wasm` (local) and `try/new-bundle-id`. Five leftover worktrees are removed; all of them were already merged. One of them held a change Xcode had made on its own to `project.pbxproj` and nobody committed; it was saved as a patch before the worktree went.
-- The repo is renamed from `fake-task` to **`tripup`** (https://github.com/bogstebole/tripup, still private), with the description "TripUp: a group-trip app for the Bending Spoons product design test. Flutter app, Storybook, design tokens and the whole process." GitHub redirects the old URL. `origin` points at the new one, and `components.json`'s repo link uses it too.
+- The repo is renamed from `fake-task` to **`tripup`** (https://github.com/bogstebole/tripup, still private), with the description "TripUp: a group-trip app, made as a product design test. Flutter app, Storybook, design tokens and the whole process." GitHub redirects the old URL. `origin` points at the new one, and `components.json`'s repo link uses it too.
 
 ### Final UI, iteration 1.91: a face pile shows everyone up to five (branch `fix/face-pile-five`)
 - Bogdan: "+2" next to two faces makes no sense, they'd all fit. Only past five should it say "+".
